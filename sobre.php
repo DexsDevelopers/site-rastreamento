@@ -54,15 +54,19 @@ body {
     50% { box-shadow: 0 0 40px rgba(255,51,51,0.6); }
 }
 
-/* Header Moderno */
+/* Header com Glassmorphism */
 .header { 
-    background: rgba(0,0,0,0.95); 
+    background: rgba(0,0,0,0.3); 
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
     position: sticky; 
-    top: 0; 
+    top: 20px; 
     z-index: 1000; 
     padding: 0;
+    margin: 0 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
 }
 .nav-container { 
@@ -89,7 +93,7 @@ body {
     align-items: center;
 }
 .nav-links a { 
-    color: rgba(255,255,255,0.8); 
+    color: rgba(255,255,255,0.9); 
     text-decoration: none; 
     font-weight: 500; 
     font-size: 0.95rem;
@@ -115,21 +119,24 @@ body {
     width: 100%;
 }
 
-/* Mobile Menu Moderno */
+/* Mobile Menu com Glassmorphism */
 .mobile-menu-toggle { 
     display: none; 
-    background: none; 
-    border: none; 
-    color: rgba(255,255,255,0.8); 
+    background: rgba(255,255,255,0.1); 
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.9); 
     font-size: 1.3rem; 
     cursor: pointer; 
     padding: 0.5rem;
     transition: all 0.3s ease;
-    border-radius: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 .mobile-menu-toggle:hover { 
     color: #FF3333; 
-    background: rgba(255,51,51,0.1);
+    background: rgba(255,51,51,0.2);
+    border-color: rgba(255,51,51,0.3);
 }
 .mobile-menu { 
     display: none; 
@@ -137,11 +144,14 @@ body {
     top: 100%; 
     left: 0; 
     right: 0; 
-    background: rgba(0,0,0,0.98); 
+    background: rgba(0,0,0,0.4); 
     backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255,255,255,0.1); 
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0 0 20px 20px;
     padding: 1rem 0; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    margin: 0 20px;
 }
 .mobile-menu.active { 
     display: block; 
@@ -149,7 +159,7 @@ body {
 }
 .mobile-menu a { 
     display: block; 
-    color: rgba(255,255,255,0.8); 
+    color: rgba(255,255,255,0.9); 
     text-decoration: none; 
     padding: 1rem 2rem; 
     font-weight: 500; 
@@ -159,7 +169,7 @@ body {
 }
 .mobile-menu a:hover { 
     color: #FF3333; 
-    background: rgba(255,51,51,0.05); 
+    background: rgba(255,51,51,0.1); 
     transform: translateX(10px); 
 }
 .mobile-menu a:last-child { 
@@ -650,6 +660,7 @@ body {
 }
 
 @media (max-width: 768px) {
+    .header { margin: 0 10px; top: 10px; }
     .hero { padding: 6rem 1rem; }
     .hero h1 { font-size: 3rem; }
     .hero p { font-size: 1.3rem; }
@@ -657,6 +668,7 @@ body {
     .nav-container { padding: 0 1rem; position: relative; }
     .nav-links { display: none; }
     .mobile-menu-toggle { display: block; }
+    .mobile-menu { margin: 0 10px; }
     .about-image i { font-size: 6rem; }
     .stat-number { font-size: 3rem; }
     .cta-title { font-size: 2.5rem; }
