@@ -454,6 +454,33 @@ body {
                 <p>Sistema oficial de monitoramento em tempo real</p>
             </div>
         </div>
+        <div class="gallery-item">
+            <div class="gallery-image">
+                <img src="assets/images/whatsapp-4.jpg?v=<?php echo time(); ?>" alt="Vitor João">
+            </div>
+            <div class="gallery-info">
+                <h4>Vitor João - AdolfoSP</h4>
+                <p>Monitoramento com interface integrada ao WhatsApp</p>
+            </div>
+        </div>
+        <div class="gallery-item">
+            <div class="gallery-image">
+                <img src="assets/images/whatsapp-5.jpg?v=<?php echo time(); ?>" alt="2L CLIENTE">
+            </div>
+            <div class="gallery-info">
+                <h4>2L CLIENTE - Entrega Confirmada</h4>
+                <p>Sistema de entrega e pagamento funcionando</p>
+            </div>
+        </div>
+        <div class="gallery-item">
+            <div class="gallery-image">
+                <img src="assets/images/whatsapp-6.jpg?v=<?php echo time(); ?>" alt="Bada CLIENTE">
+            </div>
+            <div class="gallery-info">
+                <h4>Bada CLIENTE - Go</h4>
+                <p>Sistema de Indicação + Rastreamento completo</p>
+            </div>
+        </div>
     </div>
 </section>
 
