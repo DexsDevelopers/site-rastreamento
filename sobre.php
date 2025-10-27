@@ -356,12 +356,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
             <div class="gallery-grid">
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="./assets/images/whatsapp-1.jpg" alt="WhatsApp Luiz Gabriel Petrópolis" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: rgba(255,51,51,0.1); border-radius: 8px;">
-                            <span style="font-size: 2rem;">📱</span>
-                        </div>
+                        <img src="assets/images/whatsapp-1.jpg" alt="WhatsApp Luiz Gabriel Petrópolis" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
                         <h4>Luiz Gabriel - Petrópolis</h4>
@@ -372,12 +368,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="./assets/images/whatsapp-2.jpg" alt="WhatsApp juuh santts Ubá" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: rgba(255,51,51,0.1); border-radius: 8px;">
-                            <span style="font-size: 2rem;">📱</span>
-                        </div>
+                        <img src="assets/images/whatsapp-2.jpg" alt="WhatsApp juuh santts Ubá" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
                         <h4>juuh santts - Ubá</h4>
@@ -388,12 +380,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="./assets/images/whatsapp-3.jpg" alt="WhatsApp RKZIN Jardim Camburi" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: rgba(255,51,51,0.1); border-radius: 8px;">
-                            <span style="font-size: 2rem;">📱</span>
-                        </div>
+                        <img src="assets/images/whatsapp-3.jpg" alt="WhatsApp RKZIN Jardim Camburi" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
                         <h4>RKZIN - Jardim Camburi</h4>
@@ -404,12 +392,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="./assets/images/whatsapp-4.jpg" alt="WhatsApp Vitor João AdolfoSP" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: rgba(255,51,51,0.1); border-radius: 8px;">
-                            <span style="font-size: 2rem;">📱</span>
-                        </div>
+                        <img src="assets/images/whatsapp-4.jpg" alt="WhatsApp Vitor João AdolfoSP" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
                         <h4>Vitor João - AdolfoSP</h4>
@@ -420,12 +404,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="./assets/images/whatsapp-5.jpg" alt="WhatsApp 2L CLIENTE Entrega" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: rgba(255,51,51,0.1); border-radius: 8px;">
-                            <span style="font-size: 2rem;">📱</span>
-                        </div>
+                        <img src="assets/images/whatsapp-5.jpg" alt="WhatsApp 2L CLIENTE Entrega" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
                         <h4>2L CLIENTE - Entrega Confirmada</h4>
@@ -436,12 +416,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="./assets/images/whatsapp-6.jpg" alt="WhatsApp Bada CLIENTE Go" 
-                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: rgba(255,51,51,0.1); border-radius: 8px;">
-                            <span style="font-size: 2rem;">📱</span>
-                        </div>
+                        <img src="assets/images/whatsapp-6.jpg" alt="WhatsApp Bada CLIENTE Go" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
                         <h4>Bada CLIENTE - Go</h4>
