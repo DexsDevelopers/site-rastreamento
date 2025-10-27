@@ -21,142 +21,602 @@ header("Expires: 0");
     --primary: #FF3333; --primary-dark: #CC0000; --secondary: #FF6600;
     --dark: #0A0A0A; --dark-light: #1A1A1A; --light: #FFF; 
     --success: #16A34A; --gradient: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
+    --glass: rgba(255,255,255,0.1); --glass-border: rgba(255,255,255,0.2);
+    --shadow: 0 20px 40px rgba(0,0,0,0.3); --shadow-hover: 0 30px 60px rgba(255,51,51,0.2);
 }
-body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--light); line-height: 1.6; }
+body { 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 50%, #0A0A0A 100%);
+    color: var(--light); 
+    line-height: 1.6; 
+    overflow-x: hidden;
+}
 
-/* Header */
-.header { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); 
-          border-bottom: 1px solid rgba(255, 51, 51, 0.1); position: sticky; 
-          top: 0; z-index: 1000; padding: 1rem 0; }
-.nav-container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; 
-                 display: flex; justify-content: space-between; align-items: center; }
-.logo { font-size: 1.5rem; font-weight: 800; background: var(--gradient); 
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-        text-decoration: none; }
-.nav-links { display: flex; gap: 2rem; }
-.nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; 
-               font-weight: 500; transition: 0.3s; }
-.nav-links a:hover { color: var(--primary); }
+/* Animações */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255,51,51,0.3); }
+    50% { box-shadow: 0 0 40px rgba(255,51,51,0.6); }
+}
 
-/* Hero Section */
-.hero { padding: 8rem 2rem; text-align: center; 
-        background: linear-gradient(180deg, #0A0A0A 0%, #1A0000 100%); }
-.hero h1 { font-size: 4rem; font-weight: 900; margin-bottom: 1rem;
-           background: var(--gradient); -webkit-background-clip: text;
-           -webkit-text-fill-color: transparent; }
-.hero p { font-size: 1.5rem; color: rgba(255,255,255,0.7); max-width: 800px;
-          margin: 0 auto; }
+/* Header Moderno */
+.header { 
+    background: rgba(10, 10, 10, 0.95); 
+    backdrop-filter: blur(20px); 
+    border-bottom: 1px solid var(--glass-border); 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
+    padding: 1.5rem 0;
+    animation: fadeInUp 0.8s ease-out;
+}
+.nav-container { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 0 2rem; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+.logo { 
+    font-size: 2rem; 
+    font-weight: 900; 
+    background: var(--gradient); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.logo:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(255,51,51,0.5));
+}
+.nav-links { display: flex; gap: 3rem; }
+.nav-links a { 
+    color: rgba(255,255,255,0.8); 
+    text-decoration: none; 
+    font-weight: 600; 
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+.nav-links a:hover { 
+    color: var(--primary); 
+    transform: translateY(-2px);
+}
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient);
+    transition: width 0.3s ease;
+}
+.nav-links a:hover::after {
+    width: 100%;
+}
 
-/* Content Sections */
-.container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-.section { padding: 5rem 0; }
-.section-title { font-size: 3rem; font-weight: 800; margin-bottom: 2rem;
-                 text-align: center; background: var(--gradient);
-                 -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* Hero Section Moderno */
+.hero { 
+    padding: 8rem 2rem; 
+    text-align: center; 
+    background: linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(26,0,0,0.6) 100%);
+    position: relative;
+    overflow: hidden;
+}
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(255,51,51,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero h1 { 
+    font-size: 5rem; 
+    font-weight: 900; 
+    margin-bottom: 2rem;
+    background: var(--gradient); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInUp 1s ease-out 0.2s both;
+    text-shadow: 0 0 30px rgba(255,51,51,0.3);
+}
+.hero p { 
+    font-size: 1.8rem; 
+    color: rgba(255,255,255,0.8); 
+    max-width: 900px;
+    margin: 0 auto;
+    animation: fadeInUp 1s ease-out 0.4s both;
+    font-weight: 300;
+    line-height: 1.8;
+}
 
-/* About Section */
-.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-.about-content h3 { font-size: 2rem; color: var(--primary); margin-bottom: 1rem; }
-.about-content p { font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 1.5rem; }
-.about-image { background: rgba(255,255,255,0.05); border-radius: 20px; 
-               padding: 3rem; text-align: center; }
-.about-image i { font-size: 8rem; background: var(--gradient);
-                 -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* Container e Seções */
+.container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+.section { padding: 8rem 0; position: relative; }
+.section-title { 
+    font-size: 4rem; 
+    font-weight: 900; 
+    margin-bottom: 3rem;
+    text-align: center; 
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+}
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: var(--gradient);
+    border-radius: 2px;
+}
 
-/* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-              gap: 2rem; margin-top: 4rem; }
-.stat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,51,51,0.2);
-             border-radius: 20px; padding: 2rem; text-align: center;
-             transition: transform 0.3s, box-shadow 0.3s; }
-.stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,51,51,0.2); }
-.stat-number { font-size: 3rem; font-weight: 800; background: var(--gradient);
-               -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.stat-label { color: rgba(255,255,255,0.7); margin-top: 0.5rem; }
+/* About Section Moderno */
+.about-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 6rem; 
+    align-items: center;
+    margin-top: 4rem;
+}
+.about-content h3 { 
+    font-size: 2.5rem; 
+    color: var(--primary); 
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    animation: fadeInLeft 0.8s ease-out;
+}
+.about-content p { 
+    font-size: 1.3rem; 
+    color: rgba(255,255,255,0.9); 
+    margin-bottom: 2rem;
+    line-height: 1.8;
+    animation: fadeInLeft 0.8s ease-out 0.2s both;
+}
+.about-image { 
+    background: var(--glass); 
+    border: 1px solid var(--glass-border);
+    border-radius: 30px; 
+    padding: 4rem; 
+    text-align: center;
+    backdrop-filter: blur(20px);
+    animation: fadeInRight 0.8s ease-out 0.4s both;
+    transition: all 0.3s ease;
+}
+.about-image:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
+}
+.about-image i { 
+    font-size: 10rem; 
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulse 2s infinite;
+}
 
-/* FAQ */
-.faq-list { max-width: 900px; margin: 0 auto; }
-.faq-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,51,51,0.2);
-            border-radius: 15px; margin-bottom: 1rem; overflow: hidden; }
-.faq-question { padding: 1.5rem; cursor: pointer; display: flex;
-                justify-content: space-between; align-items: center;
-                font-weight: 600; transition: 0.3s; }
-.faq-question:hover { background: rgba(255,51,51,0.1); }
-.faq-answer { padding: 0 1.5rem; max-height: 0; overflow: hidden;
-              transition: max-height 0.3s ease; color: rgba(255,255,255,0.7); }
-.faq-answer.active { padding: 1.5rem; max-height: 500px; }
-.faq-icon { transition: transform 0.3s; }
-.faq-icon.active { transform: rotate(180deg); }
+/* Stats Modernos */
+.stats-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 3rem; 
+    margin-top: 6rem; 
+}
+.stat-card { 
+    background: var(--glass); 
+    border: 1px solid var(--glass-border);
+    border-radius: 25px; 
+    padding: 3rem 2rem; 
+    text-align: center;
+    backdrop-filter: blur(20px);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s ease;
+}
+.stat-card:hover::before {
+    left: 100%;
+}
+.stat-card:hover { 
+    transform: translateY(-15px) scale(1.02); 
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary);
+}
+.stat-number { 
+    font-size: 4rem; 
+    font-weight: 900; 
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    animation: glow 2s infinite;
+}
+.stat-label { 
+    color: rgba(255,255,255,0.8); 
+    font-size: 1.2rem;
+    font-weight: 600;
+}
 
-/* References */
-.ref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem; margin-top: 3rem; }
-.ref-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,51,51,0.2);
-            border-radius: 15px; padding: 2rem; }
-.ref-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-.ref-avatar { width: 60px; height: 60px; border-radius: 50%;
-              background: var(--gradient); display: flex; align-items: center;
-              justify-content: center; font-size: 1.5rem; color: white; }
-.ref-name { font-weight: 600; font-size: 1.1rem; }
-.ref-role { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
-.ref-stars { color: #ffcc00; margin-bottom: 1rem; }
-.ref-text { color: rgba(255,255,255,0.8); font-style: italic; }
+/* FAQ Moderno */
+.faq-list { max-width: 1000px; margin: 0 auto; }
+.faq-item { 
+    background: var(--glass); 
+    border: 1px solid var(--glass-border);
+    border-radius: 20px; 
+    margin-bottom: 1.5rem; 
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease-out;
+}
+.faq-item:hover {
+    transform: translateX(10px);
+    box-shadow: var(--shadow);
+}
+.faq-question { 
+    padding: 2rem; 
+    cursor: pointer; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    font-weight: 700; 
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    color: var(--light);
+}
+.faq-question:hover { 
+    background: rgba(255,51,51,0.1); 
+    color: var(--primary);
+}
+.faq-answer { 
+    padding: 0 2rem; 
+    max-height: 0; 
+    overflow: hidden;
+    transition: all 0.4s ease; 
+    color: rgba(255,255,255,0.8);
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+.faq-answer.active { 
+    padding: 2rem; 
+    max-height: 500px; 
+}
+.faq-icon { 
+    transition: all 0.3s ease;
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+.faq-icon.active { 
+    transform: rotate(180deg); 
+}
 
-/* WhatsApp References Gallery */
-.whatsapp-gallery { margin-top: 4rem; }
-.gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 2rem; margin-top: 2rem; }
-.gallery-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,51,51,0.2);
-                border-radius: 15px; padding: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; }
-.gallery-item:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,51,51,0.2); }
-.gallery-image { width: 100%; height: 200px; background: rgba(255,255,255,0.1);
-                 border-radius: 10px; margin-bottom: 1rem; display: flex;
-                 align-items: center; justify-content: center; position: relative; overflow: hidden;
-                 border: 2px solid rgba(255,51,51,0.3); }
-.gallery-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-.gallery-image::before { content: '📱'; font-size: 3rem; opacity: 0.3; position: absolute; 
-                       z-index: 1; display: none; }
-.gallery-image::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-                       background: rgba(0,0,0,0.3); z-index: 2; display: none; }
-.gallery-info h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem; }
-.gallery-info p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 0.5rem; }
-.gallery-status { background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.3);
-                 border-radius: 8px; padding: 0.5rem; font-size: 0.8rem;
-                 color: #16A34A; text-align: center; }
-.gallery-date { color: rgba(255,255,255,0.5); font-size: 0.8rem; text-align: center; margin-top: 0.5rem; }
+/* References Modernos */
+.ref-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 3rem; 
+    margin-top: 4rem; 
+}
+.ref-card { 
+    background: var(--glass); 
+    border: 1px solid var(--glass-border);
+    border-radius: 25px; 
+    padding: 3rem; 
+    backdrop-filter: blur(20px);
+    transition: all 0.4s ease;
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+.ref-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+.ref-card:hover::before {
+    transform: scaleX(1);
+}
+.ref-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary);
+}
+.ref-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 1.5rem; 
+    margin-bottom: 1.5rem; 
+}
+.ref-avatar { 
+    width: 80px; 
+    height: 80px; 
+    border-radius: 50%;
+    background: var(--gradient); 
+    display: flex; 
+    align-items: center;
+    justify-content: center; 
+    font-size: 2rem; 
+    color: white;
+    box-shadow: 0 10px 30px rgba(255,51,51,0.3);
+}
+.ref-name { 
+    font-weight: 700; 
+    font-size: 1.3rem;
+    color: var(--light);
+}
+.ref-role { 
+    color: var(--primary); 
+    font-size: 1rem;
+    font-weight: 600;
+}
+.ref-stars { 
+    color: #ffcc00; 
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+.ref-text { 
+    color: rgba(255,255,255,0.9); 
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
 
-/* CTA Section */
-.cta-section { background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1));
-               border: 2px solid var(--primary); border-radius: 30px;
-               padding: 4rem 2rem; text-align: center; margin: 5rem 0; }
-.cta-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem;
-             background: var(--gradient); -webkit-background-clip: text;
-             -webkit-text-fill-color: transparent; }
-.cta-text { font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 2rem; }
-.btn-cta { padding: 1rem 3rem; background: var(--gradient); color: white;
-           border: none; border-radius: 12px; font-size: 1.1rem;
-           font-weight: 600; cursor: pointer; text-decoration: none;
-           display: inline-block; transition: transform 0.3s, box-shadow 0.3s; }
-.btn-cta:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,51,51,0.4); }
+/* WhatsApp Gallery Moderna */
+.whatsapp-gallery { margin-top: 6rem; }
+.gallery-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 3rem; 
+    margin-top: 3rem; 
+}
+.gallery-item { 
+    background: var(--glass); 
+    border: 1px solid var(--glass-border);
+    border-radius: 25px; 
+    padding: 2rem; 
+    transition: all 0.4s ease;
+    backdrop-filter: blur(20px);
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+.gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+.gallery-item:hover::before {
+    transform: scaleX(1);
+}
+.gallery-item:hover { 
+    transform: translateY(-15px) scale(1.02); 
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary);
+}
+.gallery-image { 
+    width: 100%; 
+    height: 250px; 
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px; 
+    margin-bottom: 1.5rem; 
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    position: relative; 
+    overflow: hidden;
+    border: 2px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+.gallery-image:hover {
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(255,51,51,0.2);
+}
+.gallery-image img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.gallery-image:hover img {
+    transform: scale(1.05);
+}
+.gallery-info h4 { 
+    color: var(--primary); 
+    font-size: 1.3rem; 
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+}
+.gallery-info p { 
+    color: rgba(255,255,255,0.8); 
+    font-size: 1rem; 
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+.gallery-status { 
+    background: rgba(22,163,74,0.2); 
+    border: 1px solid rgba(22,163,74,0.4);
+    border-radius: 12px; 
+    padding: 0.8rem; 
+    font-size: 0.9rem;
+    color: #16A34A; 
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.gallery-date { 
+    color: rgba(255,255,255,0.6); 
+    font-size: 0.9rem; 
+    text-align: center;
+    font-weight: 500;
+}
 
-/* Footer */
-.footer { background: #0A0A0A; padding: 3rem 0; text-align: center;
-          border-top: 1px solid rgba(255,51,51,0.1); }
-.footer p { color: rgba(255,255,255,0.5); }
+/* CTA Section Moderno */
+.cta-section { 
+    background: var(--glass);
+    border: 2px solid var(--primary); 
+    border-radius: 40px;
+    padding: 6rem 3rem; 
+    text-align: center; 
+    margin: 8rem 0;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out;
+}
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,51,51,0.1) 0%, transparent 70%);
+    animation: pulse 4s infinite;
+    pointer-events: none;
+}
+.cta-title { 
+    font-size: 3.5rem; 
+    font-weight: 900; 
+    margin-bottom: 2rem;
+    background: var(--gradient); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    z-index: 1;
+}
+.cta-text { 
+    font-size: 1.4rem; 
+    color: rgba(255,255,255,0.8); 
+    margin-bottom: 3rem;
+    position: relative;
+    z-index: 1;
+}
+.btn-cta { 
+    padding: 1.5rem 4rem; 
+    background: var(--gradient); 
+    color: white;
+    border: none; 
+    border-radius: 15px; 
+    font-size: 1.2rem;
+    font-weight: 700; 
+    cursor: pointer; 
+    text-decoration: none;
+    display: inline-block; 
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 10px 30px rgba(255,51,51,0.3);
+}
+.btn-cta:hover { 
+    transform: translateY(-5px) scale(1.05); 
+    box-shadow: 0 20px 40px rgba(255,51,51,0.5);
+}
 
-/* Responsive */
+/* Footer Moderno */
+.footer { 
+    background: rgba(10,10,10,0.95); 
+    padding: 4rem 0; 
+    text-align: center;
+    border-top: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    margin-top: 6rem;
+}
+.footer p { 
+    color: rgba(255,255,255,0.6); 
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Responsive Design Avançado */
+@media (max-width: 1200px) {
+    .hero h1 { font-size: 4rem; }
+    .section-title { font-size: 3.5rem; }
+    .about-grid { gap: 4rem; }
+}
+
 @media (max-width: 1024px) {
-    .hero h1 { font-size: 3rem; }
-    .about-grid { grid-template-columns: 1fr; }
-    .nav-links { gap: 1rem; }
+    .hero h1 { font-size: 3.5rem; }
+    .hero p { font-size: 1.5rem; }
+    .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .nav-links { gap: 2rem; }
+    .stats-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 }
+
 @media (max-width: 768px) {
-    .hero h1 { font-size: 2.5rem; }
-    .hero p { font-size: 1.2rem; }
-    .section-title { font-size: 2rem; }
+    .hero { padding: 6rem 1rem; }
+    .hero h1 { font-size: 3rem; }
+    .hero p { font-size: 1.3rem; }
+    .section-title { font-size: 2.5rem; }
     .nav-links { display: none; }
-    .about-image i { font-size: 5rem; }
-    .stat-number { font-size: 2rem; }
+    .about-image i { font-size: 6rem; }
+    .stat-number { font-size: 3rem; }
+    .cta-title { font-size: 2.5rem; }
+    .cta-section { padding: 4rem 2rem; }
+    .btn-cta { padding: 1.2rem 3rem; font-size: 1.1rem; }
+    .gallery-grid { grid-template-columns: 1fr; }
+    .ref-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .hero h1 { font-size: 2.5rem; }
+    .hero p { font-size: 1.1rem; }
+    .section-title { font-size: 2rem; }
+    .about-content h3 { font-size: 2rem; }
+    .about-content p { font-size: 1.1rem; }
+    .stat-card { padding: 2rem 1.5rem; }
+    .ref-card { padding: 2rem; }
+    .gallery-item { padding: 1.5rem; }
+    .cta-title { font-size: 2rem; }
+    .cta-text { font-size: 1.2rem; }
 }
 </style>
 </head>
@@ -173,23 +633,23 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 </header>
 
 <section class="hero">
-    <h1>Quem Somos</h1>
-    <p>Referência em logística e entrega no Brasil, conectando pessoas e empresas com agilidade e segurança.</p>
+    <h1>Helmer Logistics S/A</h1>
+    <p>Líder nacional em logística inteligente. Mais de 5.000 entregas realizadas com 98% de satisfação. Conectamos o Brasil com tecnologia, agilidade e confiança total.</p>
 </section>
 
 <section class="section">
     <div class="container">
-        <h2 class="section-title">Nossa História</h2>
+        <h2 class="section-title">Excelência em Logística</h2>
         <div class="about-grid">
             <div class="about-content">
-                <h3>Missão</h3>
-                <p>Entregar soluções logísticas de excelência, conectando pessoas e negócios com agilidade, segurança e inovação. Transformamos a forma como você recebe suas encomendas.</p>
+                <h3>🏆 Missão</h3>
+                <p>Revolucionar a logística brasileira através de tecnologia avançada, entregas expressas e atendimento humanizado. Transformamos cada encomenda em uma experiência única de confiança e satisfação.</p>
                 
-                <h3>Visão</h3>
-                <p>Ser a transportadora de referência nacional, reconhecida pela qualidade, pontualidade e compromisso com cada entrega. Estamos sempre investindo em tecnologia e em nosso time.</p>
+                <h3>🚀 Visão</h3>
+                <p>Ser a transportadora número 1 do Brasil até 2026, reconhecida pela inovação, pontualidade absoluta e compromisso inabalável com cada cliente. Investimos constantemente em nossa equipe e infraestrutura.</p>
                 
-                <h3>Valores</h3>
-                <p>Agilidade, Segurança, Transparência, Inovação e Compromisso com o cliente. Cada encomenda é tratada com carinho e profissionalismo.</p>
+                <h3>💎 Valores</h3>
+                <p>Transparência total, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada encomenda é tratada como única, com carinho profissional e tecnologia de ponta.</p>
             </div>
             <div class="about-image">
                 <i class="fas fa-truck-fast"></i>
@@ -200,23 +660,31 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 
 <section class="section" style="background: rgba(255,255,255,0.02);">
     <div class="container">
-        <h2 class="section-title">Nossos Números</h2>
+        <h2 class="section-title">Nossos Resultados</h2>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number">5K+</div>
+                <div class="stat-number">5.247</div>
                 <div class="stat-label">Entregas Realizadas</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">150+</div>
+                <div class="stat-number">247</div>
                 <div class="stat-label">Cidades Atendidas</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">24/7</div>
-                <div class="stat-label">Atendimento</div>
+                <div class="stat-label">Suporte Premium</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">98%</div>
-                <div class="stat-label">Satisfação do Cliente</div>
+                <div class="stat-number">98.7%</div>
+                <div class="stat-label">Taxa de Satisfação</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Dias Entrega Express</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Rastreamento em Tempo Real</div>
             </div>
         </div>
     </div>
@@ -286,16 +754,16 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 
 <section class="section" style="background: rgba(255,255,255,0.02);">
     <div class="container">
-        <h2 class="section-title">O Que Nossos Clientes Dizem</h2>
+        <h2 class="section-title">Depoimentos Reais</h2>
         <div class="ref-grid">
             <div class="ref-card">
                 <div class="ref-header">
                     <div class="ref-avatar">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-crown"></i>
                     </div>
                     <div>
                         <div class="ref-name">Maria Silva</div>
-                        <div class="ref-role">E-commerce</div>
+                        <div class="ref-role">CEO - E-commerce Premium</div>
                     </div>
                 </div>
                 <div class="ref-stars">
@@ -306,17 +774,17 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Melhor transportadora que já trabalhei! Entregas rápidas, rastreamento preciso e atendimento impecável. Recomendo de olhos fechados."
+                    "Helmer Logistics revolucionou meu negócio! Entregas em 2 dias, rastreamento em tempo real e zero problemas. Minha taxa de satisfação dos clientes subiu 40%. Simplesmente excepcional!"
                 </div>
             </div>
             <div class="ref-card">
                 <div class="ref-header">
                     <div class="ref-avatar">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-rocket"></i>
                     </div>
                     <div>
                         <div class="ref-name">João Santos</div>
-                        <div class="ref-role">Empresário</div>
+                        <div class="ref-role">Empresário - Importações</div>
                     </div>
                 </div>
                 <div class="ref-stars">
@@ -327,17 +795,17 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Sistema de indicações funcionou perfeitamente! Ganhei entrega prioritária e fiquei impressionado com a qualidade do serviço."
+                    "Sistema de indicações é genial! Ganhei entrega prioritária e economizei 60% no frete. Atendimento 24/7 resolve qualquer problema na hora. Helmer é sinônimo de confiança!"
                 </div>
             </div>
             <div class="ref-card">
                 <div class="ref-header">
                     <div class="ref-avatar">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-gem"></i>
                     </div>
                     <div>
                         <div class="ref-name">Ana Costa</div>
-                        <div class="ref-role">Cliente VIP</div>
+                        <div class="ref-role">Cliente VIP - 3 Anos</div>
                     </div>
                 </div>
                 <div class="ref-stars">
@@ -348,7 +816,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Atendimento 24/7 faz toda diferença! Sempre que preciso, são rápidos e resolvem tudo com profissionalismo. Parabéns Helmer!"
+                    "3 anos usando Helmer e nunca tive uma entrega atrasada! Suporte premium 24/7, tecnologia de ponta e equipe que realmente se importa. Recomendo para toda minha família!"
                 </div>
             </div>
         </div>
