@@ -51,7 +51,7 @@ body {
     height: 70px;
 }
 .logo {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 900;
     background: var(--gradient);
     -webkit-background-clip: text;
@@ -96,7 +96,7 @@ body {
     margin: 0 auto;
 }
 .hero h1 {
-    font-size: 4rem;
+    font-size: 2.2rem;
     font-weight: 900;
     margin-bottom: 2rem;
     background: var(--gradient);
@@ -106,6 +106,64 @@ body {
 .hero p {
     font-size: 1.3rem;
     color: rgba(255,255,255,0.8);
+}
+
+/* Hero extras */
+.hero .tagline {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 0.75rem;
+}
+.hero-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.btn-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 1.25rem;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #fff;
+    background: var(--gradient);
+    border: 1px solid rgba(255,51,51,0.3);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.btn-hero.secondary {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+}
+.btn-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(255,51,51,0.25);
+}
+.badges {
+    margin-top: 1.25rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,51,51,0.2);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.85rem;
+}
+.badge i {
+    color: #FF6666;
 }
 
 /* Sections */
@@ -127,14 +185,14 @@ body {
 /* About Grid */
 .about-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-bottom: 4rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
 }
 .about-card {
     background: linear-gradient(135deg, rgba(255,51,51,0.1) 0%, rgba(255,102,0,0.1) 100%);
-    padding: 3rem 2.5rem;
-    border-radius: 25px;
+    padding: 1.5rem 1.25rem;
+    border-radius: 18px;
     border: 2px solid rgba(255,51,51,0.3);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
@@ -162,22 +220,22 @@ body {
     box-shadow: 0 20px 40px rgba(255,51,51,0.3);
 }
 .about-icon {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
     display: block;
 }
 .about-card h3 {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 800;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     background: var(--gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .about-card p {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     color: rgba(255,255,255,0.85);
-    line-height: 1.8;
+    line-height: 1.6;
 }
 
 /* Stats */
@@ -242,7 +300,7 @@ body {
 /* FAQ */
 .faq-item {
     background: linear-gradient(135deg, rgba(255,51,51,0.08) 0%, rgba(255,102,0,0.08) 100%);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     border-radius: 20px;
     overflow: hidden;
     border: 2px solid rgba(255,51,51,0.2);
@@ -280,7 +338,7 @@ body {
     overflow: hidden;
     transition: all 0.3s ease;
     color: rgba(255,255,255,0.85);
-    line-height: 1.8;
+    line-height: 1.6;
 }
 .faq-answer.active {
     padding: 0 1.8rem 1.8rem;
@@ -363,7 +421,7 @@ body {
 }
 .cta-title {
     font-size: 2.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     background: var(--gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -453,8 +511,14 @@ body {
         font-size: 2rem;
     }
     .cta-title {
-        font-size: 1.8rem;
+        font-size: 1.4rem;
     }
+    /* Hero mobile extras */
+    .hero .tagline { font-size: 0.8rem; }
+    .hero-actions { flex-direction: column; }
+    .btn-hero { width: 100%; max-width: 280px; justify-content: center; }
+    .badges { gap: 0.5rem; }
+    .badge { font-size: 0.8rem; }
 }
 </style>
 </head>
@@ -479,7 +543,20 @@ body {
 
 <section class="hero">
     <h1>Helmer Logistics S/A</h1>
-    <p>Especialistas em entregas discretas. Mais de 5.000 entregas realizadas com 98% de satisfação. Nossos clientes acompanham cada etapa do recebimento com tecnologia avançada.</p>
+    <p class="tagline">Especialistas em entregas discretas. Mais de 5.000 entregas realizadas com 98% de satisfação. Nossos clientes acompanham cada etapa do recebimento com tecnologia avançada.</p>
+    <div class="hero-actions">
+        <a href="index.php" class="btn-hero">
+            <i class="fas fa-rocket"></i> Rastrear Agora
+        </a>
+        <a href="indicacao.php" class="btn-hero secondary">
+            <i class="fas fa-users"></i> Indicar Amigos
+        </a>
+    </div>
+    <div class="badges">
+        <span class="badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
+        <span class="badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
+        <span class="badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
+    </div>
 </section>
 
 <section class="section">
@@ -558,7 +635,7 @@ body {
             </div>
 </section>
 
-<section class="section">
+<section class="section" id="galeria">
     <h2 class="section-title">📱 Sistema em Ação</h2>
     <p style="text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 3rem; font-size: 1.2rem; font-weight: 500;">
         Veja como nossos clientes acompanham suas entregas em tempo real pelo WhatsApp
@@ -664,3 +741,10 @@ function toggleFaq(element) {
 
 </body>
 </html>
+
+
+
+
+
+
+
