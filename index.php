@@ -73,12 +73,18 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Correção: definir :root corretamente para variáveis CSS */
 :root {
     --primary: #FF3333; --primary-dark: #CC0000; --secondary: #FF6600;
     --dark: #0A0A0A; --dark-light: #1A1A1A; --light: #FFF; 
     --success: #16A34A; --gradient: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
 }
-body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--light); }
+:root {
+    --primary: #FF3333; --primary-dark: #CC0000; --secondary: #FF6600;
+    --dark: #0A0A0A; --dark-light: #1A1A1A; --light: #FFF; 
+    --success: #16A34A; --gradient: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
+}
+body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%); color: var(--light); }
 
 /* Header com Glassmorphism Moderno */
 .header { 
@@ -223,7 +229,16 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 .hero-content h1 { font-size: 3.5rem; font-weight: 900; line-height: 1.2; 
                    margin-bottom: 1.5rem; background: var(--gradient); 
                    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-content p { font-size: 1.25rem; color: rgba(255,255,255,0.7); margin-bottom: 2rem; }
+.hero-content p { font-size: 1.2rem; color: rgba(255,255,255,0.75); margin-bottom: 1.5rem; }
+
+/* Hero extras alinhados ao sobre.php */
+.hero-actions { margin-top: 0.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.hero-actions .btn-hero { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.1rem; border-radius: 12px; font-weight: 700; text-decoration: none; color: #fff; background: var(--gradient); border: 1px solid rgba(255,51,51,0.3); transition: transform .2s ease, box-shadow .2s ease; }
+.hero-actions .btn-hero.secondary { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+.hero-actions .btn-hero:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(255,51,51,0.25); }
+.badges { margin-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.9rem; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,51,51,0.2); color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+.badge i { color: #FF6666; }
 
 /* Search Box */
 .search-container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); 
@@ -261,11 +276,13 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 .features h2 { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; 
                background: var(--gradient); -webkit-background-clip: text; 
                -webkit-text-fill-color: transparent; font-weight: 800; }
-.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-.feature-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,51,51,0.1); 
-                border-radius: 20px; padding: 2rem; text-align: center; 
-                transition: transform 0.3s, box-shadow 0.3s; }
-.feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,51,51,0.2); }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+.feature-card { background: linear-gradient(135deg, rgba(255,51,51,0.08), rgba(255,102,0,0.08)); border: 2px solid rgba(255,51,51,0.2); 
+               border-radius: 22px; padding: 2rem; text-align: center; 
+               transition: transform 0.3s, box-shadow 0.3s; backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+.feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient); transform: scaleX(0); transition: transform 0.3s ease; }
+.feature-card:hover::before { transform: scaleX(1); }
+.feature-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(255,51,51,0.25); border-color: var(--primary); }
 .feature-icon { width: 60px; height: 60px; background: var(--gradient); 
                 border-radius: 12px; display: flex; align-items: center; 
                 justify-content: center; margin: 0 auto 1.5rem; }
@@ -365,11 +382,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
         margin-bottom: 20px;
     }
     
-    .hero-content p {
-        font-size: 1rem;
-        margin-bottom: 30px;
-        line-height: 1.5;
-    }
+    .hero-content p { font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
+    .hero-actions { justify-content: center; }
+    .hero-actions .btn-hero { width: 100%; justify-content: center; }
+    .badges { justify-content: center; }
     
     /* Search Container */
     .search-container, .results-box {
@@ -473,10 +489,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
         margin-bottom: 15px;
     }
     
-    .hero-content p {
-        font-size: 0.9rem;
-        margin-bottom: 25px;
-    }
+    .hero-content p { font-size: 0.9rem; margin-bottom: 18px; }
+    .badges { gap: 0.5rem; }
     
     /* Search Small Mobile */
     .search-container, .results-box {
@@ -562,6 +576,15 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                         <i class="fas fa-info-circle"></i> Como Funciona
                     </button>
                 </div>
+            </div>
+            <div class="hero-actions" style="justify-content: flex-start;">
+                <a href="sobre.php" class="btn-hero secondary"><i class="fas fa-info-circle"></i> Sobre nós</a>
+                <a href="indicacao.php" class="btn-hero"><i class="fas fa-users"></i> Indicar Amigo</a>
+            </div>
+            <div class="badges">
+                <span class="badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
+                <span class="badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
+                <span class="badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
             </div>
         </div>
         
@@ -735,3 +758,5 @@ document.querySelectorAll('.mobile-menu a').forEach(link => {
     });
 });
 </script>
+
+
