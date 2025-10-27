@@ -270,9 +270,17 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         padding: 4rem 2rem; background: linear-gradient(180deg, #0A0A0A 0%, #1A0000 100%); }
 .hero-container { max-width: 1400px; margin: 0 auto; width: 100%; 
                   display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-.hero-content h1 { font-size: 3.5rem; font-weight: 900; line-height: 1.2; 
-                   margin-bottom: 1.5rem; background: var(--gradient); 
-                   -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-content h1 { font-size: 3.5rem; font-weight: 900; line-height: 1.2; margin-bottom: 1.5rem; }
+/* Título moderno (hero) */
+.hero-title { letter-spacing: -0.5px; text-shadow: 0 8px 30px rgba(255,51,51,0.15); }
+.hero-title .title-gradient { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-title .title-accent { position: relative; display: inline-block; }
+.hero-title .title-accent::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: -6px; height: 10px;
+    background: radial-gradient(ellipse at center, rgba(255,51,51,0.5), rgba(255,102,0,0) 70%);
+    filter: blur(5px);
+}
 .hero-content p { font-size: 1.2rem; color: rgba(255,255,255,0.75); margin-bottom: 1.5rem; }
 
 /* Hero extras alinhados ao sobre.php */
@@ -361,7 +369,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 
 @media (max-width: 1024px) { 
     .hero-container { grid-template-columns: 1fr; gap: 2rem; } 
-    .hero-content h1 { font-size: 2.5rem; }
+    .hero-content h1 { font-size: 2.4rem; }
 }
 /* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
@@ -528,10 +536,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         min-height: 60vh;
     }
     
-    .hero-content h1 {
-        font-size: 1.8rem;
-        margin-bottom: 15px;
-    }
+    .hero-content h1 { font-size: 1.7rem; margin-bottom: 15px; }
     
     .hero-content p { font-size: 0.9rem; margin-bottom: 18px; }
     .badges { gap: 0.5rem; }
@@ -626,7 +631,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         <div id="ajaxResults"></div>
         
         <div class="hero-content">
-            <h1>Acompanhe seus Recebimentos em Tempo Real</h1>
+            <h1 class="hero-title"><span class="title-accent">Acompanhe</span> seus <span class="title-gradient">Recebimentos</span> em Tempo Real</h1>
             <p>Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real</p>
             
             <div class="hero-actions" style="justify-content: flex-start;">
