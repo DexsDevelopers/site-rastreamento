@@ -634,7 +634,7 @@ body {
 
 <section class="hero">
     <h1>Helmer Logistics S/A</h1>
-    <p>Serviços especializados de entrega discreta. Mais de 5.000 entregas realizadas com 98% de satisfação. Conectamos clientes com tecnologia, agilidade e discrição total.</p>
+    <p>Transportadora especializada em entregas discretas. Mais de 5.000 entregas realizadas com 98% de satisfação. Conectamos clientes com tecnologia, agilidade e discrição total.</p>
 </section>
 
 <section class="section">
@@ -643,10 +643,10 @@ body {
         <div class="about-grid">
             <div class="about-content">
                 <h3>🏆 Missão</h3>
-                <p>Oferecer serviços logísticos especializados através de tecnologia avançada, entregas discretas e atendimento personalizado. Transformamos cada entrega em uma experiência única de confiança e discrição.</p>
+                <p>Oferecer serviços de transporte especializado através de tecnologia avançada, entregas discretas e atendimento personalizado. Transformamos cada entrega em uma experiência única de confiança e discrição.</p>
                 
                 <h3>🚀 Visão</h3>
-                <p>Ser a empresa de serviços especializados número 1 do Brasil até 2026, reconhecida pela discrição, pontualidade absoluta e compromisso inabalável com cada cliente. Investimos constantemente em nossa equipe e infraestrutura.</p>
+                <p>Ser a transportadora especializada número 1 do Brasil até 2026, reconhecida pela discrição, pontualidade absoluta e compromisso inabalável com cada cliente. Investimos constantemente em nossa equipe e infraestrutura.</p>
                 
                 <h3>💎 Valores</h3>
                 <p>Discrição total, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada entrega é tratada como única, com profissionalismo e tecnologia de ponta.</p>
