@@ -103,8 +103,12 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 .gallery-image { width: 100%; height: 200px; background: rgba(255,255,255,0.1);
                  border-radius: 10px; margin-bottom: 1rem; display: flex;
                  align-items: center; justify-content: center; position: relative; overflow: hidden;
-                 background-size: cover; background-position: center; background-repeat: no-repeat; }
-.gallery-image::before { content: '📱'; font-size: 3rem; opacity: 0.3; }
+                 border: 2px solid rgba(255,51,51,0.3); }
+.gallery-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.gallery-image::before { content: '📱'; font-size: 3rem; opacity: 0.3; position: absolute; 
+                       z-index: 1; display: none; }
+.gallery-image::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+                       background: rgba(0,0,0,0.3); z-index: 2; display: none; }
 .gallery-info h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem; }
 .gallery-info p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 0.5rem; }
 .gallery-status { background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.3);
@@ -351,7 +355,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
         <div class="whatsapp-gallery">
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-1.jpg');"></div>
+                    <div class="gallery-image">
+                        <img src="assets/images/whatsapp-1.jpg" alt="WhatsApp Luiz Gabriel Petrópolis" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
                     <div class="gallery-info">
                         <h4>Luiz Gabriel - Petrópolis</h4>
                         <p>Sistema de rastreamento básico funcionando perfeitamente</p>
@@ -360,7 +367,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-2.jpg');"></div>
+                    <div class="gallery-image">
+                        <img src="assets/images/whatsapp-2.jpg" alt="WhatsApp juuh santts Ubá" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
                     <div class="gallery-info">
                         <h4>juuh santts - Ubá</h4>
                         <p>Monitoramento oficial com status detalhado</p>
@@ -369,7 +379,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-3.jpg');"></div>
+                    <div class="gallery-image">
+                        <img src="assets/images/whatsapp-3.jpg" alt="WhatsApp RKZIN Jardim Camburi" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
                     <div class="gallery-info">
                         <h4>RKZIN - Jardim Camburi</h4>
                         <p>Sistema oficial de monitoramento em tempo real</p>
@@ -378,7 +391,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-4.jpg');"></div>
+                    <div class="gallery-image">
+                        <img src="assets/images/whatsapp-4.jpg" alt="WhatsApp Vitor João AdolfoSP" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
                     <div class="gallery-info">
                         <h4>Vitor João - AdolfoSP</h4>
                         <p>Monitoramento com interface integrada ao WhatsApp</p>
@@ -387,7 +403,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-5.jpg');"></div>
+                    <div class="gallery-image">
+                        <img src="assets/images/whatsapp-5.jpg" alt="WhatsApp 2L CLIENTE Entrega" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
                     <div class="gallery-info">
                         <h4>2L CLIENTE - Entrega Confirmada</h4>
                         <p>Sistema de entrega e pagamento funcionando</p>
@@ -396,7 +415,10 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-6.jpg');"></div>
+                    <div class="gallery-image">
+                        <img src="assets/images/whatsapp-6.jpg" alt="WhatsApp Bada CLIENTE Go" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    </div>
                     <div class="gallery-info">
                         <h4>Bada CLIENTE - Go</h4>
                         <p>Sistema de Indicação + Rastreamento completo</p>
