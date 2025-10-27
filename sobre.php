@@ -634,7 +634,7 @@ body {
 
 <section class="hero">
     <h1>Helmer Logistics S/A</h1>
-    <p>Líder nacional em logística inteligente. Mais de 5.000 entregas realizadas com 98% de satisfação. Conectamos o Brasil com tecnologia, agilidade e confiança total.</p>
+    <p>Serviços especializados de entrega discreta. Mais de 5.000 entregas realizadas com 98% de satisfação. Conectamos clientes com tecnologia, agilidade e discrição total.</p>
 </section>
 
 <section class="section">
@@ -643,13 +643,13 @@ body {
         <div class="about-grid">
             <div class="about-content">
                 <h3>🏆 Missão</h3>
-                <p>Revolucionar a logística brasileira através de tecnologia avançada, entregas expressas e atendimento humanizado. Transformamos cada encomenda em uma experiência única de confiança e satisfação.</p>
+                <p>Oferecer serviços logísticos especializados através de tecnologia avançada, entregas discretas e atendimento personalizado. Transformamos cada entrega em uma experiência única de confiança e discrição.</p>
                 
                 <h3>🚀 Visão</h3>
-                <p>Ser a transportadora número 1 do Brasil até 2026, reconhecida pela inovação, pontualidade absoluta e compromisso inabalável com cada cliente. Investimos constantemente em nossa equipe e infraestrutura.</p>
+                <p>Ser a empresa de serviços especializados número 1 do Brasil até 2026, reconhecida pela discrição, pontualidade absoluta e compromisso inabalável com cada cliente. Investimos constantemente em nossa equipe e infraestrutura.</p>
                 
                 <h3>💎 Valores</h3>
-                <p>Transparência total, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada encomenda é tratada como única, com carinho profissional e tecnologia de ponta.</p>
+                <p>Discrição total, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada entrega é tratada como única, com profissionalismo e tecnologia de ponta.</p>
             </div>
             <div class="about-image">
                 <i class="fas fa-truck-fast"></i>
@@ -774,7 +774,7 @@ body {
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Helmer Logistics revolucionou meu negócio! Entregas em 2 dias, rastreamento em tempo real e zero problemas. Minha taxa de satisfação dos clientes subiu 40%. Simplesmente excepcional!"
+                    "Helmer Logistics revolucionou meus negócios! Entregas em 2 dias, rastreamento em tempo real e discrição total. Minha satisfação subiu 40%. Simplesmente excepcional!"
                 </div>
             </div>
             <div class="ref-card">
@@ -795,7 +795,7 @@ body {
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Sistema de indicações é genial! Ganhei entrega prioritária e economizei 60% no frete. Atendimento 24/7 resolve qualquer problema na hora. Helmer é sinônimo de confiança!"
+                    "Sistema de indicações é genial! Ganhei entrega prioritária e economizei 60% nos custos. Atendimento 24/7 resolve qualquer questão na hora. Helmer é sinônimo de confiança!"
                 </div>
             </div>
             <div class="ref-card">

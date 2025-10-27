@@ -1,7 +1,7 @@
 <?php
 /**
  * Sistema de Rastreamento Helmer Logistics
- * Design Moderno inspirado em Loggi
+ * Serviços Especializados de Entrega
  */
 
 // Headers para evitar cache
@@ -68,7 +68,7 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Helmer Logistics - Rastreamento Inteligente</title>
+<title>Helmer Logistics - Serviços Especializados</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
