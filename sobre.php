@@ -102,7 +102,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 .gallery-item:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,51,51,0.2); }
 .gallery-image { width: 100%; height: 200px; background: rgba(255,255,255,0.1);
                  border-radius: 10px; margin-bottom: 1rem; display: flex;
-                 align-items: center; justify-content: center; position: relative; overflow: hidden; }
+                 align-items: center; justify-content: center; position: relative; overflow: hidden;
+                 background-size: cover; background-position: center; background-repeat: no-repeat; }
 .gallery-image::before { content: '📱'; font-size: 3rem; opacity: 0.3; }
 .gallery-info h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem; }
 .gallery-info p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 0.5rem; }
@@ -350,7 +351,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
         <div class="whatsapp-gallery">
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <div class="gallery-image"></div>
+                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-1.jpg');"></div>
                     <div class="gallery-info">
                         <h4>Luiz Gabriel - Petrópolis</h4>
                         <p>Sistema de rastreamento básico funcionando perfeitamente</p>
@@ -359,7 +360,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image"></div>
+                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-2.jpg');"></div>
                     <div class="gallery-info">
                         <h4>juuh santts - Ubá</h4>
                         <p>Monitoramento oficial com status detalhado</p>
@@ -368,7 +369,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image"></div>
+                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-3.jpg');"></div>
                     <div class="gallery-info">
                         <h4>RKZIN - Jardim Camburi</h4>
                         <p>Sistema oficial de monitoramento em tempo real</p>
@@ -377,7 +378,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image"></div>
+                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-4.jpg');"></div>
                     <div class="gallery-info">
                         <h4>Vitor João - AdolfoSP</h4>
                         <p>Monitoramento com interface integrada ao WhatsApp</p>
@@ -386,7 +387,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image"></div>
+                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-5.jpg');"></div>
                     <div class="gallery-info">
                         <h4>2L CLIENTE - Entrega Confirmada</h4>
                         <p>Sistema de entrega e pagamento funcionando</p>
@@ -395,7 +396,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image"></div>
+                    <div class="gallery-image" style="background-image: url('assets/images/whatsapp-6.jpg');"></div>
                     <div class="gallery-info">
                         <h4>Bada CLIENTE - Go</h4>
                         <p>Sistema de Indicação + Rastreamento completo</p>
