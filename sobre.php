@@ -93,6 +93,24 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 .ref-stars { color: #ffcc00; margin-bottom: 1rem; }
 .ref-text { color: rgba(255,255,255,0.8); font-style: italic; }
 
+/* WhatsApp References Gallery */
+.whatsapp-gallery { margin-top: 4rem; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 2rem; margin-top: 2rem; }
+.gallery-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,51,51,0.2);
+                border-radius: 15px; padding: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; }
+.gallery-item:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,51,51,0.2); }
+.gallery-image { width: 100%; height: 200px; background: rgba(255,255,255,0.1);
+                 border-radius: 10px; margin-bottom: 1rem; display: flex;
+                 align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.gallery-image::before { content: '📱'; font-size: 3rem; opacity: 0.3; }
+.gallery-info h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem; }
+.gallery-info p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 0.5rem; }
+.gallery-status { background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.3);
+                 border-radius: 8px; padding: 0.5rem; font-size: 0.8rem;
+                 color: #16A34A; text-align: center; }
+.gallery-date { color: rgba(255,255,255,0.5); font-size: 0.8rem; text-align: center; margin-top: 0.5rem; }
+
 /* CTA Section */
 .cta-section { background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1));
                border: 2px solid var(--primary); border-radius: 30px;
@@ -317,6 +335,73 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="ref-text">
                     "Atendimento 24/7 faz toda diferença! Sempre que preciso, são rápidos e resolvem tudo com profissionalismo. Parabéns Helmer!"
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background: rgba(255,255,255,0.02);">
+    <div class="container">
+        <h2 class="section-title">Referências do Sistema em Uso</h2>
+        <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 1.1rem; margin-bottom: 2rem;">
+            Veja como nossos clientes utilizam o sistema de rastreamento através do WhatsApp
+        </p>
+        <div class="whatsapp-gallery">
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-image"></div>
+                    <div class="gallery-info">
+                        <h4>Luiz Gabriel - Petrópolis</h4>
+                        <p>Sistema de rastreamento básico funcionando perfeitamente</p>
+                        <div class="gallery-status">✅ Objeto Postado</div>
+                        <div class="gallery-date">29/09/2025 - 14:26</div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image"></div>
+                    <div class="gallery-info">
+                        <h4>juuh santts - Ubá</h4>
+                        <p>Monitoramento oficial com status detalhado</p>
+                        <div class="gallery-status">✅ Recebido no Ponto</div>
+                        <div class="gallery-date">17/10/2025 - 15:31</div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image"></div>
+                    <div class="gallery-info">
+                        <h4>RKZIN - Jardim Camburi</h4>
+                        <p>Sistema oficial de monitoramento em tempo real</p>
+                        <div class="gallery-status">✅ Objeto Postado</div>
+                        <div class="gallery-date">18/10/2025 - 16:05</div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image"></div>
+                    <div class="gallery-info">
+                        <h4>Vitor João - AdolfoSP</h4>
+                        <p>Monitoramento com interface integrada ao WhatsApp</p>
+                        <div class="gallery-status">✅ Recebido no Ponto</div>
+                        <div class="gallery-date">21/10/2025 - 14:49</div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image"></div>
+                    <div class="gallery-info">
+                        <h4>2L CLIENTE - Entrega Confirmada</h4>
+                        <p>Sistema de entrega e pagamento funcionando</p>
+                        <div class="gallery-status">✅ Entrega Realizada</div>
+                        <div class="gallery-date">24/10/2025 - 13:03</div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image"></div>
+                    <div class="gallery-info">
+                        <h4>Bada CLIENTE - Go</h4>
+                        <p>Sistema de Indicação + Rastreamento completo</p>
+                        <div class="gallery-status">✅ Sistema Ativo</div>
+                        <div class="gallery-date">26/10/2025 - 23:01</div>
+                    </div>
                 </div>
             </div>
         </div>
