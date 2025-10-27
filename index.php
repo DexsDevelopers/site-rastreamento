@@ -303,15 +303,181 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     .hero-content h1 { font-size: 2.5rem; }
 }
 @media (max-width: 768px) {
-    .header { margin: 0 10px; top: 10px; }
-    .nav-container { padding: 0 1rem; position: relative; }
-    .nav-links { display: none; }
-    .mobile-menu-toggle { display: block; }
-    .mobile-menu { margin: 0 10px; }
-    .hero { padding: 2rem 1rem; min-height: calc(100vh - 70px); }
-    .search-container, .results-box { padding: 1.5rem; }
-    .btn-group { flex-direction: column; }
-    .btn { width: 100%; justify-content: center; }
+    .header { 
+        margin: 0 10px; 
+        top: 10px; 
+        border-radius: 15px;
+    }
+    
+    .nav-container { 
+        padding: 0 1rem; 
+        height: 60px;
+    }
+    
+    .logo { 
+        font-size: 1.5rem; 
+    }
+    
+    .nav-links { 
+        display: none; 
+    }
+    
+    .mobile-menu-toggle { 
+        display: block; 
+    }
+    
+    .mobile-menu { 
+        margin: 0 10px; 
+        border-radius: 0 0 15px 15px;
+    }
+    
+    .hero { 
+        padding: 4rem 1rem; 
+        min-height: 70vh;
+    }
+    
+    .hero-container { 
+        grid-template-columns: 1fr; 
+        gap: 2rem; 
+    }
+    
+    .hero-content h1 { 
+        font-size: 2.5rem; 
+        line-height: 1.2;
+    }
+    
+    .hero-content p { 
+        font-size: 1.1rem; 
+        margin-bottom: 2rem;
+    }
+    
+    .search-container, .results-box { 
+        padding: 1.5rem; 
+        border-radius: 15px;
+    }
+    
+    .btn-group { 
+        flex-direction: column; 
+        gap: 1rem;
+    }
+    
+    .btn { 
+        width: 100%; 
+        justify-content: center; 
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+    
+    .section { 
+        padding: 3rem 1rem; 
+    }
+    
+    .container { 
+        padding: 0; 
+    }
+    
+    .section-title { 
+        font-size: 2rem; 
+        margin-bottom: 2rem;
+    }
+    
+    .features-grid { 
+        grid-template-columns: 1fr; 
+        gap: 1rem; 
+    }
+    
+    .feature-card { 
+        padding: 1.5rem; 
+        border-radius: 15px;
+    }
+    
+    .feature-icon { 
+        font-size: 2rem; 
+    }
+    
+    .feature-title { 
+        font-size: 1.2rem; 
+    }
+    
+    .feature-description { 
+        font-size: 0.9rem; 
+    }
+}
+
+@media (max-width: 480px) {
+    .header { 
+        margin: 0 5px; 
+        top: 5px; 
+        border-radius: 12px;
+    }
+    
+    .nav-container { 
+        padding: 0 0.5rem; 
+        height: 55px;
+    }
+    
+    .logo { 
+        font-size: 1.3rem; 
+    }
+    
+    .mobile-menu { 
+        margin: 0 5px; 
+        border-radius: 0 0 12px 12px;
+    }
+    
+    .hero { 
+        padding: 3rem 0.5rem; 
+    }
+    
+    .hero-content h1 { 
+        font-size: 2rem; 
+        line-height: 1.1;
+    }
+    
+    .hero-content p { 
+        font-size: 1rem; 
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-container, .results-box { 
+        padding: 1rem 0.8rem; 
+        border-radius: 12px;
+    }
+    
+    .btn { 
+        padding: 0.8rem 1.5rem; 
+        font-size: 0.9rem; 
+    }
+    
+    .section { 
+        padding: 2rem 0.5rem; 
+    }
+    
+    .section-title { 
+        font-size: 1.8rem; 
+        margin-bottom: 1.5rem;
+    }
+    
+    .features-grid { 
+        gap: 0.8rem; 
+    }
+    
+    .feature-card { 
+        padding: 1rem; 
+        border-radius: 12px;
+    }
+    
+    .feature-icon { 
+        font-size: 1.8rem; 
+    }
+    
+    .feature-title { 
+        font-size: 1.1rem; 
+    }
+    
+    .feature-description { 
+        font-size: 0.8rem; 
+    }
 }
 </style>
 </head>

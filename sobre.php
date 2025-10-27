@@ -819,35 +819,336 @@ body {
 }
 
 @media (max-width: 768px) {
-    .header { margin: 0 10px; top: 10px; }
-    .hero { padding: 6rem 1rem; }
-    .hero h1 { font-size: 3rem; }
-    .hero p { font-size: 1.3rem; }
-    .section-title { font-size: 2.5rem; }
-    .nav-container { padding: 0 1rem; position: relative; }
-    .nav-links { display: none; }
-    .mobile-menu-toggle { display: block; }
-    .mobile-menu { margin: 0 10px; }
-    .about-image i { font-size: 6rem; }
-    .stat-number { font-size: 3rem; }
-    .cta-title { font-size: 2.5rem; }
-    .cta-section { padding: 4rem 2rem; }
-    .btn-cta { padding: 1.2rem 3rem; font-size: 1.1rem; }
-    .gallery-grid { grid-template-columns: 1fr; }
-    .ref-grid { grid-template-columns: 1fr; }
+    .header { 
+        margin: 0 10px; 
+        top: 10px; 
+        border-radius: 15px;
+    }
+    
+    .nav-container { 
+        padding: 0 1rem; 
+        height: 60px;
+    }
+    
+    .logo { 
+        font-size: 1.5rem; 
+    }
+    
+    .nav-links { 
+        display: none; 
+    }
+    
+    .mobile-menu-toggle { 
+        display: block; 
+    }
+    
+    .mobile-menu { 
+        margin: 0 10px; 
+        border-radius: 0 0 15px 15px;
+    }
+    
+    .hero { 
+        padding: 4rem 1rem; 
+        min-height: 70vh;
+    }
+    
+    .hero h1 { 
+        font-size: 2.5rem; 
+        line-height: 1.2;
+    }
+    
+    .hero p { 
+        font-size: 1.1rem; 
+        margin-bottom: 2rem;
+    }
+    
+    .section { 
+        padding: 3rem 1rem; 
+    }
+    
+    .container { 
+        padding: 0; 
+    }
+    
+    .section-title { 
+        font-size: 2rem; 
+        margin-bottom: 2rem;
+    }
+    
+    /* Stats Grid Mobile */
+    .stats-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 1rem; 
+        margin-top: 2rem; 
+    }
+    
+    .stat-card { 
+        padding: 1.5rem 1rem; 
+        border-radius: 15px;
+    }
+    
+    .stat-number { 
+        font-size: 2.5rem; 
+    }
+    
+    .stat-label { 
+        font-size: 0.9rem; 
+    }
+    
+    /* Certificates Mobile */
+    .certificates-section { 
+        padding: 2rem 1rem; 
+        margin: 2rem 0;
+    }
+    
+    .certificates-title { 
+        font-size: 2rem; 
+    }
+    
+    .certificates-subtitle { 
+        font-size: 1rem; 
+        margin-bottom: 2rem;
+    }
+    
+    .certificates-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 1rem; 
+    }
+    
+    .certificate-item { 
+        padding: 1.5rem 1rem; 
+        border-radius: 15px;
+    }
+    
+    .certificate-icon { 
+        font-size: 2rem; 
+        margin-bottom: 1rem;
+    }
+    
+    .certificate-title { 
+        font-size: 0.9rem; 
+    }
+    
+    .certificate-status { 
+        font-size: 0.8rem; 
+    }
+    
+    /* FAQ Mobile */
+    .faq-question { 
+        padding: 1.5rem 1rem; 
+        font-size: 1rem;
+    }
+    
+    .faq-answer { 
+        padding: 0 1rem 1.5rem; 
+    }
+    
+    /* References Mobile */
+    .ref-grid { 
+        grid-template-columns: 1fr; 
+        gap: 1rem; 
+    }
+    
+    .ref-card { 
+        padding: 1.5rem; 
+        border-radius: 15px;
+    }
+    
+    .ref-image { 
+        height: 200px; 
+        border-radius: 10px;
+    }
+    
+    .ref-title { 
+        font-size: 1rem; 
+    }
+    
+    .ref-location { 
+        font-size: 0.9rem; 
+    }
+    
+    .about-image i { 
+        font-size: 4rem; 
+    }
+    
+    .cta-title { 
+        font-size: 2rem; 
+    }
+    
+    .cta-section { 
+        padding: 3rem 1rem; 
+    }
+    
+    .btn-cta { 
+        padding: 1rem 2rem; 
+        font-size: 1rem; 
+    }
+    
+    .gallery-grid { 
+        grid-template-columns: 1fr; 
+    }
 }
 
 @media (max-width: 480px) {
-    .hero h1 { font-size: 2.5rem; }
-    .hero p { font-size: 1.1rem; }
-    .section-title { font-size: 2rem; }
-    .about-content h3 { font-size: 2rem; }
-    .about-content p { font-size: 1.1rem; }
-    .stat-card { padding: 2rem 1.5rem; }
-    .ref-card { padding: 2rem; }
-    .gallery-item { padding: 1.5rem; }
-    .cta-title { font-size: 2rem; }
-    .cta-text { font-size: 1.2rem; }
+    .header { 
+        margin: 0 5px; 
+        top: 5px; 
+        border-radius: 12px;
+    }
+    
+    .nav-container { 
+        padding: 0 0.5rem; 
+        height: 55px;
+    }
+    
+    .logo { 
+        font-size: 1.3rem; 
+    }
+    
+    .mobile-menu { 
+        margin: 0 5px; 
+        border-radius: 0 0 12px 12px;
+    }
+    
+    .hero { 
+        padding: 3rem 0.5rem; 
+    }
+    
+    .hero h1 { 
+        font-size: 2rem; 
+        line-height: 1.1;
+    }
+    
+    .hero p { 
+        font-size: 1rem; 
+        margin-bottom: 1.5rem;
+    }
+    
+    .section { 
+        padding: 2rem 0.5rem; 
+    }
+    
+    .section-title { 
+        font-size: 1.8rem; 
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Stats Grid Small Mobile */
+    .stats-grid { 
+        grid-template-columns: 1fr; 
+        gap: 0.8rem; 
+    }
+    
+    .stat-card { 
+        padding: 1.2rem 0.8rem; 
+        border-radius: 12px;
+    }
+    
+    .stat-number { 
+        font-size: 2rem; 
+    }
+    
+    .stat-label { 
+        font-size: 0.8rem; 
+    }
+    
+    /* Certificates Small Mobile */
+    .certificates-section { 
+        padding: 1.5rem 0.5rem; 
+        margin: 1.5rem 0;
+    }
+    
+    .certificates-title { 
+        font-size: 1.8rem; 
+    }
+    
+    .certificates-subtitle { 
+        font-size: 0.9rem; 
+        margin-bottom: 1.5rem;
+    }
+    
+    .certificates-grid { 
+        grid-template-columns: 1fr; 
+        gap: 0.8rem; 
+    }
+    
+    .certificate-item { 
+        padding: 1.2rem 0.8rem; 
+        border-radius: 12px;
+    }
+    
+    .certificate-icon { 
+        font-size: 1.8rem; 
+        margin-bottom: 0.8rem;
+    }
+    
+    .certificate-title { 
+        font-size: 0.8rem; 
+    }
+    
+    .certificate-status { 
+        font-size: 0.7rem; 
+    }
+    
+    /* FAQ Small Mobile */
+    .faq-question { 
+        padding: 1rem 0.8rem; 
+        font-size: 0.9rem;
+    }
+    
+    .faq-answer { 
+        padding: 0 0.8rem 1rem; 
+        font-size: 0.9rem;
+    }
+    
+    /* References Small Mobile */
+    .ref-card { 
+        padding: 1rem; 
+        border-radius: 12px;
+    }
+    
+    .ref-image { 
+        height: 150px; 
+        border-radius: 8px;
+    }
+    
+    .ref-title { 
+        font-size: 0.9rem; 
+    }
+    
+    .ref-location { 
+        font-size: 0.8rem; 
+    }
+    
+    .about-content h3 { 
+        font-size: 1.8rem; 
+    }
+    
+    .about-content p { 
+        font-size: 1rem; 
+    }
+    
+    .gallery-item { 
+        padding: 1rem; 
+        border-radius: 12px;
+    }
+    
+    .cta-title { 
+        font-size: 1.8rem; 
+    }
+    
+    .cta-text { 
+        font-size: 1rem; 
+    }
+    
+    .cta-section { 
+        padding: 2rem 0.5rem; 
+    }
+    
+    .btn-cta { 
+        padding: 0.8rem 1.5rem; 
+        font-size: 0.9rem; 
+    }
 }
 </style>
 </head>
