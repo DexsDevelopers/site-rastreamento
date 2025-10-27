@@ -8,7 +8,7 @@ header("Expires: 0");
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -823,10 +823,18 @@ body {
     /* Reset e Base */
     * {
         box-sizing: border-box;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+    }
+    
+    html {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        font-size: 16px;
     }
     
     body {
-        font-size: 14px;
+        font-size: 16px;
         line-height: 1.4;
     }
     
@@ -1058,6 +1066,20 @@ body {
 }
 
 @media (max-width: 480px) {
+    /* Reset text size adjustment */
+    * {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+    }
+    
+    html {
+        font-size: 14px;
+    }
+    
+    body {
+        font-size: 14px;
+    }
+    
     /* Header Small Mobile */
     .header {
         margin: 0 5px;
