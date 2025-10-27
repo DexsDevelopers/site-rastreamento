@@ -94,6 +94,20 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                font-weight: 500; transition: 0.3s; }
 .nav-links a:hover { color: var(--primary); }
 
+/* Mobile Menu */
+.mobile-menu-toggle { display: none; background: none; border: none; 
+                     color: rgba(255,255,255,0.8); font-size: 1.5rem; 
+                     cursor: pointer; padding: 0.5rem; }
+.mobile-menu { display: none; position: absolute; top: 100%; left: 0; 
+               right: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+               border-top: 1px solid rgba(255,51,51,0.1); padding: 1rem 0; }
+.mobile-menu.active { display: block; }
+.mobile-menu a { display: block; color: rgba(255,255,255,0.8); 
+                text-decoration: none; padding: 1rem 2rem; 
+                font-weight: 500; transition: 0.3s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.mobile-menu a:hover { color: var(--primary); background: rgba(255,51,51,0.05); }
+.mobile-menu a:last-child { border-bottom: none; }
+
 /* Hero */
 .hero { min-height: calc(100vh - 80px); display: flex; align-items: center; 
         padding: 4rem 2rem; background: linear-gradient(180deg, #0A0A0A 0%, #1A0000 100%); }
@@ -182,8 +196,9 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     .hero-content h1 { font-size: 2.5rem; }
 }
 @media (max-width: 768px) {
-    .nav-container { padding: 0 1rem; }
+    .nav-container { padding: 0 1rem; position: relative; }
     .nav-links { display: none; }
+    .mobile-menu-toggle { display: block; }
     .hero { padding: 2rem 1rem; }
     .search-container, .results-box { padding: 1.5rem; }
     .btn-group { flex-direction: column; }
@@ -196,6 +211,13 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     <div class="nav-container">
         <a href="index.php" class="logo">Helmer Logistics</a>
         <nav class="nav-links">
+            <a href="index.php">Início</a>
+            <a href="sobre.php">Sobre</a>
+        </nav>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <nav class="mobile-menu" id="mobileMenu">
             <a href="index.php">Início</a>
             <a href="sobre.php">Sobre</a>
         </nav>
@@ -352,5 +374,44 @@ function showIndicacaoInfo() {
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 }
 </script>
-</body>
-</html>
+<script>
+// Mobile Menu Toggle
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const toggle = document.querySelector('.mobile-menu-toggle i');
+    
+    if (mobileMenu.classList.contains('active')) {
+        mobileMenu.classList.remove('active');
+        toggle.classList.remove('fa-times');
+        toggle.classList.add('fa-bars');
+    } else {
+        mobileMenu.classList.add('active');
+        toggle.classList.remove('fa-bars');
+        toggle.classList.add('fa-times');
+    }
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (!mobileMenu.contains(event.target) && !toggle.contains(event.target)) {
+        mobileMenu.classList.remove('active');
+        const toggleIcon = document.querySelector('.mobile-menu-toggle i');
+        toggleIcon.classList.remove('fa-times');
+        toggleIcon.classList.add('fa-bars');
+    }
+});
+
+// Close mobile menu when clicking on a link
+document.querySelectorAll('.mobile-menu a').forEach(link => {
+    link.addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        const toggle = document.querySelector('.mobile-menu-toggle i');
+        mobileMenu.classList.remove('active');
+        toggle.classList.remove('fa-times');
+        toggle.classList.add('fa-bars');
+    });
+});
+</script>

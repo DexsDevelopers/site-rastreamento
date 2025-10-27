@@ -113,6 +113,29 @@ body {
     width: 100%;
 }
 
+/* Mobile Menu */
+.mobile-menu-toggle { display: none; background: none; border: none; 
+                     color: rgba(255,255,255,0.8); font-size: 1.5rem; 
+                     cursor: pointer; padding: 0.5rem; transition: all 0.3s ease; }
+.mobile-menu-toggle:hover { color: var(--primary); transform: scale(1.1); }
+.mobile-menu { display: none; position: absolute; top: 100%; left: 0; 
+               right: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+               border-top: 1px solid rgba(255,51,51,0.1); padding: 1rem 0; 
+               box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.mobile-menu.active { display: block; animation: slideDown 0.3s ease-out; }
+.mobile-menu a { display: block; color: rgba(255,255,255,0.8); 
+                text-decoration: none; padding: 1rem 2rem; 
+                font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; 
+                border-bottom: 1px solid rgba(255,255,255,0.05); }
+.mobile-menu a:hover { color: var(--primary); background: rgba(255,51,51,0.05); 
+                      transform: translateX(10px); }
+.mobile-menu a:last-child { border-bottom: none; }
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Hero Section Moderno */
 .hero { 
     padding: 8rem 2rem; 
@@ -596,7 +619,9 @@ body {
     .hero h1 { font-size: 3rem; }
     .hero p { font-size: 1.3rem; }
     .section-title { font-size: 2.5rem; }
+    .nav-container { padding: 0 1rem; position: relative; }
     .nav-links { display: none; }
+    .mobile-menu-toggle { display: block; }
     .about-image i { font-size: 6rem; }
     .stat-number { font-size: 3rem; }
     .cta-title { font-size: 2.5rem; }
@@ -626,6 +651,13 @@ body {
     <div class="nav-container">
         <a href="index.php" class="logo">Helmer Logistics</a>
         <nav class="nav-links">
+            <a href="index.php">Início</a>
+            <a href="sobre.php">Sobre</a>
+        </nav>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <nav class="mobile-menu" id="mobileMenu">
             <a href="index.php">Início</a>
             <a href="sobre.php">Sobre</a>
         </nav>
@@ -783,7 +815,7 @@ body {
                         <p>Monitoramento oficial com status detalhado</p>
                         <div class="gallery-status">✅ Recebido no Ponto</div>
                         <div class="gallery-date">17/10/2025 - 15:31</div>
-                    </div>
+                </div>
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
@@ -807,7 +839,7 @@ body {
                         <p>Monitoramento com interface integrada ao WhatsApp</p>
                         <div class="gallery-status">✅ Recebido no Ponto</div>
                         <div class="gallery-date">21/10/2025 - 14:49</div>
-                    </div>
+                </div>
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
@@ -831,7 +863,7 @@ body {
                         <p>Sistema de Indicação + Rastreamento completo</p>
                         <div class="gallery-status">✅ Sistema Ativo</div>
                         <div class="gallery-date">26/10/2025 - 23:01</div>
-                    </div>
+                </div>
                 </div>
             </div>
         </div>
@@ -875,5 +907,44 @@ function toggleFaq(element) {
 }
 </script>
 
-</body>
-</html>
+<script>
+// Mobile Menu Toggle
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const toggle = document.querySelector('.mobile-menu-toggle i');
+    
+    if (mobileMenu.classList.contains('active')) {
+        mobileMenu.classList.remove('active');
+        toggle.classList.remove('fa-times');
+        toggle.classList.add('fa-bars');
+    } else {
+        mobileMenu.classList.add('active');
+        toggle.classList.remove('fa-bars');
+        toggle.classList.add('fa-times');
+    }
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (!mobileMenu.contains(event.target) && !toggle.contains(event.target)) {
+        mobileMenu.classList.remove('active');
+        const toggleIcon = document.querySelector('.mobile-menu-toggle i');
+        toggleIcon.classList.remove('fa-times');
+        toggleIcon.classList.add('fa-bars');
+    }
+});
+
+// Close mobile menu when clicking on a link
+document.querySelectorAll('.mobile-menu a').forEach(link => {
+    link.addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        const toggle = document.querySelector('.mobile-menu-toggle i');
+        mobileMenu.classList.remove('active');
+        toggle.classList.remove('fa-times');
+        toggle.classList.add('fa-bars');
+    });
+});
+</script>
