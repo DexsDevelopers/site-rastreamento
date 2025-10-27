@@ -56,14 +56,14 @@ body {
 
 /* Header Moderno */
 .header { 
-    background: rgba(10, 10, 10, 0.95); 
-    backdrop-filter: blur(20px); 
-    border-bottom: 1px solid var(--glass-border); 
+    background: rgba(0,0,0,0.95); 
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
     position: sticky; 
     top: 0; 
     z-index: 1000; 
-    padding: 1.5rem 0;
-    animation: fadeInUp 0.8s ease-out;
+    padding: 0;
+    transition: all 0.3s ease;
 }
 .nav-container { 
     max-width: 1400px; 
@@ -71,65 +71,100 @@ body {
     padding: 0 2rem; 
     display: flex; 
     justify-content: space-between; 
-    align-items: center; 
+    align-items: center;
+    height: 70px;
 }
 .logo { 
-    font-size: 2rem; 
+    font-size: 1.8rem; 
     font-weight: 900; 
-    background: var(--gradient); 
+    background: linear-gradient(135deg, #FF3333, #FF6666);
     -webkit-background-clip: text; 
     -webkit-text-fill-color: transparent; 
     text-decoration: none;
-    transition: all 0.3s ease;
+    letter-spacing: -0.5px;
 }
-.logo:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 20px rgba(255,51,51,0.5));
+.nav-links { 
+    display: flex; 
+    gap: 2.5rem; 
+    align-items: center;
 }
-.nav-links { display: flex; gap: 3rem; }
 .nav-links a { 
     color: rgba(255,255,255,0.8); 
     text-decoration: none; 
-    font-weight: 600; 
-    font-size: 1.1rem;
+    font-weight: 500; 
+    font-size: 0.95rem;
     transition: all 0.3s ease;
     position: relative;
+    padding: 0.5rem 0;
 }
 .nav-links a:hover { 
-    color: var(--primary); 
-    transform: translateY(-2px);
+    color: #FF3333;
+    transform: translateY(-1px);
 }
 .nav-links a::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: 0;
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--gradient);
+    background: linear-gradient(135deg, #FF3333, #FF6666);
     transition: width 0.3s ease;
 }
 .nav-links a:hover::after {
     width: 100%;
 }
 
-/* Mobile Menu */
-.mobile-menu-toggle { display: none; background: none; border: none; 
-                     color: rgba(255,255,255,0.8); font-size: 1.5rem; 
-                     cursor: pointer; padding: 0.5rem; transition: all 0.3s ease; }
-.mobile-menu-toggle:hover { color: var(--primary); transform: scale(1.1); }
-.mobile-menu { display: none; position: absolute; top: 100%; left: 0; 
-               right: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
-               border-top: 1px solid rgba(255,51,51,0.1); padding: 1rem 0; 
-               box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-.mobile-menu.active { display: block; animation: slideDown 0.3s ease-out; }
-.mobile-menu a { display: block; color: rgba(255,255,255,0.8); 
-                text-decoration: none; padding: 1rem 2rem; 
-                font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; 
-                border-bottom: 1px solid rgba(255,255,255,0.05); }
-.mobile-menu a:hover { color: var(--primary); background: rgba(255,51,51,0.05); 
-                      transform: translateX(10px); }
-.mobile-menu a:last-child { border-bottom: none; }
+/* Mobile Menu Moderno */
+.mobile-menu-toggle { 
+    display: none; 
+    background: none; 
+    border: none; 
+    color: rgba(255,255,255,0.8); 
+    font-size: 1.3rem; 
+    cursor: pointer; 
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+.mobile-menu-toggle:hover { 
+    color: #FF3333; 
+    background: rgba(255,51,51,0.1);
+}
+.mobile-menu { 
+    display: none; 
+    position: absolute; 
+    top: 100%; 
+    left: 0; 
+    right: 0; 
+    background: rgba(0,0,0,0.98); 
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.1); 
+    padding: 1rem 0; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.mobile-menu.active { 
+    display: block; 
+    animation: slideDown 0.3s ease-out; 
+}
+.mobile-menu a { 
+    display: block; 
+    color: rgba(255,255,255,0.8); 
+    text-decoration: none; 
+    padding: 1rem 2rem; 
+    font-weight: 500; 
+    font-size: 0.95rem;
+    transition: all 0.3s ease; 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
+}
+.mobile-menu a:hover { 
+    color: #FF3333; 
+    background: rgba(255,51,51,0.05); 
+    transform: translateX(10px); 
+}
+.mobile-menu a:last-child { 
+    border-bottom: none; 
+}
 
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-10px); }
