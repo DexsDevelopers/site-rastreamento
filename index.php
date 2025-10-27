@@ -80,19 +80,19 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
 }
 body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--light); }
 
-/* Header com Glassmorphism */
+/* Header com Glassmorphism Moderno */
 .header { 
-    background: rgba(0,0,0,0.3); 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
+    background: rgba(0,0,0,0.1); 
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 25px;
     position: sticky; 
     top: 20px; 
     z-index: 1000; 
     padding: 0;
     margin: 0 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
     transition: all 0.3s ease;
 }
 .nav-container { 
@@ -112,6 +112,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     -webkit-text-fill-color: transparent; 
     text-decoration: none;
     letter-spacing: -0.5px;
+    text-shadow: 0 0 20px rgba(255,51,51,0.3);
 }
 .nav-links { 
     display: flex; 
@@ -119,17 +120,19 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     align-items: center;
 }
 .nav-links a { 
-    color: rgba(255,255,255,0.9); 
+    color: rgba(255,255,255,0.95); 
     text-decoration: none; 
     font-weight: 500; 
     font-size: 0.95rem;
     transition: all 0.3s ease;
     position: relative;
     padding: 0.5rem 0;
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
 }
 .nav-links a:hover { 
     color: #FF3333;
     transform: translateY(-1px);
+    text-shadow: 0 0 15px rgba(255,51,51,0.4);
 }
 .nav-links a::after {
     content: '';
@@ -140,29 +143,32 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     height: 2px;
     background: linear-gradient(135deg, #FF3333, #FF6666);
     transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(255,51,51,0.3);
 }
 .nav-links a:hover::after {
     width: 100%;
 }
 
-/* Mobile Menu com Glassmorphism */
+/* Mobile Menu com Glassmorphism Moderno */
 .mobile-menu-toggle { 
     display: none; 
-    background: rgba(255,255,255,0.1); 
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    color: rgba(255,255,255,0.9); 
+    background: rgba(255,255,255,0.15); 
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.95); 
     font-size: 1.3rem; 
     cursor: pointer; 
     padding: 0.5rem;
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 .mobile-menu-toggle:hover { 
     color: #FF3333; 
     background: rgba(255,51,51,0.2);
-    border-color: rgba(255,51,51,0.3);
+    border-color: rgba(255,51,51,0.4);
+    box-shadow: 0 4px 16px rgba(255,51,51,0.2);
 }
 .mobile-menu { 
     display: none; 
@@ -170,13 +176,13 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     top: 100%; 
     left: 0; 
     right: 0; 
-    background: rgba(0,0,0,0.4); 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 0 0 20px 20px;
+    background: rgba(0,0,0,0.2); 
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0 0 25px 25px;
     padding: 1rem 0; 
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
     margin: 0 20px;
 }
 .mobile-menu.active { 
@@ -185,18 +191,20 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 }
 .mobile-menu a { 
     display: block; 
-    color: rgba(255,255,255,0.9); 
+    color: rgba(255,255,255,0.95); 
     text-decoration: none; 
     padding: 1rem 2rem; 
     font-weight: 500; 
     font-size: 0.95rem;
     transition: all 0.3s ease; 
     border-bottom: 1px solid rgba(255,255,255,0.05); 
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
 }
 .mobile-menu a:hover { 
     color: #FF3333; 
     background: rgba(255,51,51,0.1); 
     transform: translateX(10px); 
+    text-shadow: 0 0 15px rgba(255,51,51,0.4);
 }
 .mobile-menu a:last-child { 
     border-bottom: none; 
