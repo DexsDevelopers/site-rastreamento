@@ -281,6 +281,36 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
     background: radial-gradient(ellipse at center, rgba(255,51,51,0.5), rgba(255,102,0,0) 70%);
     filter: blur(5px);
 }
+
+/* Card de vidro para o título */
+.hero-title-card {
+    display: inline-block;
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+}
+.hero-title-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, rgba(255,51,51,0.9), rgba(255,102,0,0.9));
+    opacity: 0.9;
+}
+.hero-title-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
 .hero-content p { font-size: 1.2rem; color: rgba(255,255,255,0.75); margin-bottom: 1.5rem; }
 
 /* Hero extras alinhados ao sobre.php */
@@ -369,7 +399,8 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 
 @media (max-width: 1024px) { 
     .hero-container { grid-template-columns: 1fr; gap: 2rem; } 
-    .hero-content h1 { font-size: 2.4rem; }
+    .hero-content h1 { font-size: 2.2rem; }
+    .hero-title-card { display: block; width: 100%; text-align: center; }
 }
 /* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
@@ -536,7 +567,8 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         min-height: 60vh;
     }
     
-    .hero-content h1 { font-size: 1.7rem; margin-bottom: 15px; }
+    .hero-content h1 { font-size: 1.6rem; margin-bottom: 12px; }
+    .hero-title-card { padding: 0.9rem 1rem; border-radius: 14px; }
     
     .hero-content p { font-size: 0.9rem; margin-bottom: 18px; }
     .badges { gap: 0.5rem; }
@@ -631,7 +663,9 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         <div id="ajaxResults"></div>
         
         <div class="hero-content">
-            <h1 class="hero-title"><span class="title-accent">Acompanhe</span> seus <span class="title-gradient">Recebimentos</span> em Tempo Real</h1>
+            <div class="hero-title-card">
+                <h1 class="hero-title"><span class="title-accent">Acompanhe</span> seus <span class="title-gradient">Recebimentos</span> em Tempo Real</h1>
+            </div>
             <p>Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real</p>
             
             <div class="hero-actions" style="justify-content: flex-start;">
