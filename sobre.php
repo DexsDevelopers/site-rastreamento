@@ -399,7 +399,158 @@ body {
     color: var(--primary);
 }
 .faq-icon.active { 
-    transform: rotate(180deg); 
+/* Certificados e Selos Dinâmicos */
+.certificates-section {
+    background: rgba(255,255,255,0.02);
+    border-radius: 25px;
+    padding: 3rem 2rem;
+    margin: 4rem 0;
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+}
+
+.certificates-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+.certificates-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.certificates-subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.7);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+}
+
+.certificates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.certificate-item {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: scale(0.8) translateY(30px);
+    position: relative;
+    overflow: hidden;
+}
+
+.certificate-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #FF3333, #FF6666);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.certificate-item.revealed {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.certificate-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(255,51,51,0.3);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.certificate-item:hover::before {
+    transform: scaleX(1);
+}
+
+.certificate-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+}
+
+.certificate-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+.certificate-status {
+    font-size: 0.9rem;
+    color: #16A34A;
+    font-weight: 500;
+    text-shadow: 0 0 10px rgba(22,163,74,0.3);
+}
+
+/* Scroll Reveal Animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-left.revealed {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-right.revealed {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-scale.revealed {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* References Modernos */
@@ -749,29 +900,74 @@ body {
     <div class="container">
         <h2 class="section-title">Nossos Resultados</h2>
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card reveal">
                 <div class="stat-number">5.247</div>
                 <div class="stat-label">Entregas Realizadas</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card reveal">
                 <div class="stat-number">247</div>
                 <div class="stat-label">Cidades Atendidas</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card reveal">
                 <div class="stat-number">24/7</div>
                 <div class="stat-label">Suporte Premium</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card reveal">
                 <div class="stat-number">98.7%</div>
                 <div class="stat-label">Taxa de Satisfação</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card reveal">
                 <div class="stat-number">2</div>
                 <div class="stat-label">Dias Entrega Express</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card reveal">
                 <div class="stat-number">100%</div>
                 <div class="stat-label">Rastreamento em Tempo Real</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section certificates-section">
+    <div class="container">
+        <h2 class="certificates-title reveal">Certificações e Selos</h2>
+        <p class="certificates-subtitle reveal">Garantias de segurança e confiabilidade</p>
+        
+        <div class="certificates-grid">
+            <div class="certificate-item reveal-scale">
+                <span class="certificate-icon">🔒</span>
+                <h3 class="certificate-title">SSL Seguro</h3>
+                <p class="certificate-status">✅ Ativo</p>
+            </div>
+            
+            <div class="certificate-item reveal-scale">
+                <span class="certificate-icon">⭐</span>
+                <h3 class="certificate-title">Google Reviews</h3>
+                <p class="certificate-status">✅ 4.9/5 Estrelas</p>
+            </div>
+            
+            <div class="certificate-item reveal-scale">
+                <span class="certificate-icon">🛡️</span>
+                <h3 class="certificate-title">ReclameAqui</h3>
+                <p class="certificate-status">✅ Nota A+</p>
+            </div>
+            
+            <div class="certificate-item reveal-scale">
+                <span class="certificate-icon">🏆</span>
+                <h3 class="certificate-title">ISO 27001</h3>
+                <p class="certificate-status">✅ Certificado</p>
+            </div>
+            
+            <div class="certificate-item reveal-scale">
+                <span class="certificate-icon">🔐</span>
+                <h3 class="certificate-title">LGPD</h3>
+                <p class="certificate-status">✅ Conforme</p>
+            </div>
+            
+            <div class="certificate-item reveal-scale">
+                <span class="certificate-icon">📊</span>
+                <h3 class="certificate-title">PCI DSS</h3>
+                <p class="certificate-status">✅ Validado</p>
             </div>
         </div>
     </div>
@@ -943,6 +1139,31 @@ body {
         <p>&copy; 2025 Helmer Logistics. Todos os direitos reservados.</p>
     </div>
 </footer>
+
+<script>
+// Scroll Reveal Animation
+function initScrollReveal() {
+    const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+    
+    reveals.forEach(reveal => {
+        observer.observe(reveal);
+    });
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initScrollReveal);
+</script>
 
 <script>
 function toggleFaq(element) {
