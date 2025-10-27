@@ -818,392 +818,367 @@ body {
     .stats-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 }
 
-/* Responsividade Mobile - Correções Agressivas */
+/* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
+    /* Reset e Base */
     * {
         box-sizing: border-box;
     }
     
-    .header { 
-        margin: 0 5px; 
-        top: 5px; 
-        border-radius: 10px;
-        width: calc(100% - 10px);
-    }
-    
-    .nav-container { 
-        padding: 0 0.5rem; 
-        height: 50px;
-        max-width: 100%;
-    }
-    
-    .logo { 
-        font-size: 1.2rem; 
-        white-space: nowrap;
-    }
-    
-    .nav-links { 
-        display: none; 
-    }
-    
-    .mobile-menu-toggle { 
-        display: block; 
-        padding: 0.3rem;
-        font-size: 1rem;
-    }
-    
-    .mobile-menu { 
-        margin: 0 5px; 
-        border-radius: 0 0 10px 10px;
-        width: calc(100% - 10px);
-    }
-    
-    .hero { 
-        padding: 2rem 0.5rem; 
-        min-height: 60vh;
-        text-align: center;
-    }
-    
-    .hero h1 { 
-        font-size: 1.8rem; 
-        line-height: 1.1;
-        margin-bottom: 1rem;
-        word-wrap: break-word;
-    }
-    
-    .hero p { 
-        font-size: 0.9rem; 
-        margin-bottom: 1rem;
+    body {
+        font-size: 14px;
         line-height: 1.4;
     }
     
-    .section { 
-        padding: 2rem 0.5rem; 
-        overflow-x: hidden;
+    /* Header Mobile */
+    .header {
+        margin: 0 10px;
+        top: 10px;
+        border-radius: 12px;
+        width: calc(100% - 20px);
     }
     
-    .container { 
-        padding: 0; 
-        max-width: 100%;
-        margin: 0;
+    .nav-container {
+        padding: 0 15px;
+        height: 60px;
     }
     
-    .section-title { 
-        font-size: 1.5rem; 
-        margin-bottom: 1rem;
+    .logo {
+        font-size: 1.4rem;
+    }
+    
+    .nav-links {
+        display: none;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+        padding: 8px;
+        font-size: 1.2rem;
+    }
+    
+    .mobile-menu {
+        margin: 0 10px;
+        border-radius: 0 0 12px 12px;
+        width: calc(100% - 20px);
+    }
+    
+    /* Hero Section */
+    .hero {
+        padding: 60px 20px;
+        min-height: 70vh;
         text-align: center;
-        word-wrap: break-word;
     }
     
-    /* Stats Grid Mobile - 1 coluna */
-    .stats-grid { 
-        grid-template-columns: 1fr; 
-        gap: 0.5rem; 
-        margin-top: 1rem; 
-        padding: 0;
-    }
-    
-    .stat-card { 
-        padding: 1rem 0.5rem; 
-        border-radius: 10px;
-        margin: 0;
-        width: 100%;
-    }
-    
-    .stat-number { 
-        font-size: 2rem; 
-        margin-bottom: 0.3rem;
-    }
-    
-    .stat-label { 
-        font-size: 0.8rem; 
+    .hero h1 {
+        font-size: 2.2rem;
         line-height: 1.2;
+        margin-bottom: 20px;
     }
     
-    /* Certificates Mobile - 1 coluna */
-    .certificates-section { 
-        padding: 1.5rem 0.5rem; 
-        margin: 1rem 0;
+    .hero p {
+        font-size: 1rem;
+        margin-bottom: 30px;
+        line-height: 1.5;
     }
     
-    .certificates-title { 
-        font-size: 1.5rem; 
-        margin-bottom: 0.5rem;
+    /* Sections */
+    .section {
+        padding: 40px 20px;
     }
     
-    .certificates-subtitle { 
-        font-size: 0.8rem; 
-        margin-bottom: 1rem;
+    .container {
+        padding: 0;
+        max-width: 100%;
     }
     
-    .certificates-grid { 
-        grid-template-columns: 1fr; 
-        gap: 0.5rem; 
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+        text-align: center;
     }
     
-    .certificate-item { 
-        padding: 1rem 0.5rem; 
-        border-radius: 10px;
-        margin: 0;
+    /* Stats Grid */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 30px;
     }
     
-    .certificate-icon { 
-        font-size: 1.5rem; 
-        margin-bottom: 0.5rem;
+    .stat-card {
+        padding: 20px 15px;
+        border-radius: 12px;
+        text-align: center;
     }
     
-    .certificate-title { 
-        font-size: 0.8rem; 
-        margin-bottom: 0.3rem;
+    .stat-number {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
     }
     
-    .certificate-status { 
-        font-size: 0.7rem; 
-    }
-    
-    /* FAQ Mobile */
-    .faq-question { 
-        padding: 1rem 0.5rem; 
+    .stat-label {
         font-size: 0.9rem;
         line-height: 1.3;
     }
     
-    .faq-answer { 
-        padding: 0 0.5rem 1rem; 
+    /* Certificates */
+    .certificates-section {
+        padding: 40px 20px;
+        margin: 30px 0;
+    }
+    
+    .certificates-title {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+    
+    .certificates-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 25px;
+    }
+    
+    .certificates-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .certificate-item {
+        padding: 20px 15px;
+        border-radius: 12px;
+        text-align: center;
+    }
+    
+    .certificate-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .certificate-title {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .certificate-status {
         font-size: 0.8rem;
+    }
+    
+    /* FAQ */
+    .faq-question {
+        padding: 20px 15px;
+        font-size: 1rem;
         line-height: 1.4;
     }
     
-    /* References Mobile */
-    .ref-grid { 
-        grid-template-columns: 1fr; 
-        gap: 0.5rem; 
+    .faq-answer {
+        padding: 0 15px 20px;
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
     
-    .ref-card { 
-        padding: 1rem; 
-        border-radius: 10px;
-        margin: 0;
+    /* References */
+    .ref-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
     
-    .ref-image { 
-        height: 120px; 
+    .ref-card {
+        padding: 20px;
+        border-radius: 12px;
+    }
+    
+    .ref-image {
+        height: 180px;
         border-radius: 8px;
-        object-fit: cover;
     }
     
-    .ref-title { 
-        font-size: 0.9rem; 
-        margin-bottom: 0.3rem;
+    .ref-title {
+        font-size: 1rem;
+        margin-bottom: 8px;
     }
     
-    .ref-location { 
-        font-size: 0.8rem; 
+    .ref-location {
+        font-size: 0.9rem;
     }
     
-    .about-image i { 
-        font-size: 3rem; 
+    /* CTA Section */
+    .cta-title {
+        font-size: 1.8rem;
     }
     
-    .cta-title { 
-        font-size: 1.5rem; 
+    .cta-section {
+        padding: 40px 20px;
     }
     
-    .cta-section { 
-        padding: 2rem 0.5rem; 
-    }
-    
-    .btn-cta { 
-        padding: 0.8rem 1.5rem; 
-        font-size: 0.9rem; 
+    .btn-cta {
+        padding: 12px 24px;
+        font-size: 1rem;
         width: 100%;
-        max-width: 200px;
+        max-width: 250px;
     }
     
-    .gallery-grid { 
-        grid-template-columns: 1fr; 
-        gap: 0.5rem;
-    }
-    
-    /* Scroll reveal adjustments */
+    /* Disable scroll reveal on mobile */
     .reveal, .reveal-left, .reveal-right, .reveal-scale {
-        opacity: 1;
-        transform: none;
-        transition: none;
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
     }
 }
 
 @media (max-width: 480px) {
-    .header { 
-        margin: 0 2px; 
-        top: 2px; 
-        border-radius: 8px;
-        width: calc(100% - 4px);
+    /* Header Small Mobile */
+    .header {
+        margin: 0 5px;
+        top: 5px;
+        border-radius: 10px;
+        width: calc(100% - 10px);
     }
     
-    .nav-container { 
-        padding: 0 0.3rem; 
-        height: 45px;
+    .nav-container {
+        padding: 0 10px;
+        height: 55px;
     }
     
-    .logo { 
-        font-size: 1rem; 
+    .logo {
+        font-size: 1.2rem;
     }
     
-    .mobile-menu { 
-        margin: 0 2px; 
-        border-radius: 0 0 8px 8px;
-        width: calc(100% - 4px);
+    .mobile-menu {
+        margin: 0 5px;
+        border-radius: 0 0 10px 10px;
+        width: calc(100% - 10px);
     }
     
-    .hero { 
-        padding: 1.5rem 0.3rem; 
-        min-height: 50vh;
+    /* Hero Small Mobile */
+    .hero {
+        padding: 40px 15px;
+        min-height: 60vh;
     }
     
-    .hero h1 { 
-        font-size: 1.5rem; 
-        line-height: 1.1;
-        margin-bottom: 0.8rem;
+    .hero h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
     }
     
-    .hero p { 
-        font-size: 0.8rem; 
-        margin-bottom: 0.8rem;
-        line-height: 1.3;
+    .hero p {
+        font-size: 0.9rem;
+        margin-bottom: 25px;
     }
     
-    .section { 
-        padding: 1.5rem 0.3rem; 
+    /* Sections Small Mobile */
+    .section {
+        padding: 30px 15px;
     }
     
-    .section-title { 
-        font-size: 1.3rem; 
-        margin-bottom: 0.8rem;
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 25px;
     }
     
-    /* Stats Grid Small Mobile */
-    .stats-grid { 
-        gap: 0.3rem; 
-        margin-top: 0.8rem; 
+    /* Stats Small Mobile */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 25px;
     }
     
-    .stat-card { 
-        padding: 0.8rem 0.3rem; 
-        border-radius: 8px;
+    .stat-card {
+        padding: 18px 12px;
+        border-radius: 10px;
     }
     
-    .stat-number { 
-        font-size: 1.5rem; 
-        margin-bottom: 0.2rem;
+    .stat-number {
+        font-size: 2rem;
+        margin-bottom: 6px;
     }
     
-    .stat-label { 
-        font-size: 0.7rem; 
-        line-height: 1.1;
+    .stat-label {
+        font-size: 0.85rem;
     }
     
     /* Certificates Small Mobile */
-    .certificates-section { 
-        padding: 1rem 0.3rem; 
-        margin: 0.8rem 0;
+    .certificates-section {
+        padding: 30px 15px;
+        margin: 25px 0;
     }
     
-    .certificates-title { 
-        font-size: 1.3rem; 
-        margin-bottom: 0.3rem;
+    .certificates-title {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
     }
     
-    .certificates-subtitle { 
-        font-size: 0.7rem; 
-        margin-bottom: 0.8rem;
+    .certificates-subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 20px;
     }
     
-    .certificates-grid { 
-        gap: 0.3rem; 
+    .certificates-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
     
-    .certificate-item { 
-        padding: 0.8rem 0.3rem; 
-        border-radius: 8px;
+    .certificate-item {
+        padding: 18px 12px;
+        border-radius: 10px;
     }
     
-    .certificate-icon { 
-        font-size: 1.2rem; 
-        margin-bottom: 0.3rem;
+    .certificate-icon {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
     }
     
-    .certificate-title { 
-        font-size: 0.7rem; 
-        margin-bottom: 0.2rem;
+    .certificate-title {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
     }
     
-    .certificate-status { 
-        font-size: 0.6rem; 
+    .certificate-status {
+        font-size: 0.75rem;
     }
     
     /* FAQ Small Mobile */
-    .faq-question { 
-        padding: 0.8rem 0.3rem; 
-        font-size: 0.8rem;
-        line-height: 1.2;
+    .faq-question {
+        padding: 18px 12px;
+        font-size: 0.95rem;
     }
     
-    .faq-answer { 
-        padding: 0 0.3rem 0.8rem; 
-        font-size: 0.7rem;
-        line-height: 1.3;
+    .faq-answer {
+        padding: 0 12px 18px;
+        font-size: 0.85rem;
     }
     
     /* References Small Mobile */
-    .ref-card { 
-        padding: 0.8rem; 
-        border-radius: 8px;
+    .ref-card {
+        padding: 18px;
+        border-radius: 10px;
     }
     
-    .ref-image { 
-        height: 100px; 
+    .ref-image {
+        height: 150px;
         border-radius: 6px;
     }
     
-    .ref-title { 
-        font-size: 0.8rem; 
-        margin-bottom: 0.2rem;
+    .ref-title {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
     }
     
-    .ref-location { 
-        font-size: 0.7rem; 
+    .ref-location {
+        font-size: 0.85rem;
     }
     
-    .about-content h3 { 
-        font-size: 1.3rem; 
+    /* CTA Small Mobile */
+    .cta-title {
+        font-size: 1.5rem;
     }
     
-    .about-content p { 
-        font-size: 0.8rem; 
+    .cta-section {
+        padding: 30px 15px;
     }
     
-    .gallery-item { 
-        padding: 0.8rem; 
-        border-radius: 8px;
-    }
-    
-    .cta-title { 
-        font-size: 1.3rem; 
-    }
-    
-    .cta-text { 
-        font-size: 0.8rem; 
-    }
-    
-    .cta-section { 
-        padding: 1.5rem 0.3rem; 
-    }
-    
-    .btn-cta { 
-        padding: 0.6rem 1rem; 
-        font-size: 0.8rem; 
-        max-width: 150px;
+    .btn-cta {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        max-width: 200px;
     }
 }
 </style>

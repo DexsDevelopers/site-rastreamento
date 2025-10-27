@@ -302,219 +302,226 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     .hero-container { grid-template-columns: 1fr; gap: 2rem; } 
     .hero-content h1 { font-size: 2.5rem; }
 }
-/* Responsividade Mobile - Correções Agressivas */
+/* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
+    /* Reset e Base */
     * {
         box-sizing: border-box;
     }
     
-    .header { 
-        margin: 0 5px; 
-        top: 5px; 
-        border-radius: 10px;
-        width: calc(100% - 10px);
-    }
-    
-    .nav-container { 
-        padding: 0 0.5rem; 
-        height: 50px;
-        max-width: 100%;
-    }
-    
-    .logo { 
-        font-size: 1.2rem; 
-        white-space: nowrap;
-    }
-    
-    .nav-links { 
-        display: none; 
-    }
-    
-    .mobile-menu-toggle { 
-        display: block; 
-        padding: 0.3rem;
-        font-size: 1rem;
-    }
-    
-    .mobile-menu { 
-        margin: 0 5px; 
-        border-radius: 0 0 10px 10px;
-        width: calc(100% - 10px);
-    }
-    
-    .hero { 
-        padding: 2rem 0.5rem; 
-        min-height: 60vh;
-        text-align: center;
-    }
-    
-    .hero-container { 
-        grid-template-columns: 1fr; 
-        gap: 1rem; 
-        max-width: 100%;
-    }
-    
-    .hero-content h1 { 
-        font-size: 1.8rem; 
-        line-height: 1.1;
-        margin-bottom: 1rem;
-        word-wrap: break-word;
-    }
-    
-    .hero-content p { 
-        font-size: 0.9rem; 
-        margin-bottom: 1rem;
+    body {
+        font-size: 14px;
         line-height: 1.4;
     }
     
-    .search-container, .results-box { 
-        padding: 1rem 0.5rem; 
-        border-radius: 10px;
-        margin: 0;
-        width: 100%;
+    /* Header Mobile */
+    .header {
+        margin: 0 10px;
+        top: 10px;
+        border-radius: 12px;
+        width: calc(100% - 20px);
     }
     
-    .btn-group { 
-        flex-direction: column; 
-        gap: 0.5rem;
-        width: 100%;
+    .nav-container {
+        padding: 0 15px;
+        height: 60px;
     }
     
-    .btn { 
-        width: 100%; 
-        justify-content: center; 
-        padding: 0.8rem 1rem;
-        font-size: 0.9rem;
-        margin: 0;
+    .logo {
+        font-size: 1.4rem;
     }
     
-    .section { 
-        padding: 2rem 0.5rem; 
-        overflow-x: hidden;
+    .nav-links {
+        display: none;
     }
     
-    .container { 
-        padding: 0; 
+    .mobile-menu-toggle {
+        display: block;
+        padding: 8px;
+        font-size: 1.2rem;
+    }
+    
+    .mobile-menu {
+        margin: 0 10px;
+        border-radius: 0 0 12px 12px;
+        width: calc(100% - 20px);
+    }
+    
+    /* Hero Section */
+    .hero {
+        padding: 60px 20px;
+        min-height: 70vh;
+    }
+    
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
         max-width: 100%;
-        margin: 0;
     }
     
-    .section-title { 
-        font-size: 1.5rem; 
-        margin-bottom: 1rem;
-        text-align: center;
-        word-wrap: break-word;
+    .hero-content h1 {
+        font-size: 2.2rem;
+        line-height: 1.2;
+        margin-bottom: 20px;
     }
     
-    .features-grid { 
-        grid-template-columns: 1fr; 
-        gap: 0.5rem; 
+    .hero-content p {
+        font-size: 1rem;
+        margin-bottom: 30px;
+        line-height: 1.5;
     }
     
-    .feature-card { 
-        padding: 1rem 0.5rem; 
-        border-radius: 10px;
+    /* Search Container */
+    .search-container, .results-box {
+        padding: 25px 20px;
+        border-radius: 12px;
         margin: 0;
         width: 100%;
     }
     
-    .feature-icon { 
-        font-size: 1.5rem; 
-        margin-bottom: 0.5rem;
+    .btn-group {
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
     }
     
-    .feature-title { 
-        font-size: 1rem; 
-        margin-bottom: 0.3rem;
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+        font-size: 1rem;
+        margin: 0;
     }
     
-    .feature-description { 
-        font-size: 0.8rem; 
-        line-height: 1.3;
+    /* Sections */
+    .section {
+        padding: 40px 20px;
+    }
+    
+    .container {
+        padding: 0;
+        max-width: 100%;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    /* Features Grid */
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .feature-card {
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin: 0;
+        width: 100%;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .feature-title {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .feature-description {
+        font-size: 0.95rem;
+        line-height: 1.5;
     }
 }
 
 @media (max-width: 480px) {
-    .header { 
-        margin: 0 2px; 
-        top: 2px; 
-        border-radius: 8px;
-        width: calc(100% - 4px);
+    /* Header Small Mobile */
+    .header {
+        margin: 0 5px;
+        top: 5px;
+        border-radius: 10px;
+        width: calc(100% - 10px);
     }
     
-    .nav-container { 
-        padding: 0 0.3rem; 
-        height: 45px;
+    .nav-container {
+        padding: 0 10px;
+        height: 55px;
     }
     
-    .logo { 
-        font-size: 1rem; 
+    .logo {
+        font-size: 1.2rem;
     }
     
-    .mobile-menu { 
-        margin: 0 2px; 
-        border-radius: 0 0 8px 8px;
-        width: calc(100% - 4px);
+    .mobile-menu {
+        margin: 0 5px;
+        border-radius: 0 0 10px 10px;
+        width: calc(100% - 10px);
     }
     
-    .hero { 
-        padding: 1.5rem 0.3rem; 
-        min-height: 50vh;
+    /* Hero Small Mobile */
+    .hero {
+        padding: 40px 15px;
+        min-height: 60vh;
     }
     
-    .hero-content h1 { 
-        font-size: 1.5rem; 
-        line-height: 1.1;
-        margin-bottom: 0.8rem;
+    .hero-content h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
     }
     
-    .hero-content p { 
-        font-size: 0.8rem; 
-        margin-bottom: 0.8rem;
-        line-height: 1.3;
+    .hero-content p {
+        font-size: 0.9rem;
+        margin-bottom: 25px;
     }
     
-    .search-container, .results-box { 
-        padding: 0.8rem 0.3rem; 
-        border-radius: 8px;
+    /* Search Small Mobile */
+    .search-container, .results-box {
+        padding: 20px 15px;
+        border-radius: 10px;
     }
     
-    .btn { 
-        padding: 0.6rem 0.8rem; 
-        font-size: 0.8rem; 
+    .btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
     }
     
-    .section { 
-        padding: 1.5rem 0.3rem; 
+    /* Sections Small Mobile */
+    .section {
+        padding: 30px 15px;
     }
     
-    .section-title { 
-        font-size: 1.3rem; 
-        margin-bottom: 0.8rem;
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 25px;
     }
     
-    .features-grid { 
-        gap: 0.3rem; 
+    /* Features Small Mobile */
+    .features-grid {
+        gap: 15px;
     }
     
-    .feature-card { 
-        padding: 0.8rem 0.3rem; 
-        border-radius: 8px;
+    .feature-card {
+        padding: 20px 15px;
+        border-radius: 10px;
     }
     
-    .feature-icon { 
-        font-size: 1.2rem; 
-        margin-bottom: 0.3rem;
+    .feature-icon {
+        font-size: 1.8rem;
+        margin-bottom: 12px;
     }
     
-    .feature-title { 
-        font-size: 0.9rem; 
-        margin-bottom: 0.2rem;
+    .feature-title {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
     }
     
-    .feature-description { 
-        font-size: 0.7rem; 
-        line-height: 1.2;
+    .feature-description {
+        font-size: 0.9rem;
+        line-height: 1.4;
     }
 }
 </style>
