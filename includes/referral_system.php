@@ -1,7 +1,8 @@
 <?php
 /**
- * Sistema de Indicação com Prioridade de Entrega
+ * Sistema de Indicações — Entrega Prioritária em 2 Dias
  * Helmer Logistics
+ * Serviço de indicação com prioridade automática e previsão de entrega acelerada
  */
 
 require_once 'config.php';

@@ -604,34 +604,6 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 
 <section class="hero">
     <div class="hero-container">
-        <div class="hero-content">
-            <h1>Acompanhe seus Recebimentos em Tempo Real</h1>
-            <p>Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real</p>
-            
-            <div class="referral-box">
-                <i class="fas fa-star" style="font-size: 2rem; color: #FF3333; margin-bottom: 1rem;"></i>
-                <h3>Sistema de Indicações</h3>
-                <p>Indique um amigo e ganhe <strong>entrega prioritária em 2 dias!</strong></p>
-                <div class="btn-group">
-                    <a href="indicacao.php" class="btn btn-referral" target="_blank">
-                        <i class="fas fa-users"></i> Indicar Amigo
-                    </a>
-                    <button onclick="showIndicacaoInfo()" class="btn btn-info">
-                        <i class="fas fa-info-circle"></i> Como Funciona
-                    </button>
-                </div>
-            </div>
-            <div class="hero-actions" style="justify-content: flex-start;">
-                <a href="sobre.php" class="btn-hero secondary"><i class="fas fa-info-circle"></i> Sobre nós</a>
-                <a href="indicacao.php" class="btn-hero"><i class="fas fa-users"></i> Indicar Amigo</a>
-            </div>
-            <div class="badges">
-                <span class="badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
-                <span class="badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
-                <span class="badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
-            </div>
-        </div>
-        
         <div class="search-container">
             <h2 style="margin-bottom: 1.5rem; color: var(--light);">
                 <i class="fas fa-search"></i> Rastrear Envio
@@ -652,6 +624,35 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         </div>
         <!-- Resultados AJAX sem recarregar -->
         <div id="ajaxResults"></div>
+        
+        <div class="hero-content">
+            <h1>Acompanhe seus Recebimentos em Tempo Real</h1>
+            <p>Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real</p>
+            
+            <div class="hero-actions" style="justify-content: flex-start;">
+                <a href="sobre.php" class="btn-hero secondary"><i class="fas fa-info-circle"></i> Sobre nós</a>
+                <a href="indicacao.php" class="btn-hero"><i class="fas fa-users"></i> Indicar Amigo</a>
+            </div>
+            <div class="badges">
+                <span class="badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
+                <span class="badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
+                <span class="badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
+            </div>
+            
+            <div class="referral-box" style="margin-top: 2rem;">
+                <i class="fas fa-star" style="font-size: 2rem; color: #FF3333; margin-bottom: 1rem;"></i>
+                <h3>Sistema de Indicações — Entrega Prioritária (2 dias)</h3>
+                <p>Indique um amigo e garanta <strong>entrega prioritária em 2 dias</strong> para o seu próximo envio.</p>
+                <div class="btn-group">
+                    <a href="indicacao.php" class="btn btn-referral" target="_blank">
+                        <i class="fas fa-users"></i> Indicar Amigo
+                    </a>
+                    <button onclick="showIndicacaoInfo()" class="btn btn-info">
+                        <i class="fas fa-info-circle"></i> Como Funciona
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
