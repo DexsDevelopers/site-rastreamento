@@ -121,6 +121,7 @@ body {
     display: flex;
     gap: 0.75rem;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
 }
 .btn-hero {
@@ -515,7 +516,7 @@ body {
     }
     /* Hero mobile extras */
     .hero .tagline { font-size: 0.8rem; }
-    .hero-actions { flex-direction: column; }
+    .hero-actions { flex-direction: column; align-items: center; }
     .btn-hero { width: 100%; max-width: 280px; justify-content: center; }
     .badges { gap: 0.5rem; }
     .badge { font-size: 0.8rem; }
@@ -631,6 +632,36 @@ body {
                 </div>
                 <div class="faq-answer">
                     Indique um amigo e, se ele comprar no mesmo dia, sua entrega será feita em apenas 2 dias com prioridade máxima. É nosso jeito de recompensar quem nos indica.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>💳 Existe alguma taxa adicional?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Em alguns casos pode haver taxa de distribuição nacional. Quando aplicável, o sistema exibe o valor e a chave PIX de forma segura dentro do próprio rastreio.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>🔒 Meus dados estão seguros?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Sim. Utilizamos conexão segura (SSL), criptografia e boas práticas para proteger informações. Apenas dados essenciais são coletados para o rastreio.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>🆘 Não consigo rastrear. O que faço?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Verifique se digitou o código corretamente e se a cidade confere. Se persistir, fale com nosso suporte 24/7 informando o código para ajudarmos imediatamente.
                 </div>
             </div>
 </section>
