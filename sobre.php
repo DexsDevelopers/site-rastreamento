@@ -127,27 +127,57 @@ body {
 /* About Grid */
 .about-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-    margin-bottom: 6rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
 }
-.about-content h3 {
-    font-size: 2rem;
-    color: var(--primary);
-    margin-bottom: 1rem;
-}
-.about-content p {
-    font-size: 1.1rem;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 2rem;
-}
-.about-image {
+.about-card {
+    background: linear-gradient(135deg, rgba(255,51,51,0.1) 0%, rgba(255,102,0,0.1) 100%);
+    padding: 3rem 2.5rem;
+    border-radius: 25px;
+    border: 2px solid rgba(255,51,51,0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
     text-align: center;
-    font-size: 10rem;
+}
+.about-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+.about-card:hover::before {
+    transform: scaleX(1);
+}
+.about-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(255,51,51,0.3);
+}
+.about-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+.about-card h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
     background: var(--gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+.about-card p {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.8;
 }
 
 /* Stats */
@@ -394,7 +424,13 @@ body {
     }
     .about-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 1.5rem;
+    }
+    .about-card {
+        padding: 2.5rem 2rem;
+    }
+    .about-icon {
+        font-size: 3rem;
     }
     .stats-grid {
         grid-template-columns: 1fr;
@@ -449,34 +485,38 @@ body {
 <section class="section">
     <h2 class="section-title">Excelência em Logística</h2>
     
-    <div class="about-grid">
-        <div class="about-content">
-            <h3>🏆 Missão</h3>
-            <p>Oferecer serviços de entrega especializado através de tecnologia avançada, permitindo que nossos clientes acompanhem cada etapa do recebimento. Transformamos cada entrega em uma experiência transparente de confiança e discrição.</p>
-            
-            <h3>🚀 Visão</h3>
-            <p>Ser a empresa de entregas especializadas número 1 do Brasil até 2026, reconhecida pela transparência no acompanhamento, discrição total e compromisso inabalável com cada cliente. Investimos constantemente em tecnologia e infraestrutura.</p>
-            
-            <h3>💎 Valores</h3>
-            <p>Transparência total, Discrição absoluta, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada entrega é tratada como única, com acompanhamento completo e tecnologia de ponta.</p>
+        <div class="about-grid">
+        <div class="about-card">
+            <span class="about-icon">🎯</span>
+                <h3>Missão</h3>
+            <p>Oferecer entregas especializadas com tecnologia avançada, permitindo acompanhamento completo de cada etapa do recebimento com transparência e discrição total.</p>
         </div>
-        <div class="about-image">
-            <i class="fas fa-truck-fast"></i>
+                
+        <div class="about-card">
+            <span class="about-icon">🚀</span>
+                <h3>Visão</h3>
+            <p>Ser referência nacional em entregas especializadas até 2026, reconhecida pela tecnologia de rastreamento, discrição absoluta e compromisso com cada cliente.</p>
+        </div>
+                
+        <div class="about-card">
+            <span class="about-icon">💎</span>
+                <h3>Valores</h3>
+            <p>Transparência, Discrição, Agilidade, Segurança, Inovação e Compromisso. Cada entrega única com acompanhamento completo e tecnologia de ponta.</p>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stats-grid">
+            <div class="stat-card">
             <div class="stat-icon">📦</div>
             <div class="stat-number">5.247</div>
-            <div class="stat-label">Entregas Realizadas</div>
-        </div>
-        <div class="stat-card">
+                <div class="stat-label">Entregas Realizadas</div>
+            </div>
+            <div class="stat-card">
             <div class="stat-icon">🌍</div>
             <div class="stat-number">247</div>
-            <div class="stat-label">Cidades Atendidas</div>
-        </div>
-        <div class="stat-card">
+                <div class="stat-label">Cidades Atendidas</div>
+            </div>
+            <div class="stat-card">
             <div class="stat-icon">⭐</div>
             <div class="stat-number">98.7%</div>
             <div class="stat-label">Taxa de Satisfação</div>
@@ -485,43 +525,43 @@ body {
 </section>
 
 <section class="section">
-    <h2 class="section-title">Perguntas Frequentes</h2>
+    <h2 class="section-title">❓ Perguntas Frequentes</h2>
     
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-            <span>Como rastrear minha entrega?</span>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+            <span>🔍 Como rastrear minha entrega?</span>
             <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-            Acesse nosso site, insira o código de rastreamento fornecido e sua cidade de destino. Você terá acesso a todas as etapas do processo de entrega em tempo real.
-        </div>
-    </div>
+                </div>
+                <div class="faq-answer">
+                    Acesse nosso site, insira o código de rastreamento fornecido e sua cidade de destino. Você terá acesso a todas as etapas do processo de entrega em tempo real.
+                </div>
+            </div>
     
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-            <span>Qual o prazo de entrega?</span>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+            <span>⏱️ Qual o prazo de entrega?</span>
             <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-            O prazo varia conforme a distância e modalidade escolhida. Entregas normais: 5-7 dias úteis. Com nosso sistema de indicações, a entrega é feita em apenas 2 dias com prioridade total.
-        </div>
-    </div>
+                </div>
+                <div class="faq-answer">
+                    O prazo varia conforme a distância e modalidade escolhida. Entregas normais: 5-7 dias úteis. Com nosso sistema de indicações, a entrega é feita em apenas 2 dias com prioridade total.
+                </div>
+            </div>
     
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
-            <span>Como funciona o sistema de indicações?</span>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+            <span>👥 Como funciona o sistema de indicações?</span>
             <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-            Indique um amigo e, se ele comprar no mesmo dia, sua entrega será feita em apenas 2 dias com prioridade máxima. É nosso jeito de recompensar quem nos indica.
-        </div>
-    </div>
+                </div>
+                <div class="faq-answer">
+                    Indique um amigo e, se ele comprar no mesmo dia, sua entrega será feita em apenas 2 dias com prioridade máxima. É nosso jeito de recompensar quem nos indica.
+                </div>
+            </div>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Referências do Sistema em Uso</h2>
-    <p style="text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 3rem;">
-        Veja como nossos clientes utilizam o sistema de rastreamento através do WhatsApp
+    <h2 class="section-title">📱 Sistema em Ação</h2>
+    <p style="text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 3rem; font-size: 1.2rem; font-weight: 500;">
+        Veja como nossos clientes acompanham suas entregas em tempo real pelo WhatsApp
     </p>
     
     <div class="gallery-grid">
@@ -530,7 +570,7 @@ body {
                 <img src="assets/images/whatsapp-1.jpg?v=<?php echo time(); ?>" alt="Luiz Gabriel">
             </div>
             <div class="gallery-info">
-                <h4>Luiz Gabriel - Petrópolis</h4>
+                <h4>📍 Luiz Gabriel - Petrópolis</h4>
                 <p>Sistema de rastreamento básico funcionando perfeitamente</p>
             </div>
         </div>
@@ -539,7 +579,7 @@ body {
                 <img src="assets/images/whatsapp-2.jpg?v=<?php echo time(); ?>" alt="juuh santts">
             </div>
             <div class="gallery-info">
-                <h4>juuh santts - Ubá</h4>
+                <h4>📍 juuh santts - Ubá</h4>
                 <p>Monitoramento oficial com status detalhado</p>
             </div>
         </div>
@@ -548,7 +588,7 @@ body {
                 <img src="assets/images/whatsapp-3.jpg?v=<?php echo time(); ?>" alt="RKZIN">
             </div>
             <div class="gallery-info">
-                <h4>RKZIN - Jardim Camburi</h4>
+                <h4>📍 RKZIN - Jardim Camburi</h4>
                 <p>Sistema oficial de monitoramento em tempo real</p>
             </div>
         </div>
@@ -557,7 +597,7 @@ body {
                 <img src="assets/images/whatsapp-4.jpg?v=<?php echo time(); ?>" alt="Vitor João">
             </div>
             <div class="gallery-info">
-                <h4>Vitor João - AdolfoSP</h4>
+                <h4>📍 Vitor João - AdolfoSP</h4>
                 <p>Monitoramento com interface integrada ao WhatsApp</p>
             </div>
         </div>
@@ -566,7 +606,7 @@ body {
                 <img src="assets/images/whatsapp-5.jpg?v=<?php echo time(); ?>" alt="2L CLIENTE">
             </div>
             <div class="gallery-info">
-                <h4>2L CLIENTE - Entrega Confirmada</h4>
+                <h4>📍 2L CLIENTE - Entrega Confirmada</h4>
                 <p>Sistema de entrega e pagamento funcionando</p>
             </div>
         </div>
@@ -575,24 +615,24 @@ body {
                 <img src="assets/images/whatsapp-6.jpg?v=<?php echo time(); ?>" alt="Bada CLIENTE">
             </div>
             <div class="gallery-info">
-                <h4>Bada CLIENTE - Go</h4>
+                <h4>📍 Bada CLIENTE - Go</h4>
                 <p>Sistema de Indicação + Rastreamento completo</p>
             </div>
         </div>
     </div>
 </section>
 
-<div class="cta-section">
-    <h3 class="cta-title">Pronto para Começar?</h3>
+    <div class="cta-section">
+        <h3 class="cta-title">Pronto para Começar?</h3>
     <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; font-size: 1.2rem;">
         Rastreie suas encomendas ou indicar amigos para ganhar benefícios exclusivos!
     </p>
-    <a href="index.php" class="btn-cta">
-        <i class="fas fa-rocket"></i> Rastrear Agora
-    </a>
+        <a href="index.php" class="btn-cta">
+            <i class="fas fa-rocket"></i> Rastrear Agora
+        </a>
     <a href="indicacao.php" class="btn-cta">
-        <i class="fas fa-users"></i> Indicar Amigos
-    </a>
+            <i class="fas fa-users"></i> Indicar Amigos
+        </a>
 </div>
 
 <footer class="footer">
