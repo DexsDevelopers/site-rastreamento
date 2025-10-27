@@ -1000,9 +1000,42 @@ body {
         font-size: 0.9rem;
     }
     
+    /* About Content */
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .about-content h3 {
+        font-size: 1.8rem;
+    }
+    
+    .about-content p {
+        font-size: 0.95rem;
+    }
+    
+    .about-image i {
+        font-size: 3rem;
+    }
+    
+    /* Gallery */
+    .gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .gallery-item {
+        padding: 20px;
+        border-radius: 12px;
+    }
+    
     /* CTA Section */
     .cta-title {
         font-size: 1.8rem;
+    }
+    
+    .cta-text {
+        font-size: 1rem;
     }
     
     .cta-section {
@@ -1166,9 +1199,40 @@ body {
         font-size: 0.85rem;
     }
     
+    /* About Small Mobile */
+    .about-grid {
+        gap: 20px;
+    }
+    
+    .about-content h3 {
+        font-size: 1.5rem;
+    }
+    
+    .about-content p {
+        font-size: 0.85rem;
+    }
+    
+    .about-image i {
+        font-size: 2.5rem;
+    }
+    
+    /* Gallery Small Mobile */
+    .gallery-grid {
+        gap: 15px;
+    }
+    
+    .gallery-item {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
     /* CTA Small Mobile */
     .cta-title {
         font-size: 1.5rem;
+    }
+    
+    .cta-text {
+        font-size: 0.9rem;
     }
     
     .cta-section {
