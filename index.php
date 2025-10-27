@@ -302,20 +302,28 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     .hero-container { grid-template-columns: 1fr; gap: 2rem; } 
     .hero-content h1 { font-size: 2.5rem; }
 }
+/* Responsividade Mobile - Correções Agressivas */
 @media (max-width: 768px) {
+    * {
+        box-sizing: border-box;
+    }
+    
     .header { 
-        margin: 0 10px; 
-        top: 10px; 
-        border-radius: 15px;
+        margin: 0 5px; 
+        top: 5px; 
+        border-radius: 10px;
+        width: calc(100% - 10px);
     }
     
     .nav-container { 
-        padding: 0 1rem; 
-        height: 60px;
+        padding: 0 0.5rem; 
+        height: 50px;
+        max-width: 100%;
     }
     
     .logo { 
-        font-size: 1.5rem; 
+        font-size: 1.2rem; 
+        white-space: nowrap;
     }
     
     .nav-links { 
@@ -324,159 +332,189 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
     
     .mobile-menu-toggle { 
         display: block; 
+        padding: 0.3rem;
+        font-size: 1rem;
     }
     
     .mobile-menu { 
-        margin: 0 10px; 
-        border-radius: 0 0 15px 15px;
+        margin: 0 5px; 
+        border-radius: 0 0 10px 10px;
+        width: calc(100% - 10px);
     }
     
     .hero { 
-        padding: 4rem 1rem; 
-        min-height: 70vh;
+        padding: 2rem 0.5rem; 
+        min-height: 60vh;
+        text-align: center;
     }
     
     .hero-container { 
         grid-template-columns: 1fr; 
-        gap: 2rem; 
+        gap: 1rem; 
+        max-width: 100%;
     }
     
     .hero-content h1 { 
-        font-size: 2.5rem; 
-        line-height: 1.2;
+        font-size: 1.8rem; 
+        line-height: 1.1;
+        margin-bottom: 1rem;
+        word-wrap: break-word;
     }
     
     .hero-content p { 
-        font-size: 1.1rem; 
-        margin-bottom: 2rem;
+        font-size: 0.9rem; 
+        margin-bottom: 1rem;
+        line-height: 1.4;
     }
     
     .search-container, .results-box { 
-        padding: 1.5rem; 
-        border-radius: 15px;
+        padding: 1rem 0.5rem; 
+        border-radius: 10px;
+        margin: 0;
+        width: 100%;
     }
     
     .btn-group { 
         flex-direction: column; 
-        gap: 1rem;
+        gap: 0.5rem;
+        width: 100%;
     }
     
     .btn { 
         width: 100%; 
         justify-content: center; 
-        padding: 1rem 2rem;
-        font-size: 1rem;
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+        margin: 0;
     }
     
     .section { 
-        padding: 3rem 1rem; 
+        padding: 2rem 0.5rem; 
+        overflow-x: hidden;
     }
     
     .container { 
         padding: 0; 
+        max-width: 100%;
+        margin: 0;
     }
     
     .section-title { 
-        font-size: 2rem; 
-        margin-bottom: 2rem;
+        font-size: 1.5rem; 
+        margin-bottom: 1rem;
+        text-align: center;
+        word-wrap: break-word;
     }
     
     .features-grid { 
         grid-template-columns: 1fr; 
-        gap: 1rem; 
+        gap: 0.5rem; 
     }
     
     .feature-card { 
-        padding: 1.5rem; 
-        border-radius: 15px;
+        padding: 1rem 0.5rem; 
+        border-radius: 10px;
+        margin: 0;
+        width: 100%;
     }
     
     .feature-icon { 
-        font-size: 2rem; 
+        font-size: 1.5rem; 
+        margin-bottom: 0.5rem;
     }
     
     .feature-title { 
-        font-size: 1.2rem; 
+        font-size: 1rem; 
+        margin-bottom: 0.3rem;
     }
     
     .feature-description { 
-        font-size: 0.9rem; 
+        font-size: 0.8rem; 
+        line-height: 1.3;
     }
 }
 
 @media (max-width: 480px) {
     .header { 
-        margin: 0 5px; 
-        top: 5px; 
-        border-radius: 12px;
+        margin: 0 2px; 
+        top: 2px; 
+        border-radius: 8px;
+        width: calc(100% - 4px);
     }
     
     .nav-container { 
-        padding: 0 0.5rem; 
-        height: 55px;
+        padding: 0 0.3rem; 
+        height: 45px;
     }
     
     .logo { 
-        font-size: 1.3rem; 
+        font-size: 1rem; 
     }
     
     .mobile-menu { 
-        margin: 0 5px; 
-        border-radius: 0 0 12px 12px;
+        margin: 0 2px; 
+        border-radius: 0 0 8px 8px;
+        width: calc(100% - 4px);
     }
     
     .hero { 
-        padding: 3rem 0.5rem; 
+        padding: 1.5rem 0.3rem; 
+        min-height: 50vh;
     }
     
     .hero-content h1 { 
-        font-size: 2rem; 
+        font-size: 1.5rem; 
         line-height: 1.1;
+        margin-bottom: 0.8rem;
     }
     
     .hero-content p { 
-        font-size: 1rem; 
-        margin-bottom: 1.5rem;
+        font-size: 0.8rem; 
+        margin-bottom: 0.8rem;
+        line-height: 1.3;
     }
     
     .search-container, .results-box { 
-        padding: 1rem 0.8rem; 
-        border-radius: 12px;
+        padding: 0.8rem 0.3rem; 
+        border-radius: 8px;
     }
     
     .btn { 
-        padding: 0.8rem 1.5rem; 
-        font-size: 0.9rem; 
+        padding: 0.6rem 0.8rem; 
+        font-size: 0.8rem; 
     }
     
     .section { 
-        padding: 2rem 0.5rem; 
+        padding: 1.5rem 0.3rem; 
     }
     
     .section-title { 
-        font-size: 1.8rem; 
-        margin-bottom: 1.5rem;
+        font-size: 1.3rem; 
+        margin-bottom: 0.8rem;
     }
     
     .features-grid { 
-        gap: 0.8rem; 
+        gap: 0.3rem; 
     }
     
     .feature-card { 
-        padding: 1rem; 
-        border-radius: 12px;
+        padding: 0.8rem 0.3rem; 
+        border-radius: 8px;
     }
     
     .feature-icon { 
-        font-size: 1.8rem; 
+        font-size: 1.2rem; 
+        margin-bottom: 0.3rem;
     }
     
     .feature-title { 
-        font-size: 1.1rem; 
+        font-size: 0.9rem; 
+        margin-bottom: 0.2rem;
     }
     
     .feature-description { 
-        font-size: 0.8rem; 
+        font-size: 0.7rem; 
+        line-height: 1.2;
     }
 }
 </style>

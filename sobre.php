@@ -818,20 +818,28 @@ body {
     .stats-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 }
 
+/* Responsividade Mobile - Correções Agressivas */
 @media (max-width: 768px) {
+    * {
+        box-sizing: border-box;
+    }
+    
     .header { 
-        margin: 0 10px; 
-        top: 10px; 
-        border-radius: 15px;
+        margin: 0 5px; 
+        top: 5px; 
+        border-radius: 10px;
+        width: calc(100% - 10px);
     }
     
     .nav-container { 
-        padding: 0 1rem; 
-        height: 60px;
+        padding: 0 0.5rem; 
+        height: 50px;
+        max-width: 100%;
     }
     
     .logo { 
-        font-size: 1.5rem; 
+        font-size: 1.2rem; 
+        white-space: nowrap;
     }
     
     .nav-links { 
@@ -840,305 +848,165 @@ body {
     
     .mobile-menu-toggle { 
         display: block; 
-    }
-    
-    .mobile-menu { 
-        margin: 0 10px; 
-        border-radius: 0 0 15px 15px;
-    }
-    
-    .hero { 
-        padding: 4rem 1rem; 
-        min-height: 70vh;
-    }
-    
-    .hero h1 { 
-        font-size: 2.5rem; 
-        line-height: 1.2;
-    }
-    
-    .hero p { 
-        font-size: 1.1rem; 
-        margin-bottom: 2rem;
-    }
-    
-    .section { 
-        padding: 3rem 1rem; 
-    }
-    
-    .container { 
-        padding: 0; 
-    }
-    
-    .section-title { 
-        font-size: 2rem; 
-        margin-bottom: 2rem;
-    }
-    
-    /* Stats Grid Mobile */
-    .stats-grid { 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 1rem; 
-        margin-top: 2rem; 
-    }
-    
-    .stat-card { 
-        padding: 1.5rem 1rem; 
-        border-radius: 15px;
-    }
-    
-    .stat-number { 
-        font-size: 2.5rem; 
-    }
-    
-    .stat-label { 
-        font-size: 0.9rem; 
-    }
-    
-    /* Certificates Mobile */
-    .certificates-section { 
-        padding: 2rem 1rem; 
-        margin: 2rem 0;
-    }
-    
-    .certificates-title { 
-        font-size: 2rem; 
-    }
-    
-    .certificates-subtitle { 
-        font-size: 1rem; 
-        margin-bottom: 2rem;
-    }
-    
-    .certificates-grid { 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 1rem; 
-    }
-    
-    .certificate-item { 
-        padding: 1.5rem 1rem; 
-        border-radius: 15px;
-    }
-    
-    .certificate-icon { 
-        font-size: 2rem; 
-        margin-bottom: 1rem;
-    }
-    
-    .certificate-title { 
-        font-size: 0.9rem; 
-    }
-    
-    .certificate-status { 
-        font-size: 0.8rem; 
-    }
-    
-    /* FAQ Mobile */
-    .faq-question { 
-        padding: 1.5rem 1rem; 
+        padding: 0.3rem;
         font-size: 1rem;
     }
     
-    .faq-answer { 
-        padding: 0 1rem 1.5rem; 
-    }
-    
-    /* References Mobile */
-    .ref-grid { 
-        grid-template-columns: 1fr; 
-        gap: 1rem; 
-    }
-    
-    .ref-card { 
-        padding: 1.5rem; 
-        border-radius: 15px;
-    }
-    
-    .ref-image { 
-        height: 200px; 
-        border-radius: 10px;
-    }
-    
-    .ref-title { 
-        font-size: 1rem; 
-    }
-    
-    .ref-location { 
-        font-size: 0.9rem; 
-    }
-    
-    .about-image i { 
-        font-size: 4rem; 
-    }
-    
-    .cta-title { 
-        font-size: 2rem; 
-    }
-    
-    .cta-section { 
-        padding: 3rem 1rem; 
-    }
-    
-    .btn-cta { 
-        padding: 1rem 2rem; 
-        font-size: 1rem; 
-    }
-    
-    .gallery-grid { 
-        grid-template-columns: 1fr; 
-    }
-}
-
-@media (max-width: 480px) {
-    .header { 
-        margin: 0 5px; 
-        top: 5px; 
-        border-radius: 12px;
-    }
-    
-    .nav-container { 
-        padding: 0 0.5rem; 
-        height: 55px;
-    }
-    
-    .logo { 
-        font-size: 1.3rem; 
-    }
-    
     .mobile-menu { 
         margin: 0 5px; 
-        border-radius: 0 0 12px 12px;
+        border-radius: 0 0 10px 10px;
+        width: calc(100% - 10px);
     }
     
     .hero { 
-        padding: 3rem 0.5rem; 
+        padding: 2rem 0.5rem; 
+        min-height: 60vh;
+        text-align: center;
     }
     
     .hero h1 { 
-        font-size: 2rem; 
+        font-size: 1.8rem; 
         line-height: 1.1;
+        margin-bottom: 1rem;
+        word-wrap: break-word;
     }
     
     .hero p { 
-        font-size: 1rem; 
-        margin-bottom: 1.5rem;
+        font-size: 0.9rem; 
+        margin-bottom: 1rem;
+        line-height: 1.4;
     }
     
     .section { 
         padding: 2rem 0.5rem; 
+        overflow-x: hidden;
+    }
+    
+    .container { 
+        padding: 0; 
+        max-width: 100%;
+        margin: 0;
     }
     
     .section-title { 
-        font-size: 1.8rem; 
-        margin-bottom: 1.5rem;
+        font-size: 1.5rem; 
+        margin-bottom: 1rem;
+        text-align: center;
+        word-wrap: break-word;
     }
     
-    /* Stats Grid Small Mobile */
+    /* Stats Grid Mobile - 1 coluna */
     .stats-grid { 
         grid-template-columns: 1fr; 
-        gap: 0.8rem; 
+        gap: 0.5rem; 
+        margin-top: 1rem; 
+        padding: 0;
     }
     
     .stat-card { 
-        padding: 1.2rem 0.8rem; 
-        border-radius: 12px;
+        padding: 1rem 0.5rem; 
+        border-radius: 10px;
+        margin: 0;
+        width: 100%;
     }
     
     .stat-number { 
         font-size: 2rem; 
+        margin-bottom: 0.3rem;
     }
     
     .stat-label { 
         font-size: 0.8rem; 
+        line-height: 1.2;
     }
     
-    /* Certificates Small Mobile */
+    /* Certificates Mobile - 1 coluna */
     .certificates-section { 
         padding: 1.5rem 0.5rem; 
-        margin: 1.5rem 0;
+        margin: 1rem 0;
     }
     
     .certificates-title { 
-        font-size: 1.8rem; 
+        font-size: 1.5rem; 
+        margin-bottom: 0.5rem;
     }
     
     .certificates-subtitle { 
-        font-size: 0.9rem; 
-        margin-bottom: 1.5rem;
+        font-size: 0.8rem; 
+        margin-bottom: 1rem;
     }
     
     .certificates-grid { 
         grid-template-columns: 1fr; 
-        gap: 0.8rem; 
+        gap: 0.5rem; 
     }
     
     .certificate-item { 
-        padding: 1.2rem 0.8rem; 
-        border-radius: 12px;
+        padding: 1rem 0.5rem; 
+        border-radius: 10px;
+        margin: 0;
     }
     
     .certificate-icon { 
-        font-size: 1.8rem; 
-        margin-bottom: 0.8rem;
+        font-size: 1.5rem; 
+        margin-bottom: 0.5rem;
     }
     
     .certificate-title { 
         font-size: 0.8rem; 
+        margin-bottom: 0.3rem;
     }
     
     .certificate-status { 
         font-size: 0.7rem; 
     }
     
-    /* FAQ Small Mobile */
+    /* FAQ Mobile */
     .faq-question { 
-        padding: 1rem 0.8rem; 
+        padding: 1rem 0.5rem; 
         font-size: 0.9rem;
+        line-height: 1.3;
     }
     
     .faq-answer { 
-        padding: 0 0.8rem 1rem; 
-        font-size: 0.9rem;
+        padding: 0 0.5rem 1rem; 
+        font-size: 0.8rem;
+        line-height: 1.4;
     }
     
-    /* References Small Mobile */
+    /* References Mobile */
+    .ref-grid { 
+        grid-template-columns: 1fr; 
+        gap: 0.5rem; 
+    }
+    
     .ref-card { 
         padding: 1rem; 
-        border-radius: 12px;
+        border-radius: 10px;
+        margin: 0;
     }
     
     .ref-image { 
-        height: 150px; 
+        height: 120px; 
         border-radius: 8px;
+        object-fit: cover;
     }
     
     .ref-title { 
         font-size: 0.9rem; 
+        margin-bottom: 0.3rem;
     }
     
     .ref-location { 
         font-size: 0.8rem; 
     }
     
-    .about-content h3 { 
-        font-size: 1.8rem; 
-    }
-    
-    .about-content p { 
-        font-size: 1rem; 
-    }
-    
-    .gallery-item { 
-        padding: 1rem; 
-        border-radius: 12px;
+    .about-image i { 
+        font-size: 3rem; 
     }
     
     .cta-title { 
-        font-size: 1.8rem; 
-    }
-    
-    .cta-text { 
-        font-size: 1rem; 
+        font-size: 1.5rem; 
     }
     
     .cta-section { 
@@ -1148,6 +1016,194 @@ body {
     .btn-cta { 
         padding: 0.8rem 1.5rem; 
         font-size: 0.9rem; 
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .gallery-grid { 
+        grid-template-columns: 1fr; 
+        gap: 0.5rem;
+    }
+    
+    /* Scroll reveal adjustments */
+    .reveal, .reveal-left, .reveal-right, .reveal-scale {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .header { 
+        margin: 0 2px; 
+        top: 2px; 
+        border-radius: 8px;
+        width: calc(100% - 4px);
+    }
+    
+    .nav-container { 
+        padding: 0 0.3rem; 
+        height: 45px;
+    }
+    
+    .logo { 
+        font-size: 1rem; 
+    }
+    
+    .mobile-menu { 
+        margin: 0 2px; 
+        border-radius: 0 0 8px 8px;
+        width: calc(100% - 4px);
+    }
+    
+    .hero { 
+        padding: 1.5rem 0.3rem; 
+        min-height: 50vh;
+    }
+    
+    .hero h1 { 
+        font-size: 1.5rem; 
+        line-height: 1.1;
+        margin-bottom: 0.8rem;
+    }
+    
+    .hero p { 
+        font-size: 0.8rem; 
+        margin-bottom: 0.8rem;
+        line-height: 1.3;
+    }
+    
+    .section { 
+        padding: 1.5rem 0.3rem; 
+    }
+    
+    .section-title { 
+        font-size: 1.3rem; 
+        margin-bottom: 0.8rem;
+    }
+    
+    /* Stats Grid Small Mobile */
+    .stats-grid { 
+        gap: 0.3rem; 
+        margin-top: 0.8rem; 
+    }
+    
+    .stat-card { 
+        padding: 0.8rem 0.3rem; 
+        border-radius: 8px;
+    }
+    
+    .stat-number { 
+        font-size: 1.5rem; 
+        margin-bottom: 0.2rem;
+    }
+    
+    .stat-label { 
+        font-size: 0.7rem; 
+        line-height: 1.1;
+    }
+    
+    /* Certificates Small Mobile */
+    .certificates-section { 
+        padding: 1rem 0.3rem; 
+        margin: 0.8rem 0;
+    }
+    
+    .certificates-title { 
+        font-size: 1.3rem; 
+        margin-bottom: 0.3rem;
+    }
+    
+    .certificates-subtitle { 
+        font-size: 0.7rem; 
+        margin-bottom: 0.8rem;
+    }
+    
+    .certificates-grid { 
+        gap: 0.3rem; 
+    }
+    
+    .certificate-item { 
+        padding: 0.8rem 0.3rem; 
+        border-radius: 8px;
+    }
+    
+    .certificate-icon { 
+        font-size: 1.2rem; 
+        margin-bottom: 0.3rem;
+    }
+    
+    .certificate-title { 
+        font-size: 0.7rem; 
+        margin-bottom: 0.2rem;
+    }
+    
+    .certificate-status { 
+        font-size: 0.6rem; 
+    }
+    
+    /* FAQ Small Mobile */
+    .faq-question { 
+        padding: 0.8rem 0.3rem; 
+        font-size: 0.8rem;
+        line-height: 1.2;
+    }
+    
+    .faq-answer { 
+        padding: 0 0.3rem 0.8rem; 
+        font-size: 0.7rem;
+        line-height: 1.3;
+    }
+    
+    /* References Small Mobile */
+    .ref-card { 
+        padding: 0.8rem; 
+        border-radius: 8px;
+    }
+    
+    .ref-image { 
+        height: 100px; 
+        border-radius: 6px;
+    }
+    
+    .ref-title { 
+        font-size: 0.8rem; 
+        margin-bottom: 0.2rem;
+    }
+    
+    .ref-location { 
+        font-size: 0.7rem; 
+    }
+    
+    .about-content h3 { 
+        font-size: 1.3rem; 
+    }
+    
+    .about-content p { 
+        font-size: 0.8rem; 
+    }
+    
+    .gallery-item { 
+        padding: 0.8rem; 
+        border-radius: 8px;
+    }
+    
+    .cta-title { 
+        font-size: 1.3rem; 
+    }
+    
+    .cta-text { 
+        font-size: 0.8rem; 
+    }
+    
+    .cta-section { 
+        padding: 1.5rem 0.3rem; 
+    }
+    
+    .btn-cta { 
+        padding: 0.6rem 1rem; 
+        font-size: 0.8rem; 
+        max-width: 150px;
     }
 }
 </style>
@@ -1361,14 +1417,14 @@ body {
                     <div class="gallery-image">
                         <img src="assets/images/whatsapp-2.jpg?v=<?php echo time(); ?>" alt="WhatsApp juuh santts Ubá" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                    </div>
+                </div>
                     <div class="gallery-info">
                         <h4>juuh santts - Ubá</h4>
                         <p>Monitoramento oficial com status detalhado</p>
                         <div class="gallery-status">✅ Recebido no Ponto</div>
                         <div class="gallery-date">17/10/2025 - 15:31</div>
                 </div>
-                </div>
+            </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/images/whatsapp-3.jpg?v=<?php echo time(); ?>" alt="WhatsApp RKZIN Jardim Camburi" 
@@ -1385,14 +1441,14 @@ body {
                     <div class="gallery-image">
                         <img src="assets/images/whatsapp-4.jpg?v=<?php echo time(); ?>" alt="WhatsApp Vitor João AdolfoSP" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                    </div>
+                </div>
                     <div class="gallery-info">
                         <h4>Vitor João - AdolfoSP</h4>
                         <p>Monitoramento com interface integrada ao WhatsApp</p>
                         <div class="gallery-status">✅ Recebido no Ponto</div>
                         <div class="gallery-date">21/10/2025 - 14:49</div>
                 </div>
-                </div>
+            </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/images/whatsapp-5.jpg?v=<?php echo time(); ?>" alt="WhatsApp 2L CLIENTE Entrega" 
@@ -1409,7 +1465,7 @@ body {
                     <div class="gallery-image">
                         <img src="assets/images/whatsapp-6.jpg?v=<?php echo time(); ?>" alt="WhatsApp Bada CLIENTE Go" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                    </div>
+                </div>
                     <div class="gallery-info">
                         <h4>Bada CLIENTE - Go</h4>
                         <p>Sistema de Indicação + Rastreamento completo</p>
