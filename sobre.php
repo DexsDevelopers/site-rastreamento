@@ -158,48 +158,102 @@ body {
     margin-top: 4rem;
 }
 .stat-card {
-    background: rgba(255,255,255,0.05);
-    padding: 2rem;
-    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,51,51,0.1) 0%, rgba(255,102,0,0.1) 100%);
+    padding: 2.5rem;
+    border-radius: 25px;
     text-align: center;
-    border: 1px solid rgba(255,51,51,0.2);
+    border: 2px solid rgba(255,51,51,0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
-.stat-number {
-    font-size: 3rem;
-    font-weight: 900;
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s ease;
+}
+.stat-card:hover::before {
+    left: 100%;
+}
+.stat-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(255,51,51,0.3);
+}
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
     background: var(--gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+.stat-number {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
 .stat-label {
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.9);
     margin-top: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 /* FAQ */
 .faq-item {
-    background: rgba(255,255,255,0.05);
-    margin-bottom: 1rem;
-    border-radius: 15px;
+    background: linear-gradient(135deg, rgba(255,51,51,0.08) 0%, rgba(255,102,0,0.08) 100%);
+    margin-bottom: 1.5rem;
+    border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255,51,51,0.2);
+    border: 2px solid rgba(255,51,51,0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+.faq-item:hover {
+    border-color: rgba(255,51,51,0.4);
+    transform: translateX(5px);
 }
 .faq-question {
-    padding: 1.5rem;
+    padding: 1.8rem;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
-    font-weight: 600;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--light);
+    transition: all 0.3s ease;
+}
+.faq-question:hover {
+    color: var(--primary);
+}
+.faq-question i {
+    transition: transform 0.3s ease;
+    color: var(--primary);
+}
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
 }
 .faq-answer {
-    padding: 0 1.5rem;
+    padding: 0 1.8rem;
     max-height: 0;
     overflow: hidden;
     transition: all 0.3s ease;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.85);
+    line-height: 1.8;
 }
 .faq-answer.active {
-    padding: 1.5rem;
+    padding: 0 1.8rem 1.8rem;
     max-height: 500px;
 }
 
@@ -211,30 +265,60 @@ body {
     margin-top: 3rem;
 }
 .gallery-item {
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,51,51,0.08) 0%, rgba(255,102,0,0.08) 100%);
+    border-radius: 25px;
     overflow: hidden;
-    border: 1px solid rgba(255,51,51,0.2);
+    border: 2px solid rgba(255,51,51,0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+}
+.gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+.gallery-item:hover::before {
+    transform: scaleX(1);
+}
+.gallery-item:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(255,51,51,0.3);
 }
 .gallery-image {
-    height: 250px;
+    height: 280px;
     overflow: hidden;
+    position: relative;
 }
 .gallery-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.gallery-item:hover .gallery-image img {
+    transform: scale(1.1);
 }
 .gallery-info {
-    padding: 1.5rem;
+    padding: 2rem;
 }
 .gallery-info h4 {
     color: var(--primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 1.3rem;
+    font-weight: 700;
 }
 .gallery-info p {
-    color: rgba(255,255,255,0.7);
-    font-size: 0.9rem;
+    color: rgba(255,255,255,0.85);
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 /* CTA */
@@ -314,9 +398,20 @@ body {
     }
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .stat-card {
+        padding: 2rem;
+    }
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    .stat-icon {
+        font-size: 2rem;
     }
     .gallery-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
     .section-title {
         font-size: 2rem;
@@ -372,14 +467,17 @@ body {
 
     <div class="stats-grid">
         <div class="stat-card">
+            <div class="stat-icon">📦</div>
             <div class="stat-number">5.247</div>
             <div class="stat-label">Entregas Realizadas</div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon">🌍</div>
             <div class="stat-number">247</div>
             <div class="stat-label">Cidades Atendidas</div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon">⭐</div>
             <div class="stat-number">98.7%</div>
             <div class="stat-label">Taxa de Satisfação</div>
         </div>
@@ -508,14 +606,17 @@ function toggleMenu() {
 }
 
 function toggleFaq(element) {
+    const faqItem = element.closest('.faq-item');
     const answer = element.nextElementSibling;
     const isActive = answer.classList.contains('active');
     
-    document.querySelectorAll('.faq-answer').forEach(item => {
+    document.querySelectorAll('.faq-item').forEach(item => {
         item.classList.remove('active');
+        item.querySelector('.faq-answer').classList.remove('active');
     });
     
     if (!isActive) {
+        faqItem.classList.add('active');
         answer.classList.add('active');
     }
 }
