@@ -62,6 +62,50 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
         }
     }
 }
+
+// Resposta AJAX: retorna apenas o bloco de resultados sem recarregar a página
+if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
+    header('Content-Type: text/html; charset=UTF-8');
+    if (!empty($erroCidade)) {
+        echo '<div class="results"><div class="erro">' . $erroCidade . '</div></div>';
+        exit;
+    }
+    if (!empty($statusList)) {
+        echo '<div class="results">';
+        echo '<div class="results-box">';
+        echo '<div class="status">📦 Status atual: ' . htmlspecialchars($statusAtualTopo) . ' — ' . htmlspecialchars($cidade) . '</div>';
+        echo '<div class="timeline">';
+        foreach ($statusList as $etapa) {
+            $cor = !empty($etapa['cor']) ? $etapa['cor'] : '#16A34A';
+            echo '<div class="step" style="border-left-color:' . htmlspecialchars($cor) . ';">';
+            echo '<b>' . htmlspecialchars($etapa['titulo']) . '</b>';
+            echo '<small>' . htmlspecialchars($etapa['subtitulo']) . '</small>';
+            echo '<i>' . date("d/m/Y H:i", strtotime($etapa['data'])) . '</i>';
+            if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])) {
+                echo '<div class="pix-box">';
+                echo '<p>💰 <b>Taxa de distribuição nacional:</b> R$ ' . number_format($etapa['taxa_valor'], 2, ',', '.') . '</p>';
+                echo '<p>Faça o pagamento via PIX:</p>';
+                echo '<textarea readonly>' . htmlspecialchars($etapa['taxa_pix']) . '</textarea>';
+                echo '<button onclick="navigator.clipboard.writeText(\'' . htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) . '\')">📋 Copiar chave PIX</button>';
+                if ($temTaxa) {
+                    echo '<div id="countdown" class="countdown"></div>';
+                }
+                echo '</div>';
+            }
+            echo '</div>';
+        }
+        echo '</div>'; // timeline
+        echo '</div>'; // results-box
+        echo '</div>'; // results
+        if ($temTaxa) {
+            echo '<script>(function(){let tempo=' . ((int)$tempoLimite) . '*60*60;function atualizarContagem(){var el=document.getElementById("countdown");if(!el){return;}var h=Math.floor(tempo/3600),m=Math.floor((tempo%3600)/60),s=tempo%60;el.innerHTML="⏱ Tempo restante: "+String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");if(tempo>0){tempo--;setTimeout(atualizarContagem,1000)}else{el.innerHTML="❌ Prazo expirado."}}atualizarContagem()})();</script>';
+        }
+        exit;
+    }
+    // Sem erro e sem resultados
+    echo '<div class="results"><div class="erro">❌ Código inexistente!</div></div>';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -606,6 +650,8 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
                 </button>
             </form>
         </div>
+        <!-- Resultados AJAX sem recarregar -->
+        <div id="ajaxResults"></div>
     </div>
 </section>
 
@@ -756,6 +802,43 @@ document.querySelectorAll('.mobile-menu a').forEach(link => {
         toggle.classList.remove('fa-times');
         toggle.classList.add('fa-bars');
     });
+});
+
+// Submissão AJAX do formulário de rastreio
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[method="POST"][action="index.php"]');
+    const results = document.getElementById('ajaxResults');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+
+    if (form && results && submitBtn) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const codigo = (form.querySelector('#codigo') || {}).value || '';
+            const cidade = (form.querySelector('#cidade') || {}).value || '';
+            if (!codigo || !cidade) return;
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ codigo, cidade, ajax: '1' })
+                });
+                const html = await response.text();
+                results.innerHTML = html;
+                results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (err) {
+                results.innerHTML = '<div class="results"><div class="erro">❌ Erro ao consultar. Tente novamente.</div></div>';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
 });
 </script>
 
