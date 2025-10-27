@@ -1,8 +1,17 @@
+<?php
+// Headers para evitar cache
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Sobre Nós - Helmer Logistics</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -356,7 +365,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
             <div class="gallery-grid">
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="assets/images/whatsapp-1.jpg" alt="WhatsApp Luiz Gabriel Petrópolis" 
+                        <img src="assets/images/whatsapp-1.jpg?v=<?php echo time(); ?>" alt="WhatsApp Luiz Gabriel Petrópolis" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
@@ -368,7 +377,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="assets/images/whatsapp-2.jpg" alt="WhatsApp juuh santts Ubá" 
+                        <img src="assets/images/whatsapp-2.jpg?v=<?php echo time(); ?>" alt="WhatsApp juuh santts Ubá" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
@@ -380,7 +389,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="assets/images/whatsapp-3.jpg" alt="WhatsApp RKZIN Jardim Camburi" 
+                        <img src="assets/images/whatsapp-3.jpg?v=<?php echo time(); ?>" alt="WhatsApp RKZIN Jardim Camburi" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
@@ -392,7 +401,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="assets/images/whatsapp-4.jpg" alt="WhatsApp Vitor João AdolfoSP" 
+                        <img src="assets/images/whatsapp-4.jpg?v=<?php echo time(); ?>" alt="WhatsApp Vitor João AdolfoSP" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
@@ -404,7 +413,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="assets/images/whatsapp-5.jpg" alt="WhatsApp 2L CLIENTE Entrega" 
+                        <img src="assets/images/whatsapp-5.jpg?v=<?php echo time(); ?>" alt="WhatsApp 2L CLIENTE Entrega" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">
@@ -416,7 +425,7 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
                 </div>
                 <div class="gallery-item">
                     <div class="gallery-image">
-                        <img src="assets/images/whatsapp-6.jpg" alt="WhatsApp Bada CLIENTE Go" 
+                        <img src="assets/images/whatsapp-6.jpg?v=<?php echo time(); ?>" alt="WhatsApp Bada CLIENTE Go" 
                              style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                     </div>
                     <div class="gallery-info">

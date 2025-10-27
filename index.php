@@ -4,14 +4,14 @@
  * Design Moderno inspirado em Loggi
  */
 
-// Incluir configurações
-require_once 'includes/config.php';
-require_once 'includes/db_connect.php';
-
-// Cache desabilitado
+// Headers para evitar cache
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
+
+// Incluir configurações
+require_once 'includes/config.php';
+require_once 'includes/db_connect.php';
 
 $codigo = $cidade = "";
 $statusList = [];
