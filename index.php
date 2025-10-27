@@ -68,7 +68,7 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Helmer Logistics - Acompanhamento de Envios</title>
+<title>Helmer Logistics - Acompanhamento de Recebimentos</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
@@ -205,8 +205,8 @@ body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--l
 <section class="hero">
     <div class="hero-container">
         <div class="hero-content">
-            <h1>Acompanhe seus Envios em Tempo Real</h1>
-            <p>Verifique o status dos seus envios com tecnologia de ponta e acompanhamento em tempo real</p>
+            <h1>Acompanhe seus Recebimentos em Tempo Real</h1>
+            <p>Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real</p>
             
             <div class="referral-box">
                 <i class="fas fa-star" style="font-size: 2rem; color: #FF3333; margin-bottom: 1rem;"></i>

@@ -1,7 +1,7 @@
 {
-  "titulo_pagina": "Helmer Logistics S/A — Acompanhamento de Envios",
-  "mensagem_inicial": "Acompanhe seus envios em tempo real — sistema premium",
-  "erro_consulta": "❌ Código inválido ou envio não encontrado.",
-  "mensagem_aguarde": "⏳ Consultando status do envio...",
+  "titulo_pagina": "Helmer Logistics S/A — Acompanhamento de Recebimentos",
+  "mensagem_inicial": "Acompanhe seus recebimentos em tempo real — sistema premium",
+  "erro_consulta": "❌ Código inválido ou recebimento não encontrado.",
+  "mensagem_aguarde": "⏳ Consultando status do recebimento...",
   "footer_fake": "© 2025 Helmer Logistics | Todos os direitos reservados."
 }

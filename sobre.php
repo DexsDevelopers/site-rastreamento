@@ -634,7 +634,7 @@ body {
 
 <section class="hero">
     <h1>Helmer Logistics S/A</h1>
-    <p>Especialistas em envios discretos. Mais de 5.000 envios realizados com 98% de satisfação. Nossos clientes acompanham cada etapa do processo com tecnologia avançada.</p>
+    <p>Especialistas em entregas discretas. Mais de 5.000 entregas realizadas com 98% de satisfação. Nossos clientes acompanham cada etapa do recebimento com tecnologia avançada.</p>
 </section>
 
 <section class="section">
@@ -643,13 +643,13 @@ body {
         <div class="about-grid">
             <div class="about-content">
                 <h3>🏆 Missão</h3>
-                <p>Oferecer serviços de envio especializado através de tecnologia avançada, permitindo que nossos clientes acompanhem cada etapa do processo. Transformamos cada envio em uma experiência transparente de confiança e discrição.</p>
+                <p>Oferecer serviços de entrega especializado através de tecnologia avançada, permitindo que nossos clientes acompanhem cada etapa do recebimento. Transformamos cada entrega em uma experiência transparente de confiança e discrição.</p>
                 
                 <h3>🚀 Visão</h3>
-                <p>Ser a empresa de envios especializados número 1 do Brasil até 2026, reconhecida pela transparência no acompanhamento, discrição total e compromisso inabalável com cada cliente. Investimos constantemente em tecnologia e infraestrutura.</p>
+                <p>Ser a empresa de entregas especializadas número 1 do Brasil até 2026, reconhecida pela transparência no acompanhamento, discrição total e compromisso inabalável com cada cliente. Investimos constantemente em tecnologia e infraestrutura.</p>
                 
                 <h3>💎 Valores</h3>
-                <p>Transparência total, Discrição absoluta, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada envio é tratado como único, com acompanhamento completo e tecnologia de ponta.</p>
+                <p>Transparência total, Discrição absoluta, Agilidade extrema, Segurança garantida, Inovação constante e Compromisso genuíno. Cada entrega é tratada como única, com acompanhamento completo e tecnologia de ponta.</p>
             </div>
             <div class="about-image">
                 <i class="fas fa-truck-fast"></i>
@@ -774,7 +774,7 @@ body {
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Helmer Logistics revolucionou meus negócios! Acompanho cada envio em tempo real, rastreamento completo e discrição total. Minha satisfação subiu 40%. Simplesmente excepcional!"
+                    "Helmer Logistics revolucionou meus negócios! Acompanho cada entrega em tempo real, rastreamento completo e discrição total. Minha satisfação subiu 40%. Simplesmente excepcional!"
                 </div>
             </div>
             <div class="ref-card">
@@ -795,7 +795,7 @@ body {
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "Sistema de indicações é genial! Ganhei acompanhamento prioritário e economizei 60% nos custos. Atendimento 24/7 resolve qualquer questão na hora. Helmer é sinônimo de confiança!"
+                    "Sistema de indicações é genial! Ganhei entrega prioritária e economizei 60% nos custos. Atendimento 24/7 resolve qualquer questão na hora. Helmer é sinônimo de confiança!"
                 </div>
             </div>
             <div class="ref-card">
@@ -816,7 +816,7 @@ body {
                     <i class="fas fa-star"></i>
                 </div>
                 <div class="ref-text">
-                    "3 anos usando Helmer e nunca tive um envio perdido! Acompanhamento completo 24/7, tecnologia de ponta e equipe que realmente se importa. Recomendo para toda minha família!"
+                    "3 anos usando Helmer e nunca tive uma entrega perdida! Acompanhamento completo 24/7, tecnologia de ponta e equipe que realmente se importa. Recomendo para toda minha família!"
                 </div>
             </div>
         </div>
