@@ -292,12 +292,23 @@ body {
 }
 
 .header {
-    background: var(--card-bg);
+    background: rgba(255,255,255,0.06);
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 18px;
     margin-bottom: 30px;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+}
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--gradient-primary);
+    opacity: 0.9;
 }
 
 .header h1 {
@@ -322,15 +333,17 @@ body {
 }
 
 .stat-card {
-    background: var(--card-bg);
+    background: rgba(255,255,255,0.06);
     padding: 25px;
     border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.18);
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .stat-card::before {
@@ -372,12 +385,14 @@ body {
 }
 
 .controls {
-    background: var(--card-bg);
+    background: rgba(255,255,255,0.06);
     padding: 25px;
-    border-radius: 15px;
+    border-radius: 18px;
     margin-bottom: 30px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .controls h2 {
@@ -571,11 +586,13 @@ body {
 }
 
 .table-container {
-    background: var(--card-bg);
-    border-radius: 15px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .table {
@@ -583,18 +600,19 @@ body {
     border-collapse: collapse;
 }
 
-.table th {
-    background: var(--dark-bg);
+    .table th {
+        background: rgba(0,0,0,0.5);
     color: var(--text-primary);
     padding: 15px;
     text-align: left;
     font-weight: 600;
-    border-bottom: 2px solid var(--border-color);
+        border-bottom: 2px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(6px);
 }
 
-.table td {
+    .table td {
     padding: 15px;
-    border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(255,255,255,0.12);
     vertical-align: middle;
 }
 
@@ -640,16 +658,18 @@ body {
 }
 
 .modal-content {
-    background: var(--card-bg);
+    background: rgba(255,255,255,0.06);
     padding: 30px;
-    border-radius: 15px;
+    border-radius: 18px;
     width: 100%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.18);
     position: relative;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .modal-header {
@@ -708,6 +728,42 @@ body {
         transform: translateY(-2px);
     }
 
+    /* Nav superior com efeito de vidro */
+    .admin-nav {
+        position: sticky;
+        top: 12px;
+        margin: 12px auto 20px;
+        max-width: 1400px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        z-index: 101;
+    }
+    .nav-brand { font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; gap: 10px; }
+    .nav-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-btn {
+        padding: 10px 16px;
+        border-radius: 28px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: var(--text-primary);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.25); background: rgba(255,255,255,0.12); }
+    .nav-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; }
+
     /* Sistema de Notificações */
     .toast-container {
         position: fixed;
@@ -720,11 +776,11 @@ body {
     }
 
     .toast {
-        background: var(--card-bg);
+        background: rgba(255,255,255,0.08);
         color: var(--text-primary);
         padding: 15px 20px;
         border-radius: 8px;
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.25);
         border-left: 4px solid var(--primary-color);
         min-width: 300px;
         max-width: 400px;
@@ -810,12 +866,14 @@ body {
 
     /* Sistema de Automações */
     .automation-panel {
-        background: var(--card-bg);
+        background: rgba(255,255,255,0.06);
         padding: 25px;
-        border-radius: 15px;
+        border-radius: 18px;
         margin-bottom: 30px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .automation-grid {
@@ -894,11 +952,11 @@ body {
     }
 
     .cron-schedule {
-        background: var(--card-bg);
+        background: rgba(255,255,255,0.04);
         padding: 15px;
         border-radius: 8px;
         margin-top: 15px;
-        border: 1px solid var(--border-color);
+        border: 1px solid rgba(255,255,255,0.12);
     }
 
     .schedule-item {
@@ -1269,13 +1327,13 @@ body {
 <!-- Container de Notificações -->
 <div class="toast-container" id="toastContainer"></div>
 
-    <button class="logout-btn" onclick="logout()">
-        <i class="fas fa-sign-out-alt"></i> Sair
-    </button>
-    
-    <button class="logout-btn" onclick="window.location.href='admin_indicacoes.php'" style="right: 150px; background: #3b82f6;">
-        <i class="fas fa-users"></i> Indicações
-    </button>
+<div class="admin-nav">
+    <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
+    <div class="nav-actions">
+        <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
+        <a href="admin.php?logout=1" class="nav-btn danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
+    </div>
+</div>
 
 <div class="container">
     <!-- Header -->
