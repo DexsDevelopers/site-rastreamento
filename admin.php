@@ -56,6 +56,91 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
+// ===================== Presets de Status e Undo =====================
+// Definição de presets (fluxos prontos) com offsets em horas
+$STATUS_PRESETS = [
+    'expresso_48h' => [
+        'label' => 'Fluxo Expresso (≈48h)',
+        'steps' => [
+            ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', 'bg-green-500', 0],
+            ['🚚 Em trânsito', 'A caminho do centro de distribuição', 'bg-orange-500', 6],
+            ['🏢 No centro de distribuição', 'Processando encaminhamento', 'bg-yellow-500', 18],
+            ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', 'bg-red-500', 36],
+            ['✅ Entregue', 'Objeto entregue com sucesso', 'bg-green-500', 48]
+        ]
+    ],
+    'padrao_72h' => [
+        'label' => 'Fluxo Padrão (≈72h)',
+        'steps' => [
+            ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', 'bg-green-500', 0],
+            ['🚚 Em trânsito', 'A caminho do centro de distribuição', 'bg-orange-500', 12],
+            ['🏢 No centro de distribuição', 'Processando encaminhamento', 'bg-yellow-500', 36],
+            ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', 'bg-red-500', 60],
+            ['✅ Entregue', 'Objeto entregue com sucesso', 'bg-green-500', 72]
+        ]
+    ],
+    'retencao_taxa' => [
+        'label' => 'Fluxo com Retenção/Taxa',
+        'steps' => [
+            ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', 'bg-green-500', 0],
+            ['🚚 Em trânsito', 'A caminho do centro de distribuição', 'bg-orange-500', 8],
+            ['🏢 No centro de distribuição', 'Aguardando confirmação de taxa', 'bg-yellow-500', 24],
+            ['🚀 Saiu para entrega', 'Taxa confirmada, em rota de entrega', 'bg-red-500', 48],
+            ['✅ Entregue', 'Objeto entregue com sucesso', 'bg-green-500', 60]
+        ]
+    ]
+];
+
+function captureUndoSnapshot($pdo, $codigos, $label) {
+    if (empty($codigos)) { return; }
+    $placeholders = implode(',', array_fill(0, count($codigos), '?'));
+    $rows = fetchData($pdo, "SELECT * FROM rastreios_status WHERE codigo IN ($placeholders)", $codigos);
+    $_SESSION['undo_action'] = [
+        'label' => $label,
+        'timestamp' => time(),
+        'codes' => $codigos,
+        'rows' => $rows
+    ];
+}
+
+function restoreUndoSnapshot($pdo) {
+    if (empty($_SESSION['undo_action']['rows']) || empty($_SESSION['undo_action']['codes'])) {
+        return [false, 'Nada para desfazer'];
+    }
+    $snapshot = $_SESSION['undo_action'];
+    $codes = $snapshot['codes'];
+    // Remover atuais
+    $placeholders = implode(',', array_fill(0, count($codes), '?'));
+    executeQuery($pdo, "DELETE FROM rastreios_status WHERE codigo IN ($placeholders)", $codes);
+
+    // Restaurar
+    $rows = $snapshot['rows'];
+    if (empty($rows)) { unset($_SESSION['undo_action']); return [true, '']; }
+    // Preparar colunas (ignorar id se existir)
+    $cols = array_keys($rows[0]);
+    $cols = array_values(array_filter($cols, function($c){ return strtolower($c) !== 'id'; }));
+    $colList = implode(',', $cols);
+    $place = implode(',', array_fill(0, count($cols), '?'));
+    $sql = "INSERT INTO rastreios_status ($colList) VALUES ($place)";
+    foreach ($rows as $r) {
+        $vals = [];
+        foreach ($cols as $c) { $vals[] = $r[$c] ?? null; }
+        executeQuery($pdo, $sql, $vals);
+    }
+    unset($_SESSION['undo_action']);
+    return [true, 'Restauração concluída'];
+}
+
+function aplicarPresetAoCodigo($pdo, $codigo, $cidade, $inicio, $preset, $taxa_valor = null, $taxa_pix = null) {
+    foreach ($preset['steps'] as $step) {
+        list($titulo, $subtitulo, $cor, $offsetHours) = $step;
+        $data = date('Y-m-d H:i:s', strtotime("+{$offsetHours} hour", $inicio));
+        $status_atual = $titulo;
+        $sql = "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor, taxa_valor, taxa_pix) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        executeQuery($pdo, $sql, [$codigo, $cidade, $status_atual, $titulo, $subtitulo, $data, $cor, $taxa_valor ?: null, $taxa_pix ?: null]);
+    }
+}
+
 if (!isset($_SESSION['logado'])) {
 ?>
 <!DOCTYPE html>
@@ -153,6 +238,8 @@ if (isset($_POST['novo_codigo'])) {
 if (isset($_POST['deletar'])) {
     try {
         $codigo = sanitizeInput($_POST['codigo']);
+        // Capturar estado para undo
+        captureUndoSnapshot($pdo, [$codigo], 'Excluir rastreio');
         $sql = "DELETE FROM rastreios_status WHERE codigo = ?";
         executeQuery($pdo, $sql, [$codigo]);
         $success_message = "Rastreio {$codigo} excluído com sucesso!";
@@ -173,6 +260,7 @@ if (isset($_POST['salvar_edicao'])) {
         $taxa_pix = !empty($_POST['taxa_pix']) ? sanitizeInput($_POST['taxa_pix']) : null;
 
         // Deletar registros existentes
+        captureUndoSnapshot($pdo, [$codigo], 'Editar rastreio');
         $sql = "DELETE FROM rastreios_status WHERE codigo = ?";
         executeQuery($pdo, $sql, [$codigo]);
         
@@ -191,6 +279,7 @@ if (isset($_POST['bulk_delete'])) {
     try {
         $codigos = json_decode($_POST['bulk_delete'], true);
         if (is_array($codigos)) {
+            captureUndoSnapshot($pdo, array_map('sanitizeInput', $codigos), 'Exclusão em lote');
             $count = 0;
             foreach ($codigos as $codigo) {
                 $codigo = sanitizeInput($codigo);
@@ -216,6 +305,7 @@ if (isset($_POST['bulk_edit'])) {
             $nova_taxa_valor = !empty($_POST['new_taxa_valor']) ? sanitizeInput($_POST['new_taxa_valor']) : null;
             $nova_taxa_pix = !empty($_POST['new_taxa_pix']) ? sanitizeInput($_POST['new_taxa_pix']) : null;
             
+            captureUndoSnapshot($pdo, array_map('sanitizeInput', $codigos), 'Edição em lote');
             $count = 0;
             foreach ($codigos as $codigo) {
                 $codigo = sanitizeInput($codigo);
@@ -237,6 +327,61 @@ if (isset($_POST['bulk_edit'])) {
     } catch (Exception $e) {
         $error_message = "Erro na edição em lote: " . $e->getMessage();
         writeLog("Erro na edição em lote: " . $e->getMessage(), 'ERROR');
+    }
+}
+
+// Aplicar PRESET em massa
+if (isset($_POST['apply_preset'])) {
+    try {
+        $codigos = json_decode($_POST['apply_preset'], true);
+        $preset_key = sanitizeInput($_POST['preset_key'] ?? '');
+        $modo = sanitizeInput($_POST['preset_mode'] ?? 'replace'); // replace | append
+        $cidadePadrao = sanitizeInput($_POST['preset_cidade'] ?? 'Não informado');
+        $dtInicio = !empty($_POST['preset_start']) ? strtotime($_POST['preset_start']) : time();
+        $taxa_valor = !empty($_POST['preset_taxa_valor']) ? sanitizeInput($_POST['preset_taxa_valor']) : null;
+        $taxa_pix = !empty($_POST['preset_taxa_pix']) ? sanitizeInput($_POST['preset_taxa_pix']) : null;
+
+        global $STATUS_PRESETS;
+        if (empty($STATUS_PRESETS[$preset_key])) {
+            throw new Exception('Preset inválido');
+        }
+
+        if (!is_array($codigos) || empty($codigos)) {
+            throw new Exception('Nenhum código selecionado');
+        }
+
+        captureUndoSnapshot($pdo, array_map('sanitizeInput', $codigos), 'Aplicar preset em massa');
+
+        $preset = $STATUS_PRESETS[$preset_key];
+        $count = 0;
+        foreach ($codigos as $codigo) {
+            $codigo = sanitizeInput($codigo);
+            if ($modo === 'replace') {
+                executeQuery($pdo, "DELETE FROM rastreios_status WHERE codigo = ?", [$codigo]);
+            }
+            // Recuperar cidade existente se houver
+            $rowCidade = fetchOne($pdo, "SELECT cidade FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1", [$codigo]);
+            $cidade = $rowCidade['cidade'] ?? $cidadePadrao;
+            aplicarPresetAoCodigo($pdo, $codigo, $cidade, $dtInicio, $preset, $taxa_valor, $taxa_pix);
+            $count++;
+        }
+        $success_message = "Preset aplicado para {$count} rastreio(s)!";
+        writeLog("Preset '{$preset_key}' aplicado em massa para $count códigos", 'INFO');
+    } catch (Exception $e) {
+        $error_message = "Erro ao aplicar preset: " . $e->getMessage();
+        writeLog("Erro ao aplicar preset: " . $e->getMessage(), 'ERROR');
+    }
+}
+
+// Desfazer (Undo)
+if (isset($_POST['undo_action'])) {
+    list($ok, $msg) = restoreUndoSnapshot($pdo);
+    if ($ok) {
+        $success_message = 'Ação desfeita com sucesso';
+        writeLog('Desfazer executado com sucesso', 'INFO');
+    } else {
+        $error_message = $msg ?: 'Não foi possível desfazer';
+        writeLog('Falha ao desfazer: ' . ($msg ?: 'desconhecida'), 'WARNING');
     }
 }
 
@@ -1331,9 +1476,15 @@ body {
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
+        <?php if (!empty($_SESSION['undo_action'])): ?>
+            <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i class="fas fa-rotate-left"></i> Desfazer</a>
+        <?php else: ?>
+            <span class="nav-btn" style="opacity:.5; cursor:not-allowed"><i class="fas fa-rotate-left"></i> Desfazer</span>
+        <?php endif; ?>
         <a href="admin.php?logout=1" class="nav-btn danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
     </div>
 </div>
+<form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action" value="1"></form>
 
 <div class="container">
     <!-- Header -->
@@ -1588,6 +1739,9 @@ body {
                 <button class="btn btn-warning btn-sm" onclick="bulkEdit()">
                     <i class="fas fa-edit"></i> Editar em Lote
                 </button>
+                <button class="btn btn-primary btn-sm" onclick="openPresetModal()" type="button">
+                    <i class="fas fa-diagram-project"></i> Aplicar Preset
+                </button>
                 <button class="btn btn-info btn-sm" onclick="bulkExport()">
                     <i class="fas fa-download"></i> Exportar Selecionados
                 </button>
@@ -1775,6 +1929,22 @@ body {
                 ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- Monitor de Jobs (Cron) -->
+    <div class="automation-panel">
+        <h2><i class="fas fa-clock"></i> Monitor de Jobs (Cron)</h2>
+        <p>Acompanhe as últimas execuções e rode manualmente quando necessário</p>
+        <div class="actions" style="margin:10px 0 15px;">
+            <button class="btn btn-info" onclick="runAutomationCron()"><i class="fas fa-play"></i> Executar Automações</button>
+            <button class="btn btn-warning" onclick="runUpdateCron()"><i class="fas fa-sync"></i> Executar Update</button>
+            <button class="btn btn-primary" onclick="refreshCronLogs()"><i class="fas fa-rotate"></i> Atualizar Logs</button>
+        </div>
+        <div id="cronStatus" class="cron-schedule" style="margin-bottom:10px;"></div>
+        <div class="cron-schedule" style="max-height:240px; overflow:auto">
+            <h4><i class="fas fa-file-alt"></i> Últimos Logs (automation_cron)</h4>
+            <div id="cronLogs" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: .9rem; white-space: pre-wrap;"></div>
+        </div>
     </div>
 </div>
 
@@ -2284,6 +2454,99 @@ function getSelectedCodes() {
     return Array.from(checkboxes).map(cb => cb.value);
 }
 
+// ===== Presets com Preview =====
+function openPresetModal() {
+    const selected = getSelectedCodes();
+    if (selected.length === 0) {
+        notifyWarning('Nenhum item selecionado');
+        return;
+    }
+    const presets = window.STATUS_PRESETS || {};
+    const presetOptions = Object.entries(presets).map(([key, p]) => `<option value="${key}">${p.label}</option>`).join('');
+    const nowISO = new Date().toISOString().slice(0,16);
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-diagram-project"></i> Aplicar Preset (${selected.length} itens)</h3>
+                <button class="close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Preset</label>
+                    <select id="preset_key">${presetOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label>Modo de aplicação</label>
+                    <select id="preset_mode">
+                        <option value="replace">Substituir etapas atuais</option>
+                        <option value="append">Acrescentar ao final</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Início</label>
+                    <input type="datetime-local" id="preset_start" value="${nowISO}">
+                </div>
+                <div class="form-group">
+                    <label>Cidade (fallback)</label>
+                    <input type="text" id="preset_cidade" placeholder="Não informado">
+                </div>
+                <div class="form-group">
+                    <label>Valor Taxa (opcional)</label>
+                    <input type="number" id="preset_taxa_valor" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Chave PIX (opcional)</label>
+                    <input type="text" id="preset_taxa_pix" placeholder="Chave PIX">
+                </div>
+            </div>
+            <div id="preset_preview" style="margin-top:10px"></div>
+            <div class="actions" style="margin-top: 15px;">
+                <button class="btn btn-info" onclick="renderPresetPreview()"><i class="fas fa-eye"></i> Preview</button>
+                <button class="btn btn-primary" onclick="applyPreset(${JSON.stringify(selected)})"><i class="fas fa-play"></i> Aplicar</button>
+                <button class="btn btn-warning" onclick="this.closest('.modal').remove()"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    setTimeout(renderPresetPreview, 0);
+}
+
+function renderPresetPreview() {
+    const presets = window.STATUS_PRESETS || {};
+    const key = document.getElementById('preset_key').value;
+    const start = document.getElementById('preset_start').value;
+    const box = document.getElementById('preset_preview');
+    const preset = presets[key];
+    if (!preset) { box.innerHTML = ''; return; }
+    const startTs = new Date(start).getTime();
+    let html = '<div class="cron-schedule"><h4><i class="fas fa-list"></i> Etapas previstas</h4>';
+    preset.steps.forEach(s => {
+        const dt = new Date(startTs + s[3]*3600000);
+        html += `<div class="schedule-item"><span>${s[0]}</span><span>${dt.toLocaleString()}</span></div>`;
+    });
+    html += '</div>';
+    box.innerHTML = html;
+}
+
+function applyPreset(selected) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.style.display = 'none';
+    const add = (n,v) => { const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
+    add('apply_preset', JSON.stringify(selected));
+    add('preset_key', document.getElementById('preset_key').value);
+    add('preset_mode', document.getElementById('preset_mode').value);
+    add('preset_start', document.getElementById('preset_start').value);
+    add('preset_cidade', document.getElementById('preset_cidade').value);
+    add('preset_taxa_valor', document.getElementById('preset_taxa_valor').value);
+    add('preset_taxa_pix', document.getElementById('preset_taxa_pix').value);
+    document.body.appendChild(form);
+    form.submit();
+}
+
 // Sistema de Notificações
 function showToast(message, type = 'info', duration = 5000) {
     const container = document.getElementById('toastContainer');
@@ -2623,6 +2886,52 @@ function loadAutomationSettings() {
     `;
     document.head.appendChild(style);
 })();
+
+// ===== Monitor de Cron (Execução e Logs) =====
+function runAutomationCron() {
+    notifyInfo('Executando automações...');
+    fetch('automation_cron.php?cron=true')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                notifySuccess('Automações executadas');
+                document.getElementById('cronStatus').innerHTML = `<div class="schedule-item"><span><span class="status-indicator active"></span>Última execução</span><span>${new Date().toLocaleString()}</span></div>`;
+                refreshCronLogs();
+            } else {
+                notifyError('Falha nas automações: ' + (data.error||'erro'));
+            }
+        })
+        .catch(()=> notifyError('Erro ao executar automações'));
+}
+
+function runUpdateCron() {
+    notifyInfo('Executando update...');
+    fetch('cron_update.php')
+        .then(()=> {
+            notifySuccess('Update executado');
+            document.getElementById('cronStatus').innerHTML = `<div class="schedule-item"><span><span class="status-indicator active"></span>Update manual</span><span>${new Date().toLocaleString()}</span></div>`;
+        })
+        .catch(()=> notifyError('Erro ao executar update'));
+}
+
+function refreshCronLogs() {
+    fetch('automation_logs.txt', { cache: 'no-store' })
+        .then(r => r.text())
+        .then(t => {
+            const lines = t.trim().split('\n');
+            const last = lines.slice(-50).join('\n');
+            document.getElementById('cronLogs').textContent = last || 'Sem logs.';
+        })
+        .catch(()=> {
+            document.getElementById('cronLogs').textContent = 'Sem logs disponíveis.';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', refreshCronLogs);
+</script>
+<?php // Expor presets ao JS ?>
+<script>
+window.STATUS_PRESETS = <?php echo json_encode(array_map(function($p){ return ['label'=>$p['label'], 'steps'=>$p['steps']]; }, $STATUS_PRESETS)); ?>
 </script>
 </body>
 </html>
