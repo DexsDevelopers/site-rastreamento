@@ -10,14 +10,16 @@ require_once 'includes/db_connect.php';
 
 // Verificar se é uma execução via cron
 if (!isset($_GET['cron']) || $_GET['cron'] !== 'true') {
-    die('Acesso negado. Este arquivo deve ser executado via cron job.');
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Acesso negado. Use ?cron=true']);
+    exit;
 }
 
 // Log de execução
 $logFile = 'automation_logs.txt';
 $timestamp = date('Y-m-d H:i:s');
 
-function writeLog($message) {
+function writeCronLog($message) {
     global $logFile, $timestamp;
     $logEntry = "[$timestamp] $message\n";
     file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
@@ -25,29 +27,27 @@ function writeLog($message) {
 
 // 1. Verificar e atualizar status automaticamente
 function checkAndUpdateStatus($pdo) {
-    writeLog("Iniciando verificação de status...");
-    
-    // Buscar rastreios que podem ser atualizados automaticamente
-    $sql = "SELECT codigo, cidade, MAX(data) as ultima_data, MAX(status_atual) as ultimo_status 
-            FROM rastreios_status 
-            GROUP BY codigo 
-            HAVING ultimo_status NOT LIKE '%Entregue%' 
-            AND ultima_data < DATE_SUB(NOW(), INTERVAL 2 HOUR)";
-    
+    writeCronLog("Iniciando verificação de status...");
+    // Último registro por código
+    $sql = "SELECT rs.codigo, rs.cidade, rs.status_atual, rs.data
+            FROM rastreios_status rs
+            INNER JOIN (
+                SELECT codigo, MAX(data) AS max_data
+                FROM rastreios_status
+                GROUP BY codigo
+            ) t ON t.codigo = rs.codigo AND t.max_data = rs.data
+            WHERE rs.status_atual NOT LIKE '%Entregue%'
+              AND rs.data < DATE_SUB(NOW(), INTERVAL 2 HOUR)";
     $results = fetchData($pdo, $sql);
     $updated = 0;
-    
     foreach ($results as $row) {
         $codigo = $row['codigo'];
         $cidade = $row['cidade'];
-        $ultimo_status = $row['ultimo_status'];
-        
-        // Lógica de progressão automática baseada no status atual
+        $ultimo_status = $row['status_atual'];
         $novo_status = '';
         $novo_titulo = '';
         $novo_subtitulo = '';
         $nova_cor = '';
-        
         if (strpos($ultimo_status, 'Objeto postado') !== false) {
             $novo_status = '🚚 Em trânsito';
             $novo_titulo = '🚚 Em trânsito';
@@ -64,80 +64,70 @@ function checkAndUpdateStatus($pdo) {
             $novo_subtitulo = 'Saiu para entrega ao destinatário';
             $nova_cor = 'bg-red-500';
         }
-        
         if ($novo_status) {
             $data_nova = date('Y-m-d H:i:s');
-            $sql = "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
-            
+            $ins = "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try {
-                executeQuery($pdo, $sql, [$codigo, $cidade, $novo_status, $novo_titulo, $novo_subtitulo, $data_nova, $nova_cor]);
+                executeQuery($pdo, $ins, [$codigo, $cidade, $novo_status, $novo_titulo, $novo_subtitulo, $data_nova, $nova_cor]);
                 $updated++;
-                writeLog("Status atualizado para $codigo: $novo_status");
+                writeCronLog("Status atualizado para $codigo: $novo_status");
             } catch (Exception $e) {
-                writeLog("Erro ao atualizar status para $codigo: " . $e->getMessage(), 'ERROR');
+                writeCronLog("Erro ao atualizar status para $codigo: " . $e->getMessage());
             }
         }
     }
-    
-    writeLog("Verificação de status concluída. $updated rastreios atualizados.");
+    writeCronLog("Verificação de status concluída. $updated rastreios atualizados.");
     return $updated;
 }
 
 // 2. Verificar taxas pendentes e aplicar alertas
 function checkPendingTaxes($pdo) {
-    writeLog("Verificando taxas pendentes...");
-    
-    // Buscar rastreios com taxa pendente há mais de 24 horas
-    $sql = "SELECT codigo, cidade, MAX(taxa_valor) as taxa_valor, MAX(taxa_pix) as taxa_pix, MAX(data) as ultima_data
-            FROM rastreios_status 
-            WHERE taxa_valor IS NOT NULL AND taxa_pix IS NOT NULL
-            AND data < DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            GROUP BY codigo";
-    
+    writeCronLog("Verificando taxas pendentes...");
+    $sql = "SELECT rs.codigo, rs.cidade, rs.taxa_valor, rs.taxa_pix, rs.data
+            FROM rastreios_status rs
+            INNER JOIN (
+                SELECT codigo, MAX(data) AS max_data
+                FROM rastreios_status
+                GROUP BY codigo
+            ) t ON t.codigo = rs.codigo AND t.max_data = rs.data
+            WHERE rs.taxa_valor IS NOT NULL AND rs.taxa_pix IS NOT NULL
+              AND rs.data < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
     $results = fetchData($pdo, $sql);
     $alertas = 0;
-    
     foreach ($results as $row) {
         $codigo = $row['codigo'];
         $cidade = $row['cidade'];
         $taxa_valor = $row['taxa_valor'];
-        $taxa_pix = $row['taxa_pix'];
-        
-        // Enviar alerta (aqui você implementaria envio de email/SMS)
-        writeLog("ALERTA: Taxa pendente há mais de 24h - Código: $codigo, Cidade: $cidade, Valor: R$ $taxa_valor");
+        writeCronLog("ALERTA: Taxa pendente há mais de 24h - Código: $codigo, Cidade: $cidade, Valor: R$ $taxa_valor");
         $alertas++;
     }
-    
-    writeLog("Verificação de taxas concluída. $alertas alertas gerados.");
+    writeCronLog("Verificação de taxas concluída. $alertas alertas gerados.");
     return $alertas;
 }
 
 // 3. Verificar rastreios "presos" (sem atualização há muito tempo)
 function checkStuckRastreios($pdo) {
-    writeLog("Verificando rastreios presos...");
-    
-    // Buscar rastreios sem atualização há mais de 3 dias
-    $sql = "SELECT codigo, cidade, MAX(data) as ultima_data, MAX(status_atual) as ultimo_status
-            FROM rastreios_status 
-            WHERE data < DATE_SUB(NOW(), INTERVAL 3 DAY)
-            AND ultimo_status NOT LIKE '%Entregue%'
-            GROUP BY codigo";
-    
+    writeCronLog("Verificando rastreios presos...");
+    $sql = "SELECT rs.codigo, rs.cidade, rs.data AS ultima_data, rs.status_atual
+            FROM rastreios_status rs
+            INNER JOIN (
+                SELECT codigo, MAX(data) AS max_data
+                FROM rastreios_status
+                GROUP BY codigo
+            ) t ON t.codigo = rs.codigo AND t.max_data = rs.data
+            WHERE rs.status_atual NOT LIKE '%Entregue%'
+              AND rs.data < DATE_SUB(NOW(), INTERVAL 3 DAY)";
     $results = fetchData($pdo, $sql);
     $presos = 0;
-    
     foreach ($results as $row) {
         $codigo = $row['codigo'];
         $cidade = $row['cidade'];
         $ultima_data = $row['ultima_data'];
-        $ultimo_status = $row['ultimo_status'];
-        
-        writeLog("ALERTA: Rastreio preso - Código: $codigo, Cidade: $cidade, Última atualização: $ultima_data, Status: $ultimo_status");
+        $ultimo_status = $row['status_atual'];
+        writeCronLog("ALERTA: Rastreio preso - Código: $codigo, Cidade: $cidade, Última atualização: $ultima_data, Status: $ultimo_status");
         $presos++;
     }
-    
-    writeLog("Verificação de rastreios presos concluída. $presos rastreios encontrados.");
+    writeCronLog("Verificação de rastreios presos concluída. $presos rastreios encontrados.");
     return $presos;
 }
 
@@ -200,7 +190,7 @@ function cleanupOldLogs() {
 
 // Executar todas as automações
 try {
-    writeLog("=== INÍCIO DA EXECUÇÃO DE AUTOMAÇÕES ===");
+    writeCronLog("=== INÍCIO DA EXECUÇÃO DE AUTOMAÇÕES ===");
     
     $status_updated = checkAndUpdateStatus($pdo);
     $taxes_alerted = checkPendingTaxes($pdo);
@@ -208,10 +198,11 @@ try {
     $report_generated = generateWeeklyReport($pdo);
     cleanupOldLogs();
     
-    writeLog("=== FIM DA EXECUÇÃO DE AUTOMAÇÕES ===");
-    writeLog("Resumo: $status_updated status atualizados, $taxes_alerted alertas de taxa, $stuck_found rastreios presos");
+    writeCronLog("=== FIM DA EXECUÇÃO DE AUTOMAÇÕES ===");
+    writeCronLog("Resumo: $status_updated status atualizados, $taxes_alerted alertas de taxa, $stuck_found rastreios presos");
     
     // Retornar status para monitoramento
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
         'timestamp' => $timestamp,
@@ -222,7 +213,8 @@ try {
     ]);
     
 } catch (Exception $e) {
-    writeLog("ERRO: " . $e->getMessage());
+    writeCronLog("ERRO: " . $e->getMessage());
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage(),
