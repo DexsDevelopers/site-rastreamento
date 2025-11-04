@@ -385,6 +385,81 @@ if (isset($_POST['undo_action'])) {
     }
 }
 
+// ===== Configurações do Site (persistência simples em JSON) =====
+$SITE_OPTIONS_FILE = __DIR__ . '/includes/site_options.json';
+
+function getSiteOptions() {
+    global $SITE_OPTIONS_FILE;
+    $defaults = [
+        'popup_taxa_enabled' => true,
+        'taxa_countdown_hours' => 24
+    ];
+    if (file_exists($SITE_OPTIONS_FILE)) {
+        $data = json_decode(@file_get_contents($SITE_OPTIONS_FILE), true);
+        if (is_array($data)) {
+            return array_merge($defaults, $data);
+        }
+    }
+    return $defaults;
+}
+
+if (isset($_POST['save_site_options'])) {
+    try {
+        $popupEnabled = !empty($_POST['popup_taxa_enabled']);
+        $hours = isset($_POST['taxa_countdown_hours']) ? (int)$_POST['taxa_countdown_hours'] : 24;
+        $hours = max(1, min(72, $hours));
+        $options = [
+            'popup_taxa_enabled' => $popupEnabled,
+            'taxa_countdown_hours' => $hours
+        ];
+        if (!is_dir(dirname($SITE_OPTIONS_FILE))) {
+            mkdir(dirname($SITE_OPTIONS_FILE), 0755, true);
+        }
+        file_put_contents($SITE_OPTIONS_FILE, json_encode($options, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        $success_message = 'Configurações do site salvas com sucesso!';
+        writeLog('Configurações do site atualizadas', 'INFO');
+    } catch (Exception $e) {
+        $error_message = 'Falha ao salvar configurações do site.';
+        writeLog('Erro ao salvar opções do site: ' . $e->getMessage(), 'ERROR');
+    }
+}
+
+// Atualização rápida de taxa (single)
+if (isset($_POST['update_taxa_single'])) {
+    try {
+        $codigo = sanitizeInput($_POST['codigo'] ?? '');
+        $taxa_valor = isset($_POST['taxa_valor']) && $_POST['taxa_valor'] !== '' ? sanitizeInput($_POST['taxa_valor']) : null;
+        $taxa_pix = isset($_POST['taxa_pix']) && $_POST['taxa_pix'] !== '' ? sanitizeInput($_POST['taxa_pix']) : null;
+        if (empty($codigo)) { throw new Exception('Código inválido'); }
+        captureUndoSnapshot($pdo, [$codigo], 'Atualização rápida de taxa');
+        $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE codigo = ?";
+        executeQuery($pdo, $sql, [$taxa_valor, $taxa_pix, $codigo]);
+        $success_message = "Taxa atualizada para {$codigo}.";
+    } catch (Exception $e) {
+        $error_message = 'Erro ao atualizar taxa: ' . $e->getMessage();
+        writeLog('Erro update_taxa_single: ' . $e->getMessage(), 'ERROR');
+    }
+}
+
+// Remover taxa em lote
+if (isset($_POST['bulk_clear_taxa'])) {
+    try {
+        $codigos = json_decode($_POST['bulk_clear_taxa'] ?? '[]', true);
+        if (!is_array($codigos) || empty($codigos)) { throw new Exception('Nenhum código'); }
+        captureUndoSnapshot($pdo, array_map('sanitizeInput', $codigos), 'Remover taxa em lote');
+        foreach ($codigos as $codigo) {
+            $codigo = sanitizeInput($codigo);
+            executeQuery($pdo, "UPDATE rastreios_status SET taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?", [$codigo]);
+        }
+        $success_message = 'Taxas removidas dos itens selecionados.';
+    } catch (Exception $e) {
+        $error_message = 'Erro ao remover taxas em lote: ' . $e->getMessage();
+        writeLog('Erro bulk_clear_taxa: ' . $e->getMessage(), 'ERROR');
+    }
+}
+
+// Carregar opções do site para uso no HTML
+$siteOptions = getSiteOptions();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -1531,6 +1606,31 @@ body {
         </div>
     </div>
 
+    <!-- Configurações do Site -->
+    <div class="automation-panel">
+        <h2><i class="fas fa-sliders-h"></i> Configurações do Site</h2>
+        <p>Preferências que impactam o site do cliente</p>
+        <form method="POST" style="margin-top: 10px;">
+            <input type="hidden" name="save_site_options" value="1">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Exibir pop-up explicativo da taxa no cliente</label>
+                    <select name="popup_taxa_enabled">
+                        <option value="1" <?= !empty($siteOptions['popup_taxa_enabled']) ? 'selected' : '' ?>>Ativado</option>
+                        <option value="0" <?= empty($siteOptions['popup_taxa_enabled']) ? 'selected' : '' ?>>Desativado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tempo limite do contador da taxa (horas)</label>
+                    <input type="number" name="taxa_countdown_hours" min="1" max="72" value="<?= (int)($siteOptions['taxa_countdown_hours'] ?? 24) ?>">
+                </div>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+
 
     <!-- Painel de Automações -->
     <div class="automation-panel">
@@ -1745,6 +1845,9 @@ body {
                 <button class="btn btn-info btn-sm" onclick="bulkExport()">
                     <i class="fas fa-download"></i> Exportar Selecionados
                 </button>
+                <button class="btn btn-secondary btn-sm" onclick="bulkClearTaxa()" type="button">
+                    <i class="fas fa-eraser"></i> Remover Taxa
+                </button>
                 <button class="btn btn-secondary btn-sm" onclick="clearSelection()">
                     <i class="fas fa-times"></i> Limpar Seleção
                 </button>
@@ -1911,7 +2014,10 @@ body {
                                 <button class='btn btn-info btn-sm' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver detalhes'>
                                     <i class='fas fa-eye'></i>
                                 </button>
-                                <form method='POST' style='display:inline' onsubmit='return confirm(\"Tem certeza que deseja excluir este rastreio?\")'>
+                                <button class='btn btn-success btn-sm' onclick='openQuickTaxModal("{$row['codigo']}")' title='Editar taxa rapidamente'>
+                                    <i class='fas fa-dollar-sign'></i>
+                                </button>
+                                <form method='POST' style='display:inline' onsubmit='return confirm("Tem certeza que deseja excluir este rastreio?")'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                     <button type='submit' name='deletar' class='btn btn-danger btn-sm' title='Excluir'>
                                         <i class='fas fa-trash'></i>
@@ -2111,6 +2217,12 @@ function viewDetails(codigo) {
                       <label><strong>Chave PIX:</strong></label>
                       <p style="word-break: break-all; background: var(--dark-bg); padding: 10px; border-radius: 5px;">${data.taxa_pix}</p>
                   </div>
+                  <div class="form-group">
+                      <label><strong>QR Code PIX:</strong></label>
+                      <div style="background: var(--dark-bg); padding: 10px; border-radius: 5px; display:flex; justify-content:center;">
+                          <img alt="QR PIX" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.taxa_pix)}" />
+                      </div>
+                  </div>
               `;
           }
           
@@ -2121,6 +2233,40 @@ function viewDetails(codigo) {
           console.error('Erro ao carregar detalhes:', error);
           alert('Erro ao carregar detalhes do rastreio');
       });
+}
+
+// Modal rápido para editar apenas a taxa
+function openQuickTaxModal(codigo) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-dollar-sign"></i> Atualizar Taxa — ${codigo}</h3>
+                <button class="close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="update_taxa_single" value="1">
+                <input type="hidden" name="codigo" value="${codigo}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Valor da Taxa</label>
+                        <input type="number" name="taxa_valor" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Chave PIX</label>
+                        <input type="text" name="taxa_pix" placeholder="Digite a chave PIX...">
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+                    <button type="button" class="btn btn-warning" onclick="this.closest('.modal').remove()"><i class="fas fa-times"></i> Cancelar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 // Função de busca
@@ -2357,6 +2503,25 @@ function bulkDelete() {
         document.body.appendChild(form);
         form.submit();
     }
+}
+
+function bulkClearTaxa() {
+    const selected = getSelectedCodes();
+    if (selected.length === 0) {
+        notifyWarning('Nenhum item selecionado');
+        return;
+    }
+    if (!confirm(`Remover taxa de ${selected.length} rastreio(s) selecionado(s)?`)) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.style.display = 'none';
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'bulk_clear_taxa';
+    input.value = JSON.stringify(selected);
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function bulkEdit() {

@@ -18,7 +18,23 @@ $statusList = [];
 $erroCidade = "";
 $statusAtualTopo = "";
 $temTaxa = false;
+// Carregar opções globais do site
 $tempoLimite = 24;
+$popupTaxaEnabled = true;
+try {
+    $optionsFile = __DIR__ . '/includes/site_options.json';
+    if (file_exists($optionsFile)) {
+        $opts = json_decode(@file_get_contents($optionsFile), true);
+        if (is_array($opts)) {
+            if (isset($opts['taxa_countdown_hours'])) {
+                $tempoLimite = max(1, min(72, (int)$opts['taxa_countdown_hours']));
+            }
+            if (array_key_exists('popup_taxa_enabled', $opts)) {
+                $popupTaxaEnabled = !empty($opts['popup_taxa_enabled']);
+            }
+        }
+    }
+} catch (Exception $e) { /* padrão permanece */ }
 
 if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
     $codigo = strtoupper(trim(sanitizeInput($_POST['codigo'])));
@@ -736,7 +752,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 
 <?php
 // Exibir popup explicativo automaticamente no render completo quando houver taxa
-if (!empty($statusList) && $temTaxa) {
+if (!empty($statusList) && $temTaxa && !empty($popupTaxaEnabled)) {
     $taxaValorPrimeira = null;
     foreach ($statusList as $etapa) {
         if (!empty($etapa['taxa_valor'])) {
@@ -745,9 +761,9 @@ if (!empty($statusList) && $temTaxa) {
         }
     }
     if ($taxaValorPrimeira) {
-        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup('R$ {$taxaValorPrimeira}'); }});</script>";
+        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function' && window.POPUP_TAXA_ENABLED) { showTaxaPopup('R$ {$taxaValorPrimeira}'); }});</script>";
     } else {
-        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup(); }});</script>";
+        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function' && window.POPUP_TAXA_ENABLED) { showTaxaPopup(); }});</script>";
     }
 }
 ?>
@@ -793,6 +809,7 @@ atualizarContagem();
 <script>
 // Valor global para inicialização de contagem no fluxo AJAX
 window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
+window.POPUP_TAXA_ENABLED = <?= !empty($popupTaxaEnabled) ? 'true' : 'false' ?>;
 
 function showIndicacaoInfo() {
     const modal = document.createElement('div');
@@ -905,7 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Iniciar popup e countdown se houver taxa no retorno AJAX
                 try {
                     const pixBox = results.querySelector('.pix-box');
-                    if (pixBox && typeof showTaxaPopup === 'function') {
+                    if (pixBox && typeof showTaxaPopup === 'function' && window.POPUP_TAXA_ENABLED) {
                         let valorTexto = null;
                         const p = pixBox.querySelector('p');
                         if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
