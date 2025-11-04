@@ -4,6 +4,27 @@
  * Versão otimizada e segura
  */
 
+// Sonda mínima antes de qualquer include (para isolar erros de includes/DB)
+if (isset($_GET['probe']) && $_GET['probe'] === '1') {
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo "ADMIN_PROBE_OK\nPHP " . PHP_VERSION . "\n";
+    exit;
+}
+
+// Debug mínimo antes de includes (bootstrap)
+if (isset($_GET['debug_boot']) && $_GET['debug_boot'] === '1') {
+    header('Content-Type: text/html; charset=UTF-8');
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin Bootstrap Debug</title>';
+    echo '<style>body{background:#0b0b0b;color:#eaeaea;font-family:Consolas,ui-monospace,Menlo,monospace;padding:16px}h2{color:#ff6666}pre{background:#121212;border:1px solid #2a2a2a;border-radius:8px;padding:12px;white-space:pre-wrap}</style>';
+    echo '</head><body>';
+    echo '<h1>Admin Bootstrap Ativo</h1>';
+    echo '<pre>PHP: ' . htmlspecialchars(PHP_VERSION) . "\n";
+    echo 'File: ' . htmlspecialchars(__FILE__) . "\n";
+    echo 'Dir: ' . htmlspecialchars(__DIR__) . '</pre>';
+    echo '</body></html>';
+    exit;
+}
+
 // Incluir configurações (adiamos a conexão DB para após o diagnóstico)
 require_once 'includes/config.php';
 // require_once 'includes/db_connect.php'; // movido para após o bloco de debug
