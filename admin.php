@@ -13,6 +13,51 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+// Diagnóstico leve quando ?debug=1 (não exibe segredos)
+if (isset($_GET['debug']) && $_GET['debug'] === '1') {
+    header('Content-Type: text/html; charset=UTF-8');
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin Debug</title>';
+    echo '<style>body{background:#0b0b0b;color:#eaeaea;font-family:Consolas,ui-monospace,Menlo,monospace;padding:16px}h2{color:#ff6666}pre{background:#121212;border:1px solid #2a2a2a;border-radius:8px;padding:12px;white-space:pre-wrap}</style>';
+    echo '</head><body>';
+    echo '<h1>Diagnóstico do Admin</h1>';
+    echo '<h2>Status Geral</h2><pre>PHP rodando. Versão: ' . htmlspecialchars(PHP_VERSION) . "\nTimezone: " . htmlspecialchars(date_default_timezone_get()) . '</pre>';
+
+    echo '<h2>Banco de Dados</h2><pre>';
+    try {
+        $ok = $pdo->query('SELECT 1')->fetchColumn();
+        echo 'Conexão OK. SELECT 1 => ' . (int)$ok . "\n";
+    } catch (Throwable $e) {
+        echo 'Falha na conexão/consulta: ' . htmlspecialchars($e->getMessage()) . "\n";
+    }
+    echo '</pre>';
+
+    $siteOptionsPath = __DIR__ . '/includes/site_options.json';
+    $logFile = getConfig('LOG_FILE');
+    $logDir = $logFile ? dirname($logFile) : null;
+    $autoLog = getConfig('AUTOMATION_LOG_FILE');
+    $autoDir = $autoLog ? dirname($autoLog) : null;
+
+    echo '<h2>Arquivos/Permissões</h2><pre>';
+    echo 'site_options.json: ' . htmlspecialchars($siteOptionsPath) . "\n";
+    echo '  exists=' . (file_exists($siteOptionsPath) ? 'yes' : 'no') . ', readable=' . (is_readable($siteOptionsPath) ? 'yes' : 'no') . ', writable=' . (is_writable($siteOptionsPath) ? 'yes' : 'no') . "\n\n";
+    echo 'logs dir: ' . htmlspecialchars($logDir ?? '(n/a)') . "\n";
+    echo '  exists=' . ($logDir && is_dir($logDir) ? 'yes' : 'no') . ', writable=' . ($logDir && is_dir($logDir) && is_writable($logDir) ? 'yes' : 'no') . "\n\n";
+    echo 'automation logs dir: ' . htmlspecialchars($autoDir ?? '(n/a)') . "\n";
+    echo '  exists=' . ($autoDir && is_dir($autoDir) ? 'yes' : 'no') . ', writable=' . ($autoDir && is_dir($autoDir) && is_writable($autoDir) ? 'yes' : 'no') . "\n\n";
+    echo '</pre>';
+
+    echo '<h2>PHP Ini</h2><pre>';
+    echo 'memory_limit=' . ini_get('memory_limit') . "\n";
+    echo 'max_execution_time=' . ini_get('max_execution_time') . "\n";
+    echo 'post_max_size=' . ini_get('post_max_size') . "\n";
+    echo 'upload_max_filesize=' . ini_get('upload_max_filesize') . "\n";
+    echo '</pre>';
+
+    echo '<p style="color:#aaa">Este bloco de diagnóstico é temporário e não expõe segredos. Removeremos após corrigir o erro.</p>';
+    echo '</body></html>';
+    exit;
+}
+
 // Sistema de Login Seguro
 $login_attempts_key = 'login_attempts_' . $_SERVER['REMOTE_ADDR'];
 $max_attempts = getConfig('MAX_LOGIN_ATTEMPTS', 5);
