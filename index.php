@@ -796,6 +796,7 @@ window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
 
 function showIndicacaoInfo() {
     const modal = document.createElement('div');
+    modal.className = 'custom-overlay-modal';
     modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
         align-items: center; padding: 20px;`;
@@ -813,7 +814,7 @@ function showIndicacaoInfo() {
                 <p style="color: #fff; margin-bottom: 10px;">3️⃣ A entrega será feita em apenas <strong>2 dias</strong></p>
                 <p style="color: #fff;">4️⃣ Prioridade total no sistema</p>
             </div>
-            <button onclick="this.closest('div').remove()" style="width: 100%; padding: 15px;
+            <button onclick="closeModalFromChild(this)" style="width: 100%; padding: 15px;
                 background: var(--gradient); border: none; border-radius: 10px; color: white;
                 font-weight: 600; cursor: pointer; font-size: 1.1rem;">
                 Fechar
@@ -825,6 +826,14 @@ function showIndicacaoInfo() {
 }
 </script>
 <script>
+// Função utilitária para fechar modais customizados
+function closeModalFromChild(childEl) {
+    try {
+        const overlay = childEl.closest('.custom-overlay-modal');
+        if (overlay) overlay.remove();
+    } catch (_) {}
+}
+
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const mobileMenu = document.getElementById('mobileMenu');
@@ -937,6 +946,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Popup explicativo da taxa (cliente)
 function showTaxaPopup(valorTexto) {
     const modal = document.createElement('div');
+    modal.className = 'custom-overlay-modal';
     modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
         align-items: center; padding: 20px;`;
@@ -956,7 +966,7 @@ function showTaxaPopup(valorTexto) {
                 <p>Estamos à disposição para auxiliar em qualquer dúvida ou no passo a passo desse processo. Nosso objetivo é garantir que você receba sua compra da forma mais rápida e segura possível.</p>
             </div>
             <div style="display:flex; gap:10px; margin-top: 20px;">
-                <button onclick="this.closest('div').parentElement.remove()" style="flex:1; padding: 12px 16px; background: var(--gradient); border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">Entendi</button>
+                <button onclick="closeModalFromChild(this)" style="flex:1; padding: 12px 16px; background: var(--gradient); border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">Entendi</button>
             </div>
         </div>
     `;
