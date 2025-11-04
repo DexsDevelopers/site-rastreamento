@@ -69,22 +69,13 @@ define('LOG_QUERIES', false);
 // Timezone
 date_default_timezone_set('America/Sao_Paulo');
 
-// Controle de exibição de erros (com parâmetro debug opcional)
-if (getConfig('SHOW_ERRORS', false) || (isset($_GET['debug']) && $_GET['debug'] == '1')) {
-    ini_set('display_errors', 1);
-    error_reporting(E_ALL);
-} else {
-    ini_set('display_errors', 0);
-}
-
 // Headers de segurança
 if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: DENY');
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
-    // Permite imagens externas seguras (https:) para suportar QR Code
-    header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com; style-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com fonts.googleapis.com; font-src \'self\' fonts.gstatic.com; img-src \'self\' data: https:;');
+    header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com; style-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com fonts.googleapis.com; font-src \'self\' fonts.gstatic.com; img-src \'self\' data:;');
 }
 
 // Função para obter configuração
@@ -112,36 +103,7 @@ function writeLog($message, $level = 'INFO') {
     }
 }
 
-// Tratadores globais de erro/exceção para facilitar diagnóstico em produção
-set_error_handler(function ($severity, $message, $file, $line) {
-    writeLog("PHP Error [$severity] $message em $file:$line", 'ERROR');
-});
-
-set_exception_handler(function ($ex) {
-    writeLog("Exceção não tratada: " . $ex->getMessage() . " em " . $ex->getFile() . ":" . $ex->getLine(), 'ERROR');
-    if (isset($_GET['debug']) && $_GET['debug'] == '1') {
-        http_response_code(500);
-        echo '<pre style="background:#111;color:#fff;padding:16px;border-radius:8px;">';
-        echo 'Exceção: ' . htmlspecialchars($ex->getMessage()) . "\n";
-        echo 'Arquivo: ' . htmlspecialchars($ex->getFile()) . ':' . (int)$ex->getLine() . "\n\n";
-        echo htmlspecialchars($ex->getTraceAsString());
-        echo '</pre>';
-    }
-});
-
-register_shutdown_function(function () {
-    $err = error_get_last();
-    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        writeLog("Fatal: {$err['message']} em {$err['file']}:{$err['line']}", 'ERROR');
-        if (isset($_GET['debug']) && $_GET['debug'] == '1') {
-            http_response_code(500);
-            echo '<pre style="background:#111;color:#fff;padding:16px;border-radius:8px;">';
-            echo 'Erro Fatal: ' . htmlspecialchars($err['message']) . "\n";
-            echo 'Arquivo: ' . htmlspecialchars($err['file']) . ':' . (int)$err['line'] . "\n";
-            echo '</pre>';
-        }
-    }
-});
+// (Sem handlers globais adicionais)
 
 // Função para sanitizar entrada
 function sanitizeInput($input) {

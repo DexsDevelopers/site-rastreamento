@@ -4,83 +4,16 @@
  * Versão otimizada e segura
  */
 
-// Sonda mínima antes de qualquer include (para isolar erros de includes/DB)
-if (isset($_GET['probe']) && $_GET['probe'] === '1') {
-    header('Content-Type: text/plain; charset=UTF-8');
-    echo "ADMIN_PROBE_OK\nPHP " . PHP_VERSION . "\n";
-    exit;
-}
-
-// Debug mínimo antes de includes (bootstrap)
-if (isset($_GET['debug_boot']) && $_GET['debug_boot'] === '1') {
-    header('Content-Type: text/html; charset=UTF-8');
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin Bootstrap Debug</title>';
-    echo '<style>body{background:#0b0b0b;color:#eaeaea;font-family:Consolas,ui-monospace,Menlo,monospace;padding:16px}h2{color:#ff6666}pre{background:#121212;border:1px solid #2a2a2a;border-radius:8px;padding:12px;white-space:pre-wrap}</style>';
-    echo '</head><body>';
-    echo '<h1>Admin Bootstrap Ativo</h1>';
-    echo '<pre>PHP: ' . htmlspecialchars(PHP_VERSION) . "\n";
-    echo 'File: ' . htmlspecialchars(__FILE__) . "\n";
-    echo 'Dir: ' . htmlspecialchars(__DIR__) . '</pre>';
-    echo '</body></html>';
-    exit;
-}
-
-// Incluir configurações (adiamos a conexão DB para após o diagnóstico)
+// Incluir configurações e DB
 require_once 'includes/config.php';
-// require_once 'includes/db_connect.php'; // movido para após o bloco de debug
+require_once 'includes/db_connect.php';
 
 // Cache desabilitado para desenvolvimento
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-// Diagnóstico leve quando ?debug=1 (não exibe segredos)
-if (isset($_GET['debug']) && $_GET['debug'] === '1') {
-    header('Content-Type: text/html; charset=UTF-8');
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin Debug</title>';
-    echo '<style>body{background:#0b0b0b;color:#eaeaea;font-family:Consolas,ui-monospace,Menlo,monospace;padding:16px}h2{color:#ff6666}pre{background:#121212;border:1px solid #2a2a2a;border-radius:8px;padding:12px;white-space:pre-wrap}</style>';
-    echo '</head><body>';
-    echo '<h1>Diagnóstico do Admin</h1>';
-    echo '<h2>Status Geral</h2><pre>PHP rodando. Versão: ' . htmlspecialchars(PHP_VERSION) . "\nTimezone: " . htmlspecialchars(date_default_timezone_get()) . '</pre>';
-
-    echo '<h2>Banco de Dados</h2><pre>';
-    try {
-        $ok = $pdo->query('SELECT 1')->fetchColumn();
-        echo 'Conexão OK. SELECT 1 => ' . (int)$ok . "\n";
-    } catch (Throwable $e) {
-        echo 'Falha na conexão/consulta: ' . htmlspecialchars($e->getMessage()) . "\n";
-    }
-    echo '</pre>';
-
-    $siteOptionsPath = __DIR__ . '/includes/site_options.json';
-    $logFile = getConfig('LOG_FILE');
-    $logDir = $logFile ? dirname($logFile) : null;
-    $autoLog = getConfig('AUTOMATION_LOG_FILE');
-    $autoDir = $autoLog ? dirname($autoLog) : null;
-
-    echo '<h2>Arquivos/Permissões</h2><pre>';
-    echo 'site_options.json: ' . htmlspecialchars($siteOptionsPath) . "\n";
-    echo '  exists=' . (file_exists($siteOptionsPath) ? 'yes' : 'no') . ', readable=' . (is_readable($siteOptionsPath) ? 'yes' : 'no') . ', writable=' . (is_writable($siteOptionsPath) ? 'yes' : 'no') . "\n\n";
-    echo 'logs dir: ' . htmlspecialchars($logDir ?? '(n/a)') . "\n";
-    echo '  exists=' . ($logDir && is_dir($logDir) ? 'yes' : 'no') . ', writable=' . ($logDir && is_dir($logDir) && is_writable($logDir) ? 'yes' : 'no') . "\n\n";
-    echo 'automation logs dir: ' . htmlspecialchars($autoDir ?? '(n/a)') . "\n";
-    echo '  exists=' . ($autoDir && is_dir($autoDir) ? 'yes' : 'no') . ', writable=' . ($autoDir && is_dir($autoDir) && is_writable($autoDir) ? 'yes' : 'no') . "\n\n";
-    echo '</pre>';
-
-    echo '<h2>PHP Ini</h2><pre>';
-    echo 'memory_limit=' . ini_get('memory_limit') . "\n";
-    echo 'max_execution_time=' . ini_get('max_execution_time') . "\n";
-    echo 'post_max_size=' . ini_get('post_max_size') . "\n";
-    echo 'upload_max_filesize=' . ini_get('upload_max_filesize') . "\n";
-    echo '</pre>';
-
-    echo '<p style="color:#aaa">Este bloco de diagnóstico é temporário e não expõe segredos. Removeremos após corrigir o erro.</p>';
-    echo '</body></html>';
-    exit;
-}
-
-// Após diagnóstico, conectar ao DB
-require_once 'includes/db_connect.php';
+// (Sem diagnóstico especial)
 
 // Sistema de Login Seguro
 $login_attempts_key = 'login_attempts_' . $_SERVER['REMOTE_ADDR'];
@@ -454,81 +387,7 @@ if (isset($_POST['undo_action'])) {
     }
 }
 
-// ===== Configurações do Site (persistência simples em JSON) =====
-$SITE_OPTIONS_FILE = __DIR__ . '/includes/site_options.json';
-
-function getSiteOptions() {
-    global $SITE_OPTIONS_FILE;
-    $defaults = [
-        'popup_taxa_enabled' => true,
-        'taxa_countdown_hours' => 24
-    ];
-    if (file_exists($SITE_OPTIONS_FILE)) {
-        $data = json_decode(@file_get_contents($SITE_OPTIONS_FILE), true);
-        if (is_array($data)) {
-            return array_merge($defaults, $data);
-        }
-    }
-    return $defaults;
-}
-
-if (isset($_POST['save_site_options'])) {
-    try {
-        $popupEnabled = !empty($_POST['popup_taxa_enabled']);
-        $hours = isset($_POST['taxa_countdown_hours']) ? (int)$_POST['taxa_countdown_hours'] : 24;
-        $hours = max(1, min(72, $hours));
-        $options = [
-            'popup_taxa_enabled' => $popupEnabled,
-            'taxa_countdown_hours' => $hours
-        ];
-        if (!is_dir(dirname($SITE_OPTIONS_FILE))) {
-            mkdir(dirname($SITE_OPTIONS_FILE), 0755, true);
-        }
-        file_put_contents($SITE_OPTIONS_FILE, json_encode($options, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
-        $success_message = 'Configurações do site salvas com sucesso!';
-        writeLog('Configurações do site atualizadas', 'INFO');
-    } catch (Exception $e) {
-        $error_message = 'Falha ao salvar configurações do site.';
-        writeLog('Erro ao salvar opções do site: ' . $e->getMessage(), 'ERROR');
-    }
-}
-
-// Atualização rápida de taxa (single)
-if (isset($_POST['update_taxa_single'])) {
-    try {
-        $codigo = sanitizeInput($_POST['codigo'] ?? '');
-        $taxa_valor = isset($_POST['taxa_valor']) && $_POST['taxa_valor'] !== '' ? sanitizeInput($_POST['taxa_valor']) : null;
-        $taxa_pix = isset($_POST['taxa_pix']) && $_POST['taxa_pix'] !== '' ? sanitizeInput($_POST['taxa_pix']) : null;
-        if (empty($codigo)) { throw new Exception('Código inválido'); }
-        captureUndoSnapshot($pdo, [$codigo], 'Atualização rápida de taxa');
-        $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE codigo = ?";
-        executeQuery($pdo, $sql, [$taxa_valor, $taxa_pix, $codigo]);
-        $success_message = "Taxa atualizada para {$codigo}.";
-    } catch (Exception $e) {
-        $error_message = 'Erro ao atualizar taxa: ' . $e->getMessage();
-        writeLog('Erro update_taxa_single: ' . $e->getMessage(), 'ERROR');
-    }
-}
-
-// Remover taxa em lote
-if (isset($_POST['bulk_clear_taxa'])) {
-    try {
-        $codigos = json_decode($_POST['bulk_clear_taxa'] ?? '[]', true);
-        if (!is_array($codigos) || empty($codigos)) { throw new Exception('Nenhum código'); }
-        captureUndoSnapshot($pdo, array_map('sanitizeInput', $codigos), 'Remover taxa em lote');
-        foreach ($codigos as $codigo) {
-            $codigo = sanitizeInput($codigo);
-            executeQuery($pdo, "UPDATE rastreios_status SET taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?", [$codigo]);
-        }
-        $success_message = 'Taxas removidas dos itens selecionados.';
-    } catch (Exception $e) {
-        $error_message = 'Erro ao remover taxas em lote: ' . $e->getMessage();
-        writeLog('Erro bulk_clear_taxa: ' . $e->getMessage(), 'ERROR');
-    }
-}
-
-// Carregar opções do site para uso no HTML
-$siteOptions = getSiteOptions();
+// (Sem configurações de site persistidas)
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -1675,30 +1534,7 @@ body {
         </div>
     </div>
 
-    <!-- Configurações do Site -->
-    <div class="automation-panel">
-        <h2><i class="fas fa-sliders-h"></i> Configurações do Site</h2>
-        <p>Preferências que impactam o site do cliente</p>
-        <form method="POST" style="margin-top: 10px;">
-            <input type="hidden" name="save_site_options" value="1">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Exibir pop-up explicativo da taxa no cliente</label>
-                    <select name="popup_taxa_enabled">
-                        <option value="1" <?= !empty($siteOptions['popup_taxa_enabled']) ? 'selected' : '' ?>>Ativado</option>
-                        <option value="0" <?= empty($siteOptions['popup_taxa_enabled']) ? 'selected' : '' ?>>Desativado</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tempo limite do contador da taxa (horas)</label>
-                    <input type="number" name="taxa_countdown_hours" min="1" max="72" value="<?= (int)($siteOptions['taxa_countdown_hours'] ?? 24) ?>">
-                </div>
-            </div>
-            <div class="actions">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
-            </div>
-        </form>
-    </div>
+    
 
 
     <!-- Painel de Automações -->
@@ -1914,9 +1750,6 @@ body {
                 <button class="btn btn-info btn-sm" onclick="bulkExport()">
                     <i class="fas fa-download"></i> Exportar Selecionados
                 </button>
-                <button class="btn btn-secondary btn-sm" onclick="bulkClearTaxa()" type="button">
-                    <i class="fas fa-eraser"></i> Remover Taxa
-                </button>
                 <button class="btn btn-secondary btn-sm" onclick="clearSelection()">
                     <i class="fas fa-times"></i> Limpar Seleção
                 </button>
@@ -2083,10 +1916,7 @@ body {
                                 <button class='btn btn-info btn-sm' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver detalhes'>
                                     <i class='fas fa-eye'></i>
                                 </button>
-                                <button class='btn btn-success btn-sm' onclick='openQuickTaxModal("{$row['codigo']}")' title='Editar taxa rapidamente'>
-                                    <i class='fas fa-dollar-sign'></i>
-                                </button>
-                                <form method='POST' style='display:inline' onsubmit='return confirm("Tem certeza que deseja excluir este rastreio?")'>
+                                <form method='POST' style='display:inline' onsubmit='return confirm(\"Tem certeza que deseja excluir este rastreio?\")'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                     <button type='submit' name='deletar' class='btn btn-danger btn-sm' title='Excluir'>
                                         <i class='fas fa-trash'></i>
@@ -2286,12 +2116,7 @@ function viewDetails(codigo) {
                       <label><strong>Chave PIX:</strong></label>
                       <p style="word-break: break-all; background: var(--dark-bg); padding: 10px; border-radius: 5px;">${data.taxa_pix}</p>
                   </div>
-                  <div class="form-group">
-                      <label><strong>QR Code PIX:</strong></label>
-                      <div style="background: var(--dark-bg); padding: 10px; border-radius: 5px; display:flex; justify-content:center;">
-                          <img alt="QR PIX" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.taxa_pix)}" />
-                      </div>
-                  </div>
+                  
               `;
           }
           
@@ -2304,39 +2129,7 @@ function viewDetails(codigo) {
       });
 }
 
-// Modal rápido para editar apenas a taxa
-function openQuickTaxModal(codigo) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-dollar-sign"></i> Atualizar Taxa — ${codigo}</h3>
-                <button class="close" onclick="this.closest('.modal').remove()">&times;</button>
-            </div>
-            <form method="POST">
-                <input type="hidden" name="update_taxa_single" value="1">
-                <input type="hidden" name="codigo" value="${codigo}">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Valor da Taxa</label>
-                        <input type="number" name="taxa_valor" placeholder="0.00" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Chave PIX</label>
-                        <input type="text" name="taxa_pix" placeholder="Digite a chave PIX...">
-                    </div>
-                </div>
-                <div class="actions">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
-                    <button type="button" class="btn btn-warning" onclick="this.closest('.modal').remove()"><i class="fas fa-times"></i> Cancelar</button>
-                </div>
-            </form>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
+// (Removido modal rápido de taxa)
 
 // Função de busca
 function filterTable() {
@@ -2586,7 +2379,7 @@ function bulkClearTaxa() {
     form.style.display = 'none';
     const input = document.createElement('input');
     input.type = 'hidden';
-    input.name = 'bulk_clear_taxa';
+    // (bulk clear taxa removido)
     input.value = JSON.stringify(selected);
     form.appendChild(input);
     document.body.appendChild(form);
