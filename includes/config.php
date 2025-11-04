@@ -112,6 +112,37 @@ function writeLog($message, $level = 'INFO') {
     }
 }
 
+// Tratadores globais de erro/exceção para facilitar diagnóstico em produção
+set_error_handler(function ($severity, $message, $file, $line) {
+    writeLog("PHP Error [$severity] $message em $file:$line", 'ERROR');
+});
+
+set_exception_handler(function ($ex) {
+    writeLog("Exceção não tratada: " . $ex->getMessage() . " em " . $ex->getFile() . ":" . $ex->getLine(), 'ERROR');
+    if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+        http_response_code(500);
+        echo '<pre style="background:#111;color:#fff;padding:16px;border-radius:8px;">';
+        echo 'Exceção: ' . htmlspecialchars($ex->getMessage()) . "\n";
+        echo 'Arquivo: ' . htmlspecialchars($ex->getFile()) . ':' . (int)$ex->getLine() . "\n\n";
+        echo htmlspecialchars($ex->getTraceAsString());
+        echo '</pre>';
+    }
+});
+
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        writeLog("Fatal: {$err['message']} em {$err['file']}:{$err['line']}", 'ERROR');
+        if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+            http_response_code(500);
+            echo '<pre style="background:#111;color:#fff;padding:16px;border-radius:8px;">';
+            echo 'Erro Fatal: ' . htmlspecialchars($err['message']) . "\n";
+            echo 'Arquivo: ' . htmlspecialchars($err['file']) . ':' . (int)$err['line'] . "\n";
+            echo '</pre>';
+        }
+    }
+});
+
 // Função para sanitizar entrada
 function sanitizeInput($input) {
     if (is_array($input)) {
