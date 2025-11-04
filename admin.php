@@ -4,9 +4,9 @@
  * Versão otimizada e segura
  */
 
-// Incluir configurações
+// Incluir configurações (adiamos a conexão DB para após o diagnóstico)
 require_once 'includes/config.php';
-require_once 'includes/db_connect.php';
+// require_once 'includes/db_connect.php'; // movido para após o bloco de debug
 
 // Cache desabilitado para desenvolvimento
 header("Cache-Control: no-cache, no-store, must-revalidate");
@@ -57,6 +57,9 @@ if (isset($_GET['debug']) && $_GET['debug'] === '1') {
     echo '</body></html>';
     exit;
 }
+
+// Após diagnóstico, conectar ao DB
+require_once 'includes/db_connect.php';
 
 // Sistema de Login Seguro
 $login_attempts_key = 'login_attempts_' . $_SERVER['REMOTE_ADDR'];

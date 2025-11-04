@@ -4,12 +4,12 @@
  * Utiliza prepared statements para prevenir SQL injection
  */
 
-// Configurações do banco (em produção, usar variáveis de ambiente)
-$host = 'localhost';
-$db   = 'u853242961_rastreio';
-$user = 'u853242961_johan71';
-$pass = 'Lucastav8012@';
-$charset = 'utf8mb4';
+// Configurações do banco a partir de includes/config.php
+$host = defined('DB_HOST') ? DB_HOST : 'localhost';
+$db   = defined('DB_NAME') ? DB_NAME : '';
+$user = defined('DB_USER') ? DB_USER : '';
+$pass = defined('DB_PASS') ? DB_PASS : '';
+$charset = defined('DB_CHARSET') ? DB_CHARSET : 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
@@ -23,6 +23,16 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
     error_log("Erro de conexão com o banco: " . $e->getMessage());
+    if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+        http_response_code(500);
+        echo '<pre style="background:#111;color:#fff;padding:16px;border-radius:8px;">';
+        echo 'Falha ao conectar no banco.' . "\n";
+        echo 'Host: ' . htmlspecialchars($host) . "\n";
+        echo 'DB: ' . htmlspecialchars($db) . "\n";
+        echo 'Erro: ' . htmlspecialchars($e->getMessage());
+        echo '</pre>';
+        exit;
+    }
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
 
