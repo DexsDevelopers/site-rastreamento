@@ -36,6 +36,14 @@ define('NOTIFICATION_SMS_ENABLED', false);
 define('UPLOAD_MAX_SIZE', 5242880); // 5MB
 define('UPLOAD_ALLOWED_TYPES', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']);
 
+// Configurações de entrega expressa (upgrade opcional)
+define('EXPRESS_ENABLED', true);
+define('EXPRESS_DELIVERY_DAYS', 3);
+define('STANDARD_DELIVERY_MIN_DAYS', 5);
+define('STANDARD_DELIVERY_MAX_DAYS', 7);
+define('EXPRESS_FEE_VALUE', 29.90); // R$
+define('EXPRESS_PIX_KEY', 'chave-pix-exemplo@helmer.com');
+
 // Configurações de rate limiting
 define('RATE_LIMIT_ENABLED', true);
 define('RATE_LIMIT_REQUESTS', 100); // por hora

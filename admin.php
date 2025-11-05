@@ -213,6 +213,43 @@ function adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $etapasMarcadas, 
     }
 }
 
+// Ação: confirmar pagamento e aplicar entrega expressa (3 dias)
+if (isset($_POST['confirmar_pagamento_express'])) {
+    try {
+        $codigo = isset($_POST['codigo']) ? sanitizeInput($_POST['codigo']) : '';
+        $cidade = isset($_POST['cidade']) ? sanitizeInput($_POST['cidade']) : '';
+        if ($codigo && $cidade) {
+            // Remover status anteriores do código
+            executeQuery($pdo, "DELETE FROM rastreios_status WHERE codigo = ?", [$codigo]);
+
+            // Preset de 3 dias (72h) distribuído em 5 etapas
+            $presetExpress = [
+                'steps' => [
+                    ["📦 Objeto postado", "Objeto recebido no ponto de coleta", "#16A34A", 0],
+                    ["🚚 Em trânsito", "A caminho do centro de distribuição", "#F59E0B", 12],
+                    ["🏢 No centro de distribuição", "Processando encaminhamento", "#FBBF24", 36],
+                    ["🚀 Saiu para entrega", "Saiu para entrega ao destinatário", "#EF4444", 60],
+                    ["✅ Entregue", "Objeto entregue com sucesso", "#16A34A", 72]
+                ]
+            ];
+
+            $inicio = time();
+            aplicarPresetAoCodigo($pdo, $codigo, $cidade, $inicio, $presetExpress, null, null);
+
+            // Marcar prioridade, ajustar previsão e limpar taxa
+            $dias = (int) getConfig('EXPRESS_DELIVERY_DAYS', 3);
+            $sql = "UPDATE rastreios_status SET prioridade = TRUE, data_entrega_prevista = DATE_ADD(CURDATE(), INTERVAL ? DAY), taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?";
+            executeQuery($pdo, $sql, [$dias, $codigo]);
+
+            $success_message = "Pagamento confirmado e entrega expressa aplicada ao código {$codigo}.";
+        } else {
+            $erro = "Código e cidade são obrigatórios para confirmar expressa.";
+        }
+    } catch (Exception $e) {
+        $erro = "Erro ao aplicar entrega expressa: " . $e->getMessage();
+    }
+}
+
 // ADICIONAR NOVO
 if (isset($_POST['novo_codigo'])) {
     try {

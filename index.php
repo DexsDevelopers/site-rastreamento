@@ -19,6 +19,8 @@ $erroCidade = "";
 $statusAtualTopo = "";
 $temTaxa = false;
 $tempoLimite = 24;
+$expressValor = getConfig('EXPRESS_FEE_VALUE', 29.90);
+$isExpress = false;
 
 if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
     $codigo = strtoupper(trim(sanitizeInput($_POST['codigo'])));
@@ -48,6 +50,7 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                         if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
                             $temTaxa = true;
                         }
+                        if (!empty($r['prioridade'])) { $isExpress = true; }
                     }
                     $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
                 } else {
@@ -73,7 +76,9 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     if (!empty($statusList)) {
         echo '<div class="results">';
         echo '<div class="results-box">';
-        echo '<div class="status">📦 Status atual: ' . htmlspecialchars($statusAtualTopo) . ' — ' . htmlspecialchars($cidade) . '</div>';
+        echo '<div class="status">📦 Status atual: ' . htmlspecialchars($statusAtualTopo) . ' — ' . htmlspecialchars($cidade);
+        if ($isExpress) { echo ' <span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span>'; }
+        echo '</div>';
         echo '<div class="timeline">';
         foreach ($statusList as $etapa) {
             $cor = !empty($etapa['cor']) ? $etapa['cor'] : '#16A34A';
@@ -95,6 +100,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             echo '</div>';
         }
         echo '</div>'; // timeline
+        if (!$temTaxa && !$isExpress) {
+            echo '<div class="pix-box" style="margin-top: 1rem;">';
+            echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
+            echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
+            echo '<button onclick="solicitarExpress(\'' . htmlspecialchars($codigo, ENT_QUOTES) . '\', \'" . htmlspecialchars($cidade, ENT_QUOTES) . "\')">\u26A1 Quero entrega em 3 dias</button>';
+            echo '</div>';
+        }
         echo '</div>'; // results-box
         echo '</div>'; // results
         if ($temTaxa) {
@@ -730,6 +742,13 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php if (!$temTaxa): ?>
+            <div class="pix-box" style="margin-top: 1rem;">
+                <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
+                <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
+                <button onclick="solicitarExpress('<?= htmlspecialchars($codigo, ENT_QUOTES) ?>','<?= htmlspecialchars($cidade, ENT_QUOTES) ?>')">⚡ Quero entrega em 3 dias</button>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 <?php endif; ?>
@@ -940,6 +959,46 @@ document.addEventListener('DOMContentLoaded', function() {
         })();
     }
 });
+</script>
+
+<script>
+// Solicitar upgrade express (3 dias)
+async function solicitarExpress(codigo, cidade) {
+    try {
+        const btn = event && event.target ? event.target : null;
+        if (btn) { btn.disabled = true; btn.innerText = 'Solicitando...'; }
+        const resp = await fetch('solicitar_express.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ codigo, cidade })
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Falha ao solicitar.');
+
+        // Recarregar resultados via AJAX para exibir PIX e contagem
+        try {
+            const results = document.getElementById('ajaxResults');
+            const htmlResp = await fetch('index.php', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ codigo, cidade, ajax: '1' })
+            });
+            const html = await htmlResp.text();
+            if (results) {
+                results.innerHTML = html;
+                results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                // fallback simples
+                location.reload();
+            }
+        } catch (_) { location.reload(); }
+    } catch (e) {
+        alert(e.message || 'Erro ao solicitar entrega expressa.');
+    } finally {
+        const btn = event && event.target ? event.target : null;
+        if (btn) { btn.disabled = false; btn.innerText = '⚡ Quero entrega em 3 dias'; }
+    }
+}
 </script>
 
 <script>
