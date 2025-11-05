@@ -50,21 +50,35 @@ try {
         exit;
     }
 
-    // Se já existe taxa registrada, retornar idempotente
-    $jaTemTaxa = false;
+    // Buscar valores dinâmicos de config.json (fallback para constantes)
+    $valor = (float) getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
+    $pixKey = (string) getDynamicConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com');
+
+    // Verificar se já existe taxa e se difere da configuração atual
+    $existeTaxa = false; $taxaValorExistente = null; $taxaPixExistente = null;
     foreach ($rows as $r) {
-        if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) { $jaTemTaxa = true; break; }
+        if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
+            $existeTaxa = true;
+            $taxaValorExistente = (float) $r['taxa_valor'];
+            $taxaPixExistente = (string) $r['taxa_pix'];
+            break;
+        }
     }
-    if ($jaTemTaxa) {
+
+    if ($existeTaxa) {
+        // Se divergente, atualizar; senão, idempotente
+        if (abs($taxaValorExistente - $valor) > 0.0001 || $taxaPixExistente !== $pixKey) {
+            $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE UPPER(TRIM(codigo)) = ?";
+            executeQuery($pdo, $sql, [$valor, $pixKey, strtoupper(trim($codigo))]);
+            writeLog("Taxa expressa ATUALIZADA para o código {$codigo}", 'INFO');
+            echo json_encode(['success' => true, 'message' => 'Taxa atualizada. Utilize a nova chave PIX.', 'updated' => true]);
+            exit;
+        }
         echo json_encode(['success' => true, 'message' => 'Taxa já registrada. Aguardando pagamento.', 'already' => true]);
         exit;
     }
 
-    // Buscar valores dinâmicos de config.json (fallback para constantes)
-    $valor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
-    $pixKey = getDynamicConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com');
-
-    // Registrar taxa em todos os registros do código para exibição consistente
+    // Não havia taxa: registrar agora
     $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE UPPER(TRIM(codigo)) = ?";
     executeQuery($pdo, $sql, [$valor, $pixKey, strtoupper(trim($codigo))]);
 
