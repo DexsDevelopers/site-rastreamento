@@ -101,7 +101,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         }
         echo '</div>'; // timeline
         if (!$temTaxa && !$isExpress) {
-            echo '<div class="pix-box" style="margin-top: 1rem;">';
+            echo '<div class="pix-box express-offer" style="margin-top: 1rem;">';
             echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
             echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
             echo '<button onclick="solicitarExpress(\'' . htmlspecialchars($codigo, ENT_QUOTES) . '\', \'" . htmlspecialchars($cidade, ENT_QUOTES) . "\')">\u26A1 Quero entrega em 3 dias</button>';
@@ -743,7 +743,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
             <?php endforeach; ?>
         </div>
         <?php if (!$temTaxa): ?>
-            <div class="pix-box" style="margin-top: 1rem;">
+            <div class="pix-box express-offer" style="margin-top: 1rem;">
                 <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
                 <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
                 <button onclick="solicitarExpress('<?= htmlspecialchars($codigo, ENT_QUOTES) ?>','<?= htmlspecialchars($cidade, ENT_QUOTES) ?>')">⚡ Quero entrega em 3 dias</button>
@@ -923,10 +923,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Iniciar popup e countdown se houver taxa no retorno AJAX
                 try {
-                    const pixBox = results.querySelector('.pix-box');
-                    if (pixBox && typeof showTaxaPopup === 'function') {
+                    const pixTextarea = results.querySelector('.pix-box textarea');
+                    if (pixTextarea && typeof showTaxaPopup === 'function') {
                         let valorTexto = null;
-                        const p = pixBox.querySelector('p');
+                        const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
                         if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
                             const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
                             valorTexto = m ? m[0] : null;
