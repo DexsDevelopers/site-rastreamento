@@ -924,7 +924,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Iniciar popup e countdown se houver taxa no retorno AJAX
                 try {
                     const pixTextarea = results.querySelector('.pix-box textarea');
-                    if (pixTextarea && typeof showTaxaPopup === 'function') {
+                    const isExpressBox = pixTextarea ? pixTextarea.closest('.express-box') : null;
+                    if (!window.__skipTaxPopupOnce && pixTextarea && !isExpressBox && typeof showTaxaPopup === 'function') {
                         let valorTexto = null;
                         const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
                         if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
@@ -933,6 +934,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         showTaxaPopup(valorTexto);
                     }
+                    if (window.__skipTaxPopupOnce) { window.__skipTaxPopupOnce = false; }
                     startCountdownIfPresent();
                 } catch (_) { /* silencioso */ }
             } catch (err) {
@@ -975,6 +977,8 @@ async function solicitarExpress(codigo, cidade, btn) {
         if (!data.success) throw new Error(data.message || 'Falha ao solicitar.');
 
         // Recarregar resultados via AJAX para exibir PIX e contagem
+        window.__expressJustRequested = true;
+        window.__skipTaxPopupOnce = true;
         try {
             const results = document.getElementById('ajaxResults');
             const htmlResp = await fetch('index.php', {
@@ -986,6 +990,19 @@ async function solicitarExpress(codigo, cidade, btn) {
             if (results) {
                 results.innerHTML = html;
                 results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Ajustar rótulo para Express e marcar caixa
+                try {
+                    const box = results.querySelector('.pix-box');
+                    if (box) {
+                        box.classList.add('express-box');
+                        const p = box.querySelector('p');
+                        if (p) {
+                            const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                            const valor = m ? m[0] : '';
+                            p.innerHTML = '⚡ <b>Entrega Expressa (3 dias):</b> ' + valor;
+                        }
+                    }
+                } catch (_) {}
             } else {
                 // fallback simples
                 location.reload();
