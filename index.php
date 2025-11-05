@@ -104,7 +104,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             echo '<div class="pix-box express-offer" style="margin-top: 1rem;">';
             echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
             echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
-            echo '<button onclick="solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ')">⚡ Quero entrega em 3 dias</button>';
+            echo '<button onclick="solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', this)">⚡ Quero entrega em 3 dias</button>';
             echo '</div>';
         }
         echo '</div>'; // results-box
@@ -746,7 +746,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
             <div class="pix-box express-offer" style="margin-top: 1rem;">
                 <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
                 <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
-                <button onclick="solicitarExpress('<?= htmlspecialchars($codigo, ENT_QUOTES) ?>','<?= htmlspecialchars($cidade, ENT_QUOTES) ?>')">⚡ Quero entrega em 3 dias</button>
+                <button onclick="solicitarExpress(<?= json_encode($codigo) ?>,<?= json_encode($cidade) ?>, this)">⚡ Quero entrega em 3 dias</button>
             </div>
         <?php endif; ?>
     </div>
@@ -963,9 +963,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // Solicitar upgrade express (3 dias)
-async function solicitarExpress(codigo, cidade) {
+async function solicitarExpress(codigo, cidade, btn) {
     try {
-        const btn = event && event.target ? event.target : null;
         if (btn) { btn.disabled = true; btn.innerText = 'Solicitando...'; }
         const resp = await fetch('solicitar_express.php', {
             method: 'POST',
@@ -995,7 +994,6 @@ async function solicitarExpress(codigo, cidade) {
     } catch (e) {
         alert(e.message || 'Erro ao solicitar entrega expressa.');
     } finally {
-        const btn = event && event.target ? event.target : null;
         if (btn) { btn.disabled = false; btn.innerText = '⚡ Quero entrega em 3 dias'; }
     }
 }
