@@ -60,8 +60,9 @@ try {
         exit;
     }
 
-    $valor = getConfig('EXPRESS_FEE_VALUE', 29.90);
-    $pixKey = getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com');
+    // Buscar valores dinâmicos de config.json (fallback para constantes)
+    $valor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
+    $pixKey = getDynamicConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com');
 
     // Registrar taxa em todos os registros do código para exibição consistente
     $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE UPPER(TRIM(codigo)) = ?";

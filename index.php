@@ -19,7 +19,7 @@ $erroCidade = "";
 $statusAtualTopo = "";
 $temTaxa = false;
 $tempoLimite = 24;
-$expressValor = getConfig('EXPRESS_FEE_VALUE', 29.90);
+$expressValor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
 $isExpress = false;
 
 if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
@@ -104,7 +104,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             echo '<div class="pix-box express-offer" style="margin-top: 1rem;">';
             echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
             echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
-            echo '<button onclick="solicitarExpress(\'' . htmlspecialchars($codigo, ENT_QUOTES) . '\', \'" . htmlspecialchars($cidade, ENT_QUOTES) . "\')">\u26A1 Quero entrega em 3 dias</button>';
+            echo '<button onclick="solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ')">⚡ Quero entrega em 3 dias</button>';
             echo '</div>';
         }
         echo '</div>'; // results-box

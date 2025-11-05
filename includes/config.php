@@ -91,6 +91,32 @@ function getConfig($key, $default = null) {
     return defined($key) ? constant($key) : $default;
 }
 
+// Config dinâmico persistido em config.json
+function getDynamicConfig($key, $default = null) {
+    $path = __DIR__ . '/../config.json';
+    if (is_readable($path)) {
+        $json = file_get_contents($path);
+        $data = json_decode($json, true);
+        if (is_array($data) && array_key_exists($key, $data)) {
+            return $data[$key];
+        }
+    }
+    return getConfig($key, $default);
+}
+
+function setDynamicConfig($key, $value) {
+    $path = __DIR__ . '/../config.json';
+    $data = [];
+    if (is_readable($path)) {
+        $json = file_get_contents($path);
+        $decoded = json_decode($json, true);
+        if (is_array($decoded)) { $data = $decoded; }
+    }
+    $data[$key] = $value;
+    $jsonOut = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    return (bool) file_put_contents($path, $jsonOut, LOCK_EX);
+}
+
 // Função para verificar se está em modo debug
 function isDebugMode() {
     return getConfig('DEBUG_MODE', false);
