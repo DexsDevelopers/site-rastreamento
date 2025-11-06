@@ -151,23 +151,69 @@ if (!isset($_SESSION['logado'])) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Helmer Admin - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-body { background:#111; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; font-family:Arial }
-.box { background:#2a0000; padding:30px; border-radius:12px; text-align:center; box-shadow:0 0 20px #ff0000 }
-input { padding:10px; margin:10px; border:none; border-radius:5px; width:80%; background:#111; color:#fff }
-button { padding:10px 20px; border:none; background:linear-gradient(90deg,#ff0000,#ff6600); color:#fff; font-weight:bold; cursor:pointer; border-radius:6px }
+    :root { --primary:#FF3333; --accent:#FF6600; --bg:#0A0A0A; --card:#1A1A1A; --text:#FFF; --muted:#A3A3A3; }
+    * { box-sizing: border-box; }
+    body { margin:0; background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%); color: var(--text); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial; min-height: 100vh; display: grid; place-items: center; }
+    .login-wrap { width: 100%; max-width: 420px; padding: 20px; }
+    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); border-radius: 18px; padding: 28px; box-shadow: 0 12px 32px rgba(0,0,0,0.35); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom: 10px; }
+    .brand .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 18px rgba(255,51,51,0.35); }
+    .brand h1 { margin:0; font-size: 1.4rem; letter-spacing: .2px; }
+    .subtitle { color: var(--muted); font-size: .95rem; margin-bottom: 18px; }
+    .alert { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.35); color: #fecaca; padding: 10px 12px; border-radius: 10px; margin-bottom: 14px; font-size: .95rem; }
+    .input-group { position: relative; margin-bottom: 14px; }
+    .input-group .icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#ffb3b3; }
+    .input { width: 100%; padding: 14px 14px 14px 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.18); background: rgba(0,0,0,0.35); color: var(--text); outline: none; transition: border .2s ease, box-shadow .2s ease; }
+    .input:focus { border-color: rgba(255,102,0,.6); box-shadow: 0 0 0 4px rgba(255,102,0,.15); }
+    .toggle-pass { position:absolute; right:10px; top:50%; transform: translateY(-50%); background: none; border: none; color: #ffb3b3; cursor: pointer; font-weight: 700; }
+    .actions { margin-top: 6px; display:flex; gap:10px; align-items:center; }
+    .btn-primary { flex:1; padding: 12px 16px; border: none; border-radius: 12px; cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--primary), var(--accent)); font-weight: 800; letter-spacing:.2px; box-shadow: 0 10px 24px rgba(255,51,51,.35); transition: transform .15s ease; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .links { margin-top: 10px; display:flex; justify-content: space-between; font-size: .92rem; }
+    .links a { color: #ffb3b3; text-decoration: none; }
+    .footer { margin-top: 16px; text-align:center; color: var(--muted); font-size:.85rem; }
+    @media (max-width:480px){ .card { padding: 22px; } }
 </style>
 </head>
 <body>
-<div class="box">
-    <h2>Helmer Admin</h2>
-    <?php if (!empty($erro)) echo "<p>$erro</p>"; ?>
-    <form method="POST">
-        <input type="text" name="user" placeholder="Usuário" required><br>
-        <input type="password" name="pass" placeholder="Senha" required><br>
-        <button type="submit" name="login">Entrar</button>
-    </form>
+<div class="login-wrap">
+    <div class="card">
+        <div class="brand">
+            <div class="logo">⚡</div>
+            <h1>Helmer Admin</h1>
+        </div>
+        <div class="subtitle">Acesse o painel administrativo</div>
+        <?php if (!empty($erro)) echo '<div class="alert">' . htmlspecialchars($erro) . '</div>'; ?>
+        <form method="POST">
+            <div class="input-group">
+                <span class="icon">👤</span>
+                <input class="input" type="text" name="user" placeholder="Usuário" required>
+            </div>
+            <div class="input-group">
+                <span class="icon">🔒</span>
+                <input class="input" type="password" name="pass" id="passField" placeholder="Senha" required>
+                <button class="toggle-pass" type="button" onclick="togglePass()">ver</button>
+            </div>
+            <div class="actions">
+                <button type="submit" name="login" class="btn-primary">Entrar</button>
+            </div>
+        </form>
+        <div class="links">
+            <a href="index.php">Página inicial</a>
+            <span></span>
+        </div>
+        <div class="footer">© <?= date('Y') ?> Helmer Logistics</div>
+    </div>
+    <script>
+    function togglePass(){
+        var f = document.getElementById('passField');
+        if(!f) return; f.type = f.type === 'password' ? 'text' : 'password';
+    }
+    </script>
 </div>
 </body>
 </html>
