@@ -941,6 +941,7 @@ body {
         z-index: 101;
     }
     .nav-brand { font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; gap: 10px; }
+    .nav-toggle { display: none; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text-primary); border-radius: 10px; padding: 8px 12px; }
     .nav-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .nav-btn {
         padding: 10px 16px;
@@ -1209,7 +1210,9 @@ body {
 }
 @media (max-width: 768px) {
     .admin-nav { flex-direction: column; align-items: stretch; }
-    .nav-actions { gap: 6px; }
+    .nav-toggle { display: inline-flex; align-items: center; gap: 6px; }
+    .nav-actions { gap: 6px; display: none; }
+    .admin-nav.open .nav-actions { display: flex; }
     .nav-btn { flex: 1 1 calc(50% - 6px); justify-content: center; }
     .stats-grid { grid-template-columns: 1fr !important; }
     .automation-grid { grid-template-columns: 1fr !important; }
@@ -1532,8 +1535,9 @@ body {
 <div class="toast-container" id="toastContainer"></div>
 <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
-<div class="admin-nav">
+<div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i> Menu</button>
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
         <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
@@ -1882,8 +1886,8 @@ body {
     </div>
 
     <!-- Lista de Rastreios -->
-    <div class="table-container">
-        <table class="table" id="rastreiosTable">
+    <div class="table-container" style="overflow-x:auto; -webkit-overflow-scrolling: touch;">
+        <table class="table" id="rastreiosTable" style="min-width: 760px;">
             <thead>
                 <tr>
                     <th style="width: 50px;">
@@ -3043,6 +3047,14 @@ if (installBtn) {
 window.addEventListener('appinstalled', () => {
     if (installBtn) installBtn.style.display = 'none';
 });
+
+function toggleAdminMenu() {
+    const nav = document.getElementById('adminNav');
+    const btn = document.querySelector('.nav-toggle');
+    if (!nav || !btn) return;
+    const open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
 </script>
 <?php // Expor presets ao JS ?>
 <script>
