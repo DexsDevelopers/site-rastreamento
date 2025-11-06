@@ -959,6 +959,24 @@ body {
 
     /* Botão flutuante PWA */
     #pwaInstallBtn { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: none; padding: 12px 16px; border-radius: 999px; border: none; color: #fff; background: var(--gradient-primary); font-weight: 700; box-shadow: var(--shadow-lg); }
+
+    /* Cartões responsivos para lista de códigos (mobile) */
+    .cards-list { display: none; }
+    .card-item {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        display: grid; grid-template-columns: 1fr; gap: 8px;
+    }
+    .card-header { display:flex; justify-content: space-between; align-items:center; gap: 8px; }
+    .card-code { font-weight: 800; letter-spacing: .3px; }
+    .card-city { color: var(--text-secondary); font-size: .95rem; }
+    .card-status { display:flex; align-items:center; gap:6px; color: var(--text-primary); font-size: .95rem; }
+    .card-meta { color: var(--text-secondary); font-size: .9rem; }
+    .card-actions { display:flex; gap:8px; flex-wrap: wrap; }
+    .card-actions .btn { padding: 8px 12px; border-radius: 10px; }
     .nav-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; }
 
     /* Sistema de Notificações */
@@ -1217,6 +1235,8 @@ body {
     .stats-grid { grid-template-columns: 1fr !important; }
     .automation-grid { grid-template-columns: 1fr !important; }
     table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
+    .cards-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .table-container { display: none; }
 }
 
 @media (max-width: 768px) {
@@ -1996,6 +2016,50 @@ body {
                 ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- Cards (mobile) -->
+    <div class="cards-list" id="rastreiosCards">
+        <?php
+        if (!empty($dados_rastreios)) {
+            foreach ($dados_rastreios as $row) {
+                $badge = !empty($row['taxa_valor']) && !empty($row['taxa_pix'])
+                    ? "<span class='badge badge-danger'><i class='fas fa-exclamation-triangle'></i> Taxa pendente</span>"
+                    : "<span class='badge badge-success'><i class='fas fa-check'></i> Sem taxa</span>";
+                $statusIcon = "";
+                if (strpos($row['status_atual'], 'Entregue') !== false) {
+                    $statusIcon = "<i class='fas fa-check-circle' style='color: var(--success-color);'></i> ";
+                } elseif (strpos($row['status_atual'], 'Saiu para entrega') !== false) {
+                    $statusIcon = "<i class='fas fa-truck' style='color: var(--warning-color);'></i> ";
+                } elseif (strpos($row['status_atual'], 'Em trânsito') !== false) {
+                    $statusIcon = "<i class='fas fa-shipping-fast' style='color: var(--info-color);'></i> ";
+                } else {
+                    $statusIcon = "<i class='fas fa-box' style='color: var(--text-secondary);'></i> ";
+                }
+                echo "<div class='card-item' data-codigo='{$row['codigo']}'>
+                        <div class='card-header'>
+                            <div>
+                                <div class='card-code'>{$row['codigo']}</div>
+                                <div class='card-city'><i class='fas fa-map-marker-alt'></i> {$row['cidade']}</div>
+                            </div>
+                            <div>{$badge}</div>
+                        </div>
+                        <div class='card-status'>{$statusIcon}{$row['status_atual']}</div>
+                        <div class='card-meta'><i class='fas fa-calendar'></i> " . date("d/m/Y H:i", strtotime($row['data'])) . "</div>
+                        <div class='card-actions'>
+                            <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
+                            <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
+                            <form method='POST' onsubmit=\"return confirm('Tem certeza que deseja excluir este rastreio?')\" style='display:inline'>
+                                <input type='hidden' name='codigo' value='{$row['codigo']}'>
+                                <button type='submit' name='deletar' class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
+                            </form>
+                        </div>
+                    </div>";
+            }
+        } else {
+            echo "<div class='card-item'><div class='card-status'><i class='fas fa-inbox'></i> Nenhum rastreio encontrado</div></div>";
+        }
+        ?>
     </div>
 
     <!-- Monitor de Jobs (Cron) -->
