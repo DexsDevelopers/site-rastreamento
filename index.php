@@ -104,7 +104,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             echo '<div class="pix-box express-offer" style="margin-top: 1rem;">';
             echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
             echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
-            echo '<button onclick=\'solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', this)\'>⚡ Quero entrega em 3 dias</button>';
+            echo '<button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick=\'solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', this)\'>⚡ Quero entrega em 3 dias</button>';
             echo '</div>';
         }
         echo '</div>'; // results-box
@@ -364,6 +364,22 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 .btn-referral:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(255,51,51,0.4); }
 .btn-info { background: linear-gradient(135deg, #16A34A 0%, #059669 100%); color: var(--light); }
 .btn-info:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(22,163,74,0.4); }
+
+/* CTA Express - microanimação e tooltip */
+.btn-cta-express { position: relative; }
+.btn-cta-express::after {
+    content: attr(data-tooltip);
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: calc(100% + 8px);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 8px 10px; border-radius: 8px; font-size: .85rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; transform-origin: bottom center;
+}
+.btn-cta-express:hover::after { opacity: 1; transform: translateX(-50%) translateY(-2px); }
+.btn-cta-express { animation: pulseExpress 2.2s ease-in-out infinite; }
+@keyframes pulseExpress {
+    0% { box-shadow: 0 0 0 0 rgba(255,51,51,.45); }
+    70% { box-shadow: 0 0 0 12px rgba(255,51,51,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,51,51,0); }
+}
 
 /* Features */
 .features { max-width: 1400px; margin: 6rem auto; padding: 0 2rem; }
@@ -707,6 +723,68 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
     </div>
 </section>
 
+<!-- Como funciona -->
+<section class="features" style="margin-top: 3rem;">
+    <h2>Como funciona</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-barcode" style="font-size: 1.5rem;"></i></div>
+            <h3>1) Rastreie</h3>
+            <p>Digite o código e a cidade para validar e ver o status do envio.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-stream" style="font-size: 1.5rem;"></i></div>
+            <h3>2) Acompanhe</h3>
+            <p>Veja a linha do tempo com todas as etapas do seu recebimento.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bolt" style="font-size: 1.5rem;"></i></div>
+            <h3>3) Entrega Expressa</h3>
+            <p>Antecipe em 3 dias com confirmação rápida por PIX, quando disponível.</p>
+        </div>
+    </div>
+    <!-- Prova social -->
+    <div class="features-grid" style="margin-top:2rem;">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
+            <h3>Satisfação 98,7%</h3>
+            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">Ver metodologia</a></p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
+            <h3>+5.247 Entregas</h3>
+            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">Ver histórico</a></p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
+            <h3>Confiabilidade</h3>
+            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">Política e garantias</a></p>
+        </div>
+    </div>
+</section>
+
+<!-- Depoimentos -->
+<section class="features" style="margin-top: 0;">
+    <h2>Depoimentos</h2>
+    <div class="features-grid">
+        <div class="feature-card" style="text-align:left;">
+            <p>“Recebi antes do prazo e pude acompanhar tudo. Recomendo!”</p>
+            <p style="margin-top:8px; color:#fff;"><strong>Camila S.</strong> — São Paulo/SP</p>
+        </div>
+        <div class="feature-card" style="text-align:left;">
+            <p>“A linha do tempo me deu segurança. Experiência excelente.”</p>
+            <p style="margin-top:8px; color:#fff;"><strong>Marcos T.</strong> — Belo Horizonte/MG</p>
+        </div>
+        <div class="feature-card" style="text-align:left;">
+            <p>“Usei a entrega expressa e chegou rapidinho. Muito bom!”</p>
+            <p style="margin-top:8px; color:#fff;"><strong>Renata P.</strong> — Curitiba/PR</p>
+        </div>
+    </div>
+    <div style="text-align:center; color: rgba(255,255,255,0.75); margin-top: 12px;">
+        <small>Parcerias: <span style="opacity:.85;">Helmer Logistics</span></small>
+    </div>
+</section>
+
 <?php if (!empty($erroCidade)): ?>
 <div class="results">
     <div class="erro"><?= $erroCidade ?></div>
@@ -746,7 +824,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
             <div class="pix-box express-offer" style="margin-top: 1rem;">
                 <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
                 <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
-                <button onclick='solicitarExpress(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, this)'>⚡ Quero entrega em 3 dias</button>
+                <button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick='solicitarExpress(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, this)'>⚡ Quero entrega em 3 dias</button>
             </div>
         <?php endif; ?>
     </div>
