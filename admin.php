@@ -28,6 +28,8 @@ if (isset($_SESSION[$login_attempts_key])) {
     }
 }
 
+ 
+
 if (isset($_POST['login']) && !isset($erro)) {
     $user = sanitizeInput($_POST['user']);
     $pass = $_POST['pass'];
