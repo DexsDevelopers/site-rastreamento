@@ -312,9 +312,16 @@ if (isset($_POST['novo_codigo'])) {
             throw new Exception("Código e cidade são obrigatórios");
         }
 
-        adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
-        $success_message = "Rastreio {$codigo} adicionado com sucesso!";
-        writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
+        // Verificar duplicidade de código (case-insensitive, ignorando espaços)
+        $exists = fetchOne($pdo, "SELECT 1 AS e FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? LIMIT 1", [strtoupper(trim($codigo))]);
+        if ($exists) {
+            $error_message = "O código {$codigo} já existe.";
+            writeLog("Tentativa de adicionar código duplicado: $codigo", 'WARNING');
+        } else {
+            adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
+            $success_message = "Rastreio {$codigo} adicionado com sucesso!";
+            writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
+        }
     } catch (Exception $e) {
         $error_message = "Erro ao adicionar rastreio: " . $e->getMessage();
         writeLog("Erro ao adicionar rastreio: " . $e->getMessage(), 'ERROR');
@@ -2440,6 +2447,13 @@ setInterval(function() {
 <?php if (isset($success_message)): ?>
     document.addEventListener('DOMContentLoaded', function() {
         notifySuccess('<?= addslashes($success_message) ?>');
+    });
+<?php endif; ?>
+
+// Mostrar notificações de erro do PHP
+<?php if (isset($error_message)): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        notifyError('<?= addslashes($error_message) ?>');
     });
 <?php endif; ?>
 
