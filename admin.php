@@ -434,7 +434,7 @@ if (isset($_POST['undo_action'])) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Admin - Helmer Logistics</title>
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#FF3333">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -444,23 +444,23 @@ if (isset($_POST['undo_action'])) {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-    --primary-color: #2563eb;
-    --secondary-color: #3b82f6;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --info-color: #06b6d4;
-    --dark-bg: #0f172a;
-    --card-bg: #1e293b;
-    --border-color: #334155;
-    --text-primary: #f8fafc;
+    --primary-color: #FF3333;
+    --secondary-color: #FF6600;
+    --success-color: #16A34A;
+    --warning-color: #F59E0B;
+    --danger-color: #EF4444;
+    --info-color: #FF6666;
+    --dark-bg: #0A0A0A;
+    --card-bg: #1A1A1A;
+    --border-color: #2A2A2A;
+    --text-primary: #FFFFFF;
     --text-secondary: #cbd5e1;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --gradient-primary: linear-gradient(135deg, #2563eb, #3b82f6);
-    --gradient-success: linear-gradient(135deg, #10b981, #059669);
-    --gradient-warning: linear-gradient(135deg, #f59e0b, #d97706);
-    --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --gradient-primary: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
+    --gradient-success: linear-gradient(135deg, #16A34A, #059669);
+    --gradient-warning: linear-gradient(135deg, #F59E0B, #D97706);
+    --gradient-danger: linear-gradient(135deg, #EF4444, #DC2626);
 }
 
 * {
@@ -470,7 +470,7 @@ if (isset($_POST['undo_action'])) {
 }
 
 body {
-    background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 50%, #334155 100%);
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%);
     color: var(--text-primary);
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
