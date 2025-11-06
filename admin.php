@@ -2476,6 +2476,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Validação AJAX de duplicidade no formulário de adicionar
+document.addEventListener('DOMContentLoaded', function() {
+    const addForm = document.getElementById('addForm');
+    if (!addForm) return;
+    addForm.addEventListener('submit', async function(e) {
+        try {
+            const codigoEl = addForm.querySelector('#codigo');
+            const codigo = (codigoEl && codigoEl.value || '').trim();
+            if (!codigo) return; // HTML5 já valida required
+            const resp = await fetch('check_codigo.php?codigo=' + encodeURIComponent(codigo), { headers: { 'Cache-Control': 'no-cache' } });
+            const data = await resp.json();
+            if (data && data.exists) {
+                e.preventDefault();
+                notifyError('O código ' + codigo + ' já existe.');
+                if (codigoEl) { codigoEl.focus(); codigoEl.select(); }
+            }
+        } catch (_) { /* silencioso, fallback é validação servidor */ }
+    });
+});
+
 // Funções de seleção múltipla
 function toggleSelectAll() {
     const selectAll = document.getElementById('selectAll');
