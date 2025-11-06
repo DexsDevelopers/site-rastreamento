@@ -1560,6 +1560,7 @@ body {
     <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i> Menu</button>
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
+        <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
         <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
         <?php if (!empty($_SESSION['undo_action'])): ?>
             <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i class="fas fa-rotate-left"></i> Desfazer</a>
