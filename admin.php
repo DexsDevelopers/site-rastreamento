@@ -432,6 +432,12 @@ if (isset($_POST['undo_action'])) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Admin - Helmer Logistics</title>
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Helmer Admin">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -947,6 +953,9 @@ body {
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
     .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.25); background: rgba(255,255,255,0.12); }
+
+    /* Botão flutuante PWA */
+    #pwaInstallBtn { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: none; padding: 12px 16px; border-radius: 999px; border: none; color: #fff; background: var(--gradient-primary); font-weight: 700; box-shadow: var(--shadow-lg); }
     .nav-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; }
 
     /* Sistema de Notificações */
@@ -1195,6 +1204,14 @@ body {
     .form-grid {
         grid-template-columns: 1fr;
     }
+}
+@media (max-width: 768px) {
+    .admin-nav { flex-direction: column; align-items: stretch; }
+    .nav-actions { gap: 6px; }
+    .nav-btn { flex: 1 1 calc(50% - 6px); justify-content: center; }
+    .stats-grid { grid-template-columns: 1fr !important; }
+    .automation-grid { grid-template-columns: 1fr !important; }
+    table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
 }
 
 @media (max-width: 768px) {
@@ -1511,6 +1528,7 @@ body {
 <body>
 <!-- Container de Notificações -->
 <div class="toast-container" id="toastContainer"></div>
+<button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
 <div class="admin-nav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
@@ -2993,6 +3011,36 @@ function refreshCronLogs() {
 }
 
 document.addEventListener('DOMContentLoaded', refreshCronLogs);
+</script>
+<script>
+// Registrar Service Worker e gerenciar botão de instalação
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+}
+
+let deferredPrompt = null;
+const installBtn = document.getElementById('pwaInstallBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display = 'inline-flex';
+});
+
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+    });
+}
+
+window.addEventListener('appinstalled', () => {
+    if (installBtn) installBtn.style.display = 'none';
+});
 </script>
 <?php // Expor presets ao JS ?>
 <script>
