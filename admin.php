@@ -7,6 +7,7 @@
 // Incluir configurações e DB
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/whatsapp_helper.php';
 
 // Cache desabilitado para desenvolvimento
 header("Cache-Control: no-cache, no-store, must-revalidate");
@@ -99,11 +100,20 @@ function captureUndoSnapshot($pdo, $codigos, $label) {
     if (empty($codigos)) { return; }
     $placeholders = implode(',', array_fill(0, count($codigos), '?'));
     $rows = fetchData($pdo, "SELECT * FROM rastreios_status WHERE codigo IN ($placeholders)", $codigos);
+    $contacts = [];
+    foreach ($codigos as $codigoItem) {
+        $codigo = trim((string) $codigoItem);
+        $contato = getWhatsappContact($pdo, $codigo);
+        if ($contato) {
+            $contacts[$codigo] = $contato;
+        }
+    }
     $_SESSION['undo_action'] = [
         'label' => $label,
         'timestamp' => time(),
         'codes' => $codigos,
-        'rows' => $rows
+        'rows' => $rows,
+        'contacts' => $contacts
     ];
 }
 
@@ -130,6 +140,17 @@ function restoreUndoSnapshot($pdo) {
         $vals = [];
         foreach ($cols as $c) { $vals[] = $r[$c] ?? null; }
         executeQuery($pdo, $sql, $vals);
+    }
+    if (!empty($snapshot['contacts']) && is_array($snapshot['contacts'])) {
+        foreach ($snapshot['contacts'] as $codigo => $contato) {
+            upsertWhatsappContact(
+                $pdo,
+                $codigo,
+                $contato['nome'] ?? null,
+                $contato['telefone_original'] ?? null,
+                isset($contato['notificacoes_ativas']) ? (int) $contato['notificacoes_ativas'] === 1 : true
+            );
+        }
     }
     unset($_SESSION['undo_action']);
     return [true, 'Restauração concluída'];
@@ -288,6 +309,7 @@ if (isset($_POST['confirmar_pagamento_express'])) {
             $dias = (int) getConfig('EXPRESS_DELIVERY_DAYS', 3);
             $sql = "UPDATE rastreios_status SET prioridade = TRUE, data_entrega_prevista = DATE_ADD(CURDATE(), INTERVAL ? DAY), taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?";
             executeQuery($pdo, $sql, [$dias, $codigo]);
+            notifyWhatsappLatestStatus($pdo, $codigo);
 
             $success_message = "Pagamento confirmado e entrega expressa aplicada ao código {$codigo}.";
         } else {
@@ -306,6 +328,12 @@ if (isset($_POST['novo_codigo'])) {
         $dataInicial = strtotime($_POST['data_inicial']);
         $taxa_valor = !empty($_POST['taxa_valor']) ? sanitizeInput($_POST['taxa_valor']) : null;
         $taxa_pix = !empty($_POST['taxa_pix']) ? sanitizeInput($_POST['taxa_pix']) : null;
+        $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
+        $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
+        $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
+        $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
+        $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
+        $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
 
         // Validar entrada
         if (empty($codigo) || empty($cidade)) {
@@ -319,6 +347,14 @@ if (isset($_POST['novo_codigo'])) {
             writeLog("Tentativa de adicionar código duplicado: $codigo", 'WARNING');
         } else {
             adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
+            upsertWhatsappContact(
+                $pdo,
+                $codigo,
+                $cliente_nome !== '' ? $cliente_nome : null,
+                $cliente_whatsapp !== '' ? $cliente_whatsapp : null,
+                $cliente_notificar
+            );
+            notifyWhatsappLatestStatus($pdo, $codigo);
             $success_message = "Rastreio {$codigo} adicionado com sucesso!";
             writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
         }
@@ -336,6 +372,7 @@ if (isset($_POST['deletar'])) {
         captureUndoSnapshot($pdo, [$codigo], 'Excluir rastreio');
         $sql = "DELETE FROM rastreios_status WHERE codigo = ?";
         executeQuery($pdo, $sql, [$codigo]);
+        deleteWhatsappContact($pdo, $codigo);
         $success_message = "Rastreio {$codigo} excluído com sucesso!";
         writeLog("Rastreio excluído: $codigo", 'INFO');
     } catch (Exception $e) {
@@ -360,6 +397,14 @@ if (isset($_POST['salvar_edicao'])) {
         
         // Adicionar novos registros
         adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
+        upsertWhatsappContact(
+            $pdo,
+            $codigo,
+            $cliente_nome !== '' ? $cliente_nome : null,
+            $cliente_whatsapp !== '' ? $cliente_whatsapp : null,
+            $cliente_notificar
+        );
+        notifyWhatsappLatestStatus($pdo, $codigo);
         $success_message = "Rastreio {$codigo} atualizado com sucesso!";
         writeLog("Rastreio atualizado: $codigo", 'INFO');
     } catch (Exception $e) {
@@ -379,6 +424,7 @@ if (isset($_POST['bulk_delete'])) {
                 $codigo = sanitizeInput($codigo);
                 $sql = "DELETE FROM rastreios_status WHERE codigo = ?";
                 executeQuery($pdo, $sql, [$codigo]);
+                deleteWhatsappContact($pdo, $codigo);
                 $count++;
             }
             $success_message = "{$count} rastreio(s) excluído(s) com sucesso!";
@@ -457,6 +503,7 @@ if (isset($_POST['apply_preset'])) {
             $rowCidade = fetchOne($pdo, "SELECT cidade FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1", [$codigo]);
             $cidade = $rowCidade['cidade'] ?? $cidadePadrao;
             aplicarPresetAoCodigo($pdo, $codigo, $cidade, $dtInicio, $preset, $taxa_valor, $taxa_pix);
+            notifyWhatsappLatestStatus($pdo, $codigo);
             $count++;
         }
         $success_message = "Preset aplicado para {$count} rastreio(s)!";
@@ -1911,6 +1958,25 @@ body {
                 </div>
             </div>
 
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="cliente_nome">Nome do Cliente (opcional)</label>
+                <input type="text" name="cliente_nome" id="cliente_nome" placeholder="Ex.: Maria Silva">
+            </div>
+            <div class="form-group">
+                <label for="cliente_whatsapp">WhatsApp do Cliente</label>
+                <input type="tel" name="cliente_whatsapp" id="cliente_whatsapp" placeholder="Ex.: 11999999999">
+                <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">Inclua DDD. Aceita números nacionais e internacionais.</small>
+            </div>
+            <div class="form-group" style="align-self:flex-end;">
+                <label for="cliente_notificar" style="display:block;">Notificações automáticas</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;">
+                    <input type="checkbox" name="cliente_notificar" id="cliente_notificar" value="1" checked>
+                    <span>Enviar atualizações no WhatsApp</span>
+                </label>
+            </div>
+        </div>
+
             <div class="form-group">
                 <label>Etapas do Rastreamento</label>
                 <div class="checkbox-group">
@@ -2196,6 +2262,25 @@ body {
                 </div>
             </div>
 
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="edit_cliente_nome">Nome do Cliente (opcional)</label>
+                    <input type="text" name="cliente_nome" id="edit_cliente_nome" placeholder="Ex.: Maria Silva">
+                </div>
+                <div class="form-group">
+                    <label for="edit_cliente_whatsapp">WhatsApp do Cliente</label>
+                    <input type="tel" name="cliente_whatsapp" id="edit_cliente_whatsapp" placeholder="Ex.: 11999999999">
+                    <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">Inclua DDD. Aceita números nacionais e internacionais.</small>
+                </div>
+                <div class="form-group" style="align-self:flex-end;">
+                    <label for="edit_cliente_notificar" style="display:block;">Notificações automáticas</label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;">
+                        <input type="checkbox" name="cliente_notificar" id="edit_cliente_notificar" value="1">
+                        <span>Enviar atualizações no WhatsApp</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="actions">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Salvar Alterações
@@ -2238,6 +2323,9 @@ function abrirModal(codigo) {
           document.getElementById('cb_distribuicao').checked = data.etapas.includes('distribuicao');
           document.getElementById('cb_entrega').checked = data.etapas.includes('entrega');
           document.getElementById('cb_entregue').checked = data.etapas.includes('entregue');
+          document.getElementById('edit_cliente_nome').value = data.cliente_nome || '';
+          document.getElementById('edit_cliente_whatsapp').value = data.cliente_whatsapp || '';
+          document.getElementById('edit_cliente_notificar').checked = !!data.cliente_notificar;
       })
       .catch(error => {
           console.error('Erro ao carregar dados:', error);

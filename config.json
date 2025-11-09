@@ -3,5 +3,10 @@
   "mensagem_inicial": "Acompanhe seus recebimentos em tempo real — sistema premium",
   "erro_consulta": "❌ Código inválido ou recebimento não encontrado.",
   "mensagem_aguarde": "⏳ Consultando status do recebimento...",
-  "footer_fake": "© 2025 Helmer Logistics | Todos os direitos reservados."
+  "footer_fake": "© 2025 Helmer Logistics | Todos os direitos reservados.",
+  "WHATSAPP_API_URL": "",
+  "WHATSAPP_API_TOKEN": "",
+  "WHATSAPP_API_ENABLED": true,
+  "WHATSAPP_TEMPLATE": "Olá {nome}! Seu pedido {codigo} foi atualizado:\n{status}\n{descricao}\n{link}",
+  "WHATSAPP_TRACKING_URL": ""
 }

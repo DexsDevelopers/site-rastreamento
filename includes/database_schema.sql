@@ -54,6 +54,38 @@ ADD COLUMN IF NOT EXISTS data_entrega_prevista DATE,
 ADD INDEX idx_prioridade (prioridade),
 ADD INDEX idx_codigo_indicador (codigo_indicador);
 
+-- Contatos WhatsApp vinculados a códigos
+CREATE TABLE IF NOT EXISTS whatsapp_contatos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL UNIQUE,
+    nome VARCHAR(255),
+    telefone_original VARCHAR(30),
+    telefone_normalizado VARCHAR(20),
+    notificacoes_ativas TINYINT(1) DEFAULT 1,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_codigo (codigo),
+    INDEX idx_telefone (telefone_normalizado)
+);
+
+-- Registro de notificações disparadas
+CREATE TABLE IF NOT EXISTS whatsapp_notificacoes (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL,
+    status_titulo VARCHAR(255) NOT NULL,
+    status_subtitulo VARCHAR(255),
+    status_data DATETIME NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    mensagem TEXT NOT NULL,
+    resposta_http TEXT,
+    http_code INT,
+    sucesso TINYINT(1) DEFAULT 0,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    enviado_em TIMESTAMP NULL,
+    UNIQUE KEY uniq_codigo_status (codigo, status_titulo, status_data)
+);
+
 -- Trigger para atualizar contadores de indicações
 DELIMITER //
 CREATE TRIGGER IF NOT EXISTS tr_atualizar_indicacoes

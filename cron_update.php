@@ -6,6 +6,7 @@
 
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/whatsapp_helper.php';
 
 try {
     // Buscar códigos com próximas etapas
@@ -20,8 +21,11 @@ try {
         $update_sql = "UPDATE rastreios_status SET data = NOW() 
                        WHERE codigo = ? AND data = ? LIMIT 1";
         
-        executeQuery($pdo, $update_sql, [$row['codigo'], $row['proximo']]);
-        $updated++;
+        $stmt = executeQuery($pdo, $update_sql, [$row['codigo'], $row['proximo']]);
+        if ($stmt->rowCount() > 0) {
+            $updated++;
+            notifyWhatsappLatestStatus($pdo, $row['codigo']);
+        }
     }
     
     writeLog("Cron update executado: $updated rastreios atualizados", 'INFO');

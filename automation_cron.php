@@ -7,6 +7,7 @@
 
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/whatsapp_helper.php';
 
 // Verificar se é uma execução via cron
 if (!isset($_GET['cron']) || $_GET['cron'] !== 'true') {
@@ -69,6 +70,7 @@ function checkAndUpdateStatus($pdo) {
             $ins = "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try {
                 executeQuery($pdo, $ins, [$codigo, $cidade, $novo_status, $novo_titulo, $novo_subtitulo, $data_nova, $nova_cor]);
+                notifyWhatsappLatestStatus($pdo, $codigo);
                 $updated++;
                 writeCronLog("Status atualizado para $codigo: $novo_status");
             } catch (Exception $e) {

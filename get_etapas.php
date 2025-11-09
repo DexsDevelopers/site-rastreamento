@@ -6,6 +6,7 @@
 
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/whatsapp_helper.php';
 
 // Verificar se o código foi fornecido
 if (!isset($_GET['codigo']) || empty($_GET['codigo'])) {
@@ -24,8 +25,17 @@ try {
         "cidade" => "",
         "etapas" => [],
         "taxa_valor" => null,
-        "taxa_pix" => null
+        "taxa_pix" => null,
+        "cliente_nome" => null,
+        "cliente_whatsapp" => null,
+        "cliente_notificar" => false
     ];
+    $contato = getWhatsappContact($pdo, $codigo);
+    if ($contato) {
+        $dados["cliente_nome"] = $contato["nome"];
+        $dados["cliente_whatsapp"] = $contato["telefone_original"];
+        $dados["cliente_notificar"] = (int) $contato["notificacoes_ativas"] === 1;
+    }
     
     foreach ($results as $row) {
         $dados["cidade"] = $row["cidade"];
