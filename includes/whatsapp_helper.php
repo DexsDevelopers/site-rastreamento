@@ -6,6 +6,20 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db_connect.php';
 
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool
+    {
+        return $needle === '' || strpos($haystack, $needle) !== false;
+    }
+}
+
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool
+    {
+        return strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+
 function normalizePhoneToDigits(?string $input): ?string {
     if ($input === null) {
         return null;
@@ -17,7 +31,7 @@ function normalizePhoneToDigits(?string $input): ?string {
         return null;
     }
 
-    if (str_starts_with($digits, '55') && strlen($digits) >= 12) {
+    if (substr($digits, 0, 2) === '55' && strlen($digits) >= 12) {
         return $digits;
     }
 
