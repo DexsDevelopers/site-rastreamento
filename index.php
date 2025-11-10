@@ -973,6 +973,16 @@ document.querySelectorAll('.mobile-menu a').forEach(link => {
 
 // Submissão AJAX do formulário de rastreio
 document.addEventListener('DOMContentLoaded', function() {
+    // Preencher código automaticamente se vier na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const codigoFromUrl = urlParams.get('codigo');
+    if (codigoFromUrl) {
+        const codigoInput = document.getElementById('codigo');
+        if (codigoInput) {
+            codigoInput.value = decodeURIComponent(codigoFromUrl);
+        }
+    }
+
     const form = document.querySelector('form[method="POST"][action="index.php"]');
     const results = document.getElementById('ajaxResults');
     const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
