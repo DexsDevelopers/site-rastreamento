@@ -315,3 +315,77 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
     }
 }
 
+function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $taxaPix): void {
+    $apiConfig = whatsappApiConfig();
+
+    if (!$apiConfig['enabled']) {
+        return;
+    }
+
+    $contato = getWhatsappContact($pdo, $codigo);
+
+    if (!$contato || (int) $contato['notificacoes_ativas'] !== 1 || empty($contato['telefone_normalizado'])) {
+        return;
+    }
+
+    // Verificar se já notificou sobre esta taxa
+    $taxaKey = fetchOne($pdo, "SELECT id, sucesso FROM whatsapp_notificacoes WHERE codigo = ? AND status_titulo = ? LIMIT 1", [
+        $codigo,
+        "TAXA_PENDENTE_" . number_format($taxaValor, 2, '.', '')
+    ]);
+
+    if ($taxaKey && (int) $taxaKey['sucesso'] === 1) {
+        return;
+    }
+
+    $status = fetchOne($pdo, "SELECT codigo, cidade FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1", [$codigo]);
+    
+    if (!$status) {
+        return;
+    }
+
+    $nome = $contato['nome'] ?? 'cliente';
+    $link = buildWhatsappTrackingLink($codigo);
+    $linkTexto = $link ? "Acompanhe: {$link}" : '';
+
+    $mensagem = "Olá {$nome}!\n\n";
+    $mensagem .= "💰 *Taxa de distribuição nacional*\n\n";
+    $mensagem .= "Seu pedido *{$codigo}* precisa de uma taxa de R$ " . number_format($taxaValor, 2, ',', '.') . " para seguir para entrega.\n\n";
+    $mensagem .= "Faça o pagamento via PIX:\n";
+    $mensagem .= "`{$taxaPix}`\n\n";
+    $mensagem .= "Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.\n\n";
+    if ($linkTexto) {
+        $mensagem .= $linkTexto;
+    }
+
+    try {
+        $resultado = sendWhatsappMessage($contato['telefone_normalizado'], $mensagem);
+    } catch (Throwable $th) {
+        writeLog("Exceção ao enviar notificação de taxa para {$codigo}: " . $th->getMessage(), 'ERROR');
+        $resultado = [
+            'success' => false,
+            'error' => 'exception',
+            'http_code' => null,
+            'response' => null
+        ];
+    }
+
+    // Registrar notificação com tipo especial para taxa
+    $statusData = [
+        'codigo' => $status['codigo'],
+        'cidade' => $status['cidade'],
+        'status_atual' => "TAXA_PENDENTE_" . number_format($taxaValor, 2, '.', ''),
+        'titulo' => "Taxa pendente",
+        'subtitulo' => "Taxa de R$ " . number_format($taxaValor, 2, ',', '.'),
+        'data' => date('Y-m-d H:i:s')
+    ];
+
+    logWhatsappNotification($pdo, $statusData, $contato, $resultado, $mensagem);
+
+    if (!$resultado['success']) {
+        writeLog("Falha ao notificar sobre taxa para {$codigo}: " . ($resultado['error'] ?? 'Erro desconhecido'), 'ERROR');
+    } else {
+        writeLog("Notificação de taxa enviada para {$codigo}", 'INFO');
+    }
+}
+

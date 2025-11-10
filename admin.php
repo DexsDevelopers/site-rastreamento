@@ -379,6 +379,14 @@ if (isset($_POST['novo_codigo'])) {
                 $cliente_notificar
             );
             notifyWhatsappLatestStatus($pdo, $codigo);
+            // Notificar sobre taxa se houver
+            if ($taxa_valor && $taxa_pix) {
+                try {
+                    notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
+                } catch (Exception $taxaError) {
+                    writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
+                }
+            }
             $success_message = "Rastreio {$codigo} adicionado com sucesso!";
             writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
         }
@@ -435,6 +443,14 @@ if (isset($_POST['salvar_edicao'])) {
                 $cliente_notificar
             );
             notifyWhatsappLatestStatus($pdo, $codigo);
+            // Notificar sobre taxa se houver
+            if ($taxa_valor && $taxa_pix) {
+                try {
+                    notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
+                } catch (Exception $taxaError) {
+                    writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
+                }
+            }
         } catch (Exception $whatsappError) {
             writeLog("Erro ao atualizar WhatsApp para {$codigo}: " . $whatsappError->getMessage(), 'WARNING');
             // Não interrompe o processo de edição se houver erro no WhatsApp
@@ -493,6 +509,12 @@ if (isset($_POST['bulk_edit'])) {
                 if ($nova_taxa_valor && $nova_taxa_pix) {
                     $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE codigo = ?";
                     executeQuery($pdo, $sql, [$nova_taxa_valor, $nova_taxa_pix, $codigo]);
+                    // Notificar sobre taxa
+                    try {
+                        notifyWhatsappTaxa($pdo, $codigo, (float) $nova_taxa_valor, $nova_taxa_pix);
+                    } catch (Exception $taxaError) {
+                        writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
+                    }
                 }
                 $count++;
             }
@@ -539,6 +561,14 @@ if (isset($_POST['apply_preset'])) {
             $cidade = $rowCidade['cidade'] ?? $cidadePadrao;
             aplicarPresetAoCodigo($pdo, $codigo, $cidade, $dtInicio, $preset, $taxa_valor, $taxa_pix);
             notifyWhatsappLatestStatus($pdo, $codigo);
+            // Notificar sobre taxa se houver
+            if ($taxa_valor && $taxa_pix) {
+                try {
+                    notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
+                } catch (Exception $taxaError) {
+                    writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
+                }
+            }
             $count++;
         }
         $success_message = "Preset aplicado para {$count} rastreio(s)!";

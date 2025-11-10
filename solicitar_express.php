@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/db_connect.php';
+require_once __DIR__ . '/includes/whatsapp_helper.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -71,6 +72,12 @@ try {
             $sql = "UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE UPPER(TRIM(codigo)) = ?";
             executeQuery($pdo, $sql, [$valor, $pixKey, strtoupper(trim($codigo))]);
             writeLog("Taxa expressa ATUALIZADA para o código {$codigo}", 'INFO');
+            // Notificar sobre taxa atualizada
+            try {
+                notifyWhatsappTaxa($pdo, strtoupper(trim($codigo)), $valor, $pixKey);
+            } catch (Exception $taxaError) {
+                writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
+            }
             echo json_encode(['success' => true, 'message' => 'Taxa atualizada. Utilize a nova chave PIX.', 'updated' => true]);
             exit;
         }
@@ -83,6 +90,12 @@ try {
     executeQuery($pdo, $sql, [$valor, $pixKey, strtoupper(trim($codigo))]);
 
     writeLog("Taxa expressa registrada para o código {$codigo}", 'INFO');
+    // Notificar sobre taxa
+    try {
+        notifyWhatsappTaxa($pdo, strtoupper(trim($codigo)), $valor, $pixKey);
+    } catch (Exception $taxaError) {
+        writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
+    }
     echo json_encode(['success' => true, 'message' => 'Taxa registrada. Siga as instruções de pagamento PIX.']);
 } catch (Exception $e) {
     writeLog('Erro em solicitar_express: ' . $e->getMessage(), 'ERROR');
