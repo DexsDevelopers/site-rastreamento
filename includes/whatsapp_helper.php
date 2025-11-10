@@ -146,6 +146,16 @@ function buildWhatsappMessage(array $statusData, array $contato): string {
 }
 
 function sendWhatsappMessage(string $telefone, string $mensagem): array {
+    if (!function_exists('curl_init')) {
+        writeLog('Extensão cURL não disponível. Notificação WhatsApp não enviada.', 'ERROR');
+        return [
+            'success' => false,
+            'error' => 'curl_extension_missing',
+            'http_code' => null,
+            'response' => null
+        ];
+    }
+
     $config = whatsappApiConfig();
 
     if (!$config['enabled']) {
@@ -164,6 +174,16 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     ], JSON_UNESCAPED_UNICODE);
 
     $ch = curl_init($endpoint);
+    if ($ch === false) {
+        writeLog('Falha ao inicializar cURL para envio WhatsApp.', 'ERROR');
+        return [
+            'success' => false,
+            'error' => 'curl_init_failed',
+            'http_code' => null,
+            'response' => null
+        ];
+    }
+
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
@@ -274,7 +294,17 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
 
     $mensagem = buildWhatsappMessage($statusData, $contato);
 
-    $resultado = sendWhatsappMessage($contato['telefone_normalizado'], $mensagem);
+    try {
+        $resultado = sendWhatsappMessage($contato['telefone_normalizado'], $mensagem);
+    } catch (Throwable $th) {
+        writeLog("Exceção ao enviar WhatsApp para {$codigo}: " . $th->getMessage(), 'ERROR');
+        $resultado = [
+            'success' => false,
+            'error' => 'exception',
+            'http_code' => null,
+            'response' => null
+        ];
+    }
 
     logWhatsappNotification($pdo, $statusData, $contato, $resultado, $mensagem);
 
