@@ -413,6 +413,9 @@ if (isset($_POST['salvar_edicao'])) {
         $dataInicial = strtotime($_POST['data_inicial']);
         $taxa_valor = !empty($_POST['taxa_valor']) ? sanitizeInput($_POST['taxa_valor']) : null;
         $taxa_pix = !empty($_POST['taxa_pix']) ? sanitizeInput($_POST['taxa_pix']) : null;
+        $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
+        $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
+        $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
 
         // Deletar registros existentes
         captureUndoSnapshot($pdo, [$codigo], 'Editar rastreio');
@@ -421,14 +424,22 @@ if (isset($_POST['salvar_edicao'])) {
         
         // Adicionar novos registros
         adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
-        upsertWhatsappContact(
-            $pdo,
-            $codigo,
-            $cliente_nome !== '' ? $cliente_nome : null,
-            $cliente_whatsapp !== '' ? $cliente_whatsapp : null,
-            $cliente_notificar
-        );
-        notifyWhatsappLatestStatus($pdo, $codigo);
+        
+        // Atualizar contato WhatsApp
+        try {
+            upsertWhatsappContact(
+                $pdo,
+                $codigo,
+                $cliente_nome !== '' ? $cliente_nome : null,
+                $cliente_whatsapp !== '' ? $cliente_whatsapp : null,
+                $cliente_notificar
+            );
+            notifyWhatsappLatestStatus($pdo, $codigo);
+        } catch (Exception $whatsappError) {
+            writeLog("Erro ao atualizar WhatsApp para {$codigo}: " . $whatsappError->getMessage(), 'WARNING');
+            // Não interrompe o processo de edição se houver erro no WhatsApp
+        }
+        
         $success_message = "Rastreio {$codigo} atualizado com sucesso!";
         writeLog("Rastreio atualizado: $codigo", 'INFO');
     } catch (Exception $e) {
