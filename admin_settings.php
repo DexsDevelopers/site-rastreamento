@@ -14,11 +14,17 @@ if (!isset($_SESSION['logado'])) {
 
 $message = '';
 $type = '';
+$currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
+$currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_express'])) {
     try {
-        $fee = isset($_POST['express_fee_value']) ? str_replace([','], ['.'], trim($_POST['express_fee_value'])) : '';
+        $fee = isset($_POST['express_fee_value']) ? trim($_POST['express_fee_value']) : '';
         $pix = isset($_POST['express_pix_key']) ? trim($_POST['express_pix_key']) : '';
+        
+        // Converter vírgula para ponto e remover espaços
+        $fee = str_replace([',', ' '], ['.', ''], $fee);
+        
         if ($fee === '' || !is_numeric($fee)) {
             throw new Exception('Informe um valor numérico válido para a taxa.');
         }
@@ -27,19 +33,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
         }
 
         // Persistir em config.json via helpers de config
-        setDynamicConfig('EXPRESS_FEE_VALUE', (float)$fee);
-        setDynamicConfig('EXPRESS_PIX_KEY', $pix);
+        $feeFloat = (float)$fee;
+        $savedFee = setDynamicConfig('EXPRESS_FEE_VALUE', $feeFloat);
+        $savedPix = setDynamicConfig('EXPRESS_PIX_KEY', $pix);
 
+        if (!$savedFee || !$savedPix) {
+            throw new Exception('Erro ao salvar configurações. Verifique permissões do arquivo config.json.');
+        }
+
+        writeLog("Configurações de entrega expressa atualizadas: Valor={$feeFloat}, PIX={$pix}", 'INFO');
+        
+        // Recarregar valores do config.json após salvar
+        $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
+        $currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
+        
         $message = 'Configurações salvas com sucesso.';
         $type = 'success';
     } catch (Exception $e) {
         $message = $e->getMessage();
         $type = 'error';
+        writeLog("Erro ao salvar configurações de entrega expressa: " . $e->getMessage(), 'ERROR');
     }
 }
-
-$currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
-$currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">

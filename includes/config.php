@@ -107,14 +107,41 @@ function getDynamicConfig($key, $default = null) {
 function setDynamicConfig($key, $value) {
     $path = __DIR__ . '/../config.json';
     $data = [];
-    if (is_readable($path)) {
-        $json = file_get_contents($path);
-        $decoded = json_decode($json, true);
-        if (is_array($decoded)) { $data = $decoded; }
+    
+    // Ler dados existentes
+    if (file_exists($path) && is_readable($path)) {
+        $json = @file_get_contents($path);
+        if ($json !== false) {
+            $decoded = @json_decode($json, true);
+            if (is_array($decoded)) {
+                $data = $decoded;
+            }
+        }
     }
+    
+    // Atualizar valor
     $data[$key] = $value;
-    $jsonOut = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    return (bool) file_put_contents($path, $jsonOut, LOCK_EX);
+    
+    // Escrever de volta
+    $jsonOut = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    
+    // Garantir que o diretório existe
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    
+    // Tentar escrever o arquivo
+    $result = @file_put_contents($path, $jsonOut, LOCK_EX);
+    
+    if ($result === false) {
+        $error = error_get_last();
+        $errorMsg = $error && isset($error['message']) ? $error['message'] : 'Erro desconhecido';
+        error_log("Falha ao escrever config.json: " . $errorMsg);
+        return false;
+    }
+    
+    return true;
 }
 
 // Função para verificar se está em modo debug
