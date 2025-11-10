@@ -331,6 +331,30 @@ if (isset($_POST['novo_codigo'])) {
         $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
         $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
         $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
+        $telefone_normalizado = null;
+
+        if ($cliente_whatsapp !== '') {
+            $telefone_normalizado = normalizePhoneToDigits($cliente_whatsapp);
+            if ($telefone_normalizado === null) {
+                throw new Exception('Informe um número de WhatsApp válido com DDD (ex.: 11999999999 ou +5511999999999).');
+            }
+        }
+
+        if ($cliente_notificar && $telefone_normalizado === null) {
+            throw new Exception('Para ativar as notificações automáticas informe um WhatsApp válido.');
+        }
+        $telefone_normalizado = null;
+
+        if ($cliente_whatsapp !== '') {
+            $telefone_normalizado = normalizePhoneToDigits($cliente_whatsapp);
+            if ($telefone_normalizado === null) {
+                throw new Exception('Informe um número de WhatsApp válido com DDD (ex.: 11999999999 ou +5511999999999).');
+            }
+        }
+
+        if ($cliente_notificar && $telefone_normalizado === null) {
+            throw new Exception('Para ativar as notificações automáticas informe um WhatsApp válido.');
+        }
         $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
         $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
         $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
