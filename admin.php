@@ -2374,20 +2374,21 @@ body {
 <script>
 // Funções do modal
 function abrirModal(codigo) {
-    fetch("get_etapas.php?codigo=" + codigo)
+    fetch("get_etapas.php?codigo=" + codigo + "&t=" + Date.now())
       .then(r => r.json())
       .then(data => {
           document.getElementById('modal').style.display='flex';
           document.getElementById('edit_codigo').value = codigo;
-          document.getElementById('edit_cidade').value = data.cidade;
-          document.getElementById('edit_data').value = new Date().toISOString().slice(0,16);
+          document.getElementById('edit_cidade').value = data.cidade || '';
+          // Usar data inicial retornada ou data atual como fallback
+          document.getElementById('edit_data').value = data.data_inicial || new Date().toISOString().slice(0,16);
           document.getElementById('edit_taxa_valor').value = data.taxa_valor || '';
           document.getElementById('edit_taxa_pix').value = data.taxa_pix || '';
-          document.getElementById('cb_postado').checked = data.etapas.includes('postado');
-          document.getElementById('cb_transito').checked = data.etapas.includes('transito');
-          document.getElementById('cb_distribuicao').checked = data.etapas.includes('distribuicao');
-          document.getElementById('cb_entrega').checked = data.etapas.includes('entrega');
-          document.getElementById('cb_entregue').checked = data.etapas.includes('entregue');
+          document.getElementById('cb_postado').checked = data.etapas && data.etapas.includes('postado');
+          document.getElementById('cb_transito').checked = data.etapas && data.etapas.includes('transito');
+          document.getElementById('cb_distribuicao').checked = data.etapas && data.etapas.includes('distribuicao');
+          document.getElementById('cb_entrega').checked = data.etapas && data.etapas.includes('entrega');
+          document.getElementById('cb_entregue').checked = data.etapas && data.etapas.includes('entregue');
           document.getElementById('edit_cliente_nome').value = data.cliente_nome || '';
           document.getElementById('edit_cliente_whatsapp').value = data.cliente_whatsapp || '';
           document.getElementById('edit_cliente_notificar').checked = !!data.cliente_notificar;

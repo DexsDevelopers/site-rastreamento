@@ -26,10 +26,13 @@ try {
         "etapas" => [],
         "taxa_valor" => null,
         "taxa_pix" => null,
+        "data_inicial" => null,
         "cliente_nome" => null,
         "cliente_whatsapp" => null,
         "cliente_notificar" => false
     ];
+    
+    // Buscar contato WhatsApp
     $contato = getWhatsappContact($pdo, $codigo);
     if ($contato) {
         $dados["cliente_nome"] = $contato["nome"];
@@ -37,16 +40,50 @@ try {
         $dados["cliente_notificar"] = (int) $contato["notificacoes_ativas"] === 1;
     }
     
+    if (empty($results)) {
+        header("Content-Type: application/json");
+        echo json_encode($dados);
+        exit;
+    }
+    
+    // Pegar cidade do primeiro registro (mais antigo)
+    $dados["cidade"] = $results[0]["cidade"] ?? "";
+    
+    // Pegar taxa do registro mais recente que tenha taxa
+    $taxaValor = null;
+    $taxaPix = null;
+    foreach (array_reverse($results) as $row) {
+        if (!empty($row["taxa_valor"]) && !empty($row["taxa_pix"])) {
+            $taxaValor = $row["taxa_valor"];
+            $taxaPix = $row["taxa_pix"];
+            break;
+        }
+    }
+    $dados["taxa_valor"] = $taxaValor;
+    $dados["taxa_pix"] = $taxaPix;
+    
+    // Pegar data inicial do primeiro registro
+    if (!empty($results[0]["data"])) {
+        $dados["data_inicial"] = date("Y-m-d\TH:i", strtotime($results[0]["data"]));
+    }
+    
+    // Identificar etapas presentes
     foreach ($results as $row) {
-        $dados["cidade"] = $row["cidade"];
-        $dados["taxa_valor"] = $row["taxa_valor"];
-        $dados["taxa_pix"] = $row["taxa_pix"];
-        
-        if (strpos($row["titulo"], "Objeto postado") !== false) $dados["etapas"][] = "postado";
-        if (strpos($row["titulo"], "Em trânsito") !== false) $dados["etapas"][] = "transito";
-        if (strpos($row["titulo"], "centro de distribuição") !== false) $dados["etapas"][] = "distribuicao";
-        if (strpos($row["titulo"], "Saiu para entrega") !== false) $dados["etapas"][] = "entrega";
-        if (strpos($row["titulo"], "Entregue") !== false) $dados["etapas"][] = "entregue";
+        if (strpos($row["titulo"], "Objeto postado") !== false && !in_array("postado", $dados["etapas"])) {
+            $dados["etapas"][] = "postado";
+        }
+        if (strpos($row["titulo"], "Em trânsito") !== false && !in_array("transito", $dados["etapas"])) {
+            $dados["etapas"][] = "transito";
+        }
+        if (strpos($row["titulo"], "centro de distribuição") !== false && !in_array("distribuicao", $dados["etapas"])) {
+            $dados["etapas"][] = "distribuicao";
+        }
+        if (strpos($row["titulo"], "Saiu para entrega") !== false && !in_array("entrega", $dados["etapas"])) {
+            $dados["etapas"][] = "entrega";
+        }
+        if (strpos($row["titulo"], "Entregue") !== false && !in_array("entregue", $dados["etapas"])) {
+            $dados["etapas"][] = "entregue";
+        }
     }
     
     header("Content-Type: application/json");
