@@ -650,37 +650,62 @@ body {
 }
 
 .header {
-    background: rgba(255,255,255,0.06);
-    padding: 20px;
-    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+    padding: 32px 24px;
+    border-radius: 24px;
     margin-bottom: 30px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.18);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(255, 51, 51, 0.15) inset,
+                0 4px 16px rgba(255, 51, 51, 0.1);
+    border: 1px solid rgba(255, 51, 51, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     position: relative;
     overflow: hidden;
 }
 .header::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 3px;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    height: 4px;
     background: var(--gradient-primary);
     opacity: 0.9;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.6);
+}
+.header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 51, 51, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
 }
 
 .header h1 {
     color: var(--primary-color);
     text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+    font-size: 2.75rem;
+    margin-bottom: 12px;
+    text-shadow: 0 0 30px rgba(255, 51, 51, 0.6),
+                 0 2px 8px rgba(0, 0, 0, 0.5);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    position: relative;
+    z-index: 1;
 }
 
 .header p {
     text-align: center;
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+    opacity: 0.9;
 }
 
 .stats-grid {
@@ -691,17 +716,26 @@ body {
 }
 
 .stat-card {
-    background: rgba(255,255,255,0.06);
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.18);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+    padding: 28px 24px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+                0 2px 8px rgba(255, 51, 51, 0.1);
+    border: 1px solid rgba(255, 51, 51, 0.15);
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(255, 51, 51, 0.3) inset,
+                0 4px 16px rgba(255, 51, 51, 0.2);
+    border-color: rgba(255, 51, 51, 0.4);
 }
 
 .stat-card::before {
@@ -1086,7 +1120,7 @@ body {
         transform: translateY(-2px);
     }
 
-    /* Nav superior com efeito de vidro */
+    /* Nav superior com efeito de vidro - Design Profissional */
     .admin-nav {
         position: sticky;
         top: 12px;
@@ -1095,32 +1129,163 @@ body {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        padding: 12px 16px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        z-index: 101;
+        gap: 16px;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+        border: 1px solid rgba(255, 51, 51, 0.2);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+                    0 0 0 1px rgba(255, 51, 51, 0.1) inset,
+                    0 2px 8px rgba(255, 51, 51, 0.1);
+        z-index: 1000;
     }
-    .nav-brand { font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; gap: 10px; }
-    .nav-toggle { display: none; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text-primary); border-radius: 10px; padding: 8px 12px; }
-    .nav-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .nav-brand { 
+        font-weight: 700; 
+        letter-spacing: 0.5px; 
+        display: flex; 
+        align-items: center; 
+        gap: 12px;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+        text-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
+    }
+    
+    .nav-brand i {
+        color: var(--primary-color);
+        font-size: 1.4rem;
+    }
+    
+    /* Menu Hambúrguer Profissional */
+    .nav-toggle { 
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 51, 51, 0.1);
+        border: 2px solid rgba(255, 51, 51, 0.3);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1001;
+    }
+    
+    .nav-toggle:hover {
+        background: rgba(255, 51, 51, 0.2);
+        border-color: rgba(255, 51, 51, 0.5);
+        transform: scale(1.05);
+    }
+    
+    .nav-toggle:active {
+        transform: scale(0.95);
+    }
+    
+    .nav-toggle span {
+        display: block;
+        width: 24px;
+        height: 3px;
+        background: var(--primary-color);
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+    }
+    
+    .nav-toggle span:nth-child(1) {
+        margin-bottom: 6px;
+    }
+    
+    .nav-toggle span:nth-child(2) {
+        margin-bottom: 6px;
+    }
+    
+    .nav-toggle span:nth-child(3) {
+        margin-bottom: 0;
+    }
+    
+    /* Animação do hambúrguer quando aberto */
+    .admin-nav.open .nav-toggle span:nth-child(1) {
+        transform: rotate(45deg) translate(8px, 8px);
+    }
+    
+    .admin-nav.open .nav-toggle span:nth-child(2) {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    
+    .admin-nav.open .nav-toggle span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+    
+    .nav-actions { 
+        display: flex; 
+        gap: 10px; 
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
     .nav-btn {
-        padding: 10px 16px;
-        border-radius: 28px;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.18);
+        padding: 12px 20px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--text-primary);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
-    .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.25); background: rgba(255,255,255,0.12); }
+    
+    .nav-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .nav-btn:hover::before {
+        left: 100%;
+    }
+    
+    .nav-btn:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 20px rgba(255, 51, 51, 0.3), 
+                    0 0 0 1px rgba(255, 51, 51, 0.2) inset;
+        background: rgba(255, 51, 51, 0.1);
+        border-color: rgba(255, 51, 51, 0.4);
+    }
+    
+    .nav-btn:active {
+        transform: translateY(0);
+    }
+    
+    .nav-btn i {
+        font-size: 1rem;
+    }
+    
+    .nav-btn.danger {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    
+    .nav-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.5);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    }
 
     /* Botão flutuante PWA */
     #pwaInstallBtn { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: none; padding: 12px 16px; border-radius: 999px; border: none; color: #fff; background: var(--gradient-primary); font-weight: 700; box-shadow: var(--shadow-lg); }
@@ -1392,11 +1557,52 @@ body {
     }
 }
 @media (max-width: 768px) {
-    .admin-nav { flex-direction: column; align-items: stretch; }
-    .nav-toggle { display: inline-flex; align-items: center; gap: 6px; }
-    .nav-actions { gap: 6px; display: none; }
-    .admin-nav.open .nav-actions { display: flex; }
-    .nav-btn { flex: 1 1 calc(50% - 6px); justify-content: center; }
+    .admin-nav { 
+        flex-direction: row; 
+        align-items: center;
+        padding: 12px 16px;
+        position: relative;
+    }
+    .nav-toggle { 
+        display: flex !important;
+    }
+    .nav-actions { 
+        gap: 8px; 
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(20, 20, 20, 1) 100%);
+        border: 1px solid rgba(255, 51, 51, 0.2);
+        border-top: none;
+        border-radius: 0 0 20px 20px;
+        padding: 16px;
+        margin-top: 8px;
+        flex-direction: column;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+    .admin-nav.open .nav-actions { 
+        display: flex;
+        animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .nav-btn { 
+        width: 100%;
+        justify-content: flex-start;
+        padding: 14px 18px;
+    }
     .stats-grid { grid-template-columns: 1fr !important; }
     .automation-grid { grid-template-columns: 1fr !important; }
     table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
@@ -1722,7 +1928,11 @@ body {
 
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
-    <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i> Menu</button>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
         <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
