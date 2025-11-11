@@ -113,7 +113,6 @@ function buildWhatsappTrackingLink(string $codigo): ?string {
 }
 
 function buildWhatsappMessage(array $statusData, array $contato): string {
-    $template = (string) getDynamicConfig('WHATSAPP_TEMPLATE', "Olá {nome}! Seu pedido {codigo} foi atualizado:\n{status}\n{descricao}\nAtualizado em {data} às {hora}.\n{link}");
     $nome = $contato['nome'] ?? '';
     $nome = $nome !== '' ? $nome : 'cliente';
 
@@ -126,6 +125,37 @@ function buildWhatsappMessage(array $statusData, array $contato): string {
         $linkTexto = 'Acompanhe: ' . $link;
     } else {
         $linkTexto = '';
+    }
+
+    // Identificar a etapa baseado no título/status
+    $titulo = $statusData['titulo'] ?? $statusData['status_atual'] ?? '';
+    $etapaKey = null;
+    $templateKey = null;
+    
+    if (strpos($titulo, 'Objeto postado') !== false || strpos($titulo, 'postado') !== false) {
+        $etapaKey = 'postado';
+        $templateKey = 'WHATSAPP_MSG_POSTADO';
+    } elseif (strpos($titulo, 'Em trânsito') !== false || strpos($titulo, 'trânsito') !== false) {
+        $etapaKey = 'transito';
+        $templateKey = 'WHATSAPP_MSG_TRANSITO';
+    } elseif (strpos($titulo, 'centro de distribuição') !== false || strpos($titulo, 'distribuição') !== false) {
+        $etapaKey = 'distribuicao';
+        $templateKey = 'WHATSAPP_MSG_DISTRIBUICAO';
+    } elseif (strpos($titulo, 'Saiu para entrega') !== false || strpos($titulo, 'entrega') !== false) {
+        $etapaKey = 'entrega';
+        $templateKey = 'WHATSAPP_MSG_ENTREGA';
+    } elseif (strpos($titulo, 'Entregue') !== false) {
+        $etapaKey = 'entregue';
+        $templateKey = 'WHATSAPP_MSG_ENTREGUE';
+    }
+    
+    // Buscar template personalizado ou usar padrão
+    $defaultTemplate = "Olá {nome}! Seu pedido {codigo} foi atualizado:\n{status}\n{descricao}\nAtualizado em {data} às {hora}.\n{link}";
+    
+    if ($templateKey) {
+        $template = (string) getDynamicConfig($templateKey, $defaultTemplate);
+    } else {
+        $template = (string) getDynamicConfig('WHATSAPP_TEMPLATE', $defaultTemplate);
     }
 
     $replacements = [
@@ -347,16 +377,21 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
     $nome = $contato['nome'] ?? 'cliente';
     $link = buildWhatsappTrackingLink($codigo);
     $linkTexto = $link ? "Acompanhe: {$link}" : '';
-
-    $mensagem = "Olá {$nome}!\n\n";
-    $mensagem .= "💰 *Taxa de distribuição nacional*\n\n";
-    $mensagem .= "Seu pedido *{$codigo}* precisa de uma taxa de R$ " . number_format($taxaValor, 2, ',', '.') . " para seguir para entrega.\n\n";
-    $mensagem .= "Faça o pagamento via PIX:\n";
-    $mensagem .= "`{$taxaPix}`\n\n";
-    $mensagem .= "Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.\n\n";
-    if ($linkTexto) {
-        $mensagem .= $linkTexto;
-    }
+    
+    // Buscar mensagem personalizada ou usar padrão
+    $defaultTaxaMsg = "Olá {nome}!\n\n💰 *Taxa de distribuição nacional*\n\nSeu pedido *{codigo}* precisa de uma taxa de R$ {taxa_valor} para seguir para entrega.\n\nFaça o pagamento via PIX:\n`{taxa_pix}`\n\nApós o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.\n\n{link}";
+    $template = (string) getDynamicConfig('WHATSAPP_MSG_TAXA', $defaultTaxaMsg);
+    
+    $replacements = [
+        '{nome}' => $nome,
+        '{codigo}' => $codigo,
+        '{taxa_valor}' => number_format($taxaValor, 2, ',', '.'),
+        '{taxa_pix}' => $taxaPix,
+        '{cidade}' => $status['cidade'] ?? '',
+        '{link}' => $linkTexto
+    ];
+    
+    $mensagem = strtr($template, $replacements);
 
     try {
         $resultado = sendWhatsappMessage($contato['telefone_normalizado'], $mensagem);

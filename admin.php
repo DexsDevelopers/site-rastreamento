@@ -1727,6 +1727,7 @@ body {
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
         <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
         <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
+        <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Mensagens WhatsApp</a>
         <?php if (!empty($_SESSION['undo_action'])): ?>
             <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i class="fas fa-rotate-left"></i> Desfazer</a>
         <?php else: ?>
