@@ -145,7 +145,23 @@ try {
         echo "✅ Tabela 'rastreios_status' criada com sucesso!<br>";
     }
     
-    // 5. Criar triggers para atualizar contadores
+    // 5. Criar tabela de mídias por rastreio
+    echo "<p>📷 Criando tabela de mídias...</p>";
+    $sql = "CREATE TABLE IF NOT EXISTS rastreios_midias (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        codigo VARCHAR(50) NOT NULL,
+        arquivo VARCHAR(255) NOT NULL,
+        tipo ENUM('foto','documento') DEFAULT 'foto',
+        legenda VARCHAR(255) NULL,
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_codigo (codigo),
+        INDEX idx_codigo (codigo)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    $pdo->exec($sql);
+    echo "✅ Tabela 'rastreios_midias' criada com sucesso!<br>";
+
+    // 6. Criar triggers para atualizar contadores
     echo "<p>📋 Criando triggers...</p>";
     
     // Trigger para atualizar contadores de indicações
@@ -190,7 +206,7 @@ try {
         echo "❌ Erro ao criar trigger: " . $e->getMessage() . "<br>";
     }
     
-    // 6. Inserir dados de exemplo (opcional)
+    // 7. Inserir dados de exemplo (opcional)
     echo "<p>📋 Inserindo dados de exemplo...</p>";
     
     // Cliente exemplo
@@ -204,7 +220,7 @@ try {
         echo "⚠️ Dados de exemplo já existem ou erro: " . $e->getMessage() . "<br>";
     }
     
-    // 7. Criar arquivo de configuração para indicar que foi executado
+    // 8. Criar arquivo de configuração para indicar que foi executado
     file_put_contents('database_setup_complete.txt', date('Y-m-d H:i:s') . ' - Database setup completed successfully');
     
     echo "<hr>";
@@ -216,6 +232,7 @@ try {
     echo "<li>✅ indicacoes</li>";
     echo "<li>✅ compras</li>";
     echo "<li>✅ rastreios_status (atualizada)</li>";
+    echo "<li>✅ rastreios_midias</li>";
     echo "</ul>";
     
     echo "<p><strong>🔧 Funcionalidades disponíveis:</strong></p>";

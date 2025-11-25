@@ -86,6 +86,19 @@ CREATE TABLE IF NOT EXISTS whatsapp_notificacoes (
     UNIQUE KEY uniq_codigo_status (codigo, status_titulo, status_data)
 );
 
+-- Tabela de mídias por código de rastreio
+CREATE TABLE IF NOT EXISTS rastreios_midias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL,
+    arquivo VARCHAR(255) NOT NULL,
+    tipo ENUM('foto','documento') DEFAULT 'foto',
+    legenda VARCHAR(255),
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_codigo (codigo),
+    INDEX idx_codigo (codigo)
+);
+
 -- Trigger para atualizar contadores de indicações
 DELIMITER //
 CREATE TRIGGER IF NOT EXISTS tr_atualizar_indicacoes

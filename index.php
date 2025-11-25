@@ -12,6 +12,7 @@ header("Expires: 0");
 // Incluir configurações
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/rastreio_media.php';
 
 $codigo = $cidade = "";
 $statusList = [];
@@ -19,6 +20,8 @@ $erroCidade = "";
 $statusAtualTopo = "";
 $temTaxa = false;
 $tempoLimite = 24;
+$fotoPedido = null;
+$fotoPedidoSrc = null;
 $expressValor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
 $isExpress = false;
 $autoLoadFromUrl = false;
@@ -62,6 +65,13 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
                             if (!empty($r['prioridade'])) { $isExpress = true; }
                         }
                         $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
+                        $fotoPedido = getRastreioFoto($pdo, $codigo);
+                        if ($fotoPedido) {
+                            $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
+                            $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
+                        } else {
+                            $fotoPedidoSrc = null;
+                        }
                     } else {
                         $erroCidade = "⚠️ A cidade informada não confere com este código!";
                     }
@@ -106,6 +116,13 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                         if (!empty($r['prioridade'])) { $isExpress = true; }
                     }
                     $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
+                    $fotoPedido = getRastreioFoto($pdo, $codigo);
+                    if ($fotoPedido) {
+                        $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
+                        $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
+                    } else {
+                        $fotoPedidoSrc = null;
+                    }
                 } else {
                     $erroCidade = "⚠️ A cidade informada não confere com este código!";
                 }
@@ -158,6 +175,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
             echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
             echo '<button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick=\'solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', this)\'>⚡ Quero entrega em 3 dias</button>';
+            echo '</div>';
+        }
+        if ($fotoPedido && $fotoPedidoSrc) {
+            echo '<div class="photo-proof">';
+            echo '<p><i class="fas fa-image"></i> Foto do seu pedido</p>';
+            echo '<img src="' . htmlspecialchars($fotoPedidoSrc, ENT_QUOTES, 'UTF-8') . '" alt="Foto do pedido ' . htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') . '">';
+            echo '<small>Imagem enviada pelo time de atendimento para comprovação visual.</small>';
             echo '</div>';
         }
         echo '</div>'; // results-box
@@ -477,6 +501,10 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
                   border: none; border-radius: 8px; color: var(--light); cursor: pointer; 
                   font-weight: 600; }
 .countdown { color: #ffcc00; font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+.photo-proof { margin-top: 1.5rem; padding: 1.25rem; border-radius: 18px; border: 1px solid rgba(255,51,51,0.25); background: rgba(255,255,255,0.04); text-align: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+.photo-proof p { margin: 0; font-weight: 600; color: rgba(255,255,255,0.9); }
+.photo-proof img { width: 100%; border-radius: 14px; margin-top: 0.9rem; max-height: 420px; object-fit: cover; border: 1px solid rgba(255,255,255,0.08); }
+.photo-proof small { display: block; margin-top: 0.6rem; color: rgba(255,255,255,0.65); }
 
 @media (max-width: 1024px) { 
     .hero-container { grid-template-columns: 1fr; gap: 2rem; } 
@@ -779,6 +807,13 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
                         <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ <?= number_format($expressValor, 2, ',', '.') ?>.</p>
                         <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
                         <button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick='solicitarExpress(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, this)'>⚡ Quero entrega em 3 dias</button>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($fotoPedido && $fotoPedidoSrc): ?>
+                    <div class="photo-proof">
+                        <p><i class="fas fa-image"></i> Foto do seu pedido</p>
+                        <img src="<?= htmlspecialchars($fotoPedidoSrc, ENT_QUOTES, 'UTF-8') ?>" alt="Foto do pedido <?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') ?>">
+                        <small>Imagem anexada ao pedido pelo atendimento Helmer Logistics.</small>
                     </div>
                     <?php endif; ?>
                 </div>

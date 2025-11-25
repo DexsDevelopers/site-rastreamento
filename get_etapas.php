@@ -7,6 +7,7 @@
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/whatsapp_helper.php';
+require_once 'includes/rastreio_media.php';
 
 // Verificar se o código foi fornecido
 if (!isset($_GET['codigo']) || empty($_GET['codigo'])) {
@@ -29,7 +30,8 @@ try {
         "data_inicial" => null,
         "cliente_nome" => null,
         "cliente_whatsapp" => null,
-        "cliente_notificar" => false
+        "cliente_notificar" => false,
+        "foto_url" => null
     ];
     
     // Buscar contato WhatsApp
@@ -48,6 +50,11 @@ try {
     
     // Pegar cidade do primeiro registro (mais antigo)
     $dados["cidade"] = $results[0]["cidade"] ?? "";
+
+    $foto = getRastreioFoto($pdo, $codigo);
+    if ($foto) {
+        $dados["foto_url"] = $foto["url"];
+    }
     
     // Pegar taxa do registro mais recente que tenha taxa
     $taxaValor = null;

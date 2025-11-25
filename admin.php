@@ -8,11 +8,14 @@
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/whatsapp_helper.php';
+require_once 'includes/rastreio_media.php';
 
 // Cache desabilitado para desenvolvimento
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
+
+$uploadMaxSizeMb = number_format(getConfig('UPLOAD_MAX_SIZE', 5242880) / 1048576, 1, ',', '.');
 
 // (Sem diagnóstico especial)
 
@@ -322,6 +325,7 @@ if (isset($_POST['confirmar_pagamento_express'])) {
 
 // ADICIONAR NOVO
 if (isset($_POST['novo_codigo'])) {
+    $tempFotoPath = null;
     try {
         $codigo = sanitizeInput($_POST['codigo']);
         $cidade = sanitizeInput($_POST['cidade']);
@@ -331,6 +335,14 @@ if (isset($_POST['novo_codigo'])) {
         $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
         $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
         $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
+        $removerFoto = isset($_POST['remover_foto']) && $_POST['remover_foto'] === '1';
+
+        $uploadResultado = handleRastreioFotoUpload($codigo, 'foto_pedido');
+        if (!$uploadResultado['success']) {
+            throw new Exception($uploadResultado['message']);
+        }
+        $novaFotoPath = $uploadResultado['path'];
+        $tempFotoEdicao = $novaFotoPath;
         $telefone_normalizado = null;
 
         if ($cliente_whatsapp !== '') {
@@ -370,6 +382,13 @@ if (isset($_POST['novo_codigo'])) {
             $error_message = "O código {$codigo} já existe.";
             writeLog("Tentativa de adicionar código duplicado: $codigo", 'WARNING');
         } else {
+            $uploadResultado = handleRastreioFotoUpload($codigo, 'foto_pedido');
+            if (!$uploadResultado['success']) {
+                throw new Exception($uploadResultado['message']);
+            }
+            $fotoPath = $uploadResultado['path'];
+            $tempFotoPath = $fotoPath;
+
             adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
             upsertWhatsappContact(
                 $pdo,
@@ -387,10 +406,17 @@ if (isset($_POST['novo_codigo'])) {
                     writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
                 }
             }
+            if ($fotoPath) {
+                persistRastreioFoto($pdo, $codigo, $fotoPath);
+                $tempFotoPath = null;
+            }
             $success_message = "Rastreio {$codigo} adicionado com sucesso!";
             writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
         }
     } catch (Exception $e) {
+        if ($tempFotoPath) {
+            deleteRastreioFotoFile($tempFotoPath);
+        }
         $error_message = "Erro ao adicionar rastreio: " . $e->getMessage();
         writeLog("Erro ao adicionar rastreio: " . $e->getMessage(), 'ERROR');
     }
@@ -405,6 +431,7 @@ if (isset($_POST['deletar'])) {
         $sql = "DELETE FROM rastreios_status WHERE codigo = ?";
         executeQuery($pdo, $sql, [$codigo]);
         deleteWhatsappContact($pdo, $codigo);
+        removeRastreioFoto($pdo, $codigo);
         $success_message = "Rastreio {$codigo} excluído com sucesso!";
         writeLog("Rastreio excluído: $codigo", 'INFO');
     } catch (Exception $e) {
@@ -415,6 +442,7 @@ if (isset($_POST['deletar'])) {
 
 // EDITAR
 if (isset($_POST['salvar_edicao'])) {
+    $tempFotoEdicao = null;
     try {
         $codigo = sanitizeInput($_POST['codigo']);
         $cidade = sanitizeInput($_POST['cidade']);
@@ -455,10 +483,20 @@ if (isset($_POST['salvar_edicao'])) {
             writeLog("Erro ao atualizar WhatsApp para {$codigo}: " . $whatsappError->getMessage(), 'WARNING');
             // Não interrompe o processo de edição se houver erro no WhatsApp
         }
+
+        if ($novaFotoPath) {
+            persistRastreioFoto($pdo, $codigo, $novaFotoPath);
+            $tempFotoEdicao = null;
+        } elseif ($removerFoto) {
+            removeRastreioFoto($pdo, $codigo);
+        }
         
         $success_message = "Rastreio {$codigo} atualizado com sucesso!";
         writeLog("Rastreio atualizado: $codigo", 'INFO');
     } catch (Exception $e) {
+        if ($tempFotoEdicao) {
+            deleteRastreioFotoFile($tempFotoEdicao);
+        }
         $error_message = "Erro ao atualizar rastreio: " . $e->getMessage();
         writeLog("Erro ao atualizar rastreio: " . $e->getMessage(), 'ERROR');
     }
@@ -476,6 +514,7 @@ if (isset($_POST['bulk_delete'])) {
                 $sql = "DELETE FROM rastreios_status WHERE codigo = ?";
                 executeQuery($pdo, $sql, [$codigo]);
                 deleteWhatsappContact($pdo, $codigo);
+                removeRastreioFoto($pdo, $codigo);
                 $count++;
             }
             $success_message = "{$count} rastreio(s) excluído(s) com sucesso!";
@@ -827,6 +866,54 @@ body {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
+}
+
+.photo-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.photo-preview {
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    background: rgba(255,255,255,0.03);
+}
+
+.photo-preview img {
+    max-width: 100%;
+    border-radius: 10px;
+    display: none;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.photo-preview span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+.photo-preview-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.photo-preview-actions input[type="file"] {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.25);
+    color: var(--text-secondary);
+}
+
+.details-photo img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.18);
+    margin-top: 8px;
 }
 
 .checkbox-group {
@@ -2216,7 +2303,7 @@ body {
         </div>
 
     <!-- Formulário adicionar -->
-        <form method="POST" id="addForm">
+        <form method="POST" id="addForm" enctype="multipart/form-data">
         <input type="hidden" name="novo_codigo" value="1">
             
             <div class="form-grid">
@@ -2252,6 +2339,14 @@ body {
                 </label>
             </div>
         </div>
+
+            <div class="form-group">
+                <label for="foto_pedido">Foto do Pedido (opcional)</label>
+                <input type="file" name="foto_pedido" id="foto_pedido" accept="image/*">
+                <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">
+                    Formatos suportados: JPG, PNG, WEBP ou GIF (até <?= $uploadMaxSizeMb ?> MB).
+                </small>
+            </div>
 
             <div class="form-group">
                 <label>Etapas do Rastreamento</label>
@@ -2483,7 +2578,7 @@ body {
             <button class="close" onclick="closeModal()">&times;</button>
         </div>
         
-        <form method="POST" id="formEditar">
+        <form method="POST" id="formEditar" enctype="multipart/form-data">
             <input type="hidden" name="salvar_edicao" value="1">
             
             <div class="form-grid">
@@ -2557,6 +2652,26 @@ body {
                 </div>
             </div>
 
+            <div class="form-group">
+                <label>Foto do Pedido</label>
+                <div class="photo-upload">
+                    <div class="photo-preview" id="fotoPreview">
+                        <img id="fotoPreviewImg" src="" alt="Foto do pedido" style="display:none;">
+                        <span id="fotoPreviewPlaceholder">Nenhuma foto cadastrada</span>
+                    </div>
+                    <div class="photo-preview-actions">
+                        <input type="file" name="foto_pedido" id="edit_foto_pedido" accept="image/*">
+                        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+                            <input type="checkbox" name="remover_foto" id="edit_remover_foto" value="1">
+                            Remover foto atual
+                        </label>
+                    </div>
+                    <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">
+                        Formatos suportados: JPG, PNG, WEBP ou GIF (até <?= $uploadMaxSizeMb ?> MB).
+                    </small>
+                </div>
+            </div>
+
             <div class="actions">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Salvar Alterações
@@ -2603,6 +2718,28 @@ function abrirModal(codigo) {
           document.getElementById('edit_cliente_nome').value = data.cliente_nome || '';
           document.getElementById('edit_cliente_whatsapp').value = data.cliente_whatsapp || '';
           document.getElementById('edit_cliente_notificar').checked = !!data.cliente_notificar;
+          const previewImg = document.getElementById('fotoPreviewImg');
+          const placeholder = document.getElementById('fotoPreviewPlaceholder');
+          const removerFoto = document.getElementById('edit_remover_foto');
+          if (previewImg && placeholder && removerFoto) {
+              if (data.foto_url) {
+                  previewImg.src = data.foto_url + '?t=' + Date.now();
+                  previewImg.dataset.originalSrc = previewImg.src;
+                  previewImg.style.display = 'block';
+                  previewImg.dataset.hasOriginal = '1';
+                  placeholder.style.display = 'none';
+                  removerFoto.disabled = false;
+                  removerFoto.checked = false;
+              } else {
+                  previewImg.removeAttribute('src');
+                  previewImg.style.display = 'none';
+                  delete previewImg.dataset.hasOriginal;
+                  delete previewImg.dataset.originalSrc;
+                  placeholder.style.display = 'inline-block';
+                  removerFoto.checked = false;
+                  removerFoto.disabled = true;
+              }
+          }
       })
       .catch(error => {
           console.error('Erro ao carregar dados:', error);
@@ -2650,6 +2787,17 @@ function viewDetails(codigo) {
           });
           
           content += `</ul></div>`;
+
+          if (data.foto_url) {
+              content += `
+                  <div class="form-group">
+                      <label><strong>Foto atual:</strong></label>
+                      <div class="details-photo">
+                          <img src="${data.foto_url}?t=${Date.now()}" alt="Foto do pedido ${codigo}">
+                      </div>
+                  </div>
+              `;
+          }
           
           if (data.taxa_valor && data.taxa_pix) {
               content += `
@@ -2858,6 +3006,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (codigoEl) { codigoEl.focus(); codigoEl.select(); }
             }
         } catch (_) { /* silencioso, fallback é validação servidor */ }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fotoInput = document.getElementById('edit_foto_pedido');
+    if (!fotoInput) return;
+    fotoInput.addEventListener('change', function(e) {
+        const file = e.target.files && e.target.files[0];
+        const previewImg = document.getElementById('fotoPreviewImg');
+        const placeholder = document.getElementById('fotoPreviewPlaceholder');
+        const remover = document.getElementById('edit_remover_foto');
+        if (fotoInput.dataset.previewUrl) {
+            URL.revokeObjectURL(fotoInput.dataset.previewUrl);
+            delete fotoInput.dataset.previewUrl;
+        }
+        if (file && previewImg && placeholder) {
+            const objectUrl = URL.createObjectURL(file);
+            fotoInput.dataset.previewUrl = objectUrl;
+            previewImg.src = objectUrl;
+            previewImg.style.display = 'block';
+            placeholder.style.display = 'none';
+            if (remover) {
+                remover.checked = false;
+                remover.disabled = false;
+            }
+        } else if (previewImg && placeholder) {
+            const original = previewImg.dataset.originalSrc;
+            if (original) {
+                previewImg.src = original;
+                previewImg.style.display = 'block';
+                placeholder.style.display = 'none';
+                if (remover) {
+                    remover.disabled = false;
+                    remover.checked = false;
+                }
+            } else {
+                previewImg.removeAttribute('src');
+                previewImg.style.display = 'none';
+                placeholder.style.display = 'inline-block';
+                if (remover) {
+                    remover.checked = false;
+                    remover.disabled = true;
+                }
+            }
+        }
     });
 });
 
