@@ -335,60 +335,42 @@ if (isset($_POST['novo_codigo'])) {
         $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
         $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
         $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
-        $removerFoto = isset($_POST['remover_foto']) && $_POST['remover_foto'] === '1';
 
         $uploadResultado = handleRastreioFotoUpload($codigo, 'foto_pedido');
         if (!$uploadResultado['success']) {
             throw new Exception($uploadResultado['message']);
         }
-        $novaFotoPath = $uploadResultado['path'];
-        $tempFotoEdicao = $novaFotoPath;
-        $telefone_normalizado = null;
+        $fotoPath = $uploadResultado['path'];
+        if ($fotoPath) {
+            $tempFotoPath = $fotoPath;
+        }
 
         if ($cliente_whatsapp !== '') {
             $telefone_normalizado = normalizePhoneToDigits($cliente_whatsapp);
             if ($telefone_normalizado === null) {
                 throw new Exception('Informe um número de WhatsApp válido com DDD (ex.: 11999999999 ou +5511999999999).');
             }
-        }
-
-        if ($cliente_notificar && $telefone_normalizado === null) {
-            throw new Exception('Para ativar as notificações automáticas informe um WhatsApp válido.');
-        }
-        $telefone_normalizado = null;
-
-        if ($cliente_whatsapp !== '') {
-            $telefone_normalizado = normalizePhoneToDigits($cliente_whatsapp);
-            if ($telefone_normalizado === null) {
-                throw new Exception('Informe um número de WhatsApp válido com DDD (ex.: 11999999999 ou +5511999999999).');
+            if ($cliente_notificar && $telefone_normalizado === null) {
+                throw new Exception('Para ativar as notificações automáticas informe um WhatsApp válido.');
             }
         }
 
-        if ($cliente_notificar && $telefone_normalizado === null) {
-            throw new Exception('Para ativar as notificações automáticas informe um WhatsApp válido.');
-        }
-        $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
-        $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
-        $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
-
-        // Validar entrada
         if (empty($codigo) || empty($cidade)) {
             throw new Exception("Código e cidade são obrigatórios");
         }
 
-        // Verificar duplicidade de código (case-insensitive, ignorando espaços)
         $exists = fetchOne($pdo, "SELECT 1 AS e FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? LIMIT 1", [strtoupper(trim($codigo))]);
         if ($exists) {
-            $error_message = "O código {$codigo} já existe.";
-            writeLog("Tentativa de adicionar código duplicado: $codigo", 'WARNING');
-        } else {
-            $uploadResultado = handleRastreioFotoUpload($codigo, 'foto_pedido');
-            if (!$uploadResultado['success']) {
-                throw new Exception($uploadResultado['message']);
+            if ($fotoPath) {
+                persistRastreioFoto($pdo, $codigo, $fotoPath);
+                $tempFotoPath = null;
+                $success_message = "Foto do rastreio {$codigo} atualizada com sucesso.";
+                writeLog("Foto atualizada via formulário principal para {$codigo}", 'INFO');
+            } else {
+                $error_message = "O código {$codigo} já existe. Use o campo de foto ou edite o rastreio para atualizar os dados.";
+                writeLog("Tentativa de adicionar código duplicado sem foto: $codigo", 'WARNING');
             }
-            $fotoPath = $uploadResultado['path'];
-            $tempFotoPath = $fotoPath;
-
+        } else {
             adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
             upsertWhatsappContact(
                 $pdo,
@@ -398,7 +380,6 @@ if (isset($_POST['novo_codigo'])) {
                 $cliente_notificar
             );
             notifyWhatsappLatestStatus($pdo, $codigo);
-            // Notificar sobre taxa se houver
             if ($taxa_valor && $taxa_pix) {
                 try {
                     notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
