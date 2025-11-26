@@ -336,8 +336,13 @@ if (isset($_POST['novo_codigo'])) {
         $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
         $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
 
+        writeLog("Processando novo rastreio para código: $codigo", 'DEBUG');
+        writeLog("FILES recebidos no novo: " . print_r($_FILES, true), 'DEBUG');
+        
         $uploadResultado = handleRastreioFotoUpload($codigo, 'foto_pedido');
-        if (!$uploadResultado['success']) {
+        writeLog("Resultado do upload novo: " . json_encode($uploadResultado), 'DEBUG');
+        
+        if (!$uploadResultado['success'] && $uploadResultado['message'] !== null) {
             throw new Exception($uploadResultado['message']);
         }
         $fotoPath = $uploadResultado['path'];
@@ -388,8 +393,10 @@ if (isset($_POST['novo_codigo'])) {
                 }
             }
             if ($fotoPath) {
+                writeLog("Persistindo foto para novo código $codigo: $fotoPath", 'DEBUG');
                 persistRastreioFoto($pdo, $codigo, $fotoPath);
                 $tempFotoPath = null;
+                writeLog("Foto salva com sucesso para novo código $codigo", 'DEBUG');
             }
             $success_message = "Rastreio {$codigo} adicionado com sucesso!";
             writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
@@ -433,6 +440,20 @@ if (isset($_POST['salvar_edicao'])) {
         $cliente_nome = isset($_POST['cliente_nome']) ? sanitizeInput($_POST['cliente_nome']) : '';
         $cliente_whatsapp = isset($_POST['cliente_whatsapp']) ? sanitizeInput($_POST['cliente_whatsapp']) : '';
         $cliente_notificar = isset($_POST['cliente_notificar']) && $_POST['cliente_notificar'] === '1';
+        $removerFoto = isset($_POST['remover_foto']) && $_POST['remover_foto'] === '1';
+
+        // Processar upload de foto se houver
+        writeLog("Processando edição para código: $codigo", 'DEBUG');
+        writeLog("FILES recebidos: " . print_r($_FILES, true), 'DEBUG');
+        
+        $uploadResultado = handleRastreioFotoUpload($codigo, 'foto_pedido');
+        writeLog("Resultado do upload: " . json_encode($uploadResultado), 'DEBUG');
+        
+        if (!$uploadResultado['success'] && $uploadResultado['message'] !== null) {
+            throw new Exception($uploadResultado['message']);
+        }
+        $novaFotoPath = $uploadResultado['path'];
+        $tempFotoEdicao = $novaFotoPath;
 
         // Deletar registros existentes
         captureUndoSnapshot($pdo, [$codigo], 'Editar rastreio');
@@ -465,10 +486,16 @@ if (isset($_POST['salvar_edicao'])) {
             // Não interrompe o processo de edição se houver erro no WhatsApp
         }
 
+        // Processar foto
+        writeLog("Processando foto - novaFotoPath: " . ($novaFotoPath ?? 'null') . ", removerFoto: " . ($removerFoto ? 'true' : 'false'), 'DEBUG');
+        
         if ($novaFotoPath) {
+            writeLog("Persistindo foto para código $codigo: $novaFotoPath", 'DEBUG');
             persistRastreioFoto($pdo, $codigo, $novaFotoPath);
-            $tempFotoEdicao = null;
+            $tempFotoEdicao = null; // Limpar referência após salvar
+            writeLog("Foto salva com sucesso para código $codigo", 'DEBUG');
         } elseif ($removerFoto) {
+            writeLog("Removendo foto do código $codigo", 'DEBUG');
             removeRastreioFoto($pdo, $codigo);
         }
         
