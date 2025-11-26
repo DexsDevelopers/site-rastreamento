@@ -25,6 +25,33 @@ function addCheck(array &$checks, string $titulo, string $status, string $detalh
     ];
 }
 
+// Upload de teste (quando o usuário envia o formulário)
+$testResult = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['test_codigo'])) {
+    $codigoTeste = strtoupper(trim(sanitizeInput($_POST['test_codigo'])));
+    if ($codigoTeste === '') {
+        $testResult = ['type' => 'danger', 'message' => 'Informe um código válido para o teste.'];
+    } else {
+        $upload = handleRastreioFotoUpload($codigoTeste, 'test_foto');
+        if (!$upload['success']) {
+            $testResult = ['type' => 'danger', 'message' => $upload['message'] ?? 'Falha ao enviar o arquivo.'];
+        } elseif (empty($upload['path'])) {
+            $testResult = ['type' => 'warning', 'message' => 'Selecione uma imagem antes de enviar.'];
+        } else {
+            try {
+                persistRastreioFoto($pdo, $codigoTeste, $upload['path']);
+                $testResult = [
+                    'type' => 'success',
+                    'message' => "Foto registrada para o código {$codigoTeste}. Verifique o diagnóstico."
+                ];
+            } catch (Throwable $e) {
+                deleteRastreioFotoFile($upload['path']);
+                $testResult = ['type' => 'danger', 'message' => 'Erro ao registrar no banco: ' . $e->getMessage()];
+            }
+        }
+    }
+}
+
 try {
     $pdo->query('SELECT 1');
     addCheck($checks, 'Conexão com banco', 'OK', 'Conectado e respondendo.', 'success');
@@ -198,6 +225,38 @@ $checksSummary = [
             flex-wrap: wrap;
             gap: 12px;
         }
+.alert {
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+.alert.success { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: var(--success); }
+.alert.warning { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: var(--warning); }
+.alert.danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: var(--danger); }
+.test-card {
+    margin-top: 24px;
+    padding: 20px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+}
+.test-card form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+.test-card input[type="text"] {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+}
+.test-card input[type="file"] {
+    color: var(--muted);
+}
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -253,6 +312,11 @@ $checksSummary = [
         </div>
         <a href="admin.php" class="btn"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
     </div>
+    <?php if (!empty($testResult)): ?>
+        <div class="alert <?= htmlspecialchars($testResult['type']) ?>">
+            <?= htmlspecialchars($testResult['message']) ?>
+        </div>
+    <?php endif; ?>
 
     <div class="cards">
         <div class="card">
@@ -267,6 +331,16 @@ $checksSummary = [
             <h3>Conversão</h3>
             <strong><?= $checksSummary['percentual'] ?>%</strong>
         </div>
+    </div>
+
+    <div class="test-card">
+        <h3>Teste rápido de upload</h3>
+        <p class="muted">Use este formulário para anexar uma foto a um código e validar o fluxo completo na hora.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="text" name="test_codigo" placeholder="Código (ex.: GH56YJ1460BR)" required>
+            <input type="file" name="test_foto" accept="image/*" required>
+            <button class="btn" type="submit"><i class="fas fa-upload"></i> Executar teste</button>
+        </form>
     </div>
 
     <div class="checks">
