@@ -36,9 +36,27 @@ $command = $input['command'] ?? '';
 $params = $input['params'] ?? [];
 $fromNumber = $input['from'] ?? '';
 
-// Verificar se é admin
-if (!in_array($fromNumber, $adminNumbers)) {
-    echo json_encode(['success' => false, 'message' => '❌ Você não tem permissão para usar comandos administrativos.']);
+// Log de debug
+writeLog("DEBUG - Comando recebido: $command de número: $fromNumber", 'DEBUG');
+writeLog("DEBUG - Números admin cadastrados: " . json_encode($adminNumbers), 'DEBUG');
+writeLog("DEBUG - Comparação: número=$fromNumber, está na lista? " . (in_array($fromNumber, $adminNumbers) ? 'SIM' : 'NÃO'), 'DEBUG');
+
+// Comandos públicos que não precisam de permissão admin
+$comandosPublicos = ['menu', 'rastrear', 'codigo', 'track', 'ajuda', 'help'];
+$isComandoPublico = in_array(strtolower($command), $comandosPublicos);
+
+// Verificar se é admin (apenas para comandos não-públicos)
+if (!$isComandoPublico && !in_array($fromNumber, $adminNumbers)) {
+    writeLog("Tentativa de comando admin sem permissão de $fromNumber", 'WARNING');
+    echo json_encode([
+        'success' => false, 
+        'message' => "❌ Você não tem permissão para usar comandos administrativos.\n\n" .
+                    "📱 Seu número: $fromNumber\n" .
+                    "🔐 Permissões: Cliente\n\n" .
+                    "💡 Você pode usar:\n" .
+                    "• /rastrear CODIGO - Consultar seu pedido\n" .
+                    "• /menu - Ver comandos disponíveis"
+    ]);
     exit;
 }
 
