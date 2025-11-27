@@ -48,27 +48,26 @@ const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp:
 async function processAdminCommand(from, text) {
   try {
     // Extrair número limpo do JID
-    const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '');
+    const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     
-    // Verificar se é admin (temporariamente permitir todos para teste)
-    const isAdmin = ADMIN_NUMBERS.length === 0 || ADMIN_NUMBERS.includes(fromNumber);
+    // Logs detalhados
+    console.log(`[ADMIN] JID completo: ${from}`);
+    console.log(`[ADMIN] Número extraído: ${fromNumber}`);
+    console.log(`[ADMIN] Números admin permitidos:`, ADMIN_NUMBERS);
     
     // Separar comando e parâmetros
     const parts = text.trim().split(/\s+/);
     const command = parts[0].substring(1).toLowerCase(); // Remove o /
     const params = parts.slice(1);
     
-    console.log(`[ADMIN] Comando recebido de ${fromNumber}: ${command}`, params);
+    console.log(`[ADMIN] Comando: ${command}`, params);
     
-    // Se não for admin e não for comando público (como rastrear), negar
-    if (!isAdmin && !['rastrear', 'codigo'].includes(command)) {
-      return {
-        success: false,
-        message: '❌ Você não tem permissão para usar comandos administrativos.\n\nPara rastrear seu pedido, use:\n*/rastrear* SEU_CODIGO'
-      };
-    }
+    // A verificação de permissões será feita pela API PHP
     
     // Chamar API PHP do painel
+    console.log(`[ADMIN] Enviando para API: ${ADMIN_API_URL}/admin_bot_api.php`);
+    console.log(`[ADMIN] Dados:`, { command, params, from: fromNumber });
+    
     const response = await axios.post(
       `${ADMIN_API_URL}/admin_bot_api.php`,
       {
@@ -85,6 +84,7 @@ async function processAdminCommand(from, text) {
       }
     );
     
+    console.log(`[ADMIN] Resposta da API:`, response.data);
     const result = response.data;
     
     // Se comando está aguardando foto, registrar
@@ -103,9 +103,14 @@ async function processAdminCommand(from, text) {
     return result;
   } catch (error) {
     console.error('[ADMIN] Erro ao processar comando:', error.message);
+    if (error.response) {
+      console.error('[ADMIN] Status:', error.response.status);
+      console.error('[ADMIN] Dados:', error.response.data);
+    }
     return {
       success: false,
-      message: '❌ Erro ao processar comando. Tente novamente mais tarde.'
+      message: '❌ Erro ao processar comando.\n' + 
+               (error.response?.data?.message || error.message)
     };
   }
 }
