@@ -6,13 +6,16 @@
  *   POST /send  { to: "55DDDNUMERO", text: "mensagem" }  Header: x-api-token
  *   POST /check { to: "55DDDNUMERO" } Header: x-api-token
  */
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode-terminal');
-const QRCodeImg = require('qrcode');
-const express = require('express');
-const cors = require('cors');
-const pino = require('pino');
-require('dotenv').config();
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } from '@whiskeysockets/baileys';
+import qrcode from 'qrcode-terminal';
+import QRCodeImg from 'qrcode';
+import express from 'express';
+import cors from 'cors';
+import pino from 'pino';
+import dotenv from 'dotenv';
+import axios from 'axios';
+import FormData from 'form-data';
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -22,12 +25,16 @@ const PORT = Number(process.env.API_PORT || 3000);
 const API_TOKEN = process.env.API_TOKEN || 'troque-este-token';
 const AUTO_REPLY = String(process.env.AUTO_REPLY || 'false').toLowerCase() === 'true';
 const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000); // 1h
+const ADMIN_API_URL = process.env.ADMIN_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
+const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
 
 let sock;
 let isReady = false;
 let lastQR = null;
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
+// Controle de comandos aguardando foto
+const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number }
 
 // Formata número brasileiro para WhatsApp
 function formatBrazilNumber(raw) {
@@ -35,6 +42,134 @@ function formatBrazilNumber(raw) {
   if (digits.startsWith('0')) digits = digits.slice(1);
   if (!digits.startsWith('55')) digits = '55' + digits;
   return digits;
+}
+
+// Processar comandos admin
+async function processAdminCommand(from, text) {
+  try {
+    // Extrair número limpo do JID
+    const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '');
+    
+    // Verificar se é admin (temporariamente permitir todos para teste)
+    const isAdmin = ADMIN_NUMBERS.length === 0 || ADMIN_NUMBERS.includes(fromNumber);
+    
+    // Separar comando e parâmetros
+    const parts = text.trim().split(/\s+/);
+    const command = parts[0].substring(1).toLowerCase(); // Remove o /
+    const params = parts.slice(1);
+    
+    console.log(`[ADMIN] Comando recebido de ${fromNumber}: ${command}`, params);
+    
+    // Se não for admin e não for comando público (como rastrear), negar
+    if (!isAdmin && !['rastrear', 'codigo'].includes(command)) {
+      return {
+        success: false,
+        message: '❌ Você não tem permissão para usar comandos administrativos.\n\nPara rastrear seu pedido, use:\n*/rastrear* SEU_CODIGO'
+      };
+    }
+    
+    // Chamar API PHP do painel
+    const response = await axios.post(
+      `${ADMIN_API_URL}/admin_bot_api.php`,
+      {
+        command,
+        params,
+        from: fromNumber
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+    
+    const result = response.data;
+    
+    // Se comando está aguardando foto, registrar
+    if (result.waiting_photo && result.photo_codigo) {
+      waitingPhoto.set(from, {
+        codigo: result.photo_codigo,
+        timestamp: Date.now()
+      });
+      
+      // Limpar após 5 minutos
+      setTimeout(() => {
+        waitingPhoto.delete(from);
+      }, 5 * 60 * 1000);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('[ADMIN] Erro ao processar comando:', error.message);
+    return {
+      success: false,
+      message: '❌ Erro ao processar comando. Tente novamente mais tarde.'
+    };
+  }
+}
+
+// Processar upload de foto
+async function processPhotoUpload(from, msg) {
+  try {
+    const waiting = waitingPhoto.get(from);
+    if (!waiting) return false;
+    
+    // Verificar se não expirou (5 minutos)
+    if (Date.now() - waiting.timestamp > 5 * 60 * 1000) {
+      waitingPhoto.delete(from);
+      return false;
+    }
+    
+    const imageMessage = msg.message.imageMessage;
+    if (!imageMessage) return false;
+    
+    // Baixar a imagem
+    const buffer = await sock.downloadMediaMessage(msg);
+    
+    // Enviar para o servidor PHP
+    
+    const form = new FormData();
+    form.append('foto_pedido', buffer, {
+      filename: `${waiting.codigo}.jpg`,
+      contentType: 'image/jpeg'
+    });
+    form.append('codigo', waiting.codigo);
+    form.append('from', from.replace('@s.whatsapp.net', '').replace('@lid', ''));
+    form.append('token', API_TOKEN);
+    
+    const response = await axios.post(
+      `${ADMIN_API_URL}/admin_bot_photo.php`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          'Authorization': `Bearer ${API_TOKEN}`
+        },
+        timeout: 30000
+      }
+    );
+    
+    // Limpar estado
+    waitingPhoto.delete(from);
+    
+    // Enviar confirmação
+    await sock.sendMessage(from, { 
+      text: response.data.message || '✅ Foto recebida e anexada ao pedido!'
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('[PHOTO] Erro ao processar foto:', error.message);
+    waitingPhoto.delete(from);
+    
+    await sock.sendMessage(from, { 
+      text: '❌ Erro ao processar a foto. Tente novamente com /foto CODIGO'
+    });
+    
+    return true;
+  }
 }
 
 async function start() {
@@ -95,6 +230,21 @@ async function start() {
       if (!msg?.message || msg.key.fromMe) return;
       const remoteJid = msg.key.remoteJid;
       const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+      
+      // Verificar se é comando admin (começa com /)
+      if (text.startsWith('/')) {
+        const result = await processAdminCommand(remoteJid, text);
+        if (result.message) {
+          await sock.sendMessage(remoteJid, { text: result.message });
+        }
+        return;
+      }
+      
+      // Verificar se está aguardando foto
+      if (msg.message.imageMessage && waitingPhoto.has(remoteJid)) {
+        await processPhotoUpload(remoteJid, msg);
+        return;
+      }
 
       // Auto-resposta opcional (desativada por padrão)
       if (AUTO_REPLY) {
@@ -103,7 +253,7 @@ async function start() {
         if (now - last > AUTO_REPLY_WINDOW_MS) {
           const lower = (text || '').toLowerCase();
           if (lower.includes('oi') || lower.includes('olá') || lower.includes('ola')) {
-            await sock.sendMessage(remoteJid, { text: 'Olá! Como posso ajudar?' });
+            await sock.sendMessage(remoteJid, { text: 'Olá! Como posso ajudar?\n\nDigite */menu* para ver os comandos disponíveis.' });
             lastReplyAt.set(remoteJid, now);
           }
         }
