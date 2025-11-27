@@ -17,6 +17,14 @@ import axios from 'axios';
 import FormData from 'form-data';
 dotenv.config();
 
+// Formata número brasileiro para WhatsApp
+function formatBrazilNumber(raw) {
+  let digits = String(raw).replace(/\D+/g, '');
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  if (!digits.startsWith('55')) digits = '55' + digits;
+  return digits;
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -35,14 +43,6 @@ let lastQR = null;
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
 const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number }
-
-// Formata número brasileiro para WhatsApp
-function formatBrazilNumber(raw) {
-  let digits = String(raw).replace(/\D+/g, '');
-  if (digits.startsWith('0')) digits = digits.slice(1);
-  if (!digits.startsWith('55')) digits = '55' + digits;
-  return digits;
-}
 
 // Processar comandos admin
 async function processAdminCommand(from, text) {
