@@ -43,11 +43,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
 
         writeLog("Configurações de entrega expressa atualizadas: Valor={$feeFloat}, PIX={$pix}", 'INFO');
         
+        // Limpar qualquer cache do opcode
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+        
+        // Forçar releitura do arquivo
+        clearstatcache(true, __DIR__ . '/config.json');
+        
         // Recarregar valores do config.json após salvar
         $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
         $currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
         
-        $message = 'Configurações salvas com sucesso.';
+        // Verificar se realmente salvou
+        if ($currentFee == $feeFloat && $currentPix == $pix) {
+            $message = "✅ Configurações salvas e verificadas com sucesso!\n\nValor: R$ " . number_format($feeFloat, 2, ',', '') . "\nPIX: $pix";
+        } else {
+            $message = "⚠️ Configurações salvas, mas houve um problema na verificação. Recarregue a página.";
+        }
         $type = 'success';
     } catch (Exception $e) {
         $message = $e->getMessage();
@@ -106,9 +119,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
             <div class="actions">
                 <button type="submit" name="salvar_settings_express">Salvar</button>
                 <a href="index.php" target="_blank">Ver site</a>
+                <a href="debug_config.php" target="_blank" style="background:#333;padding:12px 18px;border-radius:8px;">🔍 Diagnóstico</a>
             </div>
         </form>
         <p style="margin-top:16px;color:#aaa;">As configurações são salvas em <code>config.json</code> e entram em vigor imediatamente.</p>
+        <p style="margin-top:8px;color:#888;font-size:0.9rem;">💡 Se as configurações não estiverem salvando, clique em "Diagnóstico" para verificar permissões.</p>
     </div>
 </body>
 </html>

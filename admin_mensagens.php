@@ -62,6 +62,8 @@ $defaults = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_mensagens'])) {
     try {
         $saved = 0;
+        $errors = [];
+        
         foreach ($etapas as $key => $etapa) {
             $msgKey = $etapa['key'];
             $mensagem = isset($_POST[$key]) ? trim($_POST[$key]) : '';
@@ -69,16 +71,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_mensagens'])) 
             if ($mensagem !== '') {
                 if (setDynamicConfig($msgKey, $mensagem)) {
                     $saved++;
+                } else {
+                    $errors[] = $etapa['nome'];
                 }
             }
         }
         
+        // Limpar cache
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+        clearstatcache(true, __DIR__ . '/config.json');
+        
         if ($saved > 0) {
-            $message = "{$saved} mensagem(ns) salva(s) com sucesso!";
+            $message = "✅ {$saved} mensagem(ns) salva(s) e verificada(s) com sucesso!";
+            if (!empty($errors)) {
+                $message .= "\n\n⚠️ Falha ao salvar: " . implode(', ', $errors);
+            }
             $type = 'success';
             writeLog("Mensagens WhatsApp personalizadas atualizadas: {$saved} mensagens", 'INFO');
         } else {
-            throw new Exception('Nenhuma mensagem foi salva. Verifique as permissões do arquivo config.json.');
+            throw new Exception('Nenhuma mensagem foi salva. Verifique as permissões do arquivo config.json. Execute debug_config.php para diagnóstico.');
         }
     } catch (Exception $e) {
         $message = $e->getMessage();
@@ -322,8 +335,15 @@ foreach ($etapas as $key => $etapa) {
             <div class="actions">
                 <button type="submit" name="salvar_mensagens">💾 Salvar Todas as Mensagens</button>
                 <a href="admin.php" style="padding: 12px 24px; display: inline-block;">Cancelar</a>
+                <a href="debug_config.php" target="_blank" style="padding: 12px 24px; display: inline-block; background: #333;">🔍 Diagnóstico</a>
             </div>
         </form>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px;">
+            <p style="margin: 0; color: #888; font-size: 0.9rem;">
+                💡 <strong style="color: #fff;">Dica:</strong> Se suas mensagens não estiverem salvando, clique em "Diagnóstico" para verificar permissões do arquivo config.json.
+            </p>
+        </div>
     </div>
 </body>
 </html>
