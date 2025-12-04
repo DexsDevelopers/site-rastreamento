@@ -310,9 +310,22 @@ async function start() {
 
     const { state, saveCreds } = await useMultiFileAuthState('./auth');
     
+    // Logger personalizado que silencia TUDO do Baileys
+    const silentLogger = pino({
+      level: 'silent',
+      enabled: false
+    });
+    silentLogger.child = () => silentLogger;
+    silentLogger.trace = () => {};
+    silentLogger.debug = () => {};
+    silentLogger.info = () => {};
+    silentLogger.warn = () => {};
+    silentLogger.error = () => {};
+    silentLogger.fatal = () => {};
+    
     sock = makeWASocket({
       auth: state,
-      logger: pino({ level: 'silent' }),
+      logger: silentLogger,
       version,
       browser: Browsers.appropriate('Desktop'),
       connectTimeoutMs: 60000,
@@ -321,7 +334,9 @@ async function start() {
       defaultQueryTimeoutMs: 60000,
       emitOwnEvents: false,
       markOnlineOnConnect: true,
-      syncFullHistory: false
+      syncFullHistory: false,
+      printQRInTerminal: false, // Desativa QR duplicado
+      getMessage: async () => undefined // Evita logs de mensagens antigas
     });
 
     sock.ev.on('creds.update', saveCreds);
