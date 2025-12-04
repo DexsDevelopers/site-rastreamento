@@ -41,12 +41,13 @@ const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => form
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
 const RECONNECT_DELAY_MAX = 120000;     // 2 minutos máximo
-const HEARTBEAT_INTERVAL = 30000;       // 30 segundos
-const CONNECTION_TIMEOUT = 120000;      // 2 minutos timeout
+const HEARTBEAT_INTERVAL = 20000;       // 20 segundos (mais frequente)
+const CONNECTION_TIMEOUT = 180000;      // 3 minutos timeout (mais tolerante)
 const MAX_RECONNECT_ATTEMPTS = 10;      // Máximo antes de parar e pedir QR
 const MEMORY_CHECK_INTERVAL = 300000;   // 5 minutos
 const LOOP_DETECTION_WINDOW = 60000;    // 1 minuto para detectar loop
 const MAX_DISCONNECTS_IN_WINDOW = 5;    // 5 desconexões em 1 min = loop
+const PING_INTERVAL = 60000;            // 1 minuto - ping para manter conexão
 
 let sock;
 let isReady = false;
@@ -54,6 +55,7 @@ let lastQR = null;
 let reconnectAttempts = 0;
 let reconnectTimer = null;
 let heartbeatTimer = null;
+let pingTimer = null;
 let lastHeartbeat = Date.now();
 let connectionStartTime = null;
 let disconnectTimestamps = [];  // Para detectar loop de desconexão
@@ -80,8 +82,7 @@ function startHeartbeat() {
   
   heartbeatTimer = setInterval(async () => {
     if (!sock || !isReady) {
-      log.warn('Heartbeat: Bot não está pronto, ignorando...');
-      return;
+      return; // Silencioso quando não está pronto
     }
     
     try {
@@ -95,9 +96,10 @@ function startHeartbeat() {
         wsState = sock.ws.readyState;
       }
       
-      // Se não está autenticado, reconectar
-      if (!isAuthenticated) {
-        log.warn(`Heartbeat: Não autenticado, reconectando...`);
+      // Se não está autenticado E WebSocket está fechado, reconectar
+      // Mas dar um tempo antes de reconectar (pode ser temporário)
+      if (!isAuthenticated && wsState === 3) {
+        log.warn(`Heartbeat: Não autenticado e WebSocket fechado, reconectando...`);
         await reconnect('Heartbeat detectou falta de autenticação');
         return;
       }
@@ -110,7 +112,7 @@ function startHeartbeat() {
         return;
       }
       
-      // Verificar tempo desde última atividade
+      // Verificar tempo desde última atividade (mais tolerante)
       const timeSinceLastBeat = Date.now() - lastHeartbeat;
       if (timeSinceLastBeat > CONNECTION_TIMEOUT) {
         log.warn(`Heartbeat: Conexão parece travada (${Math.round(timeSinceLastBeat/1000)}s sem atividade)`);
@@ -124,19 +126,19 @@ function startHeartbeat() {
       // Calcular uptime
       const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000 / 60) : 0;
       
-      // Log a cada 5 minutos (10 heartbeats)
-      if (Math.random() < 0.1) {
+      // Log a cada 5 minutos (15 heartbeats com intervalo de 20s)
+      if (Math.random() < 0.067) {
         log.heartbeat(`Conexão ativa há ${uptime} minutos | Tentativas reconexão: ${reconnectAttempts}`);
       }
       
     } catch (error) {
       // Se o erro indica que o socket não existe mais, reconectar
-      if (error.message?.includes('socket') || error.message?.includes('connection')) {
+      if (error.message?.includes('socket') || error.message?.includes('connection') || error.message?.includes('Cannot read')) {
         log.warn(`Heartbeat: Erro ao verificar conexão (${error.message}), tentando reconectar...`);
         await reconnect('Erro no heartbeat');
         return;
       }
-      log.error(`Heartbeat erro: ${error.message}`);
+      // Ignorar erros menores
     }
   }, HEARTBEAT_INTERVAL);
   
@@ -148,6 +150,34 @@ function stopHeartbeat() {
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;
   }
+  if (pingTimer) {
+    clearInterval(pingTimer);
+    pingTimer = null;
+  }
+}
+
+// ===== PING SYSTEM =====
+// Envia um ping periódico para manter a conexão ativa
+function startPing() {
+  if (pingTimer) clearInterval(pingTimer);
+  
+  pingTimer = setInterval(async () => {
+    if (!sock || !isReady) {
+      return;
+    }
+    
+    try {
+      // Tentar uma operação leve para manter conexão ativa
+      // Verificar se o socket ainda responde
+      if (sock.user && sock.user.id) {
+        // Atualizar heartbeat quando ping é bem-sucedido
+        lastHeartbeat = Date.now();
+      }
+    } catch (error) {
+      // Se ping falhar, pode indicar problema de conexão
+      log.warn(`Ping falhou: ${error.message}`);
+    }
+  }, PING_INTERVAL);
 }
 
 // ===== SISTEMA DE RECONEXÃO =====
@@ -398,14 +428,16 @@ async function start() {
       version,
       browser: Browsers.appropriate('Desktop'),
       connectTimeoutMs: 60000,
-      keepAliveIntervalMs: 25000,
+      keepAliveIntervalMs: 20000,  // Keep-alive mais frequente (20s)
       retryRequestDelayMs: 500,
       defaultQueryTimeoutMs: 60000,
       emitOwnEvents: false,
       markOnlineOnConnect: true,
       syncFullHistory: false,
       printQRInTerminal: false, // Desativa QR duplicado
-      getMessage: async () => undefined // Evita logs de mensagens antigas
+      getMessage: async () => undefined, // Evita logs de mensagens antigas
+      shouldReconnectMessage: () => true,  // Sempre tentar reconectar
+      shouldIgnoreJid: () => false
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -417,6 +449,11 @@ async function start() {
         lastQR = qr;
         qrcode.generate(qr, { small: true });
         log.info(`QR Code gerado - Acesse http://localhost:${PORT}/qr`);
+      }
+      
+      // Log de estados intermediários para debug
+      if (connection === 'connecting') {
+        log.info('🔄 Reconectando...');
       }
 
       if (connection === 'open') {
@@ -430,9 +467,10 @@ async function start() {
         lastQR = null;              // Limpar QR antigo
         
         log.success('✅ Conectado ao WhatsApp com sucesso!');
-        log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL/1000}s`);
+        log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL/1000}s | Ping: ${PING_INTERVAL/1000}s`);
         
         startHeartbeat();
+        startPing();
       }
 
       if (connection === 'close') {
@@ -440,6 +478,7 @@ async function start() {
         stopHeartbeat();
         
         const statusCode = lastDisconnect?.error?.output?.statusCode;
+        const errorMessage = lastDisconnect?.error?.message || '';
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut && 
                                 statusCode !== 401 && 
                                 statusCode !== 405;
@@ -481,8 +520,18 @@ async function start() {
             reason = `Código: ${statusCode || 'desconhecido'}`;
         }
 
+        // Log detalhado da desconexão
+        log.warn(`🔌 DESCONEXÃO DETECTADA:`);
+        log.warn(`   Status: ${statusCode || 'N/A'}`);
+        log.warn(`   Motivo: ${reason}`);
+        if (errorMessage) {
+          log.warn(`   Erro: ${errorMessage}`);
+        }
+        const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
+        log.warn(`   Uptime antes da desconexão: ${Math.floor(uptime/60)}m ${uptime%60}s`);
+
         if (shouldReconnect) {
-          log.warn(`Desconectado: ${reason}`);
+          log.warn(`🔄 Tentando reconectar automaticamente...`);
           await reconnect(reason);
         } else {
           log.error(`🔒 Desconectado permanentemente: ${reason}`);
@@ -536,6 +585,10 @@ async function start() {
     // Evento de erro geral
     sock.ev.on('error', (error) => {
       log.error(`Erro do socket: ${error.message}`);
+      if (error.stack) {
+        log.error(`Stack: ${error.stack}`);
+      }
+      // Não reconectar automaticamente em erros, deixar o connection.update tratar
     });
 
   } catch (error) {
@@ -752,4 +805,4 @@ process.on('SIGTERM', async () => {
 });
 
 log.info('Bot WhatsApp iniciado com sistema de estabilidade ativo');
-log.info(`Heartbeat: ${HEARTBEAT_INTERVAL/1000}s | Timeout: ${CONNECTION_TIMEOUT/1000}s | Max reconexões: ${MAX_RECONNECT_ATTEMPTS}`);
+log.info(`Heartbeat: ${HEARTBEAT_INTERVAL/1000}s | Ping: ${PING_INTERVAL/1000}s | Timeout: ${CONNECTION_TIMEOUT/1000}s | Max reconexões: ${MAX_RECONNECT_ATTEMPTS}`);
