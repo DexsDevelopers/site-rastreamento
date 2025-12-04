@@ -39,12 +39,14 @@ const ADMIN_API_URL = process.env.ADMIN_API_URL || 'https://cornflowerblue-fly-8
 const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
-const RECONNECT_DELAY_MIN = 3000;       // 3 segundos mínimo
-const RECONNECT_DELAY_MAX = 60000;      // 1 minuto máximo
+const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
+const RECONNECT_DELAY_MAX = 120000;     // 2 minutos máximo
 const HEARTBEAT_INTERVAL = 30000;       // 30 segundos
 const CONNECTION_TIMEOUT = 120000;      // 2 minutos timeout
-const MAX_RECONNECT_ATTEMPTS = 50;      // Máximo de tentativas antes de resetar
+const MAX_RECONNECT_ATTEMPTS = 10;      // Máximo antes de parar e pedir QR
 const MEMORY_CHECK_INTERVAL = 300000;   // 5 minutos
+const LOOP_DETECTION_WINDOW = 60000;    // 1 minuto para detectar loop
+const MAX_DISCONNECTS_IN_WINDOW = 5;    // 5 desconexões em 1 min = loop
 
 let sock;
 let isReady = false;
@@ -54,6 +56,8 @@ let reconnectTimer = null;
 let heartbeatTimer = null;
 let lastHeartbeat = Date.now();
 let connectionStartTime = null;
+let disconnectTimestamps = [];  // Para detectar loop de desconexão
+let isInLoopState = false;      // Flag de loop detectado
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
@@ -141,15 +145,46 @@ async function reconnect(reason = 'Desconhecido') {
     reconnectTimer = null;
   }
   
+  // Registrar timestamp de desconexão
+  const now = Date.now();
+  disconnectTimestamps.push(now);
+  
+  // Limpar timestamps antigos (fora da janela)
+  disconnectTimestamps = disconnectTimestamps.filter(ts => now - ts < LOOP_DETECTION_WINDOW);
+  
+  // Detectar loop de desconexão
+  if (disconnectTimestamps.length >= MAX_DISCONNECTS_IN_WINDOW) {
+    isInLoopState = true;
+    log.error('🔴 LOOP DE DESCONEXÃO DETECTADO!');
+    log.error(`${disconnectTimestamps.length} desconexões em ${LOOP_DETECTION_WINDOW/1000} segundos`);
+    log.error('');
+    log.error('╔══════════════════════════════════════════════════════════╗');
+    log.error('║  AÇÃO NECESSÁRIA: Sessão inválida ou corrompida          ║');
+    log.error('║                                                          ║');
+    log.error('║  1. Pare o bot (Ctrl+C)                                  ║');
+    log.error('║  2. Delete a pasta: whatsapp-bot/auth                    ║');
+    log.error('║  3. Reinicie: npm run dev                                ║');
+    log.error('║  4. Escaneie o QR Code novamente                         ║');
+    log.error('╚══════════════════════════════════════════════════════════╝');
+    log.error('');
+    log.error('Bot pausado. Aguardando intervenção manual...');
+    
+    // Parar de tentar reconectar
+    stopHeartbeat();
+    return;
+  }
+  
   reconnectAttempts++;
   
   if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
-    log.error(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido. Resetando contador...`);
-    reconnectAttempts = 0;
+    log.error(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido.`);
+    log.error('Provavelmente a sessão expirou. Delete a pasta ./auth e escaneie QR novamente.');
+    isInLoopState = true;
+    return;
   }
   
   const delay = calculateReconnectDelay();
-  log.warn(`Reconexão #${reconnectAttempts} em ${delay}ms. Motivo: ${reason}`);
+  log.warn(`Reconexão #${reconnectAttempts} em ${Math.round(delay/1000)}s. Motivo: ${reason}`);
   
   reconnectTimer = setTimeout(async () => {
     try {
@@ -353,8 +388,11 @@ async function start() {
       if (connection === 'open') {
         isReady = true;
         reconnectAttempts = 0;
+        disconnectTimestamps = [];  // Limpar histórico de desconexões
+        isInLoopState = false;      // Sair do estado de loop
         connectionStartTime = Date.now();
         lastHeartbeat = Date.now();
+        lastQR = null;              // Limpar QR antigo
         
         log.success('✅ Conectado ao WhatsApp com sucesso!');
         log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL/1000}s`);
@@ -488,13 +526,16 @@ app.get('/status', (req, res) => {
   const memUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
   
   res.json({ 
-    ok: true, 
+    ok: !isInLoopState, 
     ready: isReady,
+    loopState: isInLoopState,
     uptime: uptime,
     uptimeFormatted: `${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m ${uptime%60}s`,
     reconnectAttempts: reconnectAttempts,
+    recentDisconnects: disconnectTimestamps.length,
     memoryMB: memUsed,
-    lastHeartbeat: new Date(lastHeartbeat).toISOString()
+    lastHeartbeat: new Date(lastHeartbeat).toISOString(),
+    message: isInLoopState ? 'LOOP DETECTADO - Delete ./auth e reinicie' : 'OK'
   });
 });
 
@@ -611,9 +652,25 @@ app.post('/check', auth, async (req, res) => {
 
 // Forçar reconexão (admin)
 app.post('/reconnect', auth, async (req, res) => {
+  if (isInLoopState) {
+    return res.json({ 
+      ok: false, 
+      message: 'Bot está em estado de loop. Delete a pasta ./auth e reinicie.',
+      loopState: true
+    });
+  }
   log.warn('Reconexão forçada via API');
   await reconnect('Solicitação via API');
   res.json({ ok: true, message: 'Reconexão iniciada' });
+});
+
+// Resetar estado de loop (admin)
+app.post('/reset-loop', auth, async (req, res) => {
+  log.warn('Reset de estado de loop via API');
+  isInLoopState = false;
+  disconnectTimestamps = [];
+  reconnectAttempts = 0;
+  res.json({ ok: true, message: 'Estado de loop resetado. Use /reconnect para reconectar.' });
 });
 
 // ===== INICIALIZAÇÃO =====
