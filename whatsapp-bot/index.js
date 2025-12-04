@@ -1,5 +1,7 @@
 /* WhatsApp Bot local - Baileys + Express
  * - Exibe QR no console para logar
+ * - Sistema de reconexão automática
+ * - Heartbeat para manter conexão ativa
  * - Endpoints:
  *   GET  /status
  *   GET  /qr
@@ -36,45 +38,177 @@ const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000)
 const ADMIN_API_URL = process.env.ADMIN_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
 const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
 
+// ===== CONFIGURAÇÕES DE ESTABILIDADE =====
+const RECONNECT_DELAY_MIN = 3000;       // 3 segundos mínimo
+const RECONNECT_DELAY_MAX = 60000;      // 1 minuto máximo
+const HEARTBEAT_INTERVAL = 30000;       // 30 segundos
+const CONNECTION_TIMEOUT = 120000;      // 2 minutos timeout
+const MAX_RECONNECT_ATTEMPTS = 50;      // Máximo de tentativas antes de resetar
+const MEMORY_CHECK_INTERVAL = 300000;   // 5 minutos
+
 let sock;
 let isReady = false;
 let lastQR = null;
+let reconnectAttempts = 0;
+let reconnectTimer = null;
+let heartbeatTimer = null;
+let lastHeartbeat = Date.now();
+let connectionStartTime = null;
+
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
 const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number }
 
-// Processar comandos admin
+// ===== LOGS COLORIDOS =====
+const log = {
+  info: (msg) => console.log(`\x1b[36m[INFO]\x1b[0m ${new Date().toISOString()} - ${msg}`),
+  success: (msg) => console.log(`\x1b[32m[OK]\x1b[0m ${new Date().toISOString()} - ${msg}`),
+  warn: (msg) => console.log(`\x1b[33m[WARN]\x1b[0m ${new Date().toISOString()} - ${msg}`),
+  error: (msg) => console.log(`\x1b[31m[ERROR]\x1b[0m ${new Date().toISOString()} - ${msg}`),
+  heartbeat: (msg) => console.log(`\x1b[35m[💓]\x1b[0m ${new Date().toISOString()} - ${msg}`)
+};
+
+// ===== HEARTBEAT SYSTEM =====
+function startHeartbeat() {
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  
+  heartbeatTimer = setInterval(async () => {
+    if (!sock || !isReady) {
+      log.warn('Heartbeat: Bot não está pronto, ignorando...');
+      return;
+    }
+    
+    try {
+      // Verificar se o socket ainda está ativo
+      const state = sock.ws?.readyState;
+      
+      if (state !== 1) { // 1 = OPEN
+        log.warn(`Heartbeat: WebSocket não está aberto (state: ${state}), reconectando...`);
+        await reconnect('Heartbeat detectou WebSocket fechado');
+        return;
+      }
+      
+      // Verificar tempo desde última atividade
+      const timeSinceLastBeat = Date.now() - lastHeartbeat;
+      if (timeSinceLastBeat > CONNECTION_TIMEOUT) {
+        log.warn(`Heartbeat: Conexão parece travada (${Math.round(timeSinceLastBeat/1000)}s sem atividade)`);
+        await reconnect('Timeout de conexão detectado');
+        return;
+      }
+      
+      // Atualizar timestamp
+      lastHeartbeat = Date.now();
+      
+      // Calcular uptime
+      const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000 / 60) : 0;
+      
+      // Log a cada 5 minutos (10 heartbeats)
+      if (Math.random() < 0.1) {
+        log.heartbeat(`Conexão ativa há ${uptime} minutos | Tentativas reconexão: ${reconnectAttempts}`);
+      }
+      
+    } catch (error) {
+      log.error(`Heartbeat erro: ${error.message}`);
+    }
+  }, HEARTBEAT_INTERVAL);
+  
+  log.info('Sistema de heartbeat iniciado');
+}
+
+function stopHeartbeat() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+// ===== SISTEMA DE RECONEXÃO =====
+function calculateReconnectDelay() {
+  // Exponential backoff com jitter
+  const baseDelay = Math.min(
+    RECONNECT_DELAY_MIN * Math.pow(1.5, reconnectAttempts),
+    RECONNECT_DELAY_MAX
+  );
+  // Adicionar jitter (variação aleatória) para evitar thundering herd
+  const jitter = Math.random() * 1000;
+  return Math.round(baseDelay + jitter);
+}
+
+async function reconnect(reason = 'Desconhecido') {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  
+  reconnectAttempts++;
+  
+  if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+    log.error(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido. Resetando contador...`);
+    reconnectAttempts = 0;
+  }
+  
+  const delay = calculateReconnectDelay();
+  log.warn(`Reconexão #${reconnectAttempts} em ${delay}ms. Motivo: ${reason}`);
+  
+  reconnectTimer = setTimeout(async () => {
+    try {
+      stopHeartbeat();
+      if (sock) {
+        try { sock.end(); } catch (e) {}
+      }
+      await start();
+    } catch (error) {
+      log.error(`Falha na reconexão: ${error.message}`);
+      await reconnect('Erro na tentativa de reconexão');
+    }
+  }, delay);
+}
+
+// ===== MONITORAMENTO DE MEMÓRIA =====
+function checkMemory() {
+  const used = process.memoryUsage();
+  const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
+  const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
+  
+  if (heapUsedMB > 500) {
+    log.warn(`Memória alta: ${heapUsedMB}MB / ${heapTotalMB}MB`);
+    
+    // Forçar garbage collection se disponível
+    if (global.gc) {
+      log.info('Forçando garbage collection...');
+      global.gc();
+    }
+    
+    // Limpar caches antigos
+    const now = Date.now();
+    for (const [key, value] of lastReplyAt.entries()) {
+      if (now - value > AUTO_REPLY_WINDOW_MS * 2) {
+        lastReplyAt.delete(key);
+      }
+    }
+    for (const [key, value] of waitingPhoto.entries()) {
+      if (now - value.timestamp > 10 * 60 * 1000) {
+        waitingPhoto.delete(key);
+      }
+    }
+  }
+}
+
+// ===== PROCESSAMENTO DE COMANDOS =====
 async function processAdminCommand(from, text) {
   try {
-    // Extrair número limpo do JID
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     
-    // Logs detalhados
-    console.log(`[ADMIN] JID completo: ${from}`);
-    console.log(`[ADMIN] Número extraído: ${fromNumber}`);
-    console.log(`[ADMIN] Números admin permitidos:`, ADMIN_NUMBERS);
+    log.info(`Comando de ${fromNumber}: ${text}`);
     
-    // Separar comando e parâmetros
     const parts = text.trim().split(/\s+/);
-    const command = parts[0].substring(1).toLowerCase(); // Remove o /
+    const command = parts[0].substring(1).toLowerCase();
     const params = parts.slice(1);
-    
-    console.log(`[ADMIN] Comando: ${command}`, params);
-    
-    // A verificação de permissões será feita pela API PHP
-    
-    // Chamar API PHP do painel
-    console.log(`[ADMIN] Enviando para API: ${ADMIN_API_URL}/admin_bot_api.php`);
-    console.log(`[ADMIN] Dados:`, { command, params, from: fromNumber });
     
     const response = await axios.post(
       `${ADMIN_API_URL}/admin_bot_api.php`,
-      {
-        command,
-        params,
-        from: fromNumber
-      },
+      { command, params, from: fromNumber },
       {
         headers: {
           'Authorization': `Bearer ${API_TOKEN}`,
@@ -84,44 +218,37 @@ async function processAdminCommand(from, text) {
       }
     );
     
-    console.log(`[ADMIN] Resposta da API:`, response.data);
     const result = response.data;
     
-    // Se comando está aguardando foto, registrar
     if (result.waiting_photo && result.photo_codigo) {
       waitingPhoto.set(from, {
         codigo: result.photo_codigo,
         timestamp: Date.now()
       });
       
-      // Limpar após 5 minutos
       setTimeout(() => {
         waitingPhoto.delete(from);
       }, 5 * 60 * 1000);
     }
     
+    // Atualizar heartbeat
+    lastHeartbeat = Date.now();
+    
     return result;
   } catch (error) {
-    console.error('[ADMIN] Erro ao processar comando:', error.message);
-    if (error.response) {
-      console.error('[ADMIN] Status:', error.response.status);
-      console.error('[ADMIN] Dados:', error.response.data);
-    }
+    log.error(`Erro comando: ${error.message}`);
     return {
       success: false,
-      message: '❌ Erro ao processar comando.\n' + 
-               (error.response?.data?.message || error.message)
+      message: '❌ Erro ao processar comando.\n' + (error.response?.data?.message || error.message)
     };
   }
 }
 
-// Processar upload de foto
 async function processPhotoUpload(from, msg) {
   try {
     const waiting = waitingPhoto.get(from);
     if (!waiting) return false;
     
-    // Verificar se não expirou (5 minutos)
     if (Date.now() - waiting.timestamp > 5 * 60 * 1000) {
       waitingPhoto.delete(from);
       return false;
@@ -130,10 +257,7 @@ async function processPhotoUpload(from, msg) {
     const imageMessage = msg.message.imageMessage;
     if (!imageMessage) return false;
     
-    // Baixar a imagem
     const buffer = await sock.downloadMediaMessage(msg);
-    
-    // Enviar para o servidor PHP
     
     const form = new FormData();
     form.append('foto_pedido', buffer, {
@@ -156,17 +280,16 @@ async function processPhotoUpload(from, msg) {
       }
     );
     
-    // Limpar estado
     waitingPhoto.delete(from);
     
-    // Enviar confirmação
     await sock.sendMessage(from, { 
       text: response.data.message || '✅ Foto recebida e anexada ao pedido!'
     });
     
+    lastHeartbeat = Date.now();
     return true;
   } catch (error) {
-    console.error('[PHOTO] Erro ao processar foto:', error.message);
+    log.error(`Erro foto: ${error.message}`);
     waitingPhoto.delete(from);
     
     await sock.sendMessage(from, { 
@@ -177,135 +300,238 @@ async function processPhotoUpload(from, msg) {
   }
 }
 
+// ===== FUNÇÃO PRINCIPAL DE CONEXÃO =====
 async function start() {
-  const { version, isLatest } = await fetchLatestBaileysVersion();
-  console.log(`WhatsApp Web version: ${version?.join('.')} (latest=${isLatest})`);
+  try {
+    log.info('Iniciando conexão com WhatsApp...');
+    
+    const { version, isLatest } = await fetchLatestBaileysVersion();
+    log.info(`WhatsApp Web version: ${version?.join('.')} (latest=${isLatest})`);
 
-  const { state, saveCreds } = await useMultiFileAuthState('./auth');
-  sock = makeWASocket({
-    auth: state,
-    logger: pino({ level: 'silent' }),
-    version,
-    browser: Browsers.appropriate('Desktop')
-  });
+    const { state, saveCreds } = await useMultiFileAuthState('./auth');
+    
+    sock = makeWASocket({
+      auth: state,
+      logger: pino({ level: 'silent' }),
+      version,
+      browser: Browsers.appropriate('Desktop'),
+      connectTimeoutMs: 60000,
+      keepAliveIntervalMs: 25000,
+      retryRequestDelayMs: 500,
+      defaultQueryTimeoutMs: 60000,
+      emitOwnEvents: false,
+      markOnlineOnConnect: true,
+      syncFullHistory: false
+    });
 
-  sock.ev.on('creds.update', saveCreds);
+    sock.ev.on('creds.update', saveCreds);
 
-  sock.ev.on('connection.update', (update) => {
-    const { connection, lastDisconnect, qr } = update;
+    sock.ev.on('connection.update', async (update) => {
+      const { connection, lastDisconnect, qr } = update;
 
-    if (qr) {
-      lastQR = qr;
-      qrcode.generate(qr, { small: true });
-      console.log('Abra http://localhost:' + PORT + '/qr para escanear o QR em alta qualidade.');
-    }
-
-    if (connection === 'open') {
-      isReady = true;
-      console.log('✅ Conectado ao WhatsApp');
-    }
-
-    if (connection === 'close') {
-      isReady = false;
-      const code = lastDisconnect?.error?.output?.statusCode;
-      let hint = '';
-      switch (code) {
-        case DisconnectReason.loggedOut:
-        case 401: hint = 'Sessão expirada/deslogada. Apague ./auth e escaneie QR novamente.'; break;
-        case 405: hint = 'Sessão inválida (405). Apague ./auth e refaça o login.'; break;
-        case DisconnectReason.connectionReplaced:
-        case 409: hint = 'Conexão substituída por outro login do mesmo número.'; break;
-        case DisconnectReason.restartRequired:
-        case 410: hint = 'Reinício requerido. Tentando reconectar...'; break;
-        default: hint = 'Tentando reconectar...';
+      if (qr) {
+        lastQR = qr;
+        qrcode.generate(qr, { small: true });
+        log.info(`QR Code gerado - Acesse http://localhost:${PORT}/qr`);
       }
 
-      if (![DisconnectReason.loggedOut, 401, 405].includes(code)) {
-        console.log(`♻️ Reconectando... ${code || ''} ${hint}`);
-        start().catch(console.error);
-      } else {
-        console.log(`🔒 Desconectado: ${code || ''}. ${hint}`);
+      if (connection === 'open') {
+        isReady = true;
+        reconnectAttempts = 0;
+        connectionStartTime = Date.now();
+        lastHeartbeat = Date.now();
+        
+        log.success('✅ Conectado ao WhatsApp com sucesso!');
+        log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL/1000}s`);
+        
+        startHeartbeat();
       }
-    }
-  });
 
-  sock.ev.on('messages.upsert', async (m) => {
-    try {
-      const msg = m.messages?.[0];
-      if (!msg?.message || msg.key.fromMe) return;
-      const remoteJid = msg.key.remoteJid;
-      const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
-      
-      // Verificar se é comando admin (começa com /)
-      if (text.startsWith('/')) {
-        const result = await processAdminCommand(remoteJid, text);
-        if (result.message) {
-          await sock.sendMessage(remoteJid, { text: result.message });
+      if (connection === 'close') {
+        isReady = false;
+        stopHeartbeat();
+        
+        const statusCode = lastDisconnect?.error?.output?.statusCode;
+        const shouldReconnect = statusCode !== DisconnectReason.loggedOut && 
+                                statusCode !== 401 && 
+                                statusCode !== 405;
+        
+        let reason = '';
+        switch (statusCode) {
+          case DisconnectReason.loggedOut:
+          case 401: 
+            reason = 'Sessão deslogada. Apague ./auth e escaneie QR novamente.'; 
+            break;
+          case 405: 
+            reason = 'Sessão inválida. Apague ./auth e refaça login.'; 
+            break;
+          case DisconnectReason.connectionReplaced:
+          case 409: 
+            reason = 'Outra sessão aberta substituiu esta conexão.'; 
+            break;
+          case DisconnectReason.connectionClosed:
+          case 428: 
+            reason = 'Conexão fechada pelo servidor.'; 
+            break;
+          case DisconnectReason.connectionLost:
+          case 408: 
+            reason = 'Conexão perdida (timeout ou rede).'; 
+            break;
+          case DisconnectReason.timedOut:
+          case 440: 
+            reason = 'Timeout de conexão.'; 
+            break;
+          case DisconnectReason.restartRequired:
+          case 410: 
+            reason = 'Reinício necessário pelo WhatsApp.'; 
+            break;
+          case DisconnectReason.multideviceMismatch:
+          case 411: 
+            reason = 'Conflito de multi-dispositivo.'; 
+            break;
+          default: 
+            reason = `Código: ${statusCode || 'desconhecido'}`;
         }
-        return;
-      }
-      
-      // Verificar se está aguardando foto
-      if (msg.message.imageMessage && waitingPhoto.has(remoteJid)) {
-        await processPhotoUpload(remoteJid, msg);
-        return;
-      }
 
-      // Auto-resposta opcional (desativada por padrão)
-      if (AUTO_REPLY) {
-        const now = Date.now();
-        const last = lastReplyAt.get(remoteJid) || 0;
-        if (now - last > AUTO_REPLY_WINDOW_MS) {
-          const lower = (text || '').toLowerCase();
-          if (lower.includes('oi') || lower.includes('olá') || lower.includes('ola')) {
-            await sock.sendMessage(remoteJid, { text: 'Olá! Como posso ajudar?\n\nDigite */menu* para ver os comandos disponíveis.' });
-            lastReplyAt.set(remoteJid, now);
+        if (shouldReconnect) {
+          log.warn(`Desconectado: ${reason}`);
+          await reconnect(reason);
+        } else {
+          log.error(`🔒 Desconectado permanentemente: ${reason}`);
+          log.error('Ação necessária: Apague a pasta ./auth e reinicie o bot.');
+        }
+      }
+    });
+
+    sock.ev.on('messages.upsert', async (m) => {
+      try {
+        const msg = m.messages?.[0];
+        if (!msg?.message || msg.key.fromMe) return;
+        
+        const remoteJid = msg.key.remoteJid;
+        const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        
+        // Atualizar heartbeat em qualquer mensagem recebida
+        lastHeartbeat = Date.now();
+        
+        if (text.startsWith('/')) {
+          const result = await processAdminCommand(remoteJid, text);
+          if (result.message) {
+            await sock.sendMessage(remoteJid, { text: result.message });
+          }
+          return;
+        }
+        
+        if (msg.message.imageMessage && waitingPhoto.has(remoteJid)) {
+          await processPhotoUpload(remoteJid, msg);
+          return;
+        }
+
+        if (AUTO_REPLY) {
+          const now = Date.now();
+          const last = lastReplyAt.get(remoteJid) || 0;
+          if (now - last > AUTO_REPLY_WINDOW_MS) {
+            const lower = (text || '').toLowerCase();
+            if (lower.includes('oi') || lower.includes('olá') || lower.includes('ola')) {
+              await sock.sendMessage(remoteJid, { 
+                text: 'Olá! Como posso ajudar?\n\nDigite */menu* para ver os comandos disponíveis.' 
+              });
+              lastReplyAt.set(remoteJid, now);
+            }
           }
         }
+      } catch (e) { 
+        log.error(`Erro ao processar mensagem: ${e.message}`);
       }
-    } catch (e) { console.error(e); }
-  });
+    });
+    
+    // Evento de erro geral
+    sock.ev.on('error', (error) => {
+      log.error(`Erro do socket: ${error.message}`);
+    });
+
+  } catch (error) {
+    log.error(`Erro fatal ao iniciar: ${error.message}`);
+    await reconnect('Erro fatal na inicialização');
+  }
 }
 
-// Middleware de autenticação
+// ===== MIDDLEWARE DE AUTENTICAÇÃO =====
 function auth(req, res, next) {
   const token = req.headers['x-api-token'];
-  if (!API_TOKEN || token !== API_TOKEN) return res.status(401).json({ ok: false, error: 'unauthorized' });
+  if (!API_TOKEN || token !== API_TOKEN) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
   next();
 }
 
+// ===== ENDPOINTS =====
+
 // Status
-app.get('/status', (req, res) => res.json({ ok: true, ready: isReady }));
+app.get('/status', (req, res) => {
+  const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
+  const memUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+  
+  res.json({ 
+    ok: true, 
+    ready: isReady,
+    uptime: uptime,
+    uptimeFormatted: `${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m ${uptime%60}s`,
+    reconnectAttempts: reconnectAttempts,
+    memoryMB: memUsed,
+    lastHeartbeat: new Date(lastHeartbeat).toISOString()
+  });
+});
 
 // QR Code
 app.get('/qr', async (req, res) => {
-  if (!lastQR) return res.status(404).send('<html><body style="background:#111;color:#eee;font-family:sans-serif"><h3>Nenhum QR disponível</h3></body></html>');
+  if (!lastQR) {
+    return res.status(404).send(`
+      <html><body style="background:#111;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
+        <div style="text-align:center">
+          <h3>Nenhum QR disponível</h3>
+          <p>O bot já está conectado ou aguardando inicialização.</p>
+          <a href="/status" style="color:#4fc3f7">Ver status</a>
+        </div>
+      </body></html>
+    `);
+  }
   try {
     const dataUrl = await QRCodeImg.toDataURL(lastQR, { scale: 8, margin: 1 });
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.end(`<html><body style="background:#0f0f10;color:#eee;font-family:system-ui;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh">
-      <div style="text-align:center">
-        <h3>Escaneie o QR Code</h3>
-        <img src="${dataUrl}" style="image-rendering: pixelated; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.5)" />
-      </div></body></html>`);
+    res.end(`
+      <html><body style="background:#0f0f10;color:#eee;font-family:system-ui;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh">
+        <div style="text-align:center">
+          <h3>Escaneie o QR Code</h3>
+          <img src="${dataUrl}" style="image-rendering: pixelated; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.5)" />
+          <p style="margin-top:20px;color:#888">Após escanear, esta página mostrará "Nenhum QR disponível"</p>
+        </div>
+      </body></html>
+    `);
   } catch (e) {
     res.status(500).send('Falha ao gerar QR');
   }
 });
 
-// Resolve JID preferindo LID mapeado pelo onWhatsApp (Baileys v7+)
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    status: isReady ? 'healthy' : 'unhealthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Resolve JID
 async function resolveJidFromPhone(digits) {
-  // Tentativa inicial usando PN JID
   const pnJid = `${digits}@s.whatsapp.net`;
   try {
     const res = await sock.onWhatsApp(pnJid);
     if (Array.isArray(res) && res.length > 0) {
       const item = res[0];
-      const mapped = item?.jid || pnJid; // pode vir ...@lid
+      const mapped = item?.jid || pnJid;
       const exists = !!item?.exists || !!item?.isBusiness || !!item?.isEnterprise;
       return { exists, pnJid, mappedJid: mapped };
     }
-    // Alguns ambientes retornam objeto único
     const exists = !!res?.exists;
     const mapped = res?.jid || pnJid;
     return { exists, pnJid, mappedJid: mapped };
@@ -314,7 +540,7 @@ async function resolveJidFromPhone(digits) {
   }
 }
 
-// Envio de mensagens robusto (com suporte a LID)
+// Enviar mensagem
 app.post('/send', auth, async (req, res) => {
   try {
     if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
@@ -324,32 +550,29 @@ app.post('/send', auth, async (req, res) => {
 
     const digits = formatBrazilNumber(to);
     const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
+    
     if (!exists) {
-      return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, pnJid, mappedJid, detail: error });
+      return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
     }
-    console.log(`[SEND] Preparando para enviar mensagem`, { digits, pnJid, mappedJid });
 
-    try {
-      await sock.sendMessage(mappedJid, { text });
-      console.log(`[SEND] ✅ Mensagem enviada`, { digits, mappedJid });
-      return res.json({ ok: true, to: digits, jid: mappedJid });
-    } catch (err) {
-      console.error(`[SEND] ❌ Falha ao enviar`, digits, mappedJid, err?.message || err);
-
-      // Detecta erro de número inexistente
-      if (err?.output?.statusCode === 400 || err?.message?.includes('not a WhatsApp user')) {
-        return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, jid: mappedJid });
-      }
-
-      return res.status(500).json({ ok: false, error: err.message || 'unknown_error' });
+    await sock.sendMessage(mappedJid, { text });
+    lastHeartbeat = Date.now();
+    
+    log.info(`Mensagem enviada para ${digits}`);
+    return res.json({ ok: true, to: digits, jid: mappedJid });
+    
+  } catch (err) {
+    log.error(`Erro ao enviar: ${err.message}`);
+    
+    if (err?.output?.statusCode === 400 || err?.message?.includes('not a WhatsApp user')) {
+      return res.status(400).json({ ok: false, error: 'number_not_registered' });
     }
-  } catch (e) {
-    console.error('[SEND] Erro geral:', e);
-    res.status(500).json({ ok: false, error: e.message });
+    
+    return res.status(500).json({ ok: false, error: err.message || 'unknown_error' });
   }
 });
 
-// Check prático de número (retorna JID mapeado/LID quando existir)
+// Verificar número
 app.post('/check', auth, async (req, res) => {
   try {
     if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
@@ -359,15 +582,67 @@ app.post('/check', auth, async (req, res) => {
 
     const digits = formatBrazilNumber(to);
     const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
+    
     if (!exists) {
-      return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, pnJid, mappedJid, detail: error });
+      return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
     }
+    
     return res.json({ ok: true, to: digits, jid: mappedJid });
   } catch (e) {
-    console.error('[CHECK] Erro geral:', e);
+    log.error(`Erro ao verificar: ${e.message}`);
     res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-app.listen(PORT, () => console.log(`API WhatsApp rodando em http://localhost:${PORT}`));
-start().catch(console.error);
+// Forçar reconexão (admin)
+app.post('/reconnect', auth, async (req, res) => {
+  log.warn('Reconexão forçada via API');
+  await reconnect('Solicitação via API');
+  res.json({ ok: true, message: 'Reconexão iniciada' });
+});
+
+// ===== INICIALIZAÇÃO =====
+app.listen(PORT, () => {
+  log.success(`API WhatsApp rodando em http://localhost:${PORT}`);
+  log.info('Endpoints: /status, /qr, /health, /send, /check, /reconnect');
+});
+
+// Iniciar conexão
+start().catch((err) => {
+  log.error(`Erro ao iniciar: ${err.message}`);
+});
+
+// Monitoramento de memória
+setInterval(checkMemory, MEMORY_CHECK_INTERVAL);
+
+// Tratamento de erros não capturados
+process.on('uncaughtException', (err) => {
+  log.error(`Exceção não capturada: ${err.message}`);
+  log.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  log.error(`Promise rejeitada: ${reason}`);
+});
+
+// Tratamento de sinais de término
+process.on('SIGINT', async () => {
+  log.warn('Recebido SIGINT, encerrando...');
+  stopHeartbeat();
+  if (sock) {
+    try { sock.end(); } catch (e) {}
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  log.warn('Recebido SIGTERM, encerrando...');
+  stopHeartbeat();
+  if (sock) {
+    try { sock.end(); } catch (e) {}
+  }
+  process.exit(0);
+});
+
+log.info('Bot WhatsApp iniciado com sistema de estabilidade ativo');
+log.info(`Heartbeat: ${HEARTBEAT_INTERVAL/1000}s | Timeout: ${CONNECTION_TIMEOUT/1000}s | Max reconexões: ${MAX_RECONNECT_ATTEMPTS}`);
