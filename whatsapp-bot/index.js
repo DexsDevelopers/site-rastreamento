@@ -58,6 +58,7 @@ let lastHeartbeat = Date.now();
 let connectionStartTime = null;
 let disconnectTimestamps = [];  // Para detectar loop de desconexão
 let isInLoopState = false;      // Flag de loop detectado
+let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
@@ -84,11 +85,27 @@ function startHeartbeat() {
     }
     
     try {
-      // Verificar se o socket ainda está ativo
-      const state = sock.ws?.readyState;
+      // Verificação mais robusta da conexão
+      // No Baileys, sock.user existe quando autenticado e conectado
+      const isAuthenticated = sock.user && sock.user.id;
       
-      if (state !== 1) { // 1 = OPEN
-        log.warn(`Heartbeat: WebSocket não está aberto (state: ${state}), reconectando...`);
+      // Verificar WebSocket apenas se disponível (pode ser undefined em algumas versões)
+      let wsState = null;
+      if (sock.ws) {
+        wsState = sock.ws.readyState;
+      }
+      
+      // Se não está autenticado, reconectar
+      if (!isAuthenticated) {
+        log.warn(`Heartbeat: Não autenticado, reconectando...`);
+        await reconnect('Heartbeat detectou falta de autenticação');
+        return;
+      }
+      
+      // Se WebSocket está explicitamente fechado (3 = CLOSED), reconectar
+      // Mas ignorar se wsState for undefined (normal em algumas versões do Baileys)
+      if (wsState !== null && wsState === 3) {
+        log.warn(`Heartbeat: WebSocket fechado (state: ${wsState}), reconectando...`);
         await reconnect('Heartbeat detectou WebSocket fechado');
         return;
       }
@@ -113,6 +130,12 @@ function startHeartbeat() {
       }
       
     } catch (error) {
+      // Se o erro indica que o socket não existe mais, reconectar
+      if (error.message?.includes('socket') || error.message?.includes('connection')) {
+        log.warn(`Heartbeat: Erro ao verificar conexão (${error.message}), tentando reconectar...`);
+        await reconnect('Erro no heartbeat');
+        return;
+      }
       log.error(`Heartbeat erro: ${error.message}`);
     }
   }, HEARTBEAT_INTERVAL);
@@ -140,6 +163,12 @@ function calculateReconnectDelay() {
 }
 
 async function reconnect(reason = 'Desconhecido') {
+  // Evitar reconexões simultâneas
+  if (isReconnecting) {
+    log.warn(`Reconexão já em andamento, ignorando nova solicitação: ${reason}`);
+    return;
+  }
+  
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
@@ -171,6 +200,7 @@ async function reconnect(reason = 'Desconhecido') {
     
     // Parar de tentar reconectar
     stopHeartbeat();
+    isReconnecting = false;
     return;
   }
   
@@ -180,6 +210,7 @@ async function reconnect(reason = 'Desconhecido') {
     log.error(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido.`);
     log.error('Provavelmente a sessão expirou. Delete a pasta ./auth e escaneie QR novamente.');
     isInLoopState = true;
+    isReconnecting = false;
     return;
   }
   
@@ -187,14 +218,17 @@ async function reconnect(reason = 'Desconhecido') {
   log.warn(`Reconexão #${reconnectAttempts} em ${Math.round(delay/1000)}s. Motivo: ${reason}`);
   
   reconnectTimer = setTimeout(async () => {
+    isReconnecting = true;
     try {
       stopHeartbeat();
       if (sock) {
         try { sock.end(); } catch (e) {}
       }
       await start();
+      isReconnecting = false;
     } catch (error) {
       log.error(`Falha na reconexão: ${error.message}`);
+      isReconnecting = false;
       await reconnect('Erro na tentativa de reconexão');
     }
   }, delay);
@@ -390,6 +424,7 @@ async function start() {
         reconnectAttempts = 0;
         disconnectTimestamps = [];  // Limpar histórico de desconexões
         isInLoopState = false;      // Sair do estado de loop
+        isReconnecting = false;     // Resetar flag de reconexão
         connectionStartTime = Date.now();
         lastHeartbeat = Date.now();
         lastQR = null;              // Limpar QR antigo
