@@ -638,6 +638,45 @@ if (isset($_POST['undo_action'])) {
     }
 }
 
+// Enviar WhatsApp manualmente (AJAX)
+if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
+    header('Content-Type: application/json');
+    $codigo = sanitizeInput($_POST['codigo']);
+    
+    try {
+        $contato = getWhatsappContact($pdo, $codigo);
+        
+        if (!$contato) {
+            echo json_encode(['success' => false, 'message' => 'Contato WhatsApp não encontrado para este código.']);
+            exit;
+        }
+        
+        if ((int) $contato['notificacoes_ativas'] !== 1) {
+            echo json_encode(['success' => false, 'message' => 'Notificações WhatsApp estão desativadas para este código.']);
+            exit;
+        }
+        
+        if (empty($contato['telefone_normalizado'])) {
+            echo json_encode(['success' => false, 'message' => 'Telefone WhatsApp não cadastrado para este código.']);
+            exit;
+        }
+        
+        notifyWhatsappLatestStatus($pdo, $codigo);
+        
+        echo json_encode([
+            'success' => true, 
+            'message' => "Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
+        ]);
+        writeLog("Envio manual de WhatsApp para código {$codigo} solicitado pelo admin", 'INFO');
+        exit;
+        
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Erro ao enviar: ' . $e->getMessage()]);
+        writeLog("Erro ao enviar WhatsApp manual para {$codigo}: " . $e->getMessage(), 'ERROR');
+        exit;
+    }
+}
+
 // (Sem configurações de site persistidas)
 ?>
 <!DOCTYPE html>
@@ -2497,6 +2536,9 @@ body {
                                 <button class='btn btn-info btn-sm' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver detalhes'>
                                     <i class='fas fa-eye'></i>
                                 </button>
+                                <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp'>
+                                    <i class='fab fa-whatsapp'></i>
+                                </button>
                                 <form method='POST' style='display:inline' onsubmit='return confirm(\"Tem certeza que deseja excluir este rastreio?\")'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                     <button type='submit' name='deletar' class='btn btn-danger btn-sm' title='Excluir'>
@@ -2548,6 +2590,7 @@ body {
                         <div class='card-actions'>
                             <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
                             <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
+                            <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\"><i class='fab fa-whatsapp'></i> WhatsApp</button>
                             <form method='POST' onsubmit=\"return confirm('Tem certeza que deseja excluir este rastreio?')\" style='display:inline'>
                                 <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                 <button type='submit' name='deletar' class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
@@ -3728,6 +3771,56 @@ function refreshCronLogs() {
 }
 
 document.addEventListener('DOMContentLoaded', refreshCronLogs);
+
+// Função para enviar WhatsApp manualmente
+function enviarWhatsappManual(codigo) {
+    if (!codigo) {
+        notifyError('Código inválido');
+        return;
+    }
+    
+    // Desabilitar botão durante o envio
+    const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"]`);
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    });
+    
+    notifyInfo('Enviando notificação WhatsApp...');
+    
+    const formData = new FormData();
+    formData.append('enviar_whatsapp_manual', '1');
+    formData.append('codigo', codigo);
+    
+    fetch('admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reabilitar botões
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fab fa-whatsapp"></i>';
+        });
+        
+        if (data.success) {
+            notifySuccess(data.message || 'Notificação enviada com sucesso!');
+        } else {
+            notifyError(data.message || 'Erro ao enviar notificação');
+        }
+    })
+    .catch(error => {
+        // Reabilitar botões
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fab fa-whatsapp"></i>';
+        });
+        
+        notifyError('Erro ao enviar notificação: ' + error.message);
+        console.error('Erro:', error);
+    });
+}
 </script>
 <script>
 // Registrar Service Worker e gerenciar botão de instalação
