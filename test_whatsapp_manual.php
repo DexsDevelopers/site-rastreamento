@@ -85,8 +85,49 @@ try {
     echo "<pre>" . $e->getTraceAsString() . "</pre>";
 }
 
-// 5. Verificar última notificação
-echo "<h3>5. Verificando última notificação enviada...</h3>";
+// 5. Testar conexão com a API
+echo "<h3>5. Testando conexão com a API do bot...</h3>";
+$testUrl = $apiConfig['base_url'] . '/status';
+echo "<p>Testando: <code>{$testUrl}</code></p>";
+
+$ch = curl_init($testUrl);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 5,
+    CURLOPT_CONNECTTIMEOUT => 5
+]);
+$testResponse = curl_exec($ch);
+$testHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$testError = curl_error($ch);
+curl_close($ch);
+
+if ($testResponse === false || !empty($testError)) {
+    echo "<p style='color:red;'><strong>❌ ERRO: Não foi possível conectar à API do bot!</strong></p>";
+    echo "<p><strong>Erro cURL:</strong> {$testError}</p>";
+    echo "<p><strong>URL testada:</strong> {$testUrl}</p>";
+    echo "<div style='background:#ffebee;padding:15px;border-radius:8px;margin:10px 0;'>";
+    echo "<h4>🔴 Problema Identificado:</h4>";
+    echo "<p>A Hostinger não consegue acessar <code>localhost:3000</code> porque o bot está no seu PC local.</p>";
+    echo "<p><strong>Solução:</strong> Você precisa expor o bot para a internet usando ngrok ou cloudflared.</p>";
+    echo "<p>📖 Veja o guia: <code>CONFIGURAR_NGROK.md</code></p>";
+    echo "</div>";
+} else {
+    $testData = json_decode($testResponse, true);
+    if ($testData && isset($testData['ready'])) {
+        if ($testData['ready']) {
+            echo "<p style='color:green;'><strong>✅ API do bot está ONLINE e pronta!</strong></p>";
+        } else {
+            echo "<p style='color:orange;'><strong>⚠️ API do bot está online mas não está pronto (não conectado ao WhatsApp)</strong></p>";
+        }
+        echo "<pre>" . json_encode($testData, JSON_PRETTY_PRINT) . "</pre>";
+    } else {
+        echo "<p style='color:orange;'><strong>⚠️ Resposta inesperada da API</strong></p>";
+        echo "<pre>{$testResponse}</pre>";
+    }
+}
+
+// 6. Verificar última notificação
+echo "<h3>6. Verificando última notificação enviada...</h3>";
 $ultimaNotif = fetchOne($pdo, "SELECT * FROM whatsapp_notificacoes 
                                WHERE codigo = ? 
                                ORDER BY enviado_em DESC 
@@ -101,8 +142,20 @@ if ($ultimaNotif) {
         echo "<p style='color:green;'><strong>✅ Última notificação foi enviada com SUCESSO</strong></p>";
     } else {
         echo "<p style='color:red;'><strong>❌ Última notificação FALHOU</strong></p>";
-        echo "<p>HTTP Code: {$ultimaNotif['http_code']}</p>";
-        echo "<p>Resposta: {$ultimaNotif['resposta_http']}</p>";
+        echo "<p><strong>HTTP Code:</strong> " . ($ultimaNotif['http_code'] ?: 'N/A') . "</p>";
+        echo "<p><strong>Resposta:</strong> " . ($ultimaNotif['resposta_http'] ?: 'Nenhuma resposta') . "</p>";
+        
+        if (empty($ultimaNotif['http_code'])) {
+            echo "<div style='background:#ffebee;padding:15px;border-radius:8px;margin:10px 0;'>";
+            echo "<h4>🔴 Problema: Sem resposta HTTP</h4>";
+            echo "<p>Isso indica que a requisição não chegou ao bot. Verifique:</p>";
+            echo "<ul>";
+            echo "<li>Se o bot está rodando no seu PC</li>";
+            echo "<li>Se o túnel (ngrok/cloudflared) está ativo</li>";
+            echo "<li>Se a URL no config.json está correta</li>";
+            echo "</ul>";
+            echo "</div>";
+        }
     }
 } else {
     echo "<p style='color:orange;'><strong>⚠️ Nenhuma notificação registrada ainda</strong></p>";
