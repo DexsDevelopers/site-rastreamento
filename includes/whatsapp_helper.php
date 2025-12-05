@@ -321,14 +321,22 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
         return;
     }
 
-    $statusKey = fetchOne($pdo, "SELECT id, sucesso FROM whatsapp_notificacoes WHERE codigo = ? AND status_titulo = ? AND status_data = ? LIMIT 1", [
-        $status['codigo'],
-        $status['status_atual'],
-        $status['data']
-    ]);
+    // Se não for forçado, verificar se já foi enviado com sucesso
+    $force = isset($options['force']) && $options['force'] === true;
+    
+    if (!$force) {
+        $statusKey = fetchOne($pdo, "SELECT id, sucesso FROM whatsapp_notificacoes WHERE codigo = ? AND status_titulo = ? AND status_data = ? LIMIT 1", [
+            $status['codigo'],
+            $status['status_atual'],
+            $status['data']
+        ]);
 
-    if ($statusKey && (int) $statusKey['sucesso'] === 1) {
-        return;
+        if ($statusKey && (int) $statusKey['sucesso'] === 1) {
+            writeLog("notifyWhatsappLatestStatus: Notificação já enviada com sucesso para código {$codigo}, status {$status['status_atual']}. Pulando envio.", 'INFO');
+            return;
+        }
+    } else {
+        writeLog("notifyWhatsappLatestStatus: Envio forçado para código {$codigo}, ignorando verificação de duplicatas.", 'INFO');
     }
 
     $statusData = [

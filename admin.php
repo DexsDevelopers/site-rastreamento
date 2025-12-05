@@ -101,8 +101,8 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
             exit;
         }
         
-        // Chamar função de notificação
-        notifyWhatsappLatestStatus($pdo, $codigo);
+        // Chamar função de notificação com opção de forçar envio
+        notifyWhatsappLatestStatus($pdo, $codigo, ['force' => true]);
         
         // Verificar se o envio foi bem-sucedido consultando a última notificação
         $ultimaNotif = fetchOne($pdo, "SELECT sucesso, http_code, resposta_http, enviado_em FROM whatsapp_notificacoes 
