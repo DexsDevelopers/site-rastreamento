@@ -1,0 +1,62 @@
+===========================================
+ARQUIVOS PARA UPLOAD NA HOSTINGER
+===========================================
+
+ARQUIVOS PRINCIPAIS (OBRIGATÓRIOS):
+-----------------------------------
+1. admin.php
+   - Botão WhatsApp adicionado
+   - Endpoint AJAX para envio manual
+   - Melhorias no tratamento de erros
+
+2. includes/whatsapp_helper.php
+   - Logs detalhados adicionados
+   - Melhor tratamento de erros
+   - Validações melhoradas
+
+3. config.json
+   - URL atualizada para localhost:3000
+   - IMPORTANTE: Atualizar na Hostinger com URL do ngrok ou servidor do bot
+
+ARQUIVOS OPCIONAIS (PARA TESTES):
+----------------------------------
+4. test_whatsapp_manual.php
+   - Script de diagnóstico
+   - Use para testar se o envio está funcionando
+   - Pode ser removido após testes
+
+ARQUIVOS MODIFICADOS (VERIFICAR SE PRECISAM):
+---------------------------------------------
+- admin_bot_api.php
+- admin_mensagens.php
+- admin_settings.php
+- debug_admin_whatsapp.php
+- debug_config.php
+- setup_config_defaults.php
+
+===========================================
+INSTRUÇÕES RÁPIDAS:
+===========================================
+
+1. Acesse o cPanel da Hostinger
+2. Abra o File Manager
+3. Navegue até public_html/
+4. Faça upload dos arquivos principais
+5. ATUALIZE o config.json com a URL correta do bot
+6. Teste usando test_whatsapp_manual.php
+
+===========================================
+IMPORTANTE:
+===========================================
+
+⚠️ O config.json local está com localhost:3000
+   Na Hostinger, você precisa usar:
+   - URL do ngrok (se bot está local)
+   - OU URL do servidor onde o bot está rodando
+
+⚠️ Após o upload, limpe o cache do navegador (Ctrl+F5)
+
+⚠️ Verifique se o bot WhatsApp está online antes de testar
+
+===========================================
+
