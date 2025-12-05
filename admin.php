@@ -640,39 +640,77 @@ if (isset($_POST['undo_action'])) {
 
 // Enviar WhatsApp manualmente (AJAX)
 if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
-    header('Content-Type: application/json');
+    // Limpar qualquer saída anterior
+    ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    
     $codigo = sanitizeInput($_POST['codigo']);
     
     try {
+        // Verificar se a API do WhatsApp está configurada
+        $apiConfig = whatsappApiConfig();
+        if (!$apiConfig['enabled']) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'API WhatsApp desabilitada. Verifique as configurações em config.json'
+            ]);
+            exit;
+        }
+        
         $contato = getWhatsappContact($pdo, $codigo);
         
         if (!$contato) {
-            echo json_encode(['success' => false, 'message' => 'Contato WhatsApp não encontrado para este código.']);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Contato WhatsApp não encontrado para este código. Cadastre o telefone do cliente primeiro.'
+            ]);
             exit;
         }
         
         if ((int) $contato['notificacoes_ativas'] !== 1) {
-            echo json_encode(['success' => false, 'message' => 'Notificações WhatsApp estão desativadas para este código.']);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Notificações WhatsApp estão desativadas para este código. Ative nas configurações do rastreio.'
+            ]);
             exit;
         }
         
         if (empty($contato['telefone_normalizado'])) {
-            echo json_encode(['success' => false, 'message' => 'Telefone WhatsApp não cadastrado para este código.']);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Telefone WhatsApp não cadastrado para este código. Adicione o número do cliente.'
+            ]);
             exit;
         }
         
+        writeLog("Iniciando envio manual de WhatsApp para código {$codigo}, telefone {$contato['telefone_normalizado']}", 'INFO');
+        
+        // Chamar função de notificação
         notifyWhatsappLatestStatus($pdo, $codigo);
         
         echo json_encode([
             'success' => true, 
-            'message' => "Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
+            'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
         ]);
-        writeLog("Envio manual de WhatsApp para código {$codigo} solicitado pelo admin", 'INFO');
+        writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
         exit;
         
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Erro ao enviar: ' . $e->getMessage()]);
-        writeLog("Erro ao enviar WhatsApp manual para {$codigo}: " . $e->getMessage(), 'ERROR');
+        $errorMsg = $e->getMessage();
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Erro ao enviar: ' . $errorMsg
+        ]);
+        writeLog("Erro ao enviar WhatsApp manual para {$codigo}: " . $errorMsg, 'ERROR');
+        writeLog("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+        exit;
+    } catch (Throwable $e) {
+        $errorMsg = $e->getMessage();
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Erro fatal ao enviar: ' . $errorMsg
+        ]);
+        writeLog("Erro fatal ao enviar WhatsApp manual para {$codigo}: " . $errorMsg, 'ERROR');
         exit;
     }
 }
@@ -3796,29 +3834,41 @@ function enviarWhatsappManual(codigo) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        // Verificar se a resposta é JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            // Se não for JSON, ler como texto para debug
+            return response.text().then(text => {
+                console.error('Resposta não é JSON:', text);
+                throw new Error('Resposta do servidor não é JSON. Verifique o console para detalhes.');
+            });
+        }
+    })
     .then(data => {
         // Reabilitar botões
         buttons.forEach(btn => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fab fa-whatsapp"></i>';
+            btn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
         });
         
-        if (data.success) {
+        if (data && data.success) {
             notifySuccess(data.message || 'Notificação enviada com sucesso!');
         } else {
-            notifyError(data.message || 'Erro ao enviar notificação');
+            notifyError(data?.message || 'Erro ao enviar notificação');
         }
     })
     .catch(error => {
         // Reabilitar botões
         buttons.forEach(btn => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fab fa-whatsapp"></i>';
+            btn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
         });
         
         notifyError('Erro ao enviar notificação: ' + error.message);
-        console.error('Erro:', error);
+        console.error('Erro completo:', error);
     });
 }
 </script>
