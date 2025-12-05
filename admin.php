@@ -641,10 +641,18 @@ if (isset($_POST['undo_action'])) {
 // Enviar WhatsApp manualmente (AJAX)
 if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
     // Limpar qualquer saída anterior
-    ob_clean();
+    if (ob_get_level() > 0) {
+        ob_clean();
+    }
+    
+    // Garantir que não há saída antes do JSON
     header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-cache, must-revalidate');
     
     $codigo = sanitizeInput($_POST['codigo']);
+    
+    // Log para debug
+    writeLog("Envio manual WhatsApp solicitado para código: {$codigo}", 'INFO');
     
     try {
         // Verificar se a API do WhatsApp está configurada
