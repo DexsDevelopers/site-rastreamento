@@ -222,10 +222,13 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
-            'x-api-token: ' . $config['token']
+            'x-api-token: ' . $config['token'],
+            'ngrok-skip-browser-warning: true'  // Pular página de warning do ngrok
         ],
         CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_TIMEOUT => 20
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false  // Para ngrok
     ]);
 
     $response = curl_exec($ch);

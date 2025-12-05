@@ -693,14 +693,74 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         
         writeLog("Iniciando envio manual de WhatsApp para código {$codigo}, telefone {$contato['telefone_normalizado']}", 'INFO');
         
+        // Verificar se o bot está online antes de enviar
+        $apiConfig = whatsappApiConfig();
+        $statusUrl = $apiConfig['base_url'] . '/status';
+        $statusCh = curl_init($statusUrl);
+        curl_setopt_array($statusCh, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'x-api-token: ' . $apiConfig['token'],
+                'ngrok-skip-browser-warning: true'
+            ],
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+        $statusResponse = curl_exec($statusCh);
+        $statusHttpCode = curl_getinfo($statusCh, CURLINFO_HTTP_CODE);
+        curl_close($statusCh);
+        
+        if ($statusResponse === false || $statusHttpCode !== 200) {
+            writeLog("Bot WhatsApp não está acessível. Status HTTP: {$statusHttpCode}", 'ERROR');
+            echo json_encode([
+                'success' => false, 
+                'message' => '❌ Bot WhatsApp não está online ou não está acessível. Verifique se o bot está rodando e o ngrok está ativo.'
+            ]);
+            exit;
+        }
+        
+        $statusData = json_decode($statusResponse, true);
+        if (!$statusData || !isset($statusData['ready']) || !$statusData['ready']) {
+            writeLog("Bot WhatsApp não está pronto. Status: " . json_encode($statusData), 'ERROR');
+            echo json_encode([
+                'success' => false, 
+                'message' => '❌ Bot WhatsApp não está conectado ao WhatsApp. Verifique a conexão do bot.'
+            ]);
+            exit;
+        }
+        
         // Chamar função de notificação
         notifyWhatsappLatestStatus($pdo, $codigo);
         
-        echo json_encode([
-            'success' => true, 
-            'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
-        ]);
-        writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
+        // Verificar se o envio foi bem-sucedido consultando a última notificação
+        $ultimaNotif = fetchOne($pdo, "SELECT sucesso, http_code, resposta_http FROM whatsapp_notificacoes 
+                                       WHERE codigo = ? 
+                                       ORDER BY criado_em DESC 
+                                       LIMIT 1", [$codigo]);
+        
+        if ($ultimaNotif && (int) $ultimaNotif['sucesso'] === 1) {
+            echo json_encode([
+                'success' => true, 
+                'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
+            ]);
+            writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
+        } else {
+            $erroMsg = 'Erro desconhecido';
+            if ($ultimaNotif) {
+                $erroMsg = "HTTP {$ultimaNotif['http_code']}";
+                if ($ultimaNotif['resposta_http']) {
+                    $resposta = json_decode($ultimaNotif['resposta_http'], true);
+                    if ($resposta && isset($resposta['error'])) {
+                        $erroMsg = $resposta['error'];
+                    }
+                }
+            }
+            echo json_encode([
+                'success' => false, 
+                'message' => "❌ Falha ao enviar notificação: {$erroMsg}"
+            ]);
+            writeLog("Envio manual de WhatsApp para código {$codigo} falhou: {$erroMsg}", 'ERROR');
+        }
         exit;
         
     } catch (Exception $e) {
