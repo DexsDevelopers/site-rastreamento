@@ -10,6 +10,151 @@ require_once 'includes/db_connect.php';
 require_once 'includes/whatsapp_helper.php';
 require_once 'includes/rastreio_media.php';
 
+// ===== ENDPOINT AJAX: ENVIAR WHATSAPP MANUALMENTE =====
+// DEVE SER PROCESSADO ANTES DE QUALQUER SAÍDA HTML
+if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
+    // Limpar qualquer saída anterior
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    
+    // Garantir que não há saída antes do JSON
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-cache, must-revalidate');
+    
+    $codigo = sanitizeInput($_POST['codigo']);
+    
+    // Log para debug
+    writeLog("Envio manual WhatsApp solicitado para código: {$codigo}", 'INFO');
+    
+    try {
+        // Verificar se a API do WhatsApp está configurada
+        $apiConfig = whatsappApiConfig();
+        if (!$apiConfig['enabled']) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'API WhatsApp desabilitada. Verifique as configurações em config.json'
+            ]);
+            exit;
+        }
+        
+        $contato = getWhatsappContact($pdo, $codigo);
+        
+        if (!$contato) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Contato WhatsApp não encontrado para este código. Cadastre o telefone do cliente primeiro.'
+            ]);
+            exit;
+        }
+        
+        if ((int) $contato['notificacoes_ativas'] !== 1) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Notificações WhatsApp estão desativadas para este código. Ative nas configurações do rastreio.'
+            ]);
+            exit;
+        }
+        
+        if (empty($contato['telefone_normalizado'])) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Telefone WhatsApp não cadastrado para este código. Adicione o número do cliente.'
+            ]);
+            exit;
+        }
+        
+        writeLog("Iniciando envio manual de WhatsApp para código {$codigo}, telefone {$contato['telefone_normalizado']}", 'INFO');
+        
+        // Verificar se o bot está online antes de enviar
+        $statusUrl = $apiConfig['base_url'] . '/status';
+        $statusCh = curl_init($statusUrl);
+        curl_setopt_array($statusCh, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'x-api-token: ' . $apiConfig['token'],
+                'ngrok-skip-browser-warning: true'
+            ],
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+        $statusResponse = curl_exec($statusCh);
+        $statusHttpCode = curl_getinfo($statusCh, CURLINFO_HTTP_CODE);
+        curl_close($statusCh);
+        
+        if ($statusResponse === false || $statusHttpCode !== 200) {
+            writeLog("Bot WhatsApp não está acessível. Status HTTP: {$statusHttpCode}", 'ERROR');
+            echo json_encode([
+                'success' => false, 
+                'message' => '❌ Bot WhatsApp não está online ou não está acessível. Verifique se o bot está rodando e o ngrok está ativo.'
+            ]);
+            exit;
+        }
+        
+        $statusData = json_decode($statusResponse, true);
+        if (!$statusData || !isset($statusData['ready']) || !$statusData['ready']) {
+            writeLog("Bot WhatsApp não está pronto. Status: " . json_encode($statusData), 'ERROR');
+            echo json_encode([
+                'success' => false, 
+                'message' => '❌ Bot WhatsApp não está conectado ao WhatsApp. Verifique a conexão do bot.'
+            ]);
+            exit;
+        }
+        
+        // Chamar função de notificação
+        notifyWhatsappLatestStatus($pdo, $codigo);
+        
+        // Verificar se o envio foi bem-sucedido consultando a última notificação
+        $ultimaNotif = fetchOne($pdo, "SELECT sucesso, http_code, resposta_http, enviado_em FROM whatsapp_notificacoes 
+                                       WHERE codigo = ? 
+                                       ORDER BY criado_em DESC 
+                                       LIMIT 1", [$codigo]);
+        
+        if ($ultimaNotif && (int) $ultimaNotif['sucesso'] === 1) {
+            echo json_encode([
+                'success' => true, 
+                'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
+            ]);
+            writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
+        } else {
+            $erroMsg = 'Erro desconhecido';
+            if ($ultimaNotif) {
+                $erroMsg = "HTTP {$ultimaNotif['http_code']}";
+                if ($ultimaNotif['resposta_http']) {
+                    $resposta = json_decode($ultimaNotif['resposta_http'], true);
+                    if ($resposta && isset($resposta['error'])) {
+                        $erroMsg = $resposta['error'];
+                    }
+                }
+            }
+            echo json_encode([
+                'success' => false, 
+                'message' => "❌ Falha ao enviar notificação: {$erroMsg}"
+            ]);
+            writeLog("Envio manual de WhatsApp para código {$codigo} falhou: {$erroMsg}", 'ERROR');
+        }
+        exit;
+        
+    } catch (Exception $e) {
+        $errorMsg = $e->getMessage();
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Erro ao enviar: ' . $errorMsg
+        ]);
+        writeLog("Erro ao enviar WhatsApp manual para {$codigo}: " . $errorMsg, 'ERROR');
+        writeLog("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+        exit;
+    } catch (Throwable $e) {
+        $errorMsg = $e->getMessage();
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Erro fatal ao enviar: ' . $errorMsg
+        ]);
+        writeLog("Erro fatal ao enviar WhatsApp manual para {$codigo}: " . $errorMsg, 'ERROR');
+        exit;
+    }
+}
+
 // Cache desabilitado para desenvolvimento
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
@@ -3902,10 +4047,12 @@ function enviarWhatsappManual(codigo) {
     formData.append('enviar_whatsapp_manual', '1');
     formData.append('codigo', codigo);
     
-    fetch('admin.php', {
+    // Usar endpoint específico para evitar problemas
+    fetch('admin.php?' + new Date().getTime(), {
         method: 'POST',
         body: formData,
-        credentials: 'same-origin'
+        credentials: 'same-origin',
+        cache: 'no-cache'
     })
     .then(response => {
         console.log('Resposta recebida:', response.status, response.statusText);
