@@ -2536,8 +2536,8 @@ body {
                                 <button class='btn btn-info btn-sm' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver detalhes'>
                                     <i class='fas fa-eye'></i>
                                 </button>
-                                <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp'>
-                                    <i class='fab fa-whatsapp'></i>
+                                <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp' style='background: #25D366; border-color: #25D366;'>
+                                    <i class='fab fa-whatsapp'></i> WhatsApp
                                 </button>
                                 <form method='POST' style='display:inline' onsubmit='return confirm(\"Tem certeza que deseja excluir este rastreio?\")'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
@@ -2590,7 +2590,7 @@ body {
                         <div class='card-actions'>
                             <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
                             <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
-                            <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\"><i class='fab fa-whatsapp'></i> WhatsApp</button>
+                            <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\" style='background: #25D366; border-color: #25D366;'><i class='fab fa-whatsapp'></i> WhatsApp</button>
                             <form method='POST' onsubmit=\"return confirm('Tem certeza que deseja excluir este rastreio?')\" style='display:inline'>
                                 <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                 <button type='submit' name='deletar' class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
