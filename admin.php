@@ -3817,11 +3817,15 @@ function enviarWhatsappManual(codigo) {
         return;
     }
     
+    console.log('Enviando WhatsApp para código:', codigo);
+    
     // Desabilitar botão durante o envio
-    const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"]`);
+    const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"], button[onclick*='enviarWhatsappManual("${codigo}")']`);
     buttons.forEach(btn => {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        const originalHTML = btn.innerHTML;
+        btn.setAttribute('data-original-html', originalHTML);
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     });
     
     notifyInfo('Enviando notificação WhatsApp...');
@@ -3832,43 +3836,65 @@ function enviarWhatsappManual(codigo) {
     
     fetch('admin.php', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
     })
     .then(response => {
+        console.log('Resposta recebida:', response.status, response.statusText);
+        
         // Verificar se a resposta é JSON
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
             return response.json();
         } else {
             // Se não for JSON, ler como texto para debug
             return response.text().then(text => {
                 console.error('Resposta não é JSON:', text);
-                throw new Error('Resposta do servidor não é JSON. Verifique o console para detalhes.');
+                console.error('Content-Type:', contentType);
+                console.error('Status:', response.status);
+                
+                // Tentar parsear como JSON mesmo assim (pode estar sem header)
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Resposta do servidor não é JSON. Status: ' + response.status + '. Resposta: ' + text.substring(0, 200));
+                }
             });
         }
     })
     .then(data => {
+        console.log('Dados recebidos:', data);
+        
         // Reabilitar botões
         buttons.forEach(btn => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
+            const originalHTML = btn.getAttribute('data-original-html') || '<i class="fab fa-whatsapp"></i> WhatsApp';
+            btn.innerHTML = originalHTML;
         });
         
         if (data && data.success) {
-            notifySuccess(data.message || 'Notificação enviada com sucesso!');
+            notifySuccess(data.message || '✅ Notificação enviada com sucesso!');
         } else {
-            notifyError(data?.message || 'Erro ao enviar notificação');
+            notifyError(data?.message || '❌ Erro ao enviar notificação');
         }
     })
     .catch(error => {
+        console.error('Erro completo:', error);
+        console.error('Stack:', error.stack);
+        
         // Reabilitar botões
         buttons.forEach(btn => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
+            const originalHTML = btn.getAttribute('data-original-html') || '<i class="fab fa-whatsapp"></i> WhatsApp';
+            btn.innerHTML = originalHTML;
         });
         
-        notifyError('Erro ao enviar notificação: ' + error.message);
-        console.error('Erro completo:', error);
+        const errorMsg = error.message || 'Erro desconhecido';
+        notifyError('❌ Erro ao enviar notificação: ' + errorMsg);
+        
+        // Mostrar mais detalhes no console
+        console.error('Código:', codigo);
+        console.error('URL:', window.location.href);
     });
 }
 </script>
