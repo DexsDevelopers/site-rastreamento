@@ -189,6 +189,7 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     $config = whatsappApiConfig();
 
     if (!$config['enabled']) {
+        writeLog("WhatsApp API desabilitada. URL: {$config['base_url']}, Token: " . (empty($config['token']) ? 'VAZIO' : 'DEFINIDO'), 'WARNING');
         return [
             'success' => false,
             'error' => 'WhatsApp API desabilitada ou configuração ausente',
@@ -202,6 +203,8 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
         'to' => $telefone,
         'text' => $mensagem
     ], JSON_UNESCAPED_UNICODE);
+    
+    writeLog("Enviando WhatsApp para {$telefone} via {$endpoint}", 'INFO');
 
     $ch = curl_init($endpoint);
     if ($ch === false) {
@@ -231,6 +234,8 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     if ($response === false) {
         $error = curl_error($ch);
         curl_close($ch);
+        
+        writeLog("Erro cURL ao enviar WhatsApp para {$telefone}: {$error}", 'ERROR');
 
         return [
             'success' => false,
@@ -243,6 +248,12 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     curl_close($ch);
 
     $success = $httpCode >= 200 && $httpCode < 300;
+    
+    if (!$success) {
+        writeLog("Falha ao enviar WhatsApp para {$telefone}: HTTP {$httpCode} - {$response}", 'ERROR');
+    } else {
+        writeLog("WhatsApp enviado com sucesso para {$telefone}: HTTP {$httpCode}", 'INFO');
+    }
 
     return [
         'success' => $success,
@@ -284,14 +295,18 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
     $apiConfig = whatsappApiConfig();
 
     if (!$apiConfig['enabled']) {
+        writeLog("notifyWhatsappLatestStatus: API desabilitada para código {$codigo}", 'WARNING');
         return;
     }
 
     $contato = getWhatsappContact($pdo, $codigo);
 
     if (!$contato || (int) $contato['notificacoes_ativas'] !== 1 || empty($contato['telefone_normalizado'])) {
+        writeLog("notifyWhatsappLatestStatus: Contato não encontrado ou notificações desativadas para código {$codigo}", 'INFO');
         return;
     }
+    
+    writeLog("notifyWhatsappLatestStatus: Processando notificação para código {$codigo}, telefone {$contato['telefone_normalizado']}", 'INFO');
 
     $status = fetchOne($pdo, "SELECT codigo, cidade, status_atual, titulo, subtitulo, data
                               FROM rastreios_status
