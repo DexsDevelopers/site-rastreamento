@@ -3887,7 +3887,7 @@ function enviarWhatsappManual(codigo) {
         return;
     }
     
-    console.log('Enviando WhatsApp para código:', codigo);
+    console.log('[WhatsApp] Iniciando envio para código:', codigo);
     
     // Desabilitar botão durante o envio
     const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"], button[onclick*='enviarWhatsappManual("${codigo}")']`);
@@ -3905,37 +3905,54 @@ function enviarWhatsappManual(codigo) {
     formData.append('codigo', codigo);
     
     // Usar endpoint específico para evitar problemas
-    fetch('admin.php?' + new Date().getTime(), {
+    const url = 'admin.php?t=' + new Date().getTime();
+    console.log('[WhatsApp] Enviando requisição para:', url);
+    
+    fetch(url, {
         method: 'POST',
         body: formData,
         credentials: 'same-origin',
-        cache: 'no-cache'
+        cache: 'no-cache',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => {
-        console.log('Resposta recebida:', response.status, response.statusText);
+        console.log('[WhatsApp] Response status:', response.status);
+        console.log('[WhatsApp] Response ok:', response.ok);
         
-        // Verificar se a resposta é JSON
         const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            return response.json();
-        } else {
-            // Se não for JSON, ler como texto para debug
+        console.log('[WhatsApp] Content-Type:', contentType);
+        
+        if (!response.ok) {
             return response.text().then(text => {
-                console.error('Resposta não é JSON:', text);
-                console.error('Content-Type:', contentType);
-                console.error('Status:', response.status);
-                
+                console.error('[WhatsApp] Erro HTTP. Resposta:', text);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}\nResposta: ${text.substring(0, 200)}`);
+            });
+        }
+        
+        if (contentType.includes('application/json')) {
+            return response.json().catch(err => {
+                return response.text().then(text => {
+                    console.error('[WhatsApp] Erro ao parsear JSON. Texto recebido:', text);
+                    throw new Error('Resposta não é JSON válido: ' + text.substring(0, 200));
+                });
+            });
+        } else {
+            return response.text().then(text => {
+                console.error('[WhatsApp] Resposta não é JSON. Content-Type:', contentType);
+                console.error('[WhatsApp] Resposta completa:', text);
                 // Tentar parsear como JSON mesmo assim (pode estar sem header)
                 try {
                     return JSON.parse(text);
                 } catch (e) {
-                    throw new Error('Resposta do servidor não é JSON. Status: ' + response.status + '. Resposta: ' + text.substring(0, 200));
+                    throw new Error('Resposta do servidor não é JSON. Content-Type: ' + contentType + '\nResposta: ' + text.substring(0, 200));
                 }
             });
         }
     })
     .then(data => {
-        console.log('Dados recebidos:', data);
+        console.log('[WhatsApp] Resposta JSON recebida:', data);
         
         // Reabilitar botões
         buttons.forEach(btn => {
