@@ -231,3 +231,5 @@ Ao enviar `/menu` no WhatsApp, receber:
 
 **📌 COPIE TODO O CONTEÚDO ACIMA E COLE NO CHAT DA IA!**
 
+
+

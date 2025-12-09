@@ -160,3 +160,4 @@ Após o upload, verifique se os arquivos têm as permissões corretas:
 3. Testar o botão no admin
 4. Verificar logs se houver problemas
 
+

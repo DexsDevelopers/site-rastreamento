@@ -175,3 +175,4 @@ nssm start ngrok
 
 Isso mantém o túnel rodando mesmo após reiniciar o PC.
 
+

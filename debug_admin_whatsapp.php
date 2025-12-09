@@ -64,3 +64,5 @@ if (file_exists($logFile)) {
 
 echo "\n====== FIM DEBUG ======\n";
 
+
+

@@ -240,3 +240,5 @@ https://seu-dominio.com/debug_config.php
 
 Isso mostrará exatamente onde está o problema!
 
+
+

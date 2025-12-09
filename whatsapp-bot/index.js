@@ -599,9 +599,27 @@ async function start() {
 
 // ===== MIDDLEWARE DE AUTENTICAÇÃO =====
 function auth(req, res, next) {
-  const token = req.headers['x-api-token'];
+  // Tentar ler o token de várias formas (case-insensitive)
+  const token = req.headers['x-api-token'] || 
+                req.headers['X-Api-Token'] || 
+                req.headers['X-API-Token'] ||
+                req.headers['X-API-TOKEN'];
+  
+  // Debug log (remover em produção se necessário)
+  if (!token || token !== API_TOKEN) {
+    log.warn(`Auth failed: received="${token}", expected="${API_TOKEN}", url=${req.url}`);
+  }
+  
   if (!API_TOKEN || token !== API_TOKEN) {
-    return res.status(401).json({ ok: false, error: 'unauthorized' });
+    return res.status(401).json({ 
+      ok: false, 
+      error: 'unauthorized',
+      debug: process.env.NODE_ENV !== 'production' ? {
+        received_token: token ? `${token.substring(0, 4)}***` : 'null',
+        expected_token: `${API_TOKEN.substring(0, 4)}***`,
+        token_length_match: token ? token.length === API_TOKEN.length : false
+      } : undefined
+    });
   }
   next();
 }

@@ -198,6 +198,18 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
         ];
     }
 
+    // Validar token antes de enviar
+    if (empty($config['token']) || $config['token'] === 'troque-este-token') {
+        writeLog('Token do WhatsApp não configurado ou ainda está no valor padrão. Configure o token em config.json.', 'ERROR');
+        return [
+            'success' => false,
+            'error' => 'token_not_configured',
+            'error_message' => 'Token não configurado. Configure WHATSAPP_API_TOKEN em config.json',
+            'http_code' => null,
+            'response' => null
+        ];
+    }
+
     $endpoint = $config['base_url'] . '/send';
     $payload = json_encode([
         'to' => $telefone,
@@ -250,17 +262,36 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
 
     curl_close($ch);
 
+    // Verificar se é erro de autenticação
+    $responseData = json_decode($response, true);
+    $isAuthError = $httpCode === 401 || ($responseData && isset($responseData['error']) && $responseData['error'] === 'unauthorized');
+    
+    if ($isAuthError) {
+        writeLog("ERRO DE AUTENTICAÇÃO ao enviar WhatsApp para {$telefone}: Token inválido. Verifique se o token no config.json corresponde ao .env do bot.", 'ERROR');
+        return [
+            'success' => false,
+            'error' => 'unauthorized',
+            'error_message' => 'Token de autenticação inválido. Execute sync_whatsapp_token.ps1 para sincronizar.',
+            'http_code' => $httpCode,
+            'response' => $response
+        ];
+    }
+
     $success = $httpCode >= 200 && $httpCode < 300;
     
     if (!$success) {
-        writeLog("Falha ao enviar WhatsApp para {$telefone}: HTTP {$httpCode} - {$response}", 'ERROR');
+        $errorMsg = 'HTTP ' . $httpCode;
+        if ($responseData && isset($responseData['error'])) {
+            $errorMsg .= ' - ' . $responseData['error'];
+        }
+        writeLog("Falha ao enviar WhatsApp para {$telefone}: {$errorMsg} - {$response}", 'ERROR');
     } else {
         writeLog("WhatsApp enviado com sucesso para {$telefone}: HTTP {$httpCode}", 'INFO');
     }
 
     return [
         'success' => $success,
-        'error' => $success ? null : 'HTTP ' . $httpCode,
+        'error' => $success ? null : ($responseData['error'] ?? 'HTTP ' . $httpCode),
         'http_code' => $httpCode,
         'response' => $response
     ];

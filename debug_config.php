@@ -110,3 +110,5 @@ echo "   file_uploads: " . (ini_get('file_uploads') ? 'habilitado' : 'desabilita
 
 echo "\n====== FIM DO DIAGNÓSTICO ======\n";
 
+
+

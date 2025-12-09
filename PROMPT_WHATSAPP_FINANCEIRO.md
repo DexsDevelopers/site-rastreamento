@@ -424,3 +424,5 @@ Após a implementação inicial, peça:
 
 Basta copiar e colar no chat com a IA. Ela terá todas as informações necessárias para implementar o sistema completo de comandos WhatsApp para seu painel financeiro.
 
+
+

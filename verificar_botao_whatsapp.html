@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificar Botão WhatsApp</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-button {
+            background: #25D366 !important;
+            border-color: #25D366 !important;
+            color: white !important;
+            display: inline-flex !important;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background: #20ba5a !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste de Botão WhatsApp</h1>
+    
+    <h2>Botão de Teste:</h2>
+    <button class="test-button" onclick="testar()">
+        <i class="fab fa-whatsapp"></i> WhatsApp (Teste)
+    </button>
+    
+    <h2>Verificações:</h2>
+    <div id="resultados"></div>
+    
+    <script>
+        function testar() {
+            const resultados = document.getElementById('resultados');
+            resultados.innerHTML = '<p>✅ Botão clicado com sucesso!</p>';
+            resultados.innerHTML += '<p>✅ Ícone Font Awesome carregado: ' + (document.querySelector('.fa-whatsapp') ? 'SIM' : 'NÃO') + '</p>';
+        }
+        
+        // Verificar se Font Awesome está carregado
+        window.addEventListener('load', () => {
+            const resultados = document.getElementById('resultados');
+            const faLoaded = document.querySelector('link[href*="font-awesome"]');
+            resultados.innerHTML += '<p>Font Awesome carregado: ' + (faLoaded ? '✅ SIM' : '❌ NÃO') + '</p>';
+            
+            // Verificar se o ícone está disponível
+            const testIcon = document.createElement('i');
+            testIcon.className = 'fab fa-whatsapp';
+            document.body.appendChild(testIcon);
+            const computed = window.getComputedStyle(testIcon);
+            resultados.innerHTML += '<p>Ícone renderizado: ' + (computed.fontFamily.includes('Font Awesome') ? '✅ SIM' : '❌ NÃO') + '</p>';
+            document.body.removeChild(testIcon);
+        });
+    </script>
+</body>
+</html>
+
+
