@@ -118,7 +118,7 @@ header('Content-Type: text/html; charset=utf-8');
                     echo "</ul>";
                     echo "<p><strong>Solução:</strong></p>";
                     echo "<ol>";
-                    echo "<li>Execute: <code>.\sync_whatsapp_token.ps1</code></li>";
+                    echo "<li>Execute: <code>.\scripts\sync_whatsapp_token.ps1</code></li>";
                     echo "<li><strong>REINICIE o bot Node.js</strong> (Ctrl+C e depois <code>npm run dev</code>)</li>";
                     echo "</ol>";
                     echo "</div>";
@@ -136,7 +136,7 @@ header('Content-Type: text/html; charset=utf-8');
                 }
             } else {
                 echo "<p class='error'>❌ Token não encontrado no .env!</p>";
-                echo "<p class='warning'>⚠️ Execute: <code>.\sync_whatsapp_token.ps1</code> para criar/configurar</p>";
+                    echo "<p class='warning'>⚠️ Execute: <code>.\scripts\sync_whatsapp_token.ps1</code> para criar/configurar</p>";
             }
         } else {
             echo "<p class='error'>❌ Arquivo .env não encontrado em: " . htmlspecialchars($envPath) . "</p>";
@@ -236,7 +236,7 @@ header('Content-Type: text/html; charset=utf-8');
         echo "<h2>📋 Instruções</h2>";
         echo "<ol>";
         echo "<li>Verifique se o token no config.json corresponde ao token no .env</li>";
-        echo "<li>Se não corresponder, execute: <code>.\sync_whatsapp_token.ps1</code></li>";
+        echo "<li>Se não corresponder, execute: <code>.\scripts\sync_whatsapp_token.ps1</code></li>";
         echo "<li><strong>IMPORTANTE:</strong> Após sincronizar, você DEVE reiniciar o bot Node.js</li>";
         echo "<li>O bot lê o .env apenas na inicialização, então mudanças no .env só têm efeito após reiniciar</li>";
         echo "<li>Para reiniciar: Pare o bot (Ctrl+C) e execute: <code>cd whatsapp-bot && npm run dev</code></li>";
@@ -249,7 +249,7 @@ header('Content-Type: text/html; charset=utf-8');
             <button class="test-btn" onclick="location.reload()">🔄 Atualizar Teste</button>
             <button class="test-btn" onclick="window.open('test_token_sync.php', '_blank')">🧪 Teste JSON</button>
             <button class="test-btn" onclick="window.open('test_whatsapp_endpoint.php?codigo=GH56YJ1474BR', '_blank')">📱 Testar Envio Completo</button>
-            <button class="test-btn" onclick="if(confirm('Isso abrirá o PowerShell para executar o script de sincronização. Continuar?')) { window.open('powershell://./sync_whatsapp_token.ps1', '_blank'); }">🔐 Sincronizar Token</button>
+            <button class="test-btn" onclick="if(confirm('Isso abrirá o PowerShell para executar o script de sincronização. Continuar?')) { window.open('powershell://./scripts/sync_whatsapp_token.ps1', '_blank'); }">🔐 Sincronizar Token</button>
         </div>
         
         <div class="card" style="background: #263238; border-left: 4px solid #4fc3f7;">

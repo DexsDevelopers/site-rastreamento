@@ -86,7 +86,7 @@ try {
         $resultado['error_details'] = [
             'message' => 'O token enviado não corresponde ao token configurado no bot Node.js',
             'token_config_json' => substr($apiConfig['token'], 0, 4) . '***' . substr($apiConfig['token'], -4),
-            'action_required' => 'Execute o script sync_whatsapp_token.ps1 para sincronizar o token do config.json para o .env do bot',
+            'action_required' => 'Execute o script scripts/sync_whatsapp_token.ps1 para sincronizar o token do config.json para o .env do bot',
             'bot_response' => $statusResponseData
         ];
         echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
@@ -147,7 +147,7 @@ try {
             if ((int)$ultimaNotif['http_code'] === 401) {
                 $resultado['error_details']['auth_error'] = true;
                 $resultado['error_details']['message'] = 'Token de autenticação inválido. Verifique se o token no config.json corresponde ao token no .env do bot.';
-                $resultado['error_details']['solution'] = 'Execute: .\sync_whatsapp_token.ps1';
+                $resultado['error_details']['solution'] = 'Execute: .\scripts\sync_whatsapp_token.ps1';
             } elseif ($respostaParsed && isset($respostaParsed['error']) && $respostaParsed['error'] === 'unauthorized') {
                 $resultado['error_details']['auth_error'] = true;
                 $resultado['error_details']['message'] = 'Erro de autenticação detectado na resposta da API.';

@@ -271,7 +271,7 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
         return [
             'success' => false,
             'error' => 'unauthorized',
-            'error_message' => 'Token de autenticação inválido. Execute sync_whatsapp_token.ps1 para sincronizar.',
+            'error_message' => 'Token de autenticação inválido. Execute scripts/sync_whatsapp_token.ps1 para sincronizar.',
             'http_code' => $httpCode,
             'response' => $response
         ];

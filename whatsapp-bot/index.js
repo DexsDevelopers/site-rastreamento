@@ -33,6 +33,13 @@ app.use(express.json());
 
 const PORT = Number(process.env.API_PORT || 3000);
 const API_TOKEN = process.env.API_TOKEN || 'troque-este-token';
+
+// Log do token carregado (mascarado por segurança)
+console.log('🔑 API_TOKEN carregado:', API_TOKEN ? `${API_TOKEN.substring(0, 4)}***${API_TOKEN.length > 8 ? API_TOKEN.substring(API_TOKEN.length - 4) : ''} (${API_TOKEN.length} chars)` : 'NÃO DEFINIDO');
+if (API_TOKEN === 'troque-este-token') {
+  console.warn('⚠️  AVISO: API_TOKEN ainda está no valor padrão! Configure no arquivo .env');
+}
+
 const AUTO_REPLY = String(process.env.AUTO_REPLY || 'false').toLowerCase() === 'true';
 const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000); // 1h
 const ADMIN_API_URL = process.env.ADMIN_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
@@ -605,20 +612,27 @@ function auth(req, res, next) {
                 req.headers['X-API-Token'] ||
                 req.headers['X-API-TOKEN'];
   
-  // Debug log (remover em produção se necessário)
+  // Debug log detalhado
   if (!token || token !== API_TOKEN) {
-    log.warn(`Auth failed: received="${token}", expected="${API_TOKEN}", url=${req.url}`);
+    const receivedToken = token ? `${token.substring(0, 4)}***${token.length > 8 ? token.substring(token.length - 4) : ''}` : 'null';
+    const expectedToken = API_TOKEN ? `${API_TOKEN.substring(0, 4)}***${API_TOKEN.length > 8 ? API_TOKEN.substring(API_TOKEN.length - 4) : ''}` : 'null';
+    log.warn(`❌ Auth failed: received="${receivedToken}" (${token ? token.length : 0} chars), expected="${expectedToken}" (${API_TOKEN ? API_TOKEN.length : 0} chars), url=${req.url}`);
+    log.warn(`   Token recebido completo: "${token}"`);
+    log.warn(`   Token esperado completo: "${API_TOKEN}"`);
   }
   
   if (!API_TOKEN || token !== API_TOKEN) {
     return res.status(401).json({ 
       ok: false, 
       error: 'unauthorized',
-      debug: process.env.NODE_ENV !== 'production' ? {
-        received_token: token ? `${token.substring(0, 4)}***` : 'null',
-        expected_token: `${API_TOKEN.substring(0, 4)}***`,
-        token_length_match: token ? token.length === API_TOKEN.length : false
-      } : undefined
+      debug: {
+        received_token: token ? `${token.substring(0, 4)}***${token.length > 8 ? token.substring(token.length - 4) : ''}` : 'null',
+        received_length: token ? token.length : 0,
+        expected_token: `${API_TOKEN.substring(0, 4)}***${API_TOKEN.length > 8 ? API_TOKEN.substring(API_TOKEN.length - 4) : ''}`,
+        expected_length: API_TOKEN ? API_TOKEN.length : 0,
+        token_length_match: token ? token.length === API_TOKEN.length : false,
+        token_exact_match: token === API_TOKEN
+      }
     });
   }
   next();

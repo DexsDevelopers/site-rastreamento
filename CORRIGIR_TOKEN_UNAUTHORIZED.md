@@ -21,7 +21,7 @@ Alguns proxies/servidores podem alterar o case do header.
 
 ### Passo 1: Sincronizar Token
 ```powershell
-.\sync_whatsapp_token.ps1
+.\scripts\sync_whatsapp_token.ps1
 ```
 
 ### Passo 2: VERIFICAR se o .env foi atualizado
@@ -70,7 +70,7 @@ Acesse: `test_token_sync.php`
 Retorna JSON com diagnóstico completo.
 
 ### 3. Script PowerShell
-Execute: `.\sync_whatsapp_token.ps1`
+Execute: `.\scripts\sync_whatsapp_token.ps1`
 
 Sincroniza automaticamente.
 

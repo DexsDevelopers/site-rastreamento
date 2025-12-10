@@ -106,7 +106,7 @@ if ($apiConfig['enabled'] && !empty($apiConfig['base_url'])) {
     
     if ($httpCode === 401) {
         $diagnostico['error'] = '❌ Erro de autenticação detectado!';
-        $diagnostico['solution'] = 'Execute o script sync_whatsapp_token.ps1 e reinicie o bot Node.js';
+        $diagnostico['solution'] = 'Execute o script scripts/sync_whatsapp_token.ps1 e reinicie o bot Node.js';
     }
 } else {
     $diagnostico['checks'][] = [

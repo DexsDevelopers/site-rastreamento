@@ -19,7 +19,7 @@ O erro `unauthorized` ocorre quando o token configurado no `config.json` não co
 Execute o script PowerShell que sincroniza automaticamente o token:
 
 ```powershell
-.\sync_whatsapp_token.ps1
+.\scripts\sync_whatsapp_token.ps1
 ```
 
 Este script:
