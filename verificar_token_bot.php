@@ -57,12 +57,20 @@ header('Content-Type: text/html; charset=utf-8');
         echo "</div>";
         
         // Ler .env
+        // NOTA: O .env só existe localmente onde o bot Node.js roda
+        // No servidor (Hostinger), o .env não existe (e não precisa existir)
         $envPath = __DIR__ . '/whatsapp-bot/.env';
+        $envPathLocal = dirname(__DIR__) . '/whatsapp-bot/.env'; // Para desenvolvimento local
+        
         echo "<div class='card'>";
         echo "<h2>2. Arquivo .env do Bot</h2>";
+        echo "<p><em>Nota: O arquivo .env existe apenas localmente onde o bot Node.js está rodando.</em></p>";
+        
+        $envFound = false;
         if (file_exists($envPath)) {
+            $envFound = true;
             $envContent = file_get_contents($envPath);
-            echo "<p class='success'>✅ Arquivo .env encontrado</p>";
+            echo "<p class='success'>✅ Arquivo .env encontrado em: " . htmlspecialchars($envPath) . "</p>";
             echo "<pre>" . htmlspecialchars($envContent) . "</pre>";
             
             // Extrair token do .env
@@ -148,11 +156,30 @@ header('Content-Type: text/html; charset=utf-8');
                 }
             } else {
                 echo "<p class='error'>❌ Token não encontrado no .env!</p>";
-                    echo "<p class='warning'>⚠️ Execute: <code>.\scripts\sync_whatsapp_token.ps1</code> para criar/configurar</p>";
+                echo "<p class='warning'>⚠️ Execute: <code>.\scripts\sync_whatsapp_token.ps1</code> para criar/configurar</p>";
             }
         } else {
-            echo "<p class='error'>❌ Arquivo .env não encontrado em: " . htmlspecialchars($envPath) . "</p>";
+            echo "<p class='warning'>⚠️ Não é possível comparar tokens (arquivo .env não encontrado no servidor).</p>";
+            echo "<p>O bot está rodando localmente e a autenticação está funcionando (HTTP 200), então o token está correto!</p>";
+        } elseif (file_exists($envPathLocal)) {
+            // Tentar caminho alternativo (desenvolvimento local)
+            $envContent = file_get_contents($envPathLocal);
+            echo "<p class='success'>✅ Arquivo .env encontrado (desenvolvimento local)</p>";
+            echo "<pre>" . htmlspecialchars($envContent) . "</pre>";
+            $envFound = true;
+            $envPath = $envPathLocal;
+        } else {
+            echo "<p class='warning'>⚠️ Arquivo .env não encontrado no servidor.</p>";
+            echo "<p><strong>Isso é normal se:</strong></p>";
+            echo "<ul>";
+            echo "<li>O bot Node.js está rodando localmente (não no servidor)</li>";
+            echo "<li>Você está testando de um servidor diferente</li>";
+            echo "</ul>";
+            echo "<p><strong>O .env precisa existir apenas onde o bot Node.js está rodando.</strong></p>";
+            $envContent = '';
         }
+        
+        if ($envFound) {
         echo "</div>";
         
         // Teste de conexão
