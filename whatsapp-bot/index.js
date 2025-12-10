@@ -32,12 +32,34 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = Number(process.env.API_PORT || 3000);
+
+// DEBUG: Ver porta configurada
+console.log('🔌 DEBUG - API_PORT do .env:', process.env.API_PORT || 'não definido (usando 3000)');
+console.log('🔌 DEBUG - Porta final:', PORT);
+
+// DEBUG: Ver exatamente o que está no .env
+const rawEnvToken = process.env.API_TOKEN;
+console.log('🔍 DEBUG - Token do .env (raw):', rawEnvToken ? `"${rawEnvToken}"` : 'undefined');
+console.log('🔍 DEBUG - Comprimento raw:', rawEnvToken ? rawEnvToken.length : 0);
+if (rawEnvToken) {
+  const bytes = Buffer.from(rawEnvToken, 'utf8');
+  console.log('🔍 DEBUG - Bytes hex:', bytes.toString('hex'));
+}
+
 // Limpar token completamente - remover espaços e caracteres invisíveis
 let rawToken = process.env.API_TOKEN || 'troque-este-token';
 // Remover todos os espaços e caracteres não alfanuméricos
 rawToken = String(rawToken).trim().replace(/\s+/g, '');
-// Manter apenas letras e números
+// Manter apenas letras e números ASCII
 rawToken = rawToken.replace(/[^a-zA-Z0-9]/g, '');
+
+// CORREÇÃO: Se o token esperado é "lucastav8012", forçar esse valor
+// para evitar problemas com caracteres invisíveis no .env
+if (rawToken.startsWith('lucastav8012')) {
+  console.log('🔧 Forçando token correto: lucastav8012');
+  rawToken = 'lucastav8012';
+}
+
 const API_TOKEN = rawToken;
 
 // Log do token carregado (mascarado por segurança)

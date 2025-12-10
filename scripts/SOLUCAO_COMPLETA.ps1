@@ -149,7 +149,7 @@ Write-Host "   cd whatsapp-bot" -ForegroundColor Gray
 Write-Host "   npm run dev" -ForegroundColor Gray
 Write-Host ""
 Write-Host "4. Verifique nos logs:" -ForegroundColor White
-Write-Host "   Deve aparecer: (11 chars)" -ForegroundColor Green
+Write-Host "   Deve aparecer: 11 chars" -ForegroundColor Green
 Write-Host ""
 Write-Host "5. Teste o envio novamente" -ForegroundColor White
 Write-Host ""

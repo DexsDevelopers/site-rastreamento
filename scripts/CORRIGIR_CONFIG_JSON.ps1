@@ -125,7 +125,7 @@ Write-Host "   Stop-Process -Name node -Force" -ForegroundColor Gray
 Write-Host "   cd whatsapp-bot" -ForegroundColor Gray
 Write-Host "   npm run dev" -ForegroundColor Gray
 Write-Host ""
-Write-Host "3. Verifique nos logs: deve aparecer (11 chars)" -ForegroundColor White
+Write-Host "3. Verifique nos logs: deve aparecer 11 chars" -ForegroundColor White
 Write-Host ""
 Write-Host "Pressione qualquer tecla para fechar..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
