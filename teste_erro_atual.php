@@ -93,9 +93,12 @@ try {
                 $ch2 = curl_init($endpoint);
                 
                 // Preparar headers - garantir que não há espaços extras
+                $tokenClean = trim($token);
+                $tokenClean = preg_replace('/\s+/', '', $tokenClean); // Remove TODOS os espaços
+                
                 $headers = [
                     'Content-Type: application/json',
-                    'x-api-token: ' . trim($token),
+                    'x-api-token: ' . $tokenClean,
                     'ngrok-skip-browser-warning: true'
                 ];
                 
@@ -110,8 +113,11 @@ try {
                 
                 // Log dos headers sendo enviados (para debug)
                 $resultado['debug_headers'] = $headers;
-                $resultado['debug_token_length'] = strlen(trim($token));
-                $resultado['debug_token_bytes'] = bin2hex(trim($token));
+                $resultado['debug_token_original'] = $token;
+                $resultado['debug_token_cleaned'] = $tokenClean;
+                $resultado['debug_token_original_length'] = strlen($token);
+                $resultado['debug_token_cleaned_length'] = strlen($tokenClean);
+                $resultado['debug_token_bytes'] = bin2hex($tokenClean);
                 
                 $response2 = curl_exec($ch2);
                 $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);

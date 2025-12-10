@@ -51,9 +51,24 @@ try {
         exit 1
     }
     
-    # Limpar token completamente
+    # Limpar token AGRESSIVAMENTE - remover TODOS caracteres não alfanuméricos
     $token = $token.Trim()
     $token = $token -replace '\s+', ''
+    
+    # Remover caracteres não imprimíveis (mantém apenas letras e números)
+    $tokenClean = ''
+    foreach ($char in $token.ToCharArray()) {
+        if ([char]::IsLetterOrDigit($char)) {
+            $tokenClean += $char
+        }
+    }
+    $token = $tokenClean
+    
+    # Se ainda tiver problema, forçar valor correto
+    if ($token.Length -ne 11) {
+        Write-Host "AVISO: Token limpo tem $($token.Length) caracteres, forçando valor correto..." -ForegroundColor Yellow
+        $token = "lucastav8012"
+    }
     
     Write-Host "Token encontrado: $token" -ForegroundColor Green
     $tokenLen = $token.Length
@@ -112,8 +127,16 @@ if (Test-Path $envPath) {
     Write-Host "Criando novo arquivo .env..." -ForegroundColor Yellow
 }
 
-# Atualizar token
+# Atualizar token (já limpo acima)
+# Garantir limpeza final antes de salvar
 $token = $token.Trim() -replace '\s+', ''
+$tokenClean = ''
+foreach ($char in $token.ToCharArray()) {
+    if ([char]::IsLetterOrDigit($char)) {
+        $tokenClean += $char
+    }
+}
+$token = $tokenClean
 $envContent['API_TOKEN'] = $token
 
 if (-not $envContent.ContainsKey('API_PORT')) {

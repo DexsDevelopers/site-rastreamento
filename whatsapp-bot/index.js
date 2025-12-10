@@ -32,7 +32,13 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = Number(process.env.API_PORT || 3000);
-const API_TOKEN = process.env.API_TOKEN || 'troque-este-token';
+// Limpar token completamente - remover espaços e caracteres invisíveis
+let rawToken = process.env.API_TOKEN || 'troque-este-token';
+// Remover todos os espaços e caracteres não alfanuméricos
+rawToken = String(rawToken).trim().replace(/\s+/g, '');
+// Manter apenas letras e números
+rawToken = rawToken.replace(/[^a-zA-Z0-9]/g, '');
+const API_TOKEN = rawToken;
 
 // Log do token carregado (mascarado por segurança)
 console.log('🔑 API_TOKEN carregado:', API_TOKEN ? `${API_TOKEN.substring(0, 4)}***${API_TOKEN.length > 8 ? API_TOKEN.substring(API_TOKEN.length - 4) : ''} (${API_TOKEN.length} chars)` : 'NÃO DEFINIDO');
