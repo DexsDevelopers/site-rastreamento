@@ -1,101 +1,179 @@
-# Script para sincronizar o token do WhatsApp do config.json para o .env do bot
+# Script para sincronizar o token do WhatsApp
 # Autor: Sistema de Rastreamento
-# Data: 2025-01-27
 
-Write-Host "🔄 Sincronizando token do WhatsApp..." -ForegroundColor Cyan
+$ErrorActionPreference = "Continue"
+$host.UI.RawUI.WindowTitle = "Sincronizacao de Token - WhatsApp Bot"
 
-# Ajustar caminho base (sobe um nível, pois o script está em scripts/)
-$scriptDir = Split-Path -Parent $PSScriptRoot
+Write-Host "Sincronizando token do WhatsApp..." -ForegroundColor Cyan
+Write-Host ""
+
+# Tratar erros
+trap {
+    Write-Host ""
+    Write-Host "ERRO: $_" -ForegroundColor Red
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
+# Ajustar caminho base
+if ($PSScriptRoot) {
+    $scriptDir = Split-Path -Parent $PSScriptRoot
+} else {
+    $scriptDir = Get-Location
+}
+
 $configPath = Join-Path $scriptDir "config.json"
 $envPath = Join-Path $scriptDir "whatsapp-bot\.env"
 
+Write-Host "Diretorio base: $scriptDir" -ForegroundColor Cyan
+Write-Host ""
+
 # Verificar se config.json existe
 if (-not (Test-Path $configPath)) {
-    Write-Host "❌ Arquivo config.json não encontrado em: $configPath" -ForegroundColor Red
+    Write-Host "ERRO: Arquivo config.json nao encontrado em: $configPath" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
 
 # Ler config.json
 try {
-    $config = Get-Content $configPath -Raw | ConvertFrom-Json
+    $config = Get-Content $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $token = $config.WHATSAPP_API_TOKEN
     
     if ([string]::IsNullOrWhiteSpace($token)) {
-        Write-Host "❌ Token não encontrado em config.json (WHATSAPP_API_TOKEN)" -ForegroundColor Red
+        Write-Host "ERRO: Token nao encontrado em config.json" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Pressione qualquer tecla para sair..."
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         exit 1
     }
     
-    Write-Host "✅ Token encontrado no config.json: $token" -ForegroundColor Green
+    # Limpar token completamente
+    $token = $token.Trim()
+    $token = $token -replace '\s+', ''
+    
+    Write-Host "Token encontrado: $token" -ForegroundColor Green
+    $tokenLen = $token.Length
+    Write-Host "Comprimento: $tokenLen caracteres" -ForegroundColor Gray
+    
+    if ($tokenLen -ne 11) {
+        Write-Host "AVISO: Token deveria ter 11 caracteres (lucastav8012)" -ForegroundColor Yellow
+    }
 } catch {
-    Write-Host "❌ Erro ao ler config.json: $_" -ForegroundColor Red
+    Write-Host "ERRO ao ler config.json: $_" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
 
-# Verificar se diretório do bot existe
+# Verificar se diretorio do bot existe
 $botDir = Split-Path $envPath -Parent
 if (-not (Test-Path $botDir)) {
-    Write-Host "❌ Diretório do bot não encontrado: $botDir" -ForegroundColor Red
+    Write-Host "ERRO: Diretorio do bot nao encontrado: $botDir" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
 
 # Ler .env existente ou criar novo
 $envContent = @{}
 if (Test-Path $envPath) {
-    Write-Host "📄 Arquivo .env encontrado, lendo conteúdo..." -ForegroundColor Yellow
-    Get-Content $envPath -Raw | ForEach-Object {
-        # Dividir por linhas e processar cada uma
-        $_.Split("`n") | ForEach-Object {
-            $line = $_.Trim()
-            if ($line -and -not $line.StartsWith('#')) {
-                if ($line -match '^\s*([^#=]+)\s*=\s*(.+?)\s*$') {
-                    $key = $matches[1].Trim()
-                    $value = $matches[2].Trim(" `t`"'")
-                    $envContent[$key] = $value
+    Write-Host "Arquivo .env encontrado, lendo conteudo..." -ForegroundColor Yellow
+    $envLinesRaw = Get-Content $envPath -Raw
+    
+    foreach ($line in ($envLinesRaw -split "`n")) {
+        $line = $line.Trim()
+        if ($line -and -not $line.StartsWith('#')) {
+            if ($line -match '^([^=]+)=(.*)$') {
+                $key = $matches[1].Trim()
+                $value = $matches[2].Trim()
+                
+                # Remover aspas
+                if ($value.StartsWith('"') -and $value.EndsWith('"')) {
+                    $value = $value.Substring(1, $value.Length - 2)
                 }
+                if ($value.StartsWith("'") -and $value.EndsWith("'")) {
+                    $value = $value.Substring(1, $value.Length - 2)
+                }
+                
+                $envContent[$key] = $value
             }
         }
     }
-    Write-Host "   Variáveis encontradas: $($envContent.Keys -join ', ')" -ForegroundColor Gray
+    
+    $keys = $envContent.Keys -join ', '
+    Write-Host "Variaveis encontradas: $keys" -ForegroundColor Gray
 } else {
-    Write-Host "📝 Criando novo arquivo .env..." -ForegroundColor Yellow
+    Write-Host "Criando novo arquivo .env..." -ForegroundColor Yellow
 }
 
-# Atualizar token (remover espaços e aspas)
-$token = $token.Trim(" `t`"'")
+# Atualizar token
+$token = $token.Trim() -replace '\s+', ''
 $envContent['API_TOKEN'] = $token
-$envContent['API_PORT'] = if ($envContent.ContainsKey('API_PORT')) { $envContent['API_PORT'].Trim() } else { '3000' }
 
-Write-Host "📝 Configurações a serem salvas:" -ForegroundColor Cyan
-Write-Host "   API_PORT = $($envContent['API_PORT'])" -ForegroundColor White
-Write-Host "   API_TOKEN = $token" -ForegroundColor White
+if (-not $envContent.ContainsKey('API_PORT')) {
+    $envContent['API_PORT'] = '3000'
+} else {
+    $envContent['API_PORT'] = $envContent['API_PORT'].Trim()
+}
 
-# Escrever .env com formato limpo (sem espaços extras, sem BOM)
+Write-Host ""
+Write-Host "Configuracoes a serem salvas:" -ForegroundColor Cyan
+Write-Host "  API_PORT = $($envContent['API_PORT'])" -ForegroundColor White
+Write-Host "  API_TOKEN = $token" -ForegroundColor White
+
+# Escrever .env
 $envLines = @()
 $envLines += "# Arquivo .env gerado automaticamente"
-$envLines += "# Token sincronizado do config.json em $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+$dateStr = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+$envLines += "# Token sincronizado do config.json em $dateStr"
 $envLines += ""
 $envLines += "API_PORT=$($envContent['API_PORT'])"
 $envLines += "API_TOKEN=$token"
 $envLines += ""
 
-# Adicionar outras variáveis se existirem
-$otherVars = @('AUTO_REPLY', 'AUTO_REPLY_WINDOW_MS', 'ADMIN_API_URL', 'ADMIN_NUMBERS')
-foreach ($var in $otherVars) {
-    if ($envContent.ContainsKey($var) -and $envContent[$var]) {
-        $envLines += "$var=$($envContent[$var])"
-    }
+# Adicionar outras variaveis se existirem
+if ($envContent.ContainsKey('AUTO_REPLY') -and $envContent['AUTO_REPLY']) {
+    $envLines += "AUTO_REPLY=$($envContent['AUTO_REPLY'])"
+}
+if ($envContent.ContainsKey('AUTO_REPLY_WINDOW_MS') -and $envContent['AUTO_REPLY_WINDOW_MS']) {
+    $envLines += "AUTO_REPLY_WINDOW_MS=$($envContent['AUTO_REPLY_WINDOW_MS'])"
+}
+if ($envContent.ContainsKey('ADMIN_API_URL') -and $envContent['ADMIN_API_URL']) {
+    $envLines += "ADMIN_API_URL=$($envContent['ADMIN_API_URL'])"
+}
+if ($envContent.ContainsKey('ADMIN_NUMBERS') -and $envContent['ADMIN_NUMBERS']) {
+    $envLines += "ADMIN_NUMBERS=$($envContent['ADMIN_NUMBERS'])"
 }
 
 try {
-    $envLines | Set-Content $envPath -Encoding UTF8
-    Write-Host "✅ Token sincronizado com sucesso!" -ForegroundColor Green
-    Write-Host "📁 Arquivo atualizado: $envPath" -ForegroundColor Cyan
+    # Criar arquivo com encoding UTF8 sem BOM
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllLines($envPath, $envLines, $utf8NoBom)
+    
+    Write-Host ""
+    Write-Host "Token sincronizado com sucesso!" -ForegroundColor Green
+    Write-Host "Arquivo atualizado: $envPath" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Token configurado: $token" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "⚠️  IMPORTANTE: Reinicie o bot Node.js para aplicar as mudanças!" -ForegroundColor Yellow
-    Write-Host "   Execute: cd whatsapp-bot && npm run dev" -ForegroundColor White
+    Write-Host "IMPORTANTE: Reinicie o bot Node.js para aplicar as mudancas!" -ForegroundColor Yellow
+    Write-Host "  Execute:" -ForegroundColor White
+    Write-Host "  cd whatsapp-bot" -ForegroundColor Gray
+    Write-Host "  npm run dev" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para fechar..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 } catch {
-    Write-Host "❌ Erro ao escrever .env: $_" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "ERRO ao escrever .env: $_" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }

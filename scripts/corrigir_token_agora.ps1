@@ -1,35 +1,78 @@
 # Script URGENTE para corrigir token e verificar
 # Força a sincronização e verifica tudo
 
+# Configurar para não fechar automaticamente
+$ErrorActionPreference = "Continue"
+$host.UI.RawUI.WindowTitle = "Correção de Token - WhatsApp Bot"
+
 Write-Host "🚨 CORREÇÃO URGENTE DE TOKEN" -ForegroundColor Red
 Write-Host ""
 
+# Tratar erros
+trap {
+    Write-Host ""
+    Write-Host "❌ ERRO: $_" -ForegroundColor Red
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
 # Ajustar caminho base (sobe um nível, pois o script está em scripts/)
-$scriptDir = Split-Path -Parent $PSScriptRoot
+# Se executado diretamente (duplo clique), usar diretório atual
+if ($PSScriptRoot) {
+    $scriptDir = Split-Path -Parent $PSScriptRoot
+} else {
+    # Se não tem PSScriptRoot, assumir que está na raiz do projeto
+    $scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+    if (-not $scriptDir) {
+        $scriptDir = Get-Location
+    }
+}
+
 $configPath = Join-Path $scriptDir "config.json"
 $envPath = Join-Path $scriptDir "whatsapp-bot\.env"
+
+Write-Host "📁 Diretório base: $scriptDir" -ForegroundColor Cyan
+Write-Host "📄 Config: $configPath" -ForegroundColor Gray
+Write-Host "📄 .env: $envPath" -ForegroundColor Gray
+Write-Host ""
 
 # 1. Ler token do config.json
 try {
     $config = Get-Content $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $token = $config.WHATSAPP_API_TOKEN.Trim()
     
-    Write-Host "✅ Token do config.json: $token" -ForegroundColor Green
+    # Remover TODOS os espaços e caracteres invisíveis
+    $token = $token -replace '\s+', ''  # Remove todos os espaços
+    $token = $token.Trim()  # Trim novamente
+    
+    Write-Host "✅ Token do config.json: '$token'" -ForegroundColor Green
     Write-Host "   Comprimento: $($token.Length) caracteres" -ForegroundColor Gray
+    
+    if ($token.Length -ne 11) {
+        Write-Host "   ⚠️  AVISO: Token deveria ter 11 caracteres (lucastav8012)" -ForegroundColor Yellow
+    }
 } catch {
     Write-Host "❌ Erro ao ler config.json: $_" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
 
 # 2. Criar/Atualizar .env com conteúdo EXATO (sem espaços extras)
+# Garantir que o token está limpo
+$tokenLimpo = $token.Trim() -replace '\s+', ''
 $envLines = @(
     "# Arquivo .env - Token sincronizado automaticamente",
     "# Data: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')",
     "",
     "API_PORT=3000",
-    "API_TOKEN=$token",
+    "API_TOKEN=$tokenLimpo",
     ""
 )
+
+Write-Host "📝 Token que será salvo: '$tokenLimpo' ($($tokenLimpo.Length) chars)" -ForegroundColor Cyan
 
 # 3. Escrever .env sem BOM, sem espaços extras
 try {
@@ -47,6 +90,9 @@ try {
     Write-Host "   Caminho: $envPath" -ForegroundColor Cyan
 } catch {
     Write-Host "❌ Erro ao escrever .env: $_" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Pressione qualquer tecla para sair..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
 

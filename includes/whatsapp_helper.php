@@ -48,7 +48,7 @@ function normalizePhoneToDigits(?string $input): ?string {
 
 function whatsappApiConfig(): array {
     $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', ''), '/');
-    $token = (string) getDynamicConfig('WHATSAPP_API_TOKEN', '');
+    $token = trim((string) getDynamicConfig('WHATSAPP_API_TOKEN', '')); // Limpar espaços do token
     $enabled = filter_var(getDynamicConfig('WHATSAPP_API_ENABLED', true), FILTER_VALIDATE_BOOLEAN);
 
     return [
