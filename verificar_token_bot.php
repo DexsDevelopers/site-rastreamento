@@ -6,11 +6,14 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-try {
-    require_once 'includes/config.php';
-    require_once 'includes/whatsapp_helper.php';
-} catch (Throwable $e) {
-    die("❌ Erro ao carregar arquivos: " . $e->getMessage() . " em " . $e->getFile() . ":" . $e->getLine());
+// Carregar dependências ANTES de qualquer output
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/db_connect.php';
+require_once __DIR__ . '/includes/whatsapp_helper.php';
+
+// Verificar se a função existe
+if (!function_exists('whatsappApiConfig')) {
+    die("❌ Erro: Função whatsappApiConfig não encontrada. Verifique se includes/whatsapp_helper.php foi carregado corretamente.");
 }
 
 header('Content-Type: text/html; charset=utf-8');
@@ -40,19 +43,10 @@ header('Content-Type: text/html; charset=utf-8');
         <h1>🔍 Verificador de Token - WhatsApp Bot</h1>
         
         <?php
-        try {
-            if (!function_exists('whatsappApiConfig')) {
-                throw new Exception('Função whatsappApiConfig não encontrada. Verifique se includes/whatsapp_helper.php foi carregado.');
-            }
-            
-            $apiConfig = whatsappApiConfig();
-            
-            if (!is_array($apiConfig)) {
-                throw new Exception('whatsappApiConfig não retornou um array. Retornou: ' . gettype($apiConfig));
-            }
-            
-            $token = $apiConfig['token'] ?? '';
-            $baseUrl = $apiConfig['base_url'] ?? '';
+        // Função já foi verificada no topo do arquivo
+        $apiConfig = whatsappApiConfig();
+        $token = $apiConfig['token'] ?? '';
+        $baseUrl = $apiConfig['base_url'] ?? '';
         
         echo "<div class='card'>";
         echo "<h2>1. Configuração Atual</h2>";
@@ -282,18 +276,3 @@ header('Content-Type: text/html; charset=utf-8');
     </div>
 </body>
 </html>
-<?php
-        } catch (Throwable $e) {
-            echo "<div class='card' style='background: #d32f2f; color: white;'>";
-            echo "<h2>❌ Erro ao Carregar Página</h2>";
-            echo "<p><strong>Erro:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
-            echo "<p><strong>Arquivo:</strong> " . htmlspecialchars($e->getFile()) . "</p>";
-            echo "<p><strong>Linha:</strong> " . $e->getLine() . "</p>";
-            echo "<p><strong>Stack Trace:</strong></p>";
-            echo "<pre style='background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; overflow-x: auto;'>";
-            echo htmlspecialchars($e->getTraceAsString());
-            echo "</pre>";
-            echo "<p><a href='debug_verificar.php' style='color: #4fc3f7;'>🔍 Abrir página de debug</a></p>";
-            echo "</div>";
-        }
-        ?>
