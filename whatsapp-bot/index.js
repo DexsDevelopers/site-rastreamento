@@ -70,8 +70,16 @@ if (API_TOKEN === 'troque-este-token') {
 
 const AUTO_REPLY = String(process.env.AUTO_REPLY || 'false').toLowerCase() === 'true';
 const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000); // 1h
-const ADMIN_API_URL = process.env.ADMIN_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
+
+// URLs das APIs - DOIS PROJETOS
+const RASTREAMENTO_API_URL = process.env.RASTREAMENTO_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
+const FINANCEIRO_API_URL = process.env.FINANCEIRO_API_URL || 'https://gold-quail-250128.hostingersite.com/seu_projeto';
+const ADMIN_API_URL = RASTREAMENTO_API_URL; // Compatibilidade
 const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
+
+console.log('📡 APIs configuradas:');
+console.log('   Rastreamento:', RASTREAMENTO_API_URL);
+console.log('   Financeiro:', FINANCEIRO_API_URL);
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
@@ -330,19 +338,35 @@ function checkMemory() {
 }
 
 // ===== PROCESSAMENTO DE COMANDOS =====
+// Aceita comandos com / (rastreamento) ou ! (financeiro)
 async function processAdminCommand(from, text) {
   try {
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     
-    log.info(`Comando de ${fromNumber}: ${text}`);
+    // Detectar qual projeto pelo prefixo
+    const prefix = text.charAt(0);
+    const isFinanceiro = prefix === '!';
+    const isRastreamento = prefix === '/';
+    
+    const apiUrl = isFinanceiro ? FINANCEIRO_API_URL : RASTREAMENTO_API_URL;
+    const projectName = isFinanceiro ? 'Financeiro' : 'Rastreamento';
+    
+    log.info(`[${projectName}] Comando de ${fromNumber}: ${text}`);
     
     const parts = text.trim().split(/\s+/);
     const command = parts[0].substring(1).toLowerCase();
     const params = parts.slice(1);
     
     const response = await axios.post(
-      `${ADMIN_API_URL}/admin_bot_api.php`,
-      { command, params, from: fromNumber },
+      `${apiUrl}/admin_bot_api.php`,
+      { 
+        command, 
+        params, 
+        args: params, // Compatibilidade com site-financeiro
+        from: fromNumber,
+        phone: fromNumber, // Compatibilidade com site-financeiro
+        message: text // Compatibilidade com site-financeiro
+      },
       {
         headers: {
           'Authorization': `Bearer ${API_TOKEN}`,
@@ -371,9 +395,12 @@ async function processAdminCommand(from, text) {
     return result;
   } catch (error) {
     log.error(`Erro comando: ${error.message}`);
+    if (error.response) {
+      log.error(`Resposta da API: ${JSON.stringify(error.response.data)}`);
+    }
     return {
       success: false,
-      message: '❌ Erro ao processar comando.\n' + (error.response?.data?.message || error.message)
+      message: '❌ Erro ao processar comando.\n' + (error.response?.data?.message || error.response?.data?.error || error.message)
     };
   }
 }
@@ -586,7 +613,8 @@ async function start() {
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
         
-        if (text.startsWith('/')) {
+        // Aceitar comandos com / (rastreamento) ou ! (financeiro)
+        if (text.startsWith('/') || text.startsWith('!')) {
           const result = await processAdminCommand(remoteJid, text);
           if (result.message) {
             await sock.sendMessage(remoteJid, { text: result.message });
