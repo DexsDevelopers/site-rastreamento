@@ -607,31 +607,39 @@ async function start() {
 // ===== MIDDLEWARE DE AUTENTICAÇÃO =====
 function auth(req, res, next) {
   // Tentar ler o token de várias formas (case-insensitive)
-  const token = req.headers['x-api-token'] || 
-                req.headers['X-Api-Token'] || 
-                req.headers['X-API-Token'] ||
-                req.headers['X-API-TOKEN'];
+  const tokenRaw = req.headers['x-api-token'] || 
+                   req.headers['X-Api-Token'] || 
+                   req.headers['X-API-Token'] ||
+                   req.headers['X-API-TOKEN'];
+  
+  // Limpar token recebido (remover espaços e caracteres invisíveis)
+  const token = tokenRaw ? String(tokenRaw).trim() : null;
+  const expectedToken = API_TOKEN ? String(API_TOKEN).trim() : null;
   
   // Debug log detalhado
-  if (!token || token !== API_TOKEN) {
+  if (!token || token !== expectedToken) {
     const receivedToken = token ? `${token.substring(0, 4)}***${token.length > 8 ? token.substring(token.length - 4) : ''}` : 'null';
-    const expectedToken = API_TOKEN ? `${API_TOKEN.substring(0, 4)}***${API_TOKEN.length > 8 ? API_TOKEN.substring(API_TOKEN.length - 4) : ''}` : 'null';
-    log.warn(`❌ Auth failed: received="${receivedToken}" (${token ? token.length : 0} chars), expected="${expectedToken}" (${API_TOKEN ? API_TOKEN.length : 0} chars), url=${req.url}`);
+    const expectedTokenDisplay = expectedToken ? `${expectedToken.substring(0, 4)}***${expectedToken.length > 8 ? expectedToken.substring(expectedToken.length - 4) : ''}` : 'null';
+    log.warn(`❌ Auth failed: received="${receivedToken}" (${token ? token.length : 0} chars), expected="${expectedTokenDisplay}" (${expectedToken ? expectedToken.length : 0} chars), url=${req.url}`);
     log.warn(`   Token recebido completo: "${token}"`);
-    log.warn(`   Token esperado completo: "${API_TOKEN}"`);
+    log.warn(`   Token esperado completo: "${expectedToken}"`);
+    log.warn(`   Token recebido (raw): "${tokenRaw}"`);
+    log.warn(`   Token esperado (raw): "${API_TOKEN}"`);
   }
   
-  if (!API_TOKEN || token !== API_TOKEN) {
+  if (!expectedToken || !token || token !== expectedToken) {
     return res.status(401).json({ 
       ok: false, 
       error: 'unauthorized',
       debug: {
         received_token: token ? `${token.substring(0, 4)}***${token.length > 8 ? token.substring(token.length - 4) : ''}` : 'null',
         received_length: token ? token.length : 0,
-        expected_token: `${API_TOKEN.substring(0, 4)}***${API_TOKEN.length > 8 ? API_TOKEN.substring(API_TOKEN.length - 4) : ''}`,
-        expected_length: API_TOKEN ? API_TOKEN.length : 0,
-        token_length_match: token ? token.length === API_TOKEN.length : false,
-        token_exact_match: token === API_TOKEN
+        received_raw: tokenRaw || 'null',
+        expected_token: `${expectedToken ? expectedToken.substring(0, 4) : ''}***${expectedToken && expectedToken.length > 8 ? expectedToken.substring(expectedToken.length - 4) : ''}`,
+        expected_length: expectedToken ? expectedToken.length : 0,
+        token_length_match: token ? token.length === expectedToken.length : false,
+        token_exact_match: token === expectedToken,
+        api_token_defined: !!API_TOKEN
       }
     });
   }
@@ -640,8 +648,8 @@ function auth(req, res, next) {
 
 // ===== ENDPOINTS =====
 
-// Status
-app.get('/status', (req, res) => {
+// Status (com autenticação para debug)
+app.get('/status', auth, (req, res) => {
   const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
   const memUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
   

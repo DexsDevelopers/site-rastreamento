@@ -91,18 +91,27 @@ try {
                 ], JSON_UNESCAPED_UNICODE);
                 
                 $ch2 = curl_init($endpoint);
+                
+                // Preparar headers - garantir que não há espaços extras
+                $headers = [
+                    'Content-Type: application/json',
+                    'x-api-token: ' . trim($token),
+                    'ngrok-skip-browser-warning: true'
+                ];
+                
                 curl_setopt_array($ch2, [
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_POST => true,
-                    CURLOPT_HTTPHEADER => [
-                        'Content-Type: application/json',
-                        'x-api-token: ' . $token,
-                        'ngrok-skip-browser-warning: true'
-                    ],
+                    CURLOPT_HTTPHEADER => $headers,
                     CURLOPT_POSTFIELDS => $payload,
                     CURLOPT_TIMEOUT => 20,
                     CURLOPT_SSL_VERIFYPEER => false
                 ]);
+                
+                // Log dos headers sendo enviados (para debug)
+                $resultado['debug_headers'] = $headers;
+                $resultado['debug_token_length'] = strlen(trim($token));
+                $resultado['debug_token_bytes'] = bin2hex(trim($token));
                 
                 $response2 = curl_exec($ch2);
                 $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
@@ -129,7 +138,7 @@ try {
     
     // Teste 6: Verificar última notificação no banco
     $resultado['testes'][] = '6. Verificando última notificação no banco...';
-    $ultimaNotif = fetchOne($pdo, "SELECT sucesso, http_code, resposta_http, erro, criado_em 
+    $ultimaNotif = fetchOne($pdo, "SELECT sucesso, http_code, resposta_http, criado_em 
                                    FROM whatsapp_notificacoes 
                                    ORDER BY criado_em DESC 
                                    LIMIT 1");

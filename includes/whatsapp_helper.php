@@ -229,12 +229,15 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
         ];
     }
 
+    // Garantir token limpo (sem espaços, sem caracteres invisíveis)
+    $tokenClean = trim($config['token']);
+    
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
-            'x-api-token: ' . $config['token'],
+            'x-api-token: ' . $tokenClean,
             'ngrok-skip-browser-warning: true'  // Pular página de warning do ngrok
         ],
         CURLOPT_POSTFIELDS => $payload,
