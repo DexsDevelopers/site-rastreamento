@@ -2732,9 +2732,10 @@ body {
                                 <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp' style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'>
                                     <i class='fab fa-whatsapp'></i> WhatsApp
                                 </button>
-                                <form method='POST' style='display:inline' onsubmit='return confirmarExclusao(this, \"rastreio\", \"{$row['codigo']}\")'>
+                                <form method='POST' style='display:inline' id='formDeletar{$row['codigo']}'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
-                                    <button type='submit' name='deletar' class='btn btn-danger btn-sm' title='Excluir'>
+                                    <input type='hidden' name='deletar' value='1'>
+                                    <button type='button' onclick='confirmarExclusao(\"formDeletar{$row['codigo']}\", \"rastreio\", \"{$row['codigo']}\")' class='btn btn-danger btn-sm' title='Excluir'>
                                         <i class='fas fa-trash'></i>
                                     </button>
                                 </form>
@@ -2784,9 +2785,10 @@ body {
                             <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
                             <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
                             <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\" style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'><i class='fab fa-whatsapp'></i> WhatsApp</button>
-                            <form method='POST' onsubmit=\"return confirmarExclusao(this, 'rastreio', '{$row['codigo']}')\" style='display:inline'>
+                            <form method='POST' style='display:inline' id='formDeletarMobile{$row['codigo']}'>
                                 <input type='hidden' name='codigo' value='{$row['codigo']}'>
-                                <button type='submit' name='deletar' class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
+                                <input type='hidden' name='deletar' value='1'>
+                                <button type='button' onclick=\"confirmarExclusao('formDeletarMobile{$row['codigo']}', 'rastreio', '{$row['codigo']}')\" class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
                             </form>
                         </div>
                     </div>";
@@ -3176,7 +3178,7 @@ const SwalDark = Swal.mixin({
 });
 
 // Confirmação de exclusão elegante
-async function confirmarExclusao(form, tipo = 'rastreio', codigo = '') {
+async function confirmarExclusao(formId, tipo = 'rastreio', codigo = '') {
     const result = await SwalDark.fire({
         title: '🗑️ Confirmar Exclusão',
         html: `
@@ -3199,9 +3201,24 @@ async function confirmarExclusao(form, tipo = 'rastreio', codigo = '') {
     });
 
     if (result.isConfirmed) {
-        form.submit();
+        // Mostrar loading
+        SwalDark.fire({
+            title: 'Excluindo...',
+            text: 'Aguarde um momento',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Submeter o formulário
+        const form = document.getElementById(formId);
+        if (form) {
+            form.submit();
+        }
     }
-    return false;
 }
 
 // Confirmação genérica
