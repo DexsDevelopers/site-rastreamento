@@ -74,12 +74,17 @@ const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000)
 // URLs das APIs - DOIS PROJETOS
 const RASTREAMENTO_API_URL = process.env.RASTREAMENTO_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
 const FINANCEIRO_API_URL = process.env.FINANCEIRO_API_URL || 'https://gold-quail-250128.hostingersite.com/seu_projeto';
+
+// Tokens por projeto
+const RASTREAMENTO_TOKEN = process.env.RASTREAMENTO_TOKEN || process.env.API_TOKEN || 'lucastav8012';
+const FINANCEIRO_TOKEN = process.env.FINANCEIRO_TOKEN || 'site-financeiro-token-2024';
+
 const ADMIN_API_URL = RASTREAMENTO_API_URL; // Compatibilidade
 const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
 
 console.log('📡 APIs configuradas:');
-console.log('   Rastreamento:', RASTREAMENTO_API_URL);
-console.log('   Financeiro:', FINANCEIRO_API_URL);
+console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0,4) + '***)');
+console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0,4) + '***)');
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
@@ -349,18 +354,25 @@ async function processAdminCommand(from, text) {
     const isRastreamento = prefix === '/';
     
     const apiUrl = isFinanceiro ? FINANCEIRO_API_URL : RASTREAMENTO_API_URL;
+    const apiToken = isFinanceiro ? FINANCEIRO_TOKEN : RASTREAMENTO_TOKEN;
     const projectName = isFinanceiro ? 'Financeiro' : 'Rastreamento';
     
     log.info(`[${projectName}] Comando de ${fromNumber}: ${text}`);
+    log.info(`[${projectName}] Usando token: ${apiToken.substring(0,4)}***`);
     
     const parts = text.trim().split(/\s+/);
-    const command = parts[0].substring(1).toLowerCase();
+    const commandWithPrefix = parts[0].toLowerCase(); // Manter o prefixo ! ou /
+    const commandWithoutPrefix = parts[0].substring(1).toLowerCase(); // Sem prefixo
     const params = parts.slice(1);
+    
+    // Site-financeiro espera COM prefixo (!menu)
+    // Site-rastreamento espera SEM prefixo (menu)
+    const commandToSend = isFinanceiro ? commandWithPrefix : commandWithoutPrefix;
     
     const response = await axios.post(
       `${apiUrl}/admin_bot_api.php`,
       { 
-        command, 
+        command: commandToSend,
         params, 
         args: params, // Compatibilidade com site-financeiro
         from: fromNumber,
@@ -369,7 +381,7 @@ async function processAdminCommand(from, text) {
       },
       {
         headers: {
-          'Authorization': `Bearer ${API_TOKEN}`,
+          'Authorization': `Bearer ${apiToken}`,
           'Content-Type': 'application/json'
         },
         timeout: 30000
@@ -704,8 +716,8 @@ function auth(req, res, next) {
 
 // ===== ENDPOINTS =====
 
-// Status (com autenticação para debug)
-app.get('/status', auth, (req, res) => {
+// Status (sem autenticação - apenas verificação)
+app.get('/status', (req, res) => {
   const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
   const memUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
   

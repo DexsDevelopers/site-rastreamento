@@ -801,6 +801,8 @@ if (isset($_POST['undo_action'])) {
 <meta name="apple-mobile-web-app-title" content="Helmer Admin">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- SweetAlert2 para popups bonitos -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 :root {
     --primary-color: #FF3333;
@@ -2161,6 +2163,89 @@ body {
         margin: 3px 0;
     }
 }
+
+/* ===== SWEETALERT2 CUSTOM STYLES ===== */
+.swal2-popup.swal-dark-popup {
+    background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%) !important;
+    border: 1px solid rgba(255, 51, 51, 0.3) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+                0 0 30px rgba(255, 51, 51, 0.15) !important;
+}
+
+.swal2-title.swal-dark-title {
+    color: #ffffff !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+}
+
+.swal2-html-container {
+    color: #e0e0e0 !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+.swal-confirm-btn {
+    background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 12px 28px !important;
+    font-weight: 600 !important;
+    font-family: 'Inter', sans-serif !important;
+    box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.swal-confirm-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 51, 51, 0.4) !important;
+}
+
+.swal-cancel-btn {
+    background: #2a2a2a !important;
+    border: 1px solid #444 !important;
+    border-radius: 12px !important;
+    padding: 12px 28px !important;
+    font-weight: 500 !important;
+    font-family: 'Inter', sans-serif !important;
+    color: #ccc !important;
+    transition: all 0.3s ease !important;
+}
+
+.swal-cancel-btn:hover {
+    background: #3a3a3a !important;
+    border-color: #555 !important;
+}
+
+.swal2-icon {
+    border-color: rgba(255, 51, 51, 0.3) !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #F59E0B !important;
+    color: #F59E0B !important;
+}
+
+.swal2-icon.swal2-question {
+    border-color: #3B82F6 !important;
+    color: #3B82F6 !important;
+}
+
+.swal2-icon.swal2-success {
+    border-color: #16A34A !important;
+    color: #16A34A !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(22, 163, 74, 0.3) !important;
+}
+
+.swal2-icon.swal2-success [class^=swal2-success-line] {
+    background-color: #16A34A !important;
+}
+
+.swal2-timer-progress-bar {
+    background: linear-gradient(90deg, #FF3333, #FF6600) !important;
+}
 </style>
 </head>
 <body>
@@ -2647,7 +2732,7 @@ body {
                                 <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp' style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'>
                                     <i class='fab fa-whatsapp'></i> WhatsApp
                                 </button>
-                                <form method='POST' style='display:inline' onsubmit='return confirm(\"Tem certeza que deseja excluir este rastreio?\")'>
+                                <form method='POST' style='display:inline' onsubmit='return confirmarExclusao(this, \"rastreio\", \"{$row['codigo']}\")'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                     <button type='submit' name='deletar' class='btn btn-danger btn-sm' title='Excluir'>
                                         <i class='fas fa-trash'></i>
@@ -2699,7 +2784,7 @@ body {
                             <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
                             <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
                             <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\" style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'><i class='fab fa-whatsapp'></i> WhatsApp</button>
-                            <form method='POST' onsubmit=\"return confirm('Tem certeza que deseja excluir este rastreio?')\" style='display:inline'>
+                            <form method='POST' onsubmit=\"return confirmarExclusao(this, 'rastreio', '{$row['codigo']}')\" style='display:inline'>
                                 <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                 <button type='submit' name='deletar' class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
                             </form>
@@ -3074,11 +3159,200 @@ function exportData() {
     notifySuccess(`Exportados ${count} rastreios com sucesso!`);
 }
 
-// Função de logout
-function logout() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        window.location.href = 'admin.php?logout=1';
+// ===== SWEETALERT2 - POPUPS ELEGANTES =====
+
+// Configuração base do SweetAlert2 com tema escuro
+const SwalDark = Swal.mixin({
+    background: '#1a1a1a',
+    color: '#ffffff',
+    confirmButtonColor: '#FF3333',
+    cancelButtonColor: '#6b7280',
+    customClass: {
+        popup: 'swal-dark-popup',
+        title: 'swal-dark-title',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn'
     }
+});
+
+// Confirmação de exclusão elegante
+async function confirmarExclusao(form, tipo = 'rastreio', codigo = '') {
+    const result = await SwalDark.fire({
+        title: '🗑️ Confirmar Exclusão',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <p style="font-size: 16px; margin-bottom: 15px;">
+                    Tem certeza que deseja excluir ${tipo === 'rastreio' ? 'o rastreio' : 'este item'}?
+                </p>
+                ${codigo ? `<p style="font-size: 20px; font-weight: bold; color: #FF3333;">${codigo}</p>` : ''}
+                <p style="font-size: 13px; color: #888; margin-top: 15px;">
+                    ⚠️ Esta ação não pode ser desfeita!
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir!',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true,
+        focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+        form.submit();
+    }
+    return false;
+}
+
+// Confirmação genérica
+async function confirmarAcao(mensagem, titulo = 'Confirmar', icone = 'question') {
+    const result = await SwalDark.fire({
+        title: titulo,
+        text: mensagem,
+        icon: icone,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-check"></i> Confirmar',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true
+    });
+    return result.isConfirmed;
+}
+
+// Função de logout elegante
+function logout() {
+    SwalDark.fire({
+        title: '👋 Sair do Sistema',
+        text: 'Tem certeza que deseja encerrar sua sessão?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-sign-out-alt"></i> Sair',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            SwalDark.fire({
+                title: 'Saindo...',
+                text: 'Até logo!',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = 'admin.php?logout=1';
+            });
+        }
+    });
+}
+
+// Exclusão em massa elegante
+async function confirmarExclusaoMassa(quantidade) {
+    const result = await SwalDark.fire({
+        title: '🗑️ Excluir em Massa',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <p style="font-size: 48px; margin-bottom: 10px;">⚠️</p>
+                <p style="font-size: 18px; margin-bottom: 15px;">
+                    Você está prestes a excluir
+                </p>
+                <p style="font-size: 32px; font-weight: bold; color: #FF3333; margin-bottom: 15px;">
+                    ${quantidade} rastreio(s)
+                </p>
+                <p style="font-size: 13px; color: #888;">
+                    Esta ação é <strong>irreversível</strong>!
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-trash"></i> Excluir Todos',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true,
+        focusCancel: true,
+        confirmButtonColor: '#dc2626'
+    });
+    return result.isConfirmed;
+}
+
+// Remover taxa em massa
+async function confirmarRemoverTaxaMassa(quantidade) {
+    const result = await SwalDark.fire({
+        title: '💰 Remover Taxas',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <p style="font-size: 16px; margin-bottom: 15px;">
+                    Remover taxa de <strong style="color: #F59E0B;">${quantidade}</strong> rastreio(s)?
+                </p>
+                <p style="font-size: 13px; color: #888;">
+                    Os clientes não verão mais a cobrança de taxa
+                </p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-check"></i> Sim, remover',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true,
+        confirmButtonColor: '#F59E0B'
+    });
+    return result.isConfirmed;
+}
+
+// Limpar logs
+async function confirmarLimparLogs() {
+    const result = await SwalDark.fire({
+        title: '🧹 Limpar Logs',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <p style="font-size: 16px; margin-bottom: 15px;">
+                    Deseja limpar todos os logs de automação?
+                </p>
+                <p style="font-size: 13px; color: #888;">
+                    Os logs serão removidos permanentemente
+                </p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-broom"></i> Limpar',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true
+    });
+    return result.isConfirmed;
+}
+
+// Toast de sucesso
+function toastSucesso(mensagem) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: '#1a1a1a',
+        color: '#16A34A',
+        iconColor: '#16A34A'
+    });
+    Toast.fire({
+        icon: 'success',
+        title: mensagem
+    });
+}
+
+// Toast de erro
+function toastErro(mensagem) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        background: '#1a1a1a',
+        color: '#EF4444',
+        iconColor: '#EF4444'
+    });
+    Toast.fire({
+        icon: 'error',
+        title: mensagem
+    });
 }
 
 // Fechar modais ao clicar fora
@@ -3265,14 +3539,15 @@ function clearSelection() {
 }
 
 // Funções de operações em lote
-function bulkDelete() {
+async function bulkDelete() {
     const selected = getSelectedCodes();
     if (selected.length === 0) {
         notifyWarning('Nenhum item selecionado');
         return;
     }
     
-    if (confirm(`Tem certeza que deseja excluir ${selected.length} rastreio(s) selecionado(s)?`)) {
+    const confirmado = await confirmarExclusaoMassa(selected.length);
+    if (confirmado) {
         notifyInfo('Excluindo rastreios selecionados...');
         
         // Criar formulário para envio
@@ -3291,13 +3566,14 @@ function bulkDelete() {
     }
 }
 
-function bulkClearTaxa() {
+async function bulkClearTaxa() {
     const selected = getSelectedCodes();
     if (selected.length === 0) {
         notifyWarning('Nenhum item selecionado');
         return;
     }
-    if (!confirm(`Remover taxa de ${selected.length} rastreio(s) selecionado(s)?`)) return;
+    const confirmado = await confirmarRemoverTaxaMassa(selected.length);
+    if (!confirmado) return;
     const form = document.createElement('form');
     form.method = 'POST';
     form.style.display = 'none';
@@ -3687,9 +3963,14 @@ function exportLogs() {
     notifySuccess('Logs exportados com sucesso!');
 }
 
-function clearLogs() {
-    if (confirm('Tem certeza que deseja limpar todos os logs de automação?')) {
-        notifySuccess('Logs limpos com sucesso!');
+async function clearLogs() {
+    const confirmado = await confirmarLimparLogs();
+    if (confirmado) {
+        // Limpar logs do localStorage
+        localStorage.removeItem('automationLogs');
+        const logContainer = document.getElementById('automationLogs');
+        if (logContainer) logContainer.innerHTML = '';
+        toastSucesso('Logs limpos com sucesso!');
     }
 }
 

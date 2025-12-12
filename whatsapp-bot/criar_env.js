@@ -8,11 +8,17 @@ const __dirname = dirname(__filename);
 
 const envContent = `# Bot WhatsApp Unificado - Dois Projetos
 API_PORT=3001
-API_TOKEN=lucastav8012
 
 # URLs das APIs
 RASTREAMENTO_API_URL=https://cornflowerblue-fly-883408.hostingersite.com
 FINANCEIRO_API_URL=https://gold-quail-250128.hostingersite.com/seu_projeto
+
+# Tokens por projeto
+RASTREAMENTO_TOKEN=lucastav8012
+FINANCEIRO_TOKEN=site-financeiro-token-2024
+
+# Token padrão (compatibilidade)
+API_TOKEN=lucastav8012
 
 # Configurações opcionais
 AUTO_REPLY=false
