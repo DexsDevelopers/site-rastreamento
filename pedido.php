@@ -6,9 +6,11 @@
 
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/whatsapp_helper.php';
 
 $success = false;
 $error = '';
+$whatsappEnviado = false;
 
 // Processar formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -33,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Validar telefone
+        $telefoneOriginal = $telefone;
         $telefone = preg_replace('/[^0-9]/', '', $telefone);
         if (strlen($telefone) < 10) {
             throw new Exception('Telefone inválido.');
@@ -56,6 +59,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         
         $success = true;
+        
+        // Enviar mensagem de confirmação via WhatsApp
+        try {
+            $telefoneNormalizado = normalizePhoneToDigits($telefone);
+            
+            if ($telefoneNormalizado) {
+                // Buscar chave PIX das configurações
+                $chavePix = getDynamicConfig('EXPRESS_PIX_KEY', 'chave-pix@exemplo.com');
+                $valorProduto = getDynamicConfig('VALOR_PRODUTO', '');
+                
+                $mensagem = "🎉 *Olá, {$nome}!*\n\n";
+                $mensagem .= "✅ Recebemos seu pedido com sucesso!\n\n";
+                $mensagem .= "📦 *Endereço de entrega:*\n";
+                $mensagem .= "{$rua}, {$numero}";
+                if ($complemento) $mensagem .= " - {$complemento}";
+                $mensagem .= "\n{$bairro} - {$cidade}/{$estado}\n";
+                $mensagem .= "CEP: " . substr($cep, 0, 5) . "-" . substr($cep, 5) . "\n\n";
+                
+                if ($valorProduto) {
+                    $mensagem .= "💰 *Valor:* R$ {$valorProduto}\n\n";
+                }
+                
+                $mensagem .= "💳 *Para finalizar, realize o pagamento via PIX:*\n";
+                $mensagem .= "Chave PIX: `{$chavePix}`\n\n";
+                $mensagem .= "📸 Após o pagamento, envie o comprovante aqui nesta conversa.\n\n";
+                $mensagem .= "⏳ Assim que confirmarmos, seu pedido será processado!\n\n";
+                $mensagem .= "Obrigado pela preferência! 🚚";
+                
+                $resultado = sendWhatsappMessage($telefoneNormalizado, $mensagem);
+                $whatsappEnviado = $resultado['success'];
+                
+                if (!$resultado['success']) {
+                    writeLog("Falha ao enviar WhatsApp para pedido: " . ($resultado['error'] ?? 'Erro desconhecido'), 'WARNING');
+                }
+            }
+        } catch (Exception $whatsappError) {
+            writeLog("Erro ao enviar WhatsApp para pedido: " . $whatsappError->getMessage(), 'WARNING');
+            // Não interrompe o fluxo se o WhatsApp falhar
+        }
         
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -407,9 +449,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <p style="font-size: 16px; margin-bottom: 15px;">
                             Seu pedido foi recebido com sucesso!
                         </p>
+                        <?php if ($whatsappEnviado): ?>
+                        <p style="font-size: 14px; color: #25D366; margin-bottom: 10px;">
+                            <i class="fab fa-whatsapp"></i> Enviamos uma mensagem no seu WhatsApp com as instruções de pagamento!
+                        </p>
+                        <?php else: ?>
                         <p style="font-size: 14px; color: #888;">
                             Aguarde nosso contato via WhatsApp com as informações de pagamento.
                         </p>
+                        <?php endif; ?>
                     </div>
                 `,
                 icon: 'success',
