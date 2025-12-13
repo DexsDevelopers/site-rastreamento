@@ -573,6 +573,42 @@ if (isset($_POST['deletar'])) {
     }
 }
 
+// PEDIDOS PENDENTES - Aprovar
+if (isset($_POST['aprovar_pedido'])) {
+    try {
+        $pedidoId = (int) $_POST['pedido_id'];
+        $codigoRastreio = sanitizeInput($_POST['codigo_rastreio'] ?? '');
+        
+        if (empty($codigoRastreio)) {
+            throw new Exception('Código de rastreio é obrigatório para aprovar o pedido.');
+        }
+        
+        $sql = "UPDATE pedidos_pendentes SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?";
+        executeQuery($pdo, $sql, [$codigoRastreio, $pedidoId]);
+        
+        $success_message = "Pedido aprovado com sucesso! Código: {$codigoRastreio}";
+        writeLog("Pedido aprovado: ID {$pedidoId}, Código: {$codigoRastreio}", 'INFO');
+    } catch (Exception $e) {
+        $error_message = "Erro ao aprovar pedido: " . $e->getMessage();
+        writeLog("Erro ao aprovar pedido: " . $e->getMessage(), 'ERROR');
+    }
+}
+
+// PEDIDOS PENDENTES - Rejeitar
+if (isset($_POST['rejeitar_pedido'])) {
+    try {
+        $pedidoId = (int) $_POST['pedido_id'];
+        $sql = "UPDATE pedidos_pendentes SET status = 'rejeitado' WHERE id = ?";
+        executeQuery($pdo, $sql, [$pedidoId]);
+        
+        $success_message = "Pedido rejeitado com sucesso!";
+        writeLog("Pedido rejeitado: ID {$pedidoId}", 'INFO');
+    } catch (Exception $e) {
+        $error_message = "Erro ao rejeitar pedido: " . $e->getMessage();
+        writeLog("Erro ao rejeitar pedido: " . $e->getMessage(), 'ERROR');
+    }
+}
+
 // EDITAR
 if (isset($_POST['salvar_edicao'])) {
     $tempFotoEdicao = null;
@@ -2290,9 +2326,21 @@ body {
         $comTaxa = fetchOne($pdo, "SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status WHERE taxa_valor IS NOT NULL AND taxa_pix IS NOT NULL")['total'];
         $semTaxa = $totalRastreios - $comTaxa;
         $entregues = fetchOne($pdo, "SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status WHERE status_atual LIKE '%Entregue%'")['total'];
+        
+        // Pedidos pendentes
+        $pedidosPendentes = [];
+        $totalPedidosPendentes = 0;
+        try {
+            $pedidosPendentes = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pendente' ORDER BY data_pedido DESC LIMIT 20");
+            $totalPedidosPendentes = count($pedidosPendentes);
+        } catch (Exception $e) {
+            // Tabela pode não existir ainda
+        }
     } catch (Exception $e) {
         writeLog("Erro ao buscar estatísticas: " . $e->getMessage(), 'ERROR');
         $totalRastreios = $comTaxa = $semTaxa = $entregues = 0;
+        $totalPedidosPendentes = 0;
+        $pedidosPendentes = [];
     }
     ?>
 
@@ -2318,7 +2366,86 @@ body {
             <h3><?= $entregues ?></h3>
             <p>Entregues</p>
         </div>
+        <?php if ($totalPedidosPendentes > 0): ?>
+        <div class="stat-card" style="border: 2px solid var(--warning-color); background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);">
+            <i class="fas fa-shopping-cart" style="color: var(--warning-color);"></i>
+            <h3><?= $totalPedidosPendentes ?></h3>
+            <p>Pedidos Pendentes</p>
+        </div>
+        <?php endif; ?>
     </div>
+
+    <!-- Seção de Pedidos Pendentes -->
+    <?php if ($totalPedidosPendentes > 0): ?>
+    <div style="margin-bottom: 40px;">
+        <div style="background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+            <h2 style="margin-bottom: 20px; color: var(--warning-color);">
+                <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 25px;">
+                Clientes que preencheram o formulário aguardando aprovação e código de rastreio
+            </p>
+            
+            <div style="display: grid; gap: 20px;">
+                <?php foreach ($pedidosPendentes as $pedido): ?>
+                <div style="background: #0f0f0f; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px; font-size: 1.2rem;">
+                                <i class="fas fa-user"></i> <?= htmlspecialchars($pedido['nome']) ?>
+                            </h3>
+                            
+                            <div style="display: grid; gap: 10px; color: var(--text-secondary); font-size: 0.95rem;">
+                                <div><i class="fas fa-phone"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
+                                <?php if ($pedido['email']): ?>
+                                <div><i class="fas fa-envelope"></i> <?= htmlspecialchars($pedido['email']) ?></div>
+                                <?php endif; ?>
+                                <div><i class="fas fa-calendar"></i> <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
+                            </div>
+                            
+                            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 51, 51, 0.05); border-radius: 12px; border-left: 3px solid var(--primary-color);">
+                                <strong style="color: var(--primary-color); display: block; margin-bottom: 8px;">
+                                    <i class="fas fa-map-marker-alt"></i> Endereço de Entrega:
+                                </strong>
+                                <div style="color: var(--text-secondary); line-height: 1.8;">
+                                    <?= htmlspecialchars($pedido['rua']) ?>, <?= htmlspecialchars($pedido['numero']) ?>
+                                    <?php if ($pedido['complemento']): ?><br><?= htmlspecialchars($pedido['complemento']) ?><?php endif; ?><br>
+                                    <?= htmlspecialchars($pedido['bairro']) ?> - <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
+                                    CEP: <?= htmlspecialchars($pedido['cep']) ?>
+                                </div>
+                                <?php if ($pedido['observacoes']): ?>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                                    <strong style="color: var(--text-primary);">Observações:</strong>
+                                    <p style="color: var(--text-secondary); margin-top: 5px;"><?= nl2br(htmlspecialchars($pedido['observacoes'])) ?></p>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 200px;">
+                            <form method="POST" onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')" style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                <input type="text" name="codigo_rastreio" placeholder="Código de rastreio" required 
+                                       style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                                <button type="submit" name="aprovar_pedido" class="btn btn-success" style="width: 100%;">
+                                    <i class="fas fa-check"></i> Aprovar
+                                </button>
+                            </form>
+                            
+                            <form method="POST" onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                <button type="submit" name="rejeitar_pedido" class="btn btn-danger" style="width: 100%;">
+                                    <i class="fas fa-times"></i> Rejeitar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     
 
@@ -3334,6 +3461,72 @@ async function confirmarLimparLogs() {
         reverseButtons: true
     });
     return result.isConfirmed;
+}
+
+// Confirmar aprovar pedido
+async function confirmarAprovarPedido(form, nomeCliente) {
+    const codigoInput = form.querySelector('input[name="codigo_rastreio"]');
+    const codigo = codigoInput.value.trim();
+    
+    if (!codigo) {
+        SwalDark.fire({
+            title: '❌ Código Obrigatório',
+            text: 'Por favor, informe o código de rastreio antes de aprovar.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+        return false;
+    }
+    
+    const result = await SwalDark.fire({
+        title: '✅ Aprovar Pedido',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <p style="font-size: 16px; margin-bottom: 15px;">
+                    Aprovar pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
+                </p>
+                <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
+                    Código de rastreio: <strong>${codigo}</strong>
+                </p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-check"></i> Aprovar',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        reverseButtons: true,
+        confirmButtonColor: '#16A34A'
+    });
+    
+    if (result.isConfirmed) {
+        form.submit();
+    }
+    return false;
+}
+
+// Confirmar rejeitar pedido
+async function confirmarRejeitarPedido(form, nomeCliente) {
+    const result = await SwalDark.fire({
+        title: '❌ Rejeitar Pedido',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <p style="font-size: 16px; margin-bottom: 15px;">
+                    Tem certeza que deseja rejeitar o pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-times"></i> Rejeitar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        confirmButtonColor: '#EF4444'
+    });
+    
+    if (result.isConfirmed) {
+        form.submit();
+    }
+    return false;
 }
 
 // Toast de sucesso
