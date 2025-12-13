@@ -555,10 +555,7 @@ try {
             event.target.classList.add('active');
         }
         
-        // Auto-refresh a cada 30 segundos
-        setInterval(function() {
-            location.reload();
-        }, 30000);
+        // Auto-refresh removido - atualização manual apenas
     </script>
 </body>
 </html>

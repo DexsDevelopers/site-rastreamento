@@ -3593,11 +3593,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Auto-refresh das estatísticas a cada 30 segundos
-setInterval(function() {
-    // Aqui você pode adicionar uma requisição AJAX para atualizar as estatísticas
-    // sem recarregar a página inteira
-}, 30000);
+// Auto-refresh removido - atualização apenas manual
 
 // Mostrar notificações de sucesso do PHP
 <?php if (isset($success_message)): ?>
@@ -4251,83 +4247,7 @@ function loadAutomationSettings() {
     }
 }
 
-// Sistema de Cache Automático - Renova a cada 10 minutos
-(function() {
-    const CACHE_INTERVAL = 10 * 60 * 1000; // 10 minutos em milissegundos
-    const CACHE_KEY = 'helmer_admin_cache_timestamp';
-    
-    // Função para verificar se o cache expirou
-    function checkCacheExpiry() {
-        const now = Date.now();
-        const lastCache = localStorage.getItem(CACHE_KEY);
-        
-        if (!lastCache || (now - parseInt(lastCache)) > CACHE_INTERVAL) {
-            // Cache expirou, forçar reload
-            localStorage.setItem(CACHE_KEY, now.toString());
-            
-            // Adicionar timestamp para forçar reload
-            const url = new URL(window.location);
-            url.searchParams.set('_t', now);
-            
-            // Notificar usuário sobre atualização
-            if (lastCache) {
-                console.log('🔄 Cache do admin expirado - Atualizando página...');
-                
-                // Mostrar notificação visual
-                const notification = document.createElement('div');
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: #ff6600;
-                    color: white;
-                    padding: 15px 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
-                    z-index: 9999;
-                    font-weight: bold;
-                    animation: slideInRight 0.3s ease;
-                `;
-                notification.innerHTML = '🔄 Atualizando dados do admin...';
-                document.body.appendChild(notification);
-                
-                // Remover notificação após 2 segundos
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 2000);
-            }
-            
-            // Recarregar página com timestamp
-            setTimeout(() => {
-                window.location.href = url.toString();
-            }, 1000);
-        }
-    }
-    
-    // Verificar cache a cada minuto
-    setInterval(checkCacheExpiry, 60000);
-    
-    // Verificar cache imediatamente
-    checkCacheExpiry();
-    
-    // Adicionar CSS para animação
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-})();
+// Auto-refresh removido - atualização apenas manual (F5)
 
 // ===== Monitor de Cron (Execução e Logs) =====
 function runAutomationCron() {
