@@ -583,11 +583,54 @@ if (isset($_POST['aprovar_pedido'])) {
             throw new Exception('Código de rastreio é obrigatório para aprovar o pedido.');
         }
         
+        // Buscar dados do pedido pendente
+        $pedido = fetchOne($pdo, "SELECT * FROM pedidos_pendentes WHERE id = ?", [$pedidoId]);
+        
+        if (!$pedido) {
+            throw new Exception('Pedido não encontrado.');
+        }
+        
+        // Verificar se código já existe
+        $exists = fetchOne($pdo, "SELECT 1 AS e FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? LIMIT 1", [strtoupper(trim($codigoRastreio))]);
+        if ($exists) {
+            throw new Exception("O código {$codigoRastreio} já existe no sistema.");
+        }
+        
+        // Criar a cidade a partir do endereço
+        $cidade = $pedido['cidade'] . '/' . $pedido['estado'];
+        $dataInicial = time();
+        
+        // Etapas padrão para novo rastreamento (todas marcadas)
+        $etapasPadrao = [
+            'postado' => '1',
+            'transito' => '1',
+            'distribuicao' => '1',
+            'entrega' => '1',
+            'entregue' => '1'
+        ];
+        
+        // Criar o rastreamento
+        adicionarEtapas($pdo, $codigoRastreio, $cidade, $dataInicial, $etapasPadrao, null, null);
+        
+        // Salvar contato do cliente
+        $telefoneNormalizado = normalizePhoneToDigits($pedido['telefone']);
+        upsertWhatsappContact(
+            $pdo,
+            $codigoRastreio,
+            $pedido['nome'],
+            $telefoneNormalizado,
+            true // Ativar notificações
+        );
+        
+        // Notificar cliente via WhatsApp
+        notifyWhatsappLatestStatus($pdo, $codigoRastreio);
+        
+        // Atualizar pedido como aprovado
         $sql = "UPDATE pedidos_pendentes SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?";
         executeQuery($pdo, $sql, [$codigoRastreio, $pedidoId]);
         
-        $success_message = "Pedido aprovado com sucesso! Código: {$codigoRastreio}";
-        writeLog("Pedido aprovado: ID {$pedidoId}, Código: {$codigoRastreio}", 'INFO');
+        $success_message = "✅ Pedido aprovado! Rastreamento {$codigoRastreio} criado e cliente notificado.";
+        writeLog("Pedido aprovado: ID {$pedidoId}, Código: {$codigoRastreio}, Cliente: {$pedido['nome']}", 'INFO');
     } catch (Exception $e) {
         $error_message = "Erro ao aprovar pedido: " . $e->getMessage();
         writeLog("Erro ao aprovar pedido: " . $e->getMessage(), 'ERROR');
