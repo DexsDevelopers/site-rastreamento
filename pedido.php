@@ -66,23 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($telefoneNormalizado) {
                 // Buscar chave PIX das configurações
-                $chavePix = getDynamicConfig('EXPRESS_PIX_KEY', 'chave-pix@exemplo.com');
-                $valorProduto = getDynamicConfig('VALOR_PRODUTO', '');
+                $chavePix = getDynamicConfig('PEDIDO_PIX_KEY', '');
                 
                 $mensagem = "🎉 *Olá, {$nome}!*\n\n";
                 $mensagem .= "✅ Recebemos seu pedido com sucesso!\n\n";
-                $mensagem .= "📦 *Endereço de entrega:*\n";
+                $mensagem .= "📦 *Endereço de entrega confirmado:*\n";
                 $mensagem .= "{$rua}, {$numero}";
                 if ($complemento) $mensagem .= " - {$complemento}";
                 $mensagem .= "\n{$bairro} - {$cidade}/{$estado}\n";
                 $mensagem .= "CEP: " . substr($cep, 0, 5) . "-" . substr($cep, 5) . "\n\n";
                 
-                if ($valorProduto) {
-                    $mensagem .= "💰 *Valor:* R$ {$valorProduto}\n\n";
+                if ($chavePix) {
+                    $mensagem .= "💳 *Chave PIX para pagamento:*\n";
+                    $mensagem .= "`{$chavePix}`\n\n";
                 }
                 
-                $mensagem .= "💳 *Para finalizar, realize o pagamento via PIX:*\n";
-                $mensagem .= "Chave PIX: `{$chavePix}`\n\n";
                 $mensagem .= "📸 Após o pagamento, envie o comprovante aqui nesta conversa.\n\n";
                 $mensagem .= "⏳ Assim que confirmarmos, seu pedido será processado!\n\n";
                 $mensagem .= "Obrigado pela preferência! 🚚";

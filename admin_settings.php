@@ -17,6 +17,38 @@ $type = '';
 $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
 $currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
 
+// Configurações do formulário de pedidos
+$pedidoPixKey = getDynamicConfig('PEDIDO_PIX_KEY', '');
+
+// Salvar configurações do formulário de pedidos
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_pedido'])) {
+    try {
+        $pixPedido = isset($_POST['pedido_pix_key']) ? trim($_POST['pedido_pix_key']) : '';
+        
+        $savedPixPedido = setDynamicConfig('PEDIDO_PIX_KEY', $pixPedido);
+
+        if (!$savedPixPedido) {
+            throw new Exception('Erro ao salvar configurações. Verifique permissões do arquivo config.json.');
+        }
+
+        writeLog("Configurações do formulário de pedidos atualizadas: PIX={$pixPedido}", 'INFO');
+        
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+        clearstatcache(true, __DIR__ . '/config.json');
+        
+        $pedidoPixKey = getDynamicConfig('PEDIDO_PIX_KEY', '');
+        
+        $message = "✅ Configurações do formulário de pedidos salvas com sucesso!";
+        $type = 'success';
+    } catch (Exception $e) {
+        $message = $e->getMessage();
+        $type = 'error';
+        writeLog("Erro ao salvar configurações de pedidos: " . $e->getMessage(), 'ERROR');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_express'])) {
     try {
         $fee = isset($_POST['express_fee_value']) ? trim($_POST['express_fee_value']) : '';
@@ -101,29 +133,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
 <body>
     <div class="container">
         <div class="topbar">
-            <h1>Configurações — Entrega Expressa</h1>
+            <h1>⚙️ Configurações</h1>
             <a href="admin.php">⟵ Voltar ao painel</a>
         </div>
         <?php if ($message): ?>
-            <div class="msg <?= $type ?>"><?= htmlspecialchars($message) ?></div>
+            <div class="msg <?= $type ?>"><?= nl2br(htmlspecialchars($message)) ?></div>
         <?php endif; ?>
-        <form method="POST">
-            <div class="form-group">
-                <label for="express_fee_value">Valor da taxa (R$)</label>
-                <input type="text" name="express_fee_value" id="express_fee_value" value="<?= htmlspecialchars(number_format((float)$currentFee, 2, ',', '')) ?>" inputmode="decimal" required>
-            </div>
-            <div class="form-group">
-                <label for="express_pix_key">Chave PIX</label>
-                <input type="text" name="express_pix_key" id="express_pix_key" value="<?= htmlspecialchars($currentPix) ?>" required>
-            </div>
-            <div class="actions">
-                <button type="submit" name="salvar_settings_express">Salvar</button>
-                <a href="index.php" target="_blank">Ver site</a>
-                <a href="debug_config.php" target="_blank" style="background:#333;padding:12px 18px;border-radius:8px;">🔍 Diagnóstico</a>
-            </div>
-        </form>
-        <p style="margin-top:16px;color:#aaa;">As configurações são salvas em <code>config.json</code> e entram em vigor imediatamente.</p>
-        <p style="margin-top:8px;color:#888;font-size:0.9rem;">💡 Se as configurações não estiverem salvando, clique em "Diagnóstico" para verificar permissões.</p>
+        
+        <!-- Configurações do Formulário de Pedidos -->
+        <div style="margin-bottom: 30px; padding: 20px; background: #1a1a1a; border-radius: 12px; border: 1px solid #F59E0B;">
+            <h2 style="margin-top: 0; color: #F59E0B; font-size: 1.2rem;">📦 Formulário de Pedidos</h2>
+            <p style="color: #888; margin-bottom: 16px; font-size: 0.9rem;">
+                Configurações da página <a href="pedido.php" target="_blank" style="color: #F59E0B;">pedido.php</a> - Quando o cliente preenche o endereço
+            </p>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="pedido_pix_key">Chave PIX (enviada no WhatsApp)</label>
+                    <input type="text" name="pedido_pix_key" id="pedido_pix_key" value="<?= htmlspecialchars($pedidoPixKey) ?>" placeholder="CPF, Email, Telefone ou Chave aleatória">
+                </div>
+                <p style="color: #666; font-size: 0.85rem; margin-bottom: 12px;">
+                    💡 O valor do produto <strong>não é enviado</strong> automaticamente. Você envia manualmente pelo WhatsApp.
+                </p>
+                <div class="actions">
+                    <button type="submit" name="salvar_settings_pedido" style="background: linear-gradient(90deg, #F59E0B, #D97706);">Salvar Configurações</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Configurações de Entrega Expressa -->
+        <div style="padding: 20px; background: #1a1a1a; border-radius: 12px; border: 1px solid #ff3333;">
+            <h2 style="margin-top: 0; color: #ff3333; font-size: 1.2rem;">🚀 Entrega Expressa</h2>
+            <p style="color: #888; margin-bottom: 16px; font-size: 0.9rem;">
+                Taxa cobrada para upgrade de entrega expressa
+            </p>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="express_fee_value">Valor da taxa (R$)</label>
+                    <input type="text" name="express_fee_value" id="express_fee_value" value="<?= htmlspecialchars(number_format((float)$currentFee, 2, ',', '')) ?>" inputmode="decimal" required>
+                </div>
+                <div class="form-group">
+                    <label for="express_pix_key">Chave PIX (Entrega Expressa)</label>
+                    <input type="text" name="express_pix_key" id="express_pix_key" value="<?= htmlspecialchars($currentPix) ?>" required>
+                </div>
+                <div class="actions">
+                    <button type="submit" name="salvar_settings_express">Salvar</button>
+                    <a href="index.php" target="_blank">Ver site</a>
+                    <a href="debug_config.php" target="_blank" style="background:#333;padding:12px 18px;border-radius:8px;">🔍 Diagnóstico</a>
+                </div>
+            </form>
+        </div>
+        
+        <p style="margin-top:20px;color:#aaa;text-align:center;">As configurações são salvas em <code>config.json</code> e entram em vigor imediatamente.</p>
     </div>
 </body>
 </html>
