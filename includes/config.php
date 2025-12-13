@@ -91,8 +91,21 @@ function getConfig($key, $default = null) {
     return defined($key) ? constant($key) : $default;
 }
 
-// Config dinâmico persistido em config.json
+// Config dinâmico persistido em config.json (base) e config_custom.json (personalizações)
 function getDynamicConfig($key, $default = null) {
+    // Primeiro, verificar config_custom.json (personalizações do usuário - não sobrescrito por deploy)
+    $customPath = __DIR__ . '/../config_custom.json';
+    if (is_readable($customPath)) {
+        $json = @file_get_contents($customPath);
+        if ($json !== false) {
+            $data = json_decode($json, true);
+            if (is_array($data) && array_key_exists($key, $data)) {
+                return $data[$key];
+            }
+        }
+    }
+    
+    // Depois, verificar config.json (configurações base)
     $path = __DIR__ . '/../config.json';
     if (is_readable($path)) {
         $json = file_get_contents($path);
@@ -105,7 +118,8 @@ function getDynamicConfig($key, $default = null) {
 }
 
 function setDynamicConfig($key, $value) {
-    $path = __DIR__ . '/../config.json';
+    // Salvar personalizações em config_custom.json (não sobrescrito por deploy)
+    $path = __DIR__ . '/../config_custom.json';
     $data = [];
     
     // Ler dados existentes
@@ -137,7 +151,7 @@ function setDynamicConfig($key, $value) {
     if ($result === false) {
         $error = error_get_last();
         $errorMsg = $error && isset($error['message']) ? $error['message'] : 'Erro desconhecido';
-        error_log("Falha ao escrever config.json: " . $errorMsg);
+        error_log("Falha ao escrever config_custom.json: " . $errorMsg);
         return false;
     }
     

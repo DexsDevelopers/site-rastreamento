@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
             </form>
         </div>
         
-        <p style="margin-top:20px;color:#aaa;text-align:center;">As configurações são salvas em <code>config.json</code> e entram em vigor imediatamente.</p>
+        <p style="margin-top:20px;color:#4ade80;text-align:center;">✅ As configurações são salvas em <code>config_custom.json</code> e <strong>NÃO são sobrescritas</strong> por atualizações do sistema!</p>
     </div>
 </body>
 </html>

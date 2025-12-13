@@ -1,0 +1,27 @@
+# Configurações personalizadas (NÃO sobrescrever por deploy)
+config_custom.json
+
+# Logs
+logs/
+*.log
+
+# Cache
+cache/
+*.cache
+
+# Uploads sensíveis
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.pdf
+
+# Ambiente local
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

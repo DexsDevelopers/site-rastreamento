@@ -339,9 +339,9 @@ foreach ($etapas as $key => $etapa) {
             </div>
         </form>
         
-        <div style="margin-top: 20px; padding: 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px;">
-            <p style="margin: 0; color: #888; font-size: 0.9rem;">
-                💡 <strong style="color: #fff;">Dica:</strong> Se suas mensagens não estiverem salvando, clique em "Diagnóstico" para verificar permissões do arquivo config.json.
+        <div style="margin-top: 20px; padding: 16px; background: #0a2915; border: 1px solid #1a6b2d; border-radius: 8px;">
+            <p style="margin: 0; color: #4ade80; font-size: 0.9rem;">
+                ✅ <strong>Suas personalizações são salvas em <code>config_custom.json</code></strong> — este arquivo NÃO é sobrescrito por atualizações do sistema!
             </p>
         </div>
     </div>
