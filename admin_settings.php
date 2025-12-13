@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_pedid
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
-        clearstatcache(true, __DIR__ . '/config.json');
+        clearstatcache(true, __DIR__ . '/config_custom.json');
         
         $pedidoPixKey = getDynamicConfig('PEDIDO_PIX_KEY', '');
         
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
         }
         
         // Forçar releitura do arquivo
-        clearstatcache(true, __DIR__ . '/config.json');
+        clearstatcache(true, __DIR__ . '/config_custom.json');
         
         // Recarregar valores do config.json após salvar
         $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));

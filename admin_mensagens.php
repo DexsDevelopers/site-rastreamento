@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_mensagens'])) 
         if (function_exists('opcache_reset')) {
             opcache_reset();
         }
-        clearstatcache(true, __DIR__ . '/config.json');
+        clearstatcache(true, __DIR__ . '/config_custom.json');
         
         if ($saved > 0) {
             $message = "✅ {$saved} mensagem(ns) salva(s) e verificada(s) com sucesso!";
