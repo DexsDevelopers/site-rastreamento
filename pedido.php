@@ -258,6 +258,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-right: 10px;
         }
         
+        /* Seção de Referências */
+        .referencias-section {
+            max-width: 1200px;
+            margin: 60px auto 40px;
+            padding: 0 20px;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 2.5rem;
+            font-size: 1rem;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .gallery-item {
+            background: linear-gradient(135deg, rgba(255,51,51,0.08) 0%, rgba(255,102,0,0.08) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(255,51,51,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .gallery-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-color);
+            box-shadow: 0 15px 35px rgba(255,51,51,0.25);
+        }
+        
+        .gallery-image {
+            height: 220px;
+            overflow: hidden;
+        }
+        
+        .gallery-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .gallery-item:hover .gallery-image img {
+            transform: scale(1.08);
+        }
+        
+        .gallery-info {
+            padding: 1.25rem;
+        }
+        
+        .gallery-info h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        
+        .gallery-info p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        /* Stats badges */
+        .stats-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,51,51,0.3);
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .stat-badge i {
+            color: #FF6666;
+        }
+        
         @media (max-width: 768px) {
             .form-row,
             .form-row-3 {
@@ -270,6 +391,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             .form-card {
                 padding: 25px;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .stats-badges {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -395,6 +536,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </div>
+    
+    <!-- Seção de Referências -->
+    <section class="referencias-section">
+        <h2 class="section-title">📱 Sistema em Ação</h2>
+        <p class="section-subtitle">
+            Veja como nossos clientes acompanham suas entregas em tempo real pelo WhatsApp
+        </p>
+        
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <div class="gallery-image">
+                    <img src="assets/images/whatsapp-1.jpg" alt="Cliente Petrópolis" loading="lazy">
+                </div>
+                <div class="gallery-info">
+                    <h4>📍 Luiz Gabriel - Petrópolis</h4>
+                    <p>Sistema de rastreamento funcionando perfeitamente</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image">
+                    <img src="assets/images/whatsapp-2.jpg" alt="Cliente Ubá" loading="lazy">
+                </div>
+                <div class="gallery-info">
+                    <h4>📍 juuh santts - Ubá</h4>
+                    <p>Monitoramento oficial com status detalhado</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image">
+                    <img src="assets/images/whatsapp-3.jpg" alt="Cliente Jardim Camburi" loading="lazy">
+                </div>
+                <div class="gallery-info">
+                    <h4>📍 RKZIN - Jardim Camburi</h4>
+                    <p>Sistema oficial de monitoramento em tempo real</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image">
+                    <img src="assets/images/whatsapp-4.jpg" alt="Cliente AdolfoSP" loading="lazy">
+                </div>
+                <div class="gallery-info">
+                    <h4>📍 Vitor João - AdolfoSP</h4>
+                    <p>Monitoramento integrado ao WhatsApp</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image">
+                    <img src="assets/images/whatsapp-5.jpg" alt="Entrega Confirmada" loading="lazy">
+                </div>
+                <div class="gallery-info">
+                    <h4>📍 2L CLIENTE - Entrega Confirmada</h4>
+                    <p>Sistema de entrega e pagamento funcionando</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image">
+                    <img src="assets/images/whatsapp-6.jpg" alt="Cliente GO" loading="lazy">
+                </div>
+                <div class="gallery-info">
+                    <h4>📍 Bada CLIENTE - GO</h4>
+                    <p>Sistema de Indicação + Rastreamento completo</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-badges">
+            <span class="stat-badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
+            <span class="stat-badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
+            <span class="stat-badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
+        </div>
+    </section>
     
     <script>
         // Máscara de telefone
