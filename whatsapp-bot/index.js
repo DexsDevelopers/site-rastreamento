@@ -735,37 +735,72 @@ async function start() {
 
     sock.ev.on('creds.update', saveCreds);
 
+    // Listener adicional para capturar eventos de poll em messages.upsert
+    sock.ev.on('messages.upsert', async (m) => {
+      if (!isReady || !sock) return;
+      
+      try {
+        const messages = m.messages || [];
+        for (const msg of messages) {
+          // Verificar se a mensagem tem alguma referência a poll
+          if (msg.message?.pollUpdateMessage || msg.message?.pollMessage) {
+            log.info(`[POLL] Poll detectado em messages.upsert!`);
+            log.info(`[POLL] Keys da mensagem: ${Object.keys(msg.message).join(', ')}`);
+            
+            // Tentar processar o voto aqui
+            const pollData = msg.message.pollUpdateMessage || msg.message.pollMessage;
+            if (pollData) {
+              log.info(`[POLL] Dados da poll: ${JSON.stringify(pollData).substring(0, 500)}`);
+            }
+          }
+        }
+      } catch (error) {
+        // Ignorar erros silenciosamente
+      }
+    });
+
     // Tratamento de atualizações de polls (quando usuário vota)
     sock.ev.on('messages.update', async (updates) => {
       if (!isReady || !sock) return;
       
       if (!Array.isArray(updates)) return;
       
-      // DEBUG: Log todas as atualizações para ver o que está chegando
-      if (updates.length > 0) {
-        log.info(`[POLL] messages.update recebido com ${updates.length} atualizações`);
-      }
-      
       for (const update of updates) {
         try {
-          // DEBUG: Log da estrutura do update
+          // DEBUG: Log completo quando há atualizações para identificar padrões
           if (update && update.update) {
-            log.info(`[POLL] Update recebido - keys: ${Object.keys(update.update).join(', ')}`);
+            const updateKeys = Object.keys(update.update);
+            // Log apenas se não for apenas status (para evitar spam)
+            if (updateKeys.length > 1 || !updateKeys.includes('status')) {
+              log.info(`[POLL] Update recebido - keys: ${updateKeys.join(', ')}`);
+            }
           }
           
-          // Verificar se é uma atualização de poll
-          if (!update || !update.update || !update.update.pollUpdate) {
+          // Verificar se é uma atualização de poll - múltiplas formas
+          if (!update || !update.update) {
             continue;
           }
           
-          log.info(`[POLL] PollUpdate detectado!`);
-          const pollUpdate = update.update.pollUpdate;
+          // Tentar diferentes formatos de pollUpdate
+          let pollUpdate = null;
+          if (update.update.pollUpdate) {
+            pollUpdate = update.update.pollUpdate;
+          } else if (update.update.pollUpdateMessage) {
+            pollUpdate = update.update.pollUpdateMessage;
+          } else if (update.update.message?.pollUpdateMessage) {
+            pollUpdate = update.update.message.pollUpdateMessage;
+          }
           
-          // DEBUG: Log estrutura completa do pollUpdate
+          if (!pollUpdate) {
+            continue;
+          }
+          
+          log.info(`[POLL] ✅ PollUpdate detectado!`);
           log.info(`[POLL] pollUpdate keys: ${Object.keys(pollUpdate).join(', ')}`);
           log.info(`[POLL] pollUpdate completo: ${JSON.stringify(pollUpdate).substring(0, 500)}`);
           
-          const pollMessage = pollUpdate.pollCreationMessageKey;
+          // Tentar diferentes formas de obter a chave da mensagem
+          const pollMessage = pollUpdate.pollCreationMessageKey || pollUpdate.pollCreationMessage || pollUpdate.messageKey;
           
           // Validações para evitar crashes
           if (!pollMessage || !pollMessage.id) {
