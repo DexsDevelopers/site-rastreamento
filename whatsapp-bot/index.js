@@ -452,38 +452,59 @@ async function sendPoll(sock, jid, question, options, context = {}) {
     const messageId = sent.key.id;
     
     // Obter pollEncKey da mensagem enviada (necessário para descriptografar votos)
-    // O Baileys armazena isso na mensagem, precisamos buscar a mensagem completa do store
+    // Segundo o código do Baileys, a chave está em messageContextInfo.messageSecret
     let pollEncKey = null;
     try {
-      // Tentar obter a mensagem completa do socket para extrair pollEncKey
-      // A chave de criptografia está em message.message.pollCreationMessage.encKey
-      if (sent.message?.pollCreationMessage?.encKey) {
+      // Debug: ver o que realmente está na resposta
+      log.info(`[POLL] DEBUG - Estrutura de sent.message: ${JSON.stringify(Object.keys(sent.message || {})).substring(0, 200)}`);
+      
+      // Tentar obter da resposta imediata
+      // A chave pode estar em messageContextInfo.messageSecret (conforme código do Baileys)
+      if (sent.message?.messageContextInfo?.messageSecret) {
+        pollEncKey = Buffer.from(sent.message.messageContextInfo.messageSecret);
+        log.info(`[POLL] ✅ pollEncKey obtida de messageContextInfo.messageSecret: ${pollEncKey.toString('hex').substring(0, 32)}...`);
+      } else if (sent.message?.pollCreationMessage?.encKey) {
+        // Fallback: tentar pollCreationMessage.encKey
         pollEncKey = Buffer.from(sent.message.pollCreationMessage.encKey);
-        log.info(`[POLL] pollEncKey obtida da resposta: ${pollEncKey.toString('hex').substring(0, 32)}...`);
+        log.info(`[POLL] ✅ pollEncKey obtida de pollCreationMessage.encKey: ${pollEncKey.toString('hex').substring(0, 32)}...`);
       } else {
+        log.warn(`[POLL] pollEncKey não encontrada na resposta imediata, tentando buscar do store...`);
+        
         // Tentar buscar do store do Baileys após um pequeno delay
-        // Usar IIFE para capturar messageId e jid corretamente
         (async () => {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Aguardar 1 segundo
+          await new Promise(resolve => setTimeout(resolve, 1500)); // Aguardar 1.5 segundos
           try {
             const fullMessage = await sock.loadMessage(jid, messageId);
-            if (fullMessage?.message?.pollCreationMessage?.encKey) {
-              const foundKey = Buffer.from(fullMessage.message.pollCreationMessage.encKey);
-              // Atualizar contexto com a chave
+            log.info(`[POLL] DEBUG - Mensagem do store: ${JSON.stringify(Object.keys(fullMessage?.message || {})).substring(0, 200)}`);
+            
+            // Tentar messageContextInfo.messageSecret primeiro
+            if (fullMessage?.message?.messageContextInfo?.messageSecret) {
+              const foundKey = Buffer.from(fullMessage.message.messageContextInfo.messageSecret);
               const existingCtx = pollContext.get(messageId);
               if (existingCtx) {
                 existingCtx.pollEncKey = foundKey;
                 pollContext.set(messageId, existingCtx);
-                log.info(`[POLL] pollEncKey obtida do store: ${foundKey.toString('hex').substring(0, 32)}...`);
+                log.info(`[POLL] ✅ pollEncKey obtida do store (messageSecret): ${foundKey.toString('hex').substring(0, 32)}...`);
               }
+            } else if (fullMessage?.message?.pollCreationMessage?.encKey) {
+              // Fallback
+              const foundKey = Buffer.from(fullMessage.message.pollCreationMessage.encKey);
+              const existingCtx = pollContext.get(messageId);
+              if (existingCtx) {
+                existingCtx.pollEncKey = foundKey;
+                pollContext.set(messageId, existingCtx);
+                log.info(`[POLL] ✅ pollEncKey obtida do store (encKey): ${foundKey.toString('hex').substring(0, 32)}...`);
+              }
+            } else {
+              log.warn(`[POLL] pollEncKey não encontrada no store também`);
             }
           } catch (storeError) {
-            log.warn(`[POLL] Não foi possível buscar pollEncKey do store: ${storeError.message}`);
+            log.warn(`[POLL] Erro ao buscar pollEncKey do store: ${storeError.message}`);
           }
         })();
       }
     } catch (keyError) {
-      log.warn(`[POLL] Não foi possível obter pollEncKey imediatamente: ${keyError.message}`);
+      log.warn(`[POLL] Erro ao obter pollEncKey: ${keyError.message}`);
     }
     
     // Armazenar contexto da poll para processar votos depois
@@ -913,20 +934,31 @@ async function start() {
               // Verificar se temos a chave de criptografia da poll
               if (!pollCtx.pollEncKey) {
                 log.warn(`[POLL] pollEncKey não encontrada no contexto, tentando buscar da mensagem...`);
-                // Tentar buscar a mensagem completa para obter pollEncKey
+                // Tentar buscar a mensagem completa do store para obter pollEncKey
                 try {
-                  // Buscar mensagem usando messageId
-                  const pollMessageKey = {
-                    remoteJid: jid,
-                    fromMe: true,
-                    id: messageId
-                  };
-                  // Não podemos buscar diretamente, precisamos armazenar quando criamos
-                  // Por enquanto, vamos tentar usar uma abordagem alternativa
-                  log.warn(`[POLL] pollEncKey não disponível - descriptografia manual não será possível neste voto`);
-                  continue;
+                  const fullMessage = await sock.loadMessage(jid, messageId);
+                  log.info(`[POLL] DEBUG - Buscando pollEncKey da mensagem do store...`);
+                  
+                  // Tentar messageContextInfo.messageSecret primeiro (conforme código do Baileys)
+                  if (fullMessage?.message?.messageContextInfo?.messageSecret) {
+                    pollCtx.pollEncKey = Buffer.from(fullMessage.message.messageContextInfo.messageSecret);
+                    pollContext.set(messageId, pollCtx);
+                    log.info(`[POLL] ✅ pollEncKey obtida do store (messageSecret): ${pollCtx.pollEncKey.toString('hex').substring(0, 32)}...`);
+                  } else if (fullMessage?.message?.pollCreationMessage?.encKey) {
+                    // Fallback: tentar pollCreationMessage.encKey
+                    pollCtx.pollEncKey = Buffer.from(fullMessage.message.pollCreationMessage.encKey);
+                    pollContext.set(messageId, pollCtx);
+                    log.info(`[POLL] ✅ pollEncKey obtida do store (encKey): ${pollCtx.pollEncKey.toString('hex').substring(0, 32)}...`);
+                  } else {
+                    log.error(`[POLL] ❌ pollEncKey não encontrada na mensagem do store`);
+                    log.info(`[POLL] DEBUG - Estrutura da mensagem: ${JSON.stringify(Object.keys(fullMessage?.message || {})).substring(0, 300)}`);
+                    continue;
+                  }
                 } catch (fetchError) {
-                  log.error(`[POLL] Erro ao buscar mensagem: ${fetchError.message}`);
+                  log.error(`[POLL] Erro ao buscar mensagem do store: ${fetchError.message}`);
+                  if (fetchError.stack) {
+                    log.error(`[POLL] Stack: ${fetchError.stack}`);
+                  }
                   continue;
                 }
               }
