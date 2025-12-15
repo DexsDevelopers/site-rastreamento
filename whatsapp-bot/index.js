@@ -323,34 +323,46 @@ async function sendPoll(sock, jid, question, options) {
       throw new Error('Socket não está disponível');
     }
     
+    if (!isReady) {
+      throw new Error('Bot não está pronto (não conectado)');
+    }
+    
     if (!options || options.length < 2 || options.length > 12) {
       throw new Error('Poll deve ter entre 2 e 12 opções');
     }
 
     log.info(`[POLL] Preparando poll: "${question}" com ${options.length} opções`);
     log.info(`[POLL] Opções: ${options.join(', ')}`);
+    log.info(`[POLL] JID destino: ${jid}`);
 
-    // Criar mensagem de poll usando proto
-    const pollMessage = {
-      pollCreationMessage: {
+    // Criar mensagem de poll usando proto.Message diretamente
+    // Esta é a forma correta de criar polls no Baileys
+    const pollCreationMsg = {
+      pollCreationMessage: proto.Message.PollCreationMessage.create({
         name: question,
-        options: options.map((opt) => ({
-          optionName: String(opt)
-        })),
-        selectableOptionsCount: 1 // Permite apenas uma escolha
-      }
+        options: options.map((opt) => 
+          proto.Message.PollCreationMessage.Option.create({
+            optionName: String(opt)
+          })
+        ),
+        selectableOptionsCount: 1
+      })
     };
 
     log.info(`[POLL] Enviando poll para ${jid}...`);
+    
     // Enviar poll
-    const sent = await sock.sendMessage(jid, pollMessage);
-    log.success(`[POLL] Enquete enviada com sucesso! Message ID: ${sent.key.id}`);
-    log.info(`[POLL] JID destino: ${jid}`);
+    const sent = await sock.sendMessage(jid, pollCreationMsg);
+    log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${sent.key.id}`);
+    log.info(`[POLL] Resultado: ${JSON.stringify(sent.key)}`);
     return { success: true, messageId: sent.key.id };
   } catch (error) {
-    log.error(`[POLL] Erro ao enviar enquete: ${error.message}`);
+    log.error(`[POLL] ❌ Erro ao enviar enquete: ${error.message}`);
     if (error.stack) {
       log.error(`[POLL] Stack trace: ${error.stack}`);
+    }
+    if (error.response) {
+      log.error(`[POLL] Error response: ${JSON.stringify(error.response)}`);
     }
     throw error;
   }
