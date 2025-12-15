@@ -11,7 +11,7 @@
  *   POST /check { to: "55DDDNUMERO" } Header: x-api-token
  *   POST /send-poll { to: "55DDDNUMERO", question: "...", options: [...] }  Header: x-api-token
  */
-import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto, makeInMemoryStore } from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto } from '@whiskeysockets/baileys';
 import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-message.js';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -116,33 +116,61 @@ let disconnectTimestamps = [];  // Para detectar loop de desconexão
 let isInLoopState = false;      // Flag de loop detectado
 let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 
-// ===== STORE PARA PERSISTÊNCIA DE MENSAGENS =====
-const STORE_FILE = 'baileys_store.json';
-const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
-
-// Carregar estado do store se existir
-try {
-  if (fs.existsSync(STORE_FILE)) {
-    const storeData = fs.readFileSync(STORE_FILE, 'utf-8');
-    if (storeData) {
-      const parsed = JSON.parse(storeData);
-      store.fromJSON(parsed);
-      console.log('✅ Store carregado do arquivo:', STORE_FILE);
+// ===== CUSTOM SIMPLE STORE (Correção para Node 22) =====
+const simpleStore = {
+    messages: {},
+    
+    bind(ev) {
+        ev.on('messages.upsert', ({ messages: newMessages }) => {
+            for (const msg of newMessages) {
+                if (!msg.message) continue;
+                const jid = msg.key.remoteJid;
+                const id = msg.key.id;
+                
+                if (!this.messages[jid]) this.messages[jid] = {};
+                this.messages[jid][id] = msg;
+                
+                // Limitar memória: manter apenas últimas 100 mensagens por chat
+                const keys = Object.keys(this.messages[jid]);
+                if (keys.length > 100) {
+                    delete this.messages[jid][keys[0]];
+                }
+            }
+        });
+    },
+    
+    async loadMessage(jid, id) {
+        return this.messages[jid]?.[id];
+    },
+    
+    writeToFile(path) {
+        try {
+            fs.writeFileSync(path, JSON.stringify(this.messages));
+        } catch (e) { 
+            console.error('Erro ao salvar store:', e.message); 
+        }
+    },
+    
+    readFromFile(path) {
+        try {
+            if (fs.existsSync(path)) {
+                this.messages = JSON.parse(fs.readFileSync(path, 'utf-8'));
+                console.log('📦 Store carregado do arquivo');
+            }
+        } catch (e) { 
+            console.log('📦 Novo store iniciado'); 
+        }
     }
-  }
-} catch (error) {
-  console.warn('⚠️ Erro ao carregar store do arquivo:', error.message);
-}
+};
 
-// Salvar estado do store periodicamente (a cada 10 segundos)
-const storeSaveInterval = setInterval(() => {
-  try {
-    const storeData = JSON.stringify(store.toJSON());
-    fs.writeFileSync(STORE_FILE, storeData, 'utf-8');
-  } catch (error) {
-    console.warn('⚠️ Erro ao salvar store:', error.message);
-  }
-}, 10000); // 10 segundos
+// Inicializar Store
+const store = simpleStore;
+store.readFromFile('./baileys_store.json');
+
+// Salvar periodicamente
+setInterval(() => {
+    store.writeToFile('./baileys_store.json');
+}, 10_000);
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
