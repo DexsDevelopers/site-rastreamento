@@ -11,7 +11,9 @@
  *   POST /check { to: "55DDDNUMERO" } Header: x-api-token
  *   POST /send-poll { to: "55DDDNUMERO", question: "...", options: [...] }  Header: x-api-token
  */
-import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage } from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto } from '@whiskeysockets/baileys';
+import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-message.js';
+import crypto from 'crypto';
 import qrcode from 'qrcode-terminal';
 import QRCodeImg from 'qrcode';
 import express from 'express';
@@ -121,6 +123,8 @@ const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp:
 const pollContext = new Map(); // key: messageId, value: { type: string, jid: string, options: array, commandMap: object, timestamp: number }
 // Anti-loop: evitar processar o mesmo voto duas vezes
 const processedVotes = new Map(); // key: `${messageId}-${selectedIndex}-${jid}`, value: timestamp
+// Votos pendentes aguardando descriptografia
+const pendingPollVotes = new Map(); // key: messageId, value: { jid: string, pollCtx: object, timestamp: number }
 
 // ===== LOGS COLORIDOS =====
 const log = {
@@ -319,6 +323,83 @@ async function reconnect(reason = 'Desconhecido') {
   }, delay);
 }
 
+// ===== FUNÇÃO PARA PROCESSAR VOTO DE POLL =====
+async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
+  try {
+    const phoneNumber = jid.split('@')[0];
+    
+    // Validar índice selecionado
+    if (typeof selectedOptionIndex !== 'number' || selectedOptionIndex < 0 || selectedOptionIndex > 11) {
+      log.warn(`[POLL] Índice de voto inválido: ${selectedOptionIndex}`);
+      return;
+    }
+    
+    // ANTI-LOOP: Verificar se já processamos este voto
+    const voteKey = `${messageId}-${selectedOptionIndex}-${jid}`;
+    if (processedVotes.has(voteKey)) {
+      log.info(`[POLL] Voto já processado, ignorando duplicado: ${voteKey}`);
+      return;
+    }
+    
+    // ANTI-LOOP: Marcar voto como processado
+    processedVotes.set(voteKey, Date.now());
+    
+    log.info(`[POLL] ✅ Usuário ${phoneNumber} votou na opção ${selectedOptionIndex} (poll: ${pollCtx.type})`);
+    
+    // Mapear opção para comando usando o contexto
+    const command = pollCtx.commandMap && pollCtx.commandMap[selectedOptionIndex];
+    if (!command) {
+      log.warn(`[POLL] Comando não encontrado para índice ${selectedOptionIndex} no contexto ${pollCtx.type}`);
+      return;
+    }
+    
+    log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
+    
+    // Processar comando automaticamente
+    try {
+      const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
+      log.info(`[POLL] Enviando requisição para: ${apiUrl}`);
+      const apiResponse = await axios.post(apiUrl, {
+        phone: phoneNumber,
+        command: command,
+        args: [],
+        message: command,
+        source: 'poll',
+        pollContext: pollCtx.type
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
+        },
+        timeout: 30000
+      });
+      
+      log.info(`[POLL] Resposta da API recebida: ${JSON.stringify(apiResponse.data).substring(0, 200)}`);
+      
+      if (apiResponse && apiResponse.data && apiResponse.data.message) {
+        await sock.sendMessage(jid, { text: apiResponse.data.message });
+        log.success(`[POLL] ✅ Comando ${command} executado via poll (${pollCtx.type})`);
+      } else {
+        log.warn(`[POLL] API não retornou mensagem na resposta`);
+      }
+    } catch (apiError) {
+      log.error(`[POLL] Erro ao processar comando da poll: ${apiError.message}`);
+      if (apiError.response) {
+        log.error(`[POLL] Resposta de erro: ${JSON.stringify(apiError.response.data)}`);
+      }
+      try {
+        await sock.sendMessage(jid, { 
+          text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.` 
+        });
+      } catch (sendError) {
+        log.error(`[POLL] Erro ao enviar mensagem de erro: ${sendError.message}`);
+      }
+    }
+  } catch (error) {
+    log.error(`[POLL] Erro ao processar voto: ${error.message}`);
+  }
+}
+
 // ===== SISTEMA DE POLLS (ENQUETES) =====
 // Função helper para criar e enviar poll (enquete) usando formato oficial do Baileys
 // context: { type: string, commandMap: object } - tipo da poll e mapeamento de comandos
@@ -370,13 +451,51 @@ async function sendPoll(sock, jid, question, options, context = {}) {
     
     const messageId = sent.key.id;
     
+    // Obter pollEncKey da mensagem enviada (necessário para descriptografar votos)
+    // O Baileys armazena isso na mensagem, precisamos buscar a mensagem completa do store
+    let pollEncKey = null;
+    try {
+      // Tentar obter a mensagem completa do socket para extrair pollEncKey
+      // A chave de criptografia está em message.message.pollCreationMessage.encKey
+      if (sent.message?.pollCreationMessage?.encKey) {
+        pollEncKey = Buffer.from(sent.message.pollCreationMessage.encKey);
+        log.info(`[POLL] pollEncKey obtida da resposta: ${pollEncKey.toString('hex').substring(0, 32)}...`);
+      } else {
+        // Tentar buscar do store do Baileys após um pequeno delay
+        // Usar IIFE para capturar messageId e jid corretamente
+        (async () => {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Aguardar 1 segundo
+          try {
+            const fullMessage = await sock.loadMessage(jid, messageId);
+            if (fullMessage?.message?.pollCreationMessage?.encKey) {
+              const foundKey = Buffer.from(fullMessage.message.pollCreationMessage.encKey);
+              // Atualizar contexto com a chave
+              const existingCtx = pollContext.get(messageId);
+              if (existingCtx) {
+                existingCtx.pollEncKey = foundKey;
+                pollContext.set(messageId, existingCtx);
+                log.info(`[POLL] pollEncKey obtida do store: ${foundKey.toString('hex').substring(0, 32)}...`);
+              }
+            }
+          } catch (storeError) {
+            log.warn(`[POLL] Não foi possível buscar pollEncKey do store: ${storeError.message}`);
+          }
+        })();
+      }
+    } catch (keyError) {
+      log.warn(`[POLL] Não foi possível obter pollEncKey imediatamente: ${keyError.message}`);
+    }
+    
     // Armazenar contexto da poll para processar votos depois
     pollContext.set(messageId, {
       type: context.type || 'default',
       jid: jid,
       options: options,
       commandMap: context.commandMap || {},
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      pollEncKey: pollEncKey, // Chave para descriptografar votos
+      pollCreatorJid: sock.user?.id || jid, // JID do criador da poll (bot)
+      pollMsgId: messageId
     });
     
     log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${messageId}`);
@@ -735,27 +854,159 @@ async function start() {
 
     sock.ev.on('creds.update', saveCreds);
 
-    // Listener adicional para capturar eventos de poll em messages.upsert
+    // Listener para capturar eventos de poll em messages.upsert (QUANDO USUÁRIO VOTA)
     sock.ev.on('messages.upsert', async (m) => {
       if (!isReady || !sock) return;
       
       try {
         const messages = m.messages || [];
         for (const msg of messages) {
-          // Verificar se a mensagem tem alguma referência a poll
-          if (msg.message?.pollUpdateMessage || msg.message?.pollMessage) {
-            log.info(`[POLL] Poll detectado em messages.upsert!`);
-            log.info(`[POLL] Keys da mensagem: ${Object.keys(msg.message).join(', ')}`);
+          // Verificar se é uma atualização de poll (voto)
+          if (msg.message?.pollUpdateMessage) {
+            const pollUpdate = msg.message.pollUpdateMessage;
+            const pollMessage = pollUpdate.pollCreationMessageKey;
             
-            // Tentar processar o voto aqui
-            const pollData = msg.message.pollUpdateMessage || msg.message.pollMessage;
-            if (pollData) {
-              log.info(`[POLL] Dados da poll: ${JSON.stringify(pollData).substring(0, 500)}`);
+            if (!pollMessage || !pollMessage.id) {
+              continue;
+            }
+            
+            const messageId = pollMessage.id;
+            const jid = pollMessage.remoteJid || msg.key?.remoteJid;
+            
+            if (!jid || typeof jid !== 'string' || jid.includes('@g.us')) {
+              continue; // Ignorar grupos
+            }
+            
+            const phoneNumber = jid.split('@')[0];
+            if (!phoneNumber || phoneNumber.length < 10) {
+              continue;
+            }
+            
+            log.info(`[POLL] ✅ Voto detectado! messageId: ${messageId}, jid: ${jid}`);
+            
+            // Buscar contexto da poll
+            let pollCtx = pollContext.get(messageId);
+            if (!pollCtx) {
+              log.warn(`[POLL] Contexto não encontrado para messageId: ${messageId}, usando fallback`);
+              pollCtx = {
+                type: 'menu_principal',
+                jid: jid,
+                commandMap: {
+                  0: '!saldo',
+                  1: '!receita',
+                  2: '!despesa',
+                  3: '!tarefas',
+                  4: '!menu'
+                }
+              };
+            }
+            
+            // O voto está criptografado (encPayload, encIv)
+            // Descriptografar manualmente usando decryptPollVote do Baileys
+            try {
+              const vote = pollUpdate.vote;
+              if (!vote || !vote.encPayload || !vote.encIv) {
+                log.warn(`[POLL] Voto não contém dados de criptografia necessários`);
+                continue;
+              }
+              
+              // Verificar se temos a chave de criptografia da poll
+              if (!pollCtx.pollEncKey) {
+                log.warn(`[POLL] pollEncKey não encontrada no contexto, tentando buscar da mensagem...`);
+                // Tentar buscar a mensagem completa para obter pollEncKey
+                try {
+                  // Buscar mensagem usando messageId
+                  const pollMessageKey = {
+                    remoteJid: jid,
+                    fromMe: true,
+                    id: messageId
+                  };
+                  // Não podemos buscar diretamente, precisamos armazenar quando criamos
+                  // Por enquanto, vamos tentar usar uma abordagem alternativa
+                  log.warn(`[POLL] pollEncKey não disponível - descriptografia manual não será possível neste voto`);
+                  continue;
+                } catch (fetchError) {
+                  log.error(`[POLL] Erro ao buscar mensagem: ${fetchError.message}`);
+                  continue;
+                }
+              }
+              
+              log.info(`[POLL] Tentando descriptografar voto...`);
+              
+              // Converter encPayload e encIv para Buffer se necessário
+              const encPayload = Buffer.isBuffer(vote.encPayload) ? vote.encPayload : Buffer.from(vote.encPayload, 'base64');
+              const encIv = Buffer.isBuffer(vote.encIv) ? vote.encIv : Buffer.from(vote.encIv, 'base64');
+              const pollEncKey = Buffer.isBuffer(pollCtx.pollEncKey) ? pollCtx.pollEncKey : Buffer.from(pollCtx.pollEncKey);
+              
+              // Descriptografar o voto usando decryptPollVote
+              const decryptedVote = decryptPollVote(
+                {
+                  encPayload: encPayload,
+                  encIv: encIv
+                },
+                {
+                  pollCreatorJid: pollCtx.pollCreatorJid || sock.user?.id || jid,
+                  pollMsgId: messageId,
+                  pollEncKey: pollEncKey,
+                  voterJid: jid
+                }
+              );
+              
+              log.info(`[POLL] ✅ Voto descriptografado! Dados: ${JSON.stringify(decryptedVote).substring(0, 200)}`);
+              
+              // Extrair o índice selecionado
+              // O voto descriptografado contém selectedOptions que são hashes SHA256 das opções
+              // Precisamos comparar com os hashes das opções originais para encontrar o índice
+              let selectedOptionIndex = -1;
+              
+              if (decryptedVote.selectedOptions && decryptedVote.selectedOptions.length > 0) {
+                const selectedHash = Buffer.from(decryptedVote.selectedOptions[0]).toString('hex');
+                log.info(`[POLL] Hash selecionado: ${selectedHash}`);
+                
+                // Calcular hash de cada opção e comparar
+                for (let i = 0; i < pollCtx.options.length; i++) {
+                  const optionHash = crypto.createHash('sha256').update(pollCtx.options[i]).digest('hex');
+                  if (optionHash === selectedHash) {
+                    selectedOptionIndex = i;
+                    log.info(`[POLL] ✅ Opção ${i} corresponde ao hash (${pollCtx.options[i]})`);
+                    break;
+                  }
+                }
+              }
+              
+              if (selectedOptionIndex === -1) {
+                // Tentar alternativa: usar selectedOptionIndex diretamente se disponível
+                if (typeof decryptedVote.selectedOptionIndex === 'number') {
+                  selectedOptionIndex = decryptedVote.selectedOptionIndex;
+                  log.info(`[POLL] Usando selectedOptionIndex direto: ${selectedOptionIndex}`);
+                } else {
+                  log.warn(`[POLL] Não foi possível determinar o índice selecionado`);
+                  continue;
+                }
+              }
+              
+              // Processar o voto
+              log.info(`[POLL] Processando voto: índice ${selectedOptionIndex}`);
+              await processPollVote(messageId, jid, selectedOptionIndex, pollCtx);
+              
+            } catch (decryptError) {
+              log.error(`[POLL] ❌ Erro ao descriptografar voto: ${decryptError.message}`);
+              if (decryptError.stack) {
+                log.error(`[POLL] Stack: ${decryptError.stack}`);
+              }
+              // Fallback: informar usuário
+              try {
+                await sock.sendMessage(jid, { 
+                  text: `❌ Erro ao processar seu voto. Por favor, digite o comando manualmente (ex: !saldo, !receita, etc.)` 
+                });
+              } catch (sendError) {
+                log.error(`[POLL] Erro ao enviar mensagem de fallback: ${sendError.message}`);
+              }
             }
           }
         }
       } catch (error) {
-        // Ignorar erros silenciosamente
+        log.error(`[POLL] Erro em messages.upsert: ${error.message}`);
       }
     });
 
@@ -863,23 +1114,35 @@ async function start() {
           // ANTI-LOOP: Marcar voto como processado
           processedVotes.set(voteKey, Date.now());
           
-          // STATE MANAGEMENT: Buscar contexto da poll
+          // STATE MANAGEMENT: Buscar contexto da poll (tentar do contexto ou do voto pendente)
           let pollCtx = pollContext.get(messageId);
           if (!pollCtx) {
-            log.warn(`[POLL] Contexto não encontrado para messageId: ${messageId}`);
-            log.info(`[POLL] Contextos disponíveis: ${Array.from(pollContext.keys()).join(', ')}`);
-            // Fallback para mapeamento padrão do menu principal
-            pollCtx = {
-              type: 'menu_principal',
-              jid: jid,
-              commandMap: {
-                0: '!saldo',
-                1: '!receita',
-                2: '!despesa',
-                3: '!tarefas',
-                4: '!menu'
-              }
-            };
+            // Tentar obter do voto pendente
+            const pending = pendingPollVotes.get(messageId);
+            if (pending && pending.pollCtx) {
+              pollCtx = pending.pollCtx;
+              log.info(`[POLL] Contexto obtido do voto pendente`);
+            } else {
+              log.warn(`[POLL] Contexto não encontrado para messageId: ${messageId}`);
+              log.info(`[POLL] Contextos disponíveis: ${Array.from(pollContext.keys()).join(', ')}`);
+              // Fallback para mapeamento padrão do menu principal
+              pollCtx = {
+                type: 'menu_principal',
+                jid: jid,
+                commandMap: {
+                  0: '!saldo',
+                  1: '!receita',
+                  2: '!despesa',
+                  3: '!tarefas',
+                  4: '!menu'
+                }
+              };
+            }
+          }
+          
+          // Remover voto pendente se encontramos o contexto
+          if (pendingPollVotes.has(messageId)) {
+            pendingPollVotes.delete(messageId);
           }
           
           log.info(`[POLL] ✅ Usuário ${phoneNumber} votou na opção ${selectedOptionIndex} (poll: ${pollCtx.type})`);
