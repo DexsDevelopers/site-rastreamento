@@ -1,14 +1,17 @@
-/* WhatsApp Bot local - Baileys + Express
+/* WhatsApp Bot Centralizado - Baileys + Express
+ * - Bot único para dois projetos: Rastreamento (/) e Financeiro (!)
  * - Exibe QR no console para logar
  * - Sistema de reconexão automática
  * - Heartbeat para manter conexão ativa
+ * - Sistema de polls (enquetes) para o projeto financeiro
  * - Endpoints:
  *   GET  /status
  *   GET  /qr
  *   POST /send  { to: "55DDDNUMERO", text: "mensagem" }  Header: x-api-token
  *   POST /check { to: "55DDDNUMERO" } Header: x-api-token
+ *   POST /send-poll { to: "55DDDNUMERO", question: "...", options: [...] }  Header: x-api-token
  */
-import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, proto, downloadMediaMessage } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 import QRCodeImg from 'qrcode';
 import express from 'express';
@@ -113,7 +116,7 @@ let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
-const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number }
+const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number, isFinanceiro?: boolean, transactionId?: string }
 
 // ===== LOGS COLORIDOS =====
 const log = {
@@ -312,6 +315,47 @@ async function reconnect(reason = 'Desconhecido') {
   }, delay);
 }
 
+// ===== SISTEMA DE POLLS (ENQUETES) =====
+// Função helper para criar e enviar poll (enquete)
+async function sendPoll(sock, jid, question, options) {
+  try {
+    if (!sock) {
+      throw new Error('Socket não está disponível');
+    }
+    
+    if (!options || options.length < 2 || options.length > 12) {
+      throw new Error('Poll deve ter entre 2 e 12 opções');
+    }
+
+    log.info(`[POLL] Preparando poll: "${question}" com ${options.length} opções`);
+    log.info(`[POLL] Opções: ${options.join(', ')}`);
+
+    // Criar mensagem de poll usando proto
+    const pollMessage = {
+      pollCreationMessage: {
+        name: question,
+        options: options.map((opt) => ({
+          optionName: String(opt)
+        })),
+        selectableOptionsCount: 1 // Permite apenas uma escolha
+      }
+    };
+
+    log.info(`[POLL] Enviando poll para ${jid}...`);
+    // Enviar poll
+    const sent = await sock.sendMessage(jid, pollMessage);
+    log.success(`[POLL] Enquete enviada com sucesso! Message ID: ${sent.key.id}`);
+    log.info(`[POLL] JID destino: ${jid}`);
+    return { success: true, messageId: sent.key.id };
+  } catch (error) {
+    log.error(`[POLL] Erro ao enviar enquete: ${error.message}`);
+    if (error.stack) {
+      log.error(`[POLL] Stack trace: ${error.stack}`);
+    }
+    throw error;
+  }
+}
+
 // ===== MONITORAMENTO DE MEMÓRIA =====
 function checkMemory() {
   const used = process.memoryUsage();
@@ -369,6 +413,51 @@ async function processAdminCommand(from, text) {
     // Site-rastreamento espera SEM prefixo (menu)
     const commandToSend = isFinanceiro ? commandWithPrefix : commandWithoutPrefix;
     
+    // Se for comando !menu do financeiro, enviar poll interativa
+    if (isFinanceiro && commandWithPrefix === '!menu') {
+      try {
+        if (!sock || !isReady) {
+          log.warn(`[${projectName}] Bot não está pronto para enviar poll`);
+          // Fallback: enviar para API normalmente
+        } else {
+          const pollQuestion = '👋 Olá! Como posso ajudar você hoje?';
+          const pollOptions = [
+            '📊 Ver saldo',
+            '💰 Registrar receita',
+            '💸 Registrar despesa',
+            '📋 Ver tarefas',
+            '❓ Ver menu completo'
+          ];
+          
+          log.info(`[${projectName}] Tentando enviar poll para ${from}`);
+          const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions);
+          log.success(`[${projectName}] Poll enviada via !menu com sucesso: ${pollResult.messageId}`);
+          // Retornar sem message para não enviar texto adicional
+          return { success: true, pollSent: true, messageId: pollResult.messageId };
+        }
+      } catch (pollError) {
+        log.error(`[${projectName}] Erro ao enviar poll: ${pollError.message}`);
+        log.error(`[${projectName}] Stack: ${pollError.stack}`);
+        // Fallback: enviar para API normalmente
+      }
+    }
+    
+    // Se for comando !comprovante do financeiro, aguardar foto
+    if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
+      const transactionId = params[0];
+      waitingPhoto.set(from, {
+        transactionId,
+        isFinanceiro: true,
+        timestamp: Date.now()
+      });
+      return { 
+        success: true, 
+        message: '📸 Envie o comprovante agora (foto ou documento)',
+        waiting_photo: true,
+        photo_transaction_id: transactionId
+      };
+    }
+    
     const response = await axios.post(
       `${apiUrl}/admin_bot_api.php`,
       { 
@@ -390,11 +479,23 @@ async function processAdminCommand(from, text) {
     
     const result = response.data;
     
-    if (result.waiting_photo && result.photo_codigo) {
-      waitingPhoto.set(from, {
-        codigo: result.photo_codigo,
-        timestamp: Date.now()
-      });
+    // Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
+    if (result.waiting_photo) {
+      if (result.photo_codigo) {
+        // Rastreamento
+        waitingPhoto.set(from, {
+          codigo: result.photo_codigo,
+          isFinanceiro: false,
+          timestamp: Date.now()
+        });
+      } else if (result.photo_transaction_id || result.transaction_id) {
+        // Financeiro
+        waitingPhoto.set(from, {
+          transactionId: result.photo_transaction_id || result.transaction_id,
+          isFinanceiro: true,
+          timestamp: Date.now()
+        });
+      }
       
       setTimeout(() => {
         waitingPhoto.delete(from);
@@ -427,37 +528,88 @@ async function processPhotoUpload(from, msg) {
       return false;
     }
     
-    const imageMessage = msg.message.imageMessage;
+    const imageMessage = msg.message.imageMessage || msg.message.documentMessage;
     if (!imageMessage) return false;
     
-    const buffer = await sock.downloadMediaMessage(msg);
+    // Download da mídia usando downloadMediaMessage
+    const stream = await downloadMediaMessage(msg, 'buffer', {}, { logger: pino({ level: 'silent' }) });
+    const chunks = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
     
+    const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     const form = new FormData();
-    form.append('foto_pedido', buffer, {
-      filename: `${waiting.codigo}.jpg`,
-      contentType: 'image/jpeg'
-    });
-    form.append('codigo', waiting.codigo);
-    form.append('from', from.replace('@s.whatsapp.net', '').replace('@lid', ''));
-    form.append('token', API_TOKEN);
     
-    const response = await axios.post(
-      `${ADMIN_API_URL}/admin_bot_photo.php`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          'Authorization': `Bearer ${API_TOKEN}`
-        },
-        timeout: 30000
+    // Determinar qual formato usar (rastreamento ou financeiro)
+    if (waiting.isFinanceiro && waiting.transactionId) {
+      // Formato financeiro
+      const apiToken = FINANCEIRO_TOKEN;
+      form.append('photo', buffer, {
+        filename: `comprovante_${waiting.transactionId}_${Date.now()}.jpg`,
+        contentType: 'image/jpeg'
+      });
+      form.append('transaction_id', waiting.transactionId);
+      form.append('phone', fromNumber);
+      
+      const response = await axios.post(
+        `${FINANCEIRO_API_URL}/admin_bot_photo.php`,
+        form,
+        {
+          headers: {
+            ...form.getHeaders(),
+            'Authorization': `Bearer ${apiToken}`
+          },
+          timeout: 30000
+        }
+      );
+      
+      waitingPhoto.delete(from);
+      
+      if (response.data.success) {
+        await sock.sendMessage(from, { 
+          text: `✅ Comprovante anexado ao ID #${waiting.transactionId}`
+        });
+      } else {
+        await sock.sendMessage(from, { 
+          text: `❌ Erro ao anexar comprovante: ${response.data.error || 'Erro desconhecido'}`
+        });
       }
-    );
-    
-    waitingPhoto.delete(from);
-    
-    await sock.sendMessage(from, { 
-      text: response.data.message || '✅ Foto recebida e anexada ao pedido!'
-    });
+    } else if (waiting.codigo) {
+      // Formato rastreamento
+      form.append('foto_pedido', buffer, {
+        filename: `${waiting.codigo}.jpg`,
+        contentType: 'image/jpeg'
+      });
+      form.append('codigo', waiting.codigo);
+      form.append('from', fromNumber);
+      form.append('token', RASTREAMENTO_TOKEN);
+      
+      const response = await axios.post(
+        `${RASTREAMENTO_API_URL}/admin_bot_photo.php`,
+        form,
+        {
+          headers: {
+            ...form.getHeaders(),
+            'Authorization': `Bearer ${RASTREAMENTO_TOKEN}`
+          },
+          timeout: 30000
+        }
+      );
+      
+      waitingPhoto.delete(from);
+      
+      await sock.sendMessage(from, { 
+        text: response.data.message || '✅ Foto recebida e anexada ao pedido!'
+      });
+    } else {
+      waitingPhoto.delete(from);
+      await sock.sendMessage(from, { 
+        text: '❌ Erro: formato de upload não reconhecido'
+      });
+      return true;
+    }
     
     lastHeartbeat = Date.now();
     return true;
@@ -466,7 +618,7 @@ async function processPhotoUpload(from, msg) {
     waitingPhoto.delete(from);
     
     await sock.sendMessage(from, { 
-      text: '❌ Erro ao processar a foto. Tente novamente com /foto CODIGO'
+      text: '❌ Erro ao processar a foto. Tente novamente.'
     });
     
     return true;
@@ -515,6 +667,78 @@ async function start() {
     });
 
     sock.ev.on('creds.update', saveCreds);
+
+    // Tratamento de atualizações de polls (quando usuário vota)
+    sock.ev.on('messages.update', async (updates) => {
+      if (!isReady) return;
+      
+      for (const update of updates) {
+        try {
+          // Verificar se é uma atualização de poll
+          if (update.update?.pollUpdate) {
+            const pollUpdate = update.update.pollUpdate;
+            const pollMessage = pollUpdate.pollCreationMessageKey;
+            
+            if (pollMessage && pollMessage.id) {
+              const jid = pollMessage.remoteJid || update.key?.remoteJid;
+              if (!jid || jid.includes('@g.us')) continue; // Ignorar grupos
+              
+              const phoneNumber = jid.split('@')[0];
+              
+              // Obter informações da poll
+              const pollVote = pollUpdate.vote;
+              if (pollVote && pollVote.selectedOptions) {
+                const selectedOptionIndex = pollVote.selectedOptions[0];
+                
+                log.info(`[POLL] Usuário ${phoneNumber} votou na opção ${selectedOptionIndex}`);
+                
+                // Mapear opções para comandos do financeiro
+                const optionCommands = {
+                  0: '!saldo',
+                  1: '!receita',
+                  2: '!despesa',
+                  3: '!tarefas',
+                  4: '!menu'
+                };
+                
+                const command = optionCommands[selectedOptionIndex];
+                if (command) {
+                  // Processar comando automaticamente
+                  try {
+                    const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
+                    const apiResponse = await axios.post(apiUrl, {
+                      phone: phoneNumber,
+                      command: command,
+                      args: [],
+                      message: command,
+                      source: 'poll' // Indicar que veio de uma poll
+                    }, {
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
+                      },
+                      timeout: 30000
+                    });
+                    
+                    if (apiResponse.data && apiResponse.data.message) {
+                      await sock.sendMessage(jid, { text: apiResponse.data.message });
+                      log.info(`[POLL] Comando ${command} executado via poll`);
+                    }
+                  } catch (apiError) {
+                    log.error(`[POLL] Erro ao processar comando da poll: ${apiError.message}`);
+                    await sock.sendMessage(jid, { 
+                      text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.` 
+                    });
+                  }
+                }
+              }
+            }
+          }
+        } catch (error) {
+          log.error(`[POLL] Erro ao processar atualização de poll: ${error.message}`);
+        }
+      }
+    });
 
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
@@ -628,13 +852,15 @@ async function start() {
         // Aceitar comandos com / (rastreamento) ou ! (financeiro)
         if (text.startsWith('/') || text.startsWith('!')) {
           const result = await processAdminCommand(remoteJid, text);
-          if (result.message) {
+          // Se poll foi enviada, não enviar mensagem de texto adicional
+          if (result && !result.pollSent && result.message) {
             await sock.sendMessage(remoteJid, { text: result.message });
           }
           return;
         }
         
-        if (msg.message.imageMessage && waitingPhoto.has(remoteJid)) {
+        // Verificar se está aguardando foto (rastreamento ou financeiro)
+        if ((msg.message.imageMessage || msg.message.documentMessage) && waitingPhoto.has(remoteJid)) {
           await processPhotoUpload(remoteJid, msg);
           return;
         }
@@ -869,10 +1095,49 @@ app.post('/reset-loop', auth, async (req, res) => {
   res.json({ ok: true, message: 'Estado de loop resetado. Use /reconnect para reconectar.' });
 });
 
+// Enviar poll (enquete)
+app.post('/send-poll', auth, async (req, res) => {
+  try {
+    if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
+    
+    const { to, question, options } = req.body || {};
+    
+    if (!to || !question || !options || !Array.isArray(options)) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: 'to, question e options (array) são obrigatórios. Options deve ter entre 2 e 12 itens.' 
+      });
+    }
+    
+    if (options.length < 2 || options.length > 12) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: 'Poll deve ter entre 2 e 12 opções' 
+      });
+    }
+
+    const digits = formatBrazilNumber(to);
+    const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
+    
+    if (!exists) {
+      return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
+    }
+
+    const result = await sendPoll(sock, mappedJid, question, options);
+    lastHeartbeat = Date.now();
+    
+    log.info(`Poll enviada para ${digits}`);
+    return res.json({ ok: true, ...result, to: digits, jid: mappedJid });
+  } catch (e) {
+    log.error(`Erro ao enviar poll: ${e.message}`);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ===== INICIALIZAÇÃO =====
 app.listen(PORT, () => {
   log.success(`API WhatsApp rodando em http://localhost:${PORT}`);
-  log.info('Endpoints: /status, /qr, /health, /send, /check, /reconnect');
+  log.info('Endpoints: /status, /qr, /health, /send, /check, /send-poll, /reconnect');
 });
 
 // Iniciar conexão

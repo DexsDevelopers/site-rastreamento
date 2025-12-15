@@ -47,3 +47,5 @@ try {
 } catch (PDOException $e) {
     die("❌ Erro ao criar tabela: " . $e->getMessage());
 }
+
+
