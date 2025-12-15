@@ -11,9 +11,10 @@
  *   POST /check { to: "55DDDNUMERO" } Header: x-api-token
  *   POST /send-poll { to: "55DDDNUMERO", question: "...", options: [...] }  Header: x-api-token
  */
-import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto } from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto, makeInMemoryStore } from '@whiskeysockets/baileys';
 import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-message.js';
 import crypto from 'crypto';
+import fs from 'fs';
 import qrcode from 'qrcode-terminal';
 import QRCodeImg from 'qrcode';
 import express from 'express';
@@ -114,6 +115,34 @@ let connectionStartTime = null;
 let disconnectTimestamps = [];  // Para detectar loop de desconexão
 let isInLoopState = false;      // Flag de loop detectado
 let isReconnecting = false;     // Flag para evitar reconexões simultâneas
+
+// ===== STORE PARA PERSISTÊNCIA DE MENSAGENS =====
+const STORE_FILE = 'baileys_store.json';
+const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
+
+// Carregar estado do store se existir
+try {
+  if (fs.existsSync(STORE_FILE)) {
+    const storeData = fs.readFileSync(STORE_FILE, 'utf-8');
+    if (storeData) {
+      const parsed = JSON.parse(storeData);
+      store.fromJSON(parsed);
+      console.log('✅ Store carregado do arquivo:', STORE_FILE);
+    }
+  }
+} catch (error) {
+  console.warn('⚠️ Erro ao carregar store do arquivo:', error.message);
+}
+
+// Salvar estado do store periodicamente (a cada 10 segundos)
+const storeSaveInterval = setInterval(() => {
+  try {
+    const storeData = JSON.stringify(store.toJSON());
+    fs.writeFileSync(STORE_FILE, storeData, 'utf-8');
+  } catch (error) {
+    console.warn('⚠️ Erro ao salvar store:', error.message);
+  }
+}, 10000); // 10 segundos
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
@@ -519,7 +548,11 @@ async function sendPoll(sock, jid, question, options, context = {}) {
       pollMsgId: messageId
     });
     
-    log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${messageId}`);
+    if (pollEncKey) {
+      log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${messageId}, pollEncKey: ${pollEncKey.toString('hex').substring(0, 32)}...`);
+    } else {
+      log.warn(`[POLL] ⚠️ Enquete enviada, mas pollEncKey não foi encontrada imediatamente. Será buscada do store quando necessário. Message ID: ${messageId}`);
+    }
     return { success: true, messageId: messageId };
     
   } catch (error) {
@@ -868,10 +901,19 @@ async function start() {
       markOnlineOnConnect: true,
       syncFullHistory: false,
       printQRInTerminal: false, // Desativa QR duplicado
-      getMessage: async () => undefined, // Evita logs de mensagens antigas
+      getMessage: async (key) => {
+        if (store) {
+          const msg = await store.loadMessage(key.remoteJid, key.id);
+          return msg?.message || undefined;
+        }
+        return { conversation: 'hello' };
+      },
       shouldReconnectMessage: () => true,  // Sempre tentar reconectar
       shouldIgnoreJid: () => false
     });
+
+    // Bind do store aos eventos do socket para manter sincronização
+    store.bind(sock.ev);
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -892,18 +934,23 @@ async function start() {
             }
             
             const messageId = pollMessage.id;
-            const jid = pollMessage.remoteJid || msg.key?.remoteJid;
+            const pollJid = pollMessage.remoteJid || msg.key?.remoteJid; // JID do destino da poll
+            const voterJid = msg.key?.remoteJid; // JID de quem votou (quem enviou o voto)
             
-            if (!jid || typeof jid !== 'string' || jid.includes('@g.us')) {
+            if (!pollJid || typeof pollJid !== 'string' || pollJid.includes('@g.us')) {
               continue; // Ignorar grupos
             }
             
-            const phoneNumber = jid.split('@')[0];
+            if (!voterJid || typeof voterJid !== 'string' || voterJid.includes('@g.us')) {
+              continue; // Ignorar grupos
+            }
+            
+            const phoneNumber = voterJid.split('@')[0];
             if (!phoneNumber || phoneNumber.length < 10) {
               continue;
             }
             
-            log.info(`[POLL] ✅ Voto detectado! messageId: ${messageId}, jid: ${jid}`);
+            log.info(`[POLL] ✅ Voto detectado! messageId: ${messageId}, pollJid: ${pollJid}, voterJid: ${voterJid}`);
             
             // Buscar contexto da poll
             let pollCtx = pollContext.get(messageId);
@@ -911,7 +958,7 @@ async function start() {
               log.warn(`[POLL] Contexto não encontrado para messageId: ${messageId}, usando fallback`);
               pollCtx = {
                 type: 'menu_principal',
-                jid: jid,
+                jid: pollJid,
                 commandMap: {
                   0: '!saldo',
                   1: '!receita',
@@ -936,7 +983,7 @@ async function start() {
                 log.warn(`[POLL] pollEncKey não encontrada no contexto, tentando buscar da mensagem...`);
                 // Tentar buscar a mensagem completa do store para obter pollEncKey
                 try {
-                  const fullMessage = await sock.loadMessage(jid, messageId);
+                  const fullMessage = await sock.loadMessage(pollJid, messageId);
                   log.info(`[POLL] DEBUG - Buscando pollEncKey da mensagem do store...`);
                   
                   // Tentar messageContextInfo.messageSecret primeiro (conforme código do Baileys)
@@ -965,9 +1012,38 @@ async function start() {
               
               log.info(`[POLL] Tentando descriptografar voto...`);
               
+              // Log dos parâmetros antes da descriptografia
+              log.info(`[POLL] DEBUG - Parâmetros:`);
+              log.info(`[POLL]   pollMsgId: ${messageId}`);
+              log.info(`[POLL]   pollCreatorJid: ${pollCtx.pollCreatorJid || sock.user?.id || pollJid}`);
+              log.info(`[POLL]   voterJid: ${voterJid}`);
+              log.info(`[POLL]   pollEncKey length: ${pollCtx.pollEncKey?.length || 'N/A'}`);
+              log.info(`[POLL]   encPayload type: ${typeof vote.encPayload}, isBuffer: ${Buffer.isBuffer(vote.encPayload)}`);
+              log.info(`[POLL]   encIv type: ${typeof vote.encIv}, isBuffer: ${Buffer.isBuffer(vote.encIv)}`);
+              
               // Converter encPayload e encIv para Buffer se necessário
-              const encPayload = Buffer.isBuffer(vote.encPayload) ? vote.encPayload : Buffer.from(vote.encPayload, 'base64');
-              const encIv = Buffer.isBuffer(vote.encIv) ? vote.encIv : Buffer.from(vote.encIv, 'base64');
+              // Os dados vêm como Uint8Array ou Buffer, não como base64 string
+              let encPayload;
+              let encIv;
+              
+              if (Buffer.isBuffer(vote.encPayload)) {
+                encPayload = vote.encPayload;
+              } else if (vote.encPayload instanceof Uint8Array) {
+                encPayload = Buffer.from(vote.encPayload);
+              } else {
+                // Tentar como base64 string
+                encPayload = Buffer.from(vote.encPayload, 'base64');
+              }
+              
+              if (Buffer.isBuffer(vote.encIv)) {
+                encIv = vote.encIv;
+              } else if (vote.encIv instanceof Uint8Array) {
+                encIv = Buffer.from(vote.encIv);
+              } else {
+                // Tentar como base64 string
+                encIv = Buffer.from(vote.encIv, 'base64');
+              }
+              
               const pollEncKey = Buffer.isBuffer(pollCtx.pollEncKey) ? pollCtx.pollEncKey : Buffer.from(pollCtx.pollEncKey);
               
               // Descriptografar o voto usando decryptPollVote
@@ -977,10 +1053,10 @@ async function start() {
                   encIv: encIv
                 },
                 {
-                  pollCreatorJid: pollCtx.pollCreatorJid || sock.user?.id || jid,
+                  pollCreatorJid: pollCtx.pollCreatorJid || sock.user?.id || pollJid,
                   pollMsgId: messageId,
                   pollEncKey: pollEncKey,
-                  voterJid: jid
+                  voterJid: voterJid // Corrigido: usar voterJid ao invés de jid
                 }
               );
               
@@ -1019,7 +1095,7 @@ async function start() {
               
               // Processar o voto
               log.info(`[POLL] Processando voto: índice ${selectedOptionIndex}`);
-              await processPollVote(messageId, jid, selectedOptionIndex, pollCtx);
+              await processPollVote(messageId, voterJid, selectedOptionIndex, pollCtx);
               
             } catch (decryptError) {
               log.error(`[POLL] ❌ Erro ao descriptografar voto: ${decryptError.message}`);
