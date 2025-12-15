@@ -422,18 +422,67 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
     
     log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
     
-    // Processar comando automaticamente
+    // Mapeamento de mensagens personalizadas para comandos que precisam de argumentos
+    const commandsWithArgs = {
+      '!receita': {
+        title: '💰 Registrar Receita',
+        message: `✅ Você escolheu registrar uma receita!\n\n` +
+                 `📝 *Como usar:*\n` +
+                 `Digite: *!receita VALOR DESCRIÇÃO*\n\n` +
+                 `💡 *Exemplos:*\n` +
+                 `• \`!receita 1500 Salário\`\n` +
+                 `• \`!receita 500 Venda de produtos\`\n` +
+                 `• \`recebi 1200 Freelance\`\n\n` +
+                 `Digite o comando acima para registrar sua receita.`
+      },
+      '!despesa': {
+        title: '💸 Registrar Despesa',
+        message: `✅ Você escolheu registrar uma despesa!\n\n` +
+                 `📝 *Como usar:*\n` +
+                 `Digite: *!despesa VALOR DESCRIÇÃO*\n\n` +
+                 `💡 *Exemplos:*\n` +
+                 `• \`!despesa 200 Supermercado\`\n` +
+                 `• \`!despesa 50 Combustível\`\n` +
+                 `• \`gastei 30 Almoço\`\n\n` +
+                 `Digite o comando acima para registrar sua despesa.`
+      }
+    };
+    
+    // Verificar se o comando precisa de argumentos
+    if (commandsWithArgs[command]) {
+      const cmdInfo = commandsWithArgs[command];
+      try {
+        await sock.sendMessage(jid, { text: cmdInfo.message });
+        log.success(`[POLL] ✅ Mensagem personalizada enviada para comando ${command}`);
+        return; // Não chamar a API para comandos que precisam de argumentos
+      } catch (sendError) {
+        log.error(`[POLL] Erro ao enviar mensagem personalizada: ${sendError.message}`);
+        // Continuar para tentar a API como fallback
+      }
+    }
+    
+    // Processar comando automaticamente (para comandos que não precisam de argumentos)
     try {
       const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
       log.info(`[POLL] Enviando requisição para: ${apiUrl}`);
-      const apiResponse = await axios.post(apiUrl, {
+      
+      // Preparar payload da requisição
+      const requestPayload = {
         phone: phoneNumber,
         command: command,
         args: [],
         message: command,
         source: 'poll',
         pollContext: pollCtx.type
-      }, {
+      };
+      
+      // Se for comando de tarefas, incluir flag para retornar subtarefas
+      if (command === '!tarefas' || command === 'tarefas') {
+        requestPayload.include_subtasks = true;
+        log.info(`[POLL] Comando tarefas detectado - solicitando subtarefas`);
+      }
+      
+      const apiResponse = await axios.post(apiUrl, requestPayload, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
@@ -736,16 +785,26 @@ async function processAdminCommand(from, text) {
       };
     }
     
+    // Preparar payload da requisição
+    const requestPayload = { 
+      command: commandToSend,
+      params, 
+      args: params, // Compatibilidade com site-financeiro
+      from: fromNumber,
+      phone: fromNumber, // Compatibilidade com site-financeiro
+      message: text // Compatibilidade com site-financeiro
+    };
+    
+    // Se for comando de tarefas, incluir flag para retornar subtarefas
+    if (commandToSend === '!tarefas' || commandToSend === 'tarefas') {
+      requestPayload.include_subtasks = true;
+      log.info(`[${projectName}] Comando tarefas detectado - solicitando subtarefas`);
+      log.info(`[${projectName}] DEBUG - Payload completo: ${JSON.stringify(requestPayload).substring(0, 300)}`);
+    }
+    
     const response = await axios.post(
       `${apiUrl}/admin_bot_api.php`,
-      { 
-        command: commandToSend,
-        params, 
-        args: params, // Compatibilidade com site-financeiro
-        from: fromNumber,
-        phone: fromNumber, // Compatibilidade com site-financeiro
-        message: text // Compatibilidade com site-financeiro
-      },
+      requestPayload,
       {
         headers: {
           'Authorization': `Bearer ${apiToken}`,
