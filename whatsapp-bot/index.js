@@ -11,7 +11,7 @@
  *   POST /check { to: "55DDDNUMERO" } Header: x-api-token
  *   POST /send-poll { to: "55DDDNUMERO", question: "...", options: [...] }  Header: x-api-token
  */
-import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, proto, downloadMediaMessage } from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 import QRCodeImg from 'qrcode';
 import express from 'express';
@@ -117,6 +117,10 @@ let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
 const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number, isFinanceiro?: boolean, transactionId?: string }
+// State management: amarrar messageId da poll com contexto
+const pollContext = new Map(); // key: messageId, value: { type: string, jid: string, options: array, commandMap: object, timestamp: number }
+// Anti-loop: evitar processar o mesmo voto duas vezes
+const processedVotes = new Map(); // key: `${messageId}-${selectedIndex}-${jid}`, value: timestamp
 
 // ===== LOGS COLORIDOS =====
 const log = {
@@ -316,9 +320,11 @@ async function reconnect(reason = 'Desconhecido') {
 }
 
 // ===== SISTEMA DE POLLS (ENQUETES) =====
-// Função helper para criar e enviar poll (enquete)
-async function sendPoll(sock, jid, question, options) {
+// Função helper para criar e enviar poll (enquete) usando formato oficial do Baileys
+// context: { type: string, commandMap: object } - tipo da poll e mapeamento de comandos
+async function sendPoll(sock, jid, question, options, context = {}) {
   try {
+    // Validações obrigatórias
     if (!sock) {
       throw new Error('Socket não está disponível');
     }
@@ -327,42 +333,59 @@ async function sendPoll(sock, jid, question, options) {
       throw new Error('Bot não está pronto (não conectado)');
     }
     
-    if (!options || options.length < 2 || options.length > 12) {
+    if (!options || !Array.isArray(options)) {
+      throw new Error('Opções devem ser um array');
+    }
+    
+    if (options.length < 2 || options.length > 12) {
       throw new Error('Poll deve ter entre 2 e 12 opções');
+    }
+
+    if (!question || typeof question !== 'string' || question.trim() === '') {
+      throw new Error('Pergunta da poll é obrigatória');
     }
 
     log.info(`[POLL] Preparando poll: "${question}" com ${options.length} opções`);
     log.info(`[POLL] Opções: ${options.join(', ')}`);
     log.info(`[POLL] JID destino: ${jid}`);
+    log.info(`[POLL] Contexto: ${context.type || 'default'}`);
 
-    // Criar mensagem de poll usando proto.Message diretamente
-    // Esta é a forma correta de criar polls no Baileys
-    const pollCreationMsg = {
-      pollCreationMessage: proto.Message.PollCreationMessage.create({
-        name: question,
-        options: options.map((opt) => 
-          proto.Message.PollCreationMessage.Option.create({
-            optionName: String(opt)
-          })
-        ),
-        selectableOptionsCount: 1
-      })
+    // Formato oficial do Baileys para polls
+    const pollMessage = {
+      poll: {
+        name: String(question),
+        values: options.map(opt => String(opt)),
+        selectableCount: 1
+      }
     };
 
     log.info(`[POLL] Enviando poll para ${jid}...`);
     
-    // Enviar poll
-    const sent = await sock.sendMessage(jid, pollCreationMsg);
-    log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${sent.key.id}`);
-    log.info(`[POLL] Resultado: ${JSON.stringify(sent.key)}`);
-    return { success: true, messageId: sent.key.id };
+    // Enviar poll usando formato oficial
+    const sent = await sock.sendMessage(jid, pollMessage);
+    
+    if (!sent || !sent.key || !sent.key.id) {
+      throw new Error('Resposta inválida ao enviar poll');
+    }
+    
+    const messageId = sent.key.id;
+    
+    // Armazenar contexto da poll para processar votos depois
+    pollContext.set(messageId, {
+      type: context.type || 'default',
+      jid: jid,
+      options: options,
+      commandMap: context.commandMap || {},
+      timestamp: Date.now()
+    });
+    
+    log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${messageId}`);
+    return { success: true, messageId: messageId };
+    
   } catch (error) {
     log.error(`[POLL] ❌ Erro ao enviar enquete: ${error.message}`);
     if (error.stack) {
       log.error(`[POLL] Stack trace: ${error.stack}`);
-    }
-    if (error.response) {
-      log.error(`[POLL] Error response: ${JSON.stringify(error.response)}`);
     }
     throw error;
   }
@@ -374,6 +397,33 @@ function checkMemory() {
   const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
   const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
   
+  const now = Date.now();
+  const oneHourAgo = now - (60 * 60 * 1000);
+  
+  // Limpar caches antigos sempre (não só quando memória alta)
+  for (const [key, value] of lastReplyAt.entries()) {
+    if (now - value > AUTO_REPLY_WINDOW_MS * 2) {
+      lastReplyAt.delete(key);
+    }
+  }
+  for (const [key, value] of waitingPhoto.entries()) {
+    if (now - value.timestamp > 10 * 60 * 1000) {
+      waitingPhoto.delete(key);
+    }
+  }
+  // Limpar contextos de polls antigos
+  for (const [key, value] of pollContext.entries()) {
+    if (value.timestamp < oneHourAgo) {
+      pollContext.delete(key);
+    }
+  }
+  // Limpar votos processados antigos
+  for (const [key, timestamp] of processedVotes.entries()) {
+    if (timestamp < oneHourAgo) {
+      processedVotes.delete(key);
+    }
+  }
+  
   if (heapUsedMB > 500) {
     log.warn(`Memória alta: ${heapUsedMB}MB / ${heapTotalMB}MB`);
     
@@ -381,19 +431,6 @@ function checkMemory() {
     if (global.gc) {
       log.info('Forçando garbage collection...');
       global.gc();
-    }
-    
-    // Limpar caches antigos
-    const now = Date.now();
-    for (const [key, value] of lastReplyAt.entries()) {
-      if (now - value > AUTO_REPLY_WINDOW_MS * 2) {
-        lastReplyAt.delete(key);
-      }
-    }
-    for (const [key, value] of waitingPhoto.entries()) {
-      if (now - value.timestamp > 10 * 60 * 1000) {
-        waitingPhoto.delete(key);
-      }
     }
   }
 }
@@ -425,11 +462,11 @@ async function processAdminCommand(from, text) {
     // Site-rastreamento espera SEM prefixo (menu)
     const commandToSend = isFinanceiro ? commandWithPrefix : commandWithoutPrefix;
     
-    // Se for comando !menu do financeiro, enviar poll interativa
+    // Se for comando !menu do financeiro, enviar poll interativa (com fallback)
     if (isFinanceiro && commandWithPrefix === '!menu') {
       try {
         if (!sock || !isReady) {
-          log.warn(`[${projectName}] Bot não está pronto para enviar poll`);
+          log.warn(`[${projectName}] Bot não está pronto para enviar poll, usando fallback`);
           // Fallback: enviar para API normalmente
         } else {
           const pollQuestion = '👋 Olá! Como posso ajudar você hoje?';
@@ -441,15 +478,33 @@ async function processAdminCommand(from, text) {
             '❓ Ver menu completo'
           ];
           
+          // Mapeamento de comandos para o contexto
+          const commandMap = {
+            0: '!saldo',
+            1: '!receita',
+            2: '!despesa',
+            3: '!tarefas',
+            4: '!menu'
+          };
+          
           log.info(`[${projectName}] Tentando enviar poll para ${from}`);
-          const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions);
-          log.success(`[${projectName}] Poll enviada via !menu com sucesso: ${pollResult.messageId}`);
-          // Retornar sem message para não enviar texto adicional
-          return { success: true, pollSent: true, messageId: pollResult.messageId };
+          
+          try {
+            const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions, {
+              type: 'menu_principal',
+              commandMap: commandMap
+            });
+            log.success(`[${projectName}] Poll enviada via !menu com sucesso: ${pollResult.messageId}`);
+            // Retornar sem message para não enviar texto adicional
+            return { success: true, pollSent: true, messageId: pollResult.messageId };
+          } catch (pollError) {
+            // FALLBACK: Se poll falhar (WhatsApp antigo), usar menu textual
+            log.warn(`[${projectName}] Poll falhou (${pollError.message}), usando fallback textual`);
+            // Continuar para enviar para API normalmente (menu textual)
+          }
         }
       } catch (pollError) {
-        log.error(`[${projectName}] Erro ao enviar poll: ${pollError.message}`);
-        log.error(`[${projectName}] Stack: ${pollError.stack}`);
+        log.error(`[${projectName}] Erro ao tentar poll: ${pollError.message}`);
         // Fallback: enviar para API normalmente
       }
     }
@@ -682,72 +737,174 @@ async function start() {
 
     // Tratamento de atualizações de polls (quando usuário vota)
     sock.ev.on('messages.update', async (updates) => {
-      if (!isReady) return;
+      if (!isReady || !sock) return;
+      
+      if (!Array.isArray(updates)) return;
+      
+      // DEBUG: Log todas as atualizações para ver o que está chegando
+      if (updates.length > 0) {
+        log.info(`[POLL] messages.update recebido com ${updates.length} atualizações`);
+      }
       
       for (const update of updates) {
         try {
+          // DEBUG: Log da estrutura do update
+          if (update && update.update) {
+            log.info(`[POLL] Update recebido - keys: ${Object.keys(update.update).join(', ')}`);
+          }
+          
           // Verificar se é uma atualização de poll
-          if (update.update?.pollUpdate) {
-            const pollUpdate = update.update.pollUpdate;
-            const pollMessage = pollUpdate.pollCreationMessageKey;
-            
-            if (pollMessage && pollMessage.id) {
-              const jid = pollMessage.remoteJid || update.key?.remoteJid;
-              if (!jid || jid.includes('@g.us')) continue; // Ignorar grupos
-              
-              const phoneNumber = jid.split('@')[0];
-              
-              // Obter informações da poll
-              const pollVote = pollUpdate.vote;
-              if (pollVote && pollVote.selectedOptions) {
-                const selectedOptionIndex = pollVote.selectedOptions[0];
-                
-                log.info(`[POLL] Usuário ${phoneNumber} votou na opção ${selectedOptionIndex}`);
-                
-                // Mapear opções para comandos do financeiro
-                const optionCommands = {
-                  0: '!saldo',
-                  1: '!receita',
-                  2: '!despesa',
-                  3: '!tarefas',
-                  4: '!menu'
-                };
-                
-                const command = optionCommands[selectedOptionIndex];
-                if (command) {
-                  // Processar comando automaticamente
-                  try {
-                    const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
-                    const apiResponse = await axios.post(apiUrl, {
-                      phone: phoneNumber,
-                      command: command,
-                      args: [],
-                      message: command,
-                      source: 'poll' // Indicar que veio de uma poll
-                    }, {
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
-                      },
-                      timeout: 30000
-                    });
-                    
-                    if (apiResponse.data && apiResponse.data.message) {
-                      await sock.sendMessage(jid, { text: apiResponse.data.message });
-                      log.info(`[POLL] Comando ${command} executado via poll`);
-                    }
-                  } catch (apiError) {
-                    log.error(`[POLL] Erro ao processar comando da poll: ${apiError.message}`);
-                    await sock.sendMessage(jid, { 
-                      text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.` 
-                    });
-                  }
-                }
+          if (!update || !update.update || !update.update.pollUpdate) {
+            continue;
+          }
+          
+          log.info(`[POLL] PollUpdate detectado!`);
+          const pollUpdate = update.update.pollUpdate;
+          
+          // DEBUG: Log estrutura completa do pollUpdate
+          log.info(`[POLL] pollUpdate keys: ${Object.keys(pollUpdate).join(', ')}`);
+          log.info(`[POLL] pollUpdate completo: ${JSON.stringify(pollUpdate).substring(0, 500)}`);
+          
+          const pollMessage = pollUpdate.pollCreationMessageKey;
+          
+          // Validações para evitar crashes
+          if (!pollMessage || !pollMessage.id) {
+            log.warn(`[POLL] pollCreationMessageKey ou ID não encontrado`);
+            continue;
+          }
+          
+          const messageId = pollMessage.id;
+          const jid = pollMessage.remoteJid || update.key?.remoteJid;
+          
+          log.info(`[POLL] messageId: ${messageId}, jid: ${jid}`);
+          
+          if (!jid || typeof jid !== 'string' || jid.includes('@g.us')) {
+            log.warn(`[POLL] JID inválido ou grupo: ${jid}`);
+            continue; // Ignorar grupos e JIDs inválidos
+          }
+          
+          const phoneNumber = jid.split('@')[0];
+          if (!phoneNumber || phoneNumber.length < 10) {
+            log.warn(`[POLL] Número de telefone inválido: ${phoneNumber}`);
+            continue; // Ignorar números inválidos
+          }
+          
+          // Obter informações do voto
+          const pollVote = pollUpdate.vote;
+          log.info(`[POLL] pollVote: ${pollVote ? JSON.stringify(pollVote).substring(0, 200) : 'null'}`);
+          
+          if (!pollVote) {
+            log.warn(`[POLL] pollVote não encontrado no pollUpdate`);
+            continue;
+          }
+          
+          // Tentar diferentes formatos de selectedOptions
+          let selectedOptionIndex = null;
+          
+          if (pollVote.selectedOptions && Array.isArray(pollVote.selectedOptions) && pollVote.selectedOptions.length > 0) {
+            selectedOptionIndex = pollVote.selectedOptions[0];
+          } else if (pollVote.selectedOption !== undefined) {
+            selectedOptionIndex = pollVote.selectedOption;
+          } else if (typeof pollVote === 'number') {
+            selectedOptionIndex = pollVote;
+          } else {
+            log.warn(`[POLL] Formato de voto não reconhecido: ${JSON.stringify(pollVote)}`);
+            continue;
+          }
+          
+          // Validar índice selecionado
+          if (typeof selectedOptionIndex !== 'number' || selectedOptionIndex < 0 || selectedOptionIndex > 11) {
+            log.warn(`[POLL] Índice de voto inválido: ${selectedOptionIndex}`);
+            continue;
+          }
+          
+          // ANTI-LOOP: Verificar se já processamos este voto
+          const voteKey = `${messageId}-${selectedOptionIndex}-${jid}`;
+          if (processedVotes.has(voteKey)) {
+            log.info(`[POLL] Voto já processado, ignorando duplicado: ${voteKey}`);
+            continue;
+          }
+          
+          // ANTI-LOOP: Marcar voto como processado
+          processedVotes.set(voteKey, Date.now());
+          
+          // STATE MANAGEMENT: Buscar contexto da poll
+          let pollCtx = pollContext.get(messageId);
+          if (!pollCtx) {
+            log.warn(`[POLL] Contexto não encontrado para messageId: ${messageId}`);
+            log.info(`[POLL] Contextos disponíveis: ${Array.from(pollContext.keys()).join(', ')}`);
+            // Fallback para mapeamento padrão do menu principal
+            pollCtx = {
+              type: 'menu_principal',
+              jid: jid,
+              commandMap: {
+                0: '!saldo',
+                1: '!receita',
+                2: '!despesa',
+                3: '!tarefas',
+                4: '!menu'
               }
+            };
+          }
+          
+          log.info(`[POLL] ✅ Usuário ${phoneNumber} votou na opção ${selectedOptionIndex} (poll: ${pollCtx.type})`);
+          
+          // Mapear opção para comando usando o contexto
+          const command = pollCtx.commandMap && pollCtx.commandMap[selectedOptionIndex];
+          if (!command) {
+            log.warn(`[POLL] Comando não encontrado para índice ${selectedOptionIndex} no contexto ${pollCtx.type}`);
+            log.warn(`[POLL] commandMap disponível: ${JSON.stringify(pollCtx.commandMap)}`);
+            continue;
+          }
+          
+          log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
+          
+          // Processar comando automaticamente
+          try {
+            const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
+            log.info(`[POLL] Enviando requisição para: ${apiUrl}`);
+            const apiResponse = await axios.post(apiUrl, {
+              phone: phoneNumber,
+              command: command,
+              args: [],
+              message: command,
+              source: 'poll',
+              pollContext: pollCtx.type
+            }, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
+              },
+              timeout: 30000
+            });
+            
+            log.info(`[POLL] Resposta da API recebida: ${JSON.stringify(apiResponse.data).substring(0, 200)}`);
+            
+            if (apiResponse && apiResponse.data && apiResponse.data.message) {
+              await sock.sendMessage(jid, { text: apiResponse.data.message });
+              log.success(`[POLL] ✅ Comando ${command} executado via poll (${pollCtx.type})`);
+            } else {
+              log.warn(`[POLL] API não retornou mensagem na resposta`);
+            }
+          } catch (apiError) {
+            log.error(`[POLL] Erro ao processar comando da poll: ${apiError.message}`);
+            if (apiError.response) {
+              log.error(`[POLL] Resposta de erro: ${JSON.stringify(apiError.response.data)}`);
+            }
+            try {
+              await sock.sendMessage(jid, { 
+                text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.` 
+              });
+            } catch (sendError) {
+              log.error(`[POLL] Erro ao enviar mensagem de erro: ${sendError.message}`);
             }
           }
         } catch (error) {
           log.error(`[POLL] Erro ao processar atualização de poll: ${error.message}`);
+          if (error.stack) {
+            log.error(`[POLL] Stack: ${error.stack}`);
+          }
+          // Não propagar erro para não quebrar o handler
         }
       }
     });
