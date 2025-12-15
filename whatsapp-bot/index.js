@@ -1040,6 +1040,16 @@ async function start() {
               
               log.info(`[POLL] Tentando descriptografar voto...`);
               
+              // Helper para garantir Buffer (mesmo vindo de JSON ou Uint8Array)
+              const toBuffer = (data) => {
+                if (!data) return null;
+                if (Buffer.isBuffer(data)) return data;
+                if (Array.isArray(data)) return Buffer.from(data);
+                if (data.type === 'Buffer' && Array.isArray(data.data)) return Buffer.from(data.data); // Formato JSON do Buffer
+                if (Object.keys(data).every(k => !isNaN(k))) return Buffer.from(Object.values(data)); // Objeto array-like {'0': 1, '1': 2}
+                return Buffer.from(data); // Tentativa final (base64 string ou uint8array)
+              };
+              
               // Log dos parâmetros antes da descriptografia
               log.info(`[POLL] DEBUG - Parâmetros:`);
               log.info(`[POLL]   pollMsgId: ${messageId}`);
@@ -1049,30 +1059,10 @@ async function start() {
               log.info(`[POLL]   encPayload type: ${typeof vote.encPayload}, isBuffer: ${Buffer.isBuffer(vote.encPayload)}`);
               log.info(`[POLL]   encIv type: ${typeof vote.encIv}, isBuffer: ${Buffer.isBuffer(vote.encIv)}`);
               
-              // Converter encPayload e encIv para Buffer se necessário
-              // Os dados vêm como Uint8Array ou Buffer, não como base64 string
-              let encPayload;
-              let encIv;
-              
-              if (Buffer.isBuffer(vote.encPayload)) {
-                encPayload = vote.encPayload;
-              } else if (vote.encPayload instanceof Uint8Array) {
-                encPayload = Buffer.from(vote.encPayload);
-              } else {
-                // Tentar como base64 string
-                encPayload = Buffer.from(vote.encPayload, 'base64');
-              }
-              
-              if (Buffer.isBuffer(vote.encIv)) {
-                encIv = vote.encIv;
-              } else if (vote.encIv instanceof Uint8Array) {
-                encIv = Buffer.from(vote.encIv);
-              } else {
-                // Tentar como base64 string
-                encIv = Buffer.from(vote.encIv, 'base64');
-              }
-              
-              const pollEncKey = Buffer.isBuffer(pollCtx.pollEncKey) ? pollCtx.pollEncKey : Buffer.from(pollCtx.pollEncKey);
+              // Converter encPayload e encIv para Buffer usando helper robusto
+              const encPayload = toBuffer(vote.encPayload);
+              const encIv = toBuffer(vote.encIv);
+              const pollEncKey = toBuffer(pollCtx.pollEncKey);
               
               // Descriptografar o voto usando decryptPollVote
               const decryptedVote = decryptPollVote(
@@ -1132,7 +1122,7 @@ async function start() {
               }
               // Fallback: informar usuário
               try {
-                await sock.sendMessage(jid, { 
+                await sock.sendMessage(voterJid, { 
                   text: `❌ Erro ao processar seu voto. Por favor, digite o comando manualmente (ex: !saldo, !receita, etc.)` 
                 });
               } catch (sendError) {
