@@ -1040,14 +1040,17 @@ async function start() {
               
               log.info(`[POLL] Tentando descriptografar voto...`);
               
-              // Helper para garantir Buffer (mesmo vindo de JSON ou Uint8Array)
-              const toBuffer = (data) => {
-                if (!data) return null;
+              // Helper para forçar conversão para Buffer (mesmo vindo de JSON ou objetos genéricos)
+              const forceBuffer = (data) => {
+                if (!data) return undefined;
                 if (Buffer.isBuffer(data)) return data;
-                if (Array.isArray(data)) return Buffer.from(data);
                 if (data.type === 'Buffer' && Array.isArray(data.data)) return Buffer.from(data.data); // Formato JSON do Buffer
-                if (Object.keys(data).every(k => !isNaN(k))) return Buffer.from(Object.values(data)); // Objeto array-like {'0': 1, '1': 2}
-                return Buffer.from(data); // Tentativa final (base64 string ou uint8array)
+                if (Array.isArray(data)) return Buffer.from(data);
+                // Tenta converter objeto indexado {0: x, 1: y} para array
+                if (typeof data === 'object') {
+                  return Buffer.from(Object.values(data));
+                }
+                return Buffer.from(data);
               };
               
               // Log dos parâmetros antes da descriptografia
@@ -1059,22 +1062,29 @@ async function start() {
               log.info(`[POLL]   encPayload type: ${typeof vote.encPayload}, isBuffer: ${Buffer.isBuffer(vote.encPayload)}`);
               log.info(`[POLL]   encIv type: ${typeof vote.encIv}, isBuffer: ${Buffer.isBuffer(vote.encIv)}`);
               
-              // Converter encPayload e encIv para Buffer usando helper robusto
-              const encPayload = toBuffer(vote.encPayload);
-              const encIv = toBuffer(vote.encIv);
-              const pollEncKey = toBuffer(pollCtx.pollEncKey);
+              // --- FORÇAR CONVERSÃO PARA BUFFER (CORREÇÃO CRÍTICA) ---
+              const rawEncPayload = vote.encPayload;
+              const rawEncIv = vote.encIv;
+              const rawPollKey = pollCtx.pollEncKey;
+
+              const finalEncPayload = forceBuffer(rawEncPayload);
+              const finalEncIv = forceBuffer(rawEncIv);
+              const finalPollKey = forceBuffer(rawPollKey);
+              
+              console.log(`[POLL] DEBUG CONVERSÃO: Payload é Buffer? ${Buffer.isBuffer(finalEncPayload)}, IV é Buffer? ${Buffer.isBuffer(finalEncIv)}, Key é Buffer? ${Buffer.isBuffer(finalPollKey)}`);
+              // -------------------------------------------------------
               
               // Descriptografar o voto usando decryptPollVote
               const decryptedVote = decryptPollVote(
                 {
-                  encPayload: encPayload,
-                  encIv: encIv
+                  encPayload: finalEncPayload,
+                  encIv: finalEncIv
                 },
                 {
                   pollCreatorJid: pollCtx.pollCreatorJid || sock.user?.id || pollJid,
                   pollMsgId: messageId,
-                  pollEncKey: pollEncKey,
-                  voterJid: voterJid // Corrigido: usar voterJid ao invés de jid
+                  pollEncKey: finalPollKey,
+                  voterJid: voterJid
                 }
               );
               
