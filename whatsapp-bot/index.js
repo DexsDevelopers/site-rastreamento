@@ -13,6 +13,7 @@
  */
 import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto } from '@whiskeysockets/baileys';
 import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-message.js';
+import { jidNormalizedUser } from '@whiskeysockets/baileys/lib/WABinary/jid-utils.js';
 import crypto from 'crypto';
 import fs from 'fs';
 import qrcode from 'qrcode-terminal';
@@ -182,6 +183,15 @@ const pollContext = new Map(); // key: messageId, value: { type: string, jid: st
 const processedVotes = new Map(); // key: `${messageId}-${selectedIndex}-${jid}`, value: timestamp
 // Votos pendentes aguardando descriptografia
 const pendingPollVotes = new Map(); // key: messageId, value: { jid: string, pollCtx: object, timestamp: number }
+
+// ===== HELPER PARA NORMALIZAÇÃO DE JID (FALLBACK) =====
+function normalizeJidHelper(jid) {
+  if (!jid) return jid;
+  const [user, domain] = jid.split('@');
+  if (!user || !domain) return jid;
+  const userWithoutDevice = user.split(':')[0];
+  return `${userWithoutDevice}@${domain}`;
+}
 
 // ===== LOGS COLORIDOS =====
 const log = {
@@ -1074,6 +1084,13 @@ async function start() {
               console.log(`[POLL] DEBUG CONVERSÃO: Payload é Buffer? ${Buffer.isBuffer(finalEncPayload)}, IV é Buffer? ${Buffer.isBuffer(finalEncIv)}, Key é Buffer? ${Buffer.isBuffer(finalPollKey)}`);
               // -------------------------------------------------------
               
+              // Normalizar JIDs para garantir match na descriptografia
+              const creatorJidRaw = pollCtx.pollCreatorJid || sock.user?.id || pollJid;
+              const creatorJid = jidNormalizedUser ? jidNormalizedUser(creatorJidRaw) : normalizeJidHelper(creatorJidRaw);
+              const voterJidNormalized = jidNormalizedUser ? jidNormalizedUser(voterJid) : normalizeJidHelper(voterJid);
+              
+              console.log(`[POLL] DEBUG JIDS: Creator=${creatorJid}, Voter=${voterJidNormalized}`);
+              
               // Descriptografar o voto usando decryptPollVote
               const decryptedVote = decryptPollVote(
                 {
@@ -1081,10 +1098,10 @@ async function start() {
                   encIv: finalEncIv
                 },
                 {
-                  pollCreatorJid: pollCtx.pollCreatorJid || sock.user?.id || pollJid,
+                  pollCreatorJid: creatorJid,
                   pollMsgId: messageId,
                   pollEncKey: finalPollKey,
-                  voterJid: voterJid
+                  voterJid: voterJidNormalized
                 }
               );
               
