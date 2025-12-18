@@ -23,7 +23,8 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
     error_log("Erro de conexão com o banco: " . $e->getMessage());
-    throw new \PDOException($e->getMessage(), (int)$e->getCode());
+    // Sempre lançar exceção - deixar o código que usa tratar
+    throw new \PDOException("Erro de conexão com o banco de dados: " . $e->getMessage(), (int)$e->getCode());
 }
 
 // Função para executar queries seguras

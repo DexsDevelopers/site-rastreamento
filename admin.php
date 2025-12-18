@@ -7,10 +7,14 @@
 // Incluir configurações e DB
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+
+// Verificar conexão com banco
+if (!isset($pdo) || $pdo === null) {
+    die("❌ Erro: Não foi possível conectar ao banco de dados. Verifique as configurações em includes/db_connect.php");
+}
+
 require_once 'includes/whatsapp_helper.php';
 require_once 'includes/rastreio_media.php';
-require_once 'includes/validation_helper.php';
-require_once 'includes/log_helper.php';
 
 // ===== ENDPOINT AJAX: ENVIAR WHATSAPP MANUALMENTE =====
 // DEVE SER PROCESSADO ANTES DE QUALQUER SAÍDA HTML
@@ -27,7 +31,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
     $codigo = sanitizeInput($_POST['codigo']);
     
     // Log para debug
-    LogHelper::info("Envio manual WhatsApp solicitado para código: {$codigo}");
+    writeLog("Envio manual WhatsApp solicitado para código: {$codigo}", 'INFO');
     
     try {
         // Verificar se a API do WhatsApp está configurada
@@ -66,7 +70,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
             exit;
         }
         
-        LogHelper::info("Iniciando envio manual de WhatsApp para código {$codigo}", ['telefone' => $contato['telefone_normalizado'] ?? 'não informado']);
+        writeLog("Iniciando envio manual de WhatsApp para código {$codigo}, telefone: " . ($contato['telefone_normalizado'] ?? 'não informado'), 'INFO');
         
         // Verificar se o bot está online antes de enviar
         $statusUrl = $apiConfig['base_url'] . '/status';
@@ -85,7 +89,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         curl_close($statusCh);
         
         if ($statusResponse === false || $statusHttpCode !== 200) {
-            LogHelper::error("Bot WhatsApp não está acessível", ['status_http' => $statusHttpCode]);
+            writeLog("Bot WhatsApp não está acessível. Status HTTP: {$statusHttpCode}", 'ERROR');
             echo json_encode([
                 'success' => false, 
                 'message' => '❌ Bot WhatsApp não está online ou não está acessível. Verifique se o bot está rodando e o ngrok está ativo.'
@@ -95,7 +99,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         
         $statusData = json_decode($statusResponse, true);
         if (!$statusData || !isset($statusData['ready']) || !$statusData['ready']) {
-            LogHelper::error("Bot WhatsApp não está pronto", ['status_data' => $statusData]);
+            writeLog("Bot WhatsApp não está pronto. Status: " . json_encode($statusData), 'ERROR');
             echo json_encode([
                 'success' => false, 
                 'message' => '❌ Bot WhatsApp não está conectado ao WhatsApp. Verifique a conexão do bot.'
@@ -117,7 +121,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
                 'success' => true, 
                 'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
             ]);
-            LogHelper::info("Envio manual de WhatsApp para código {$codigo} concluído com sucesso");
+            writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
         } else {
             $erroMsg = 'Erro desconhecido';
             if ($ultimaNotif) {
@@ -133,7 +137,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
                 'success' => false, 
                 'message' => "❌ Falha ao enviar notificação: {$erroMsg}"
             ]);
-            LogHelper::error("Envio manual de WhatsApp para código {$codigo} falhou", ['erro' => $erroMsg]);
+            writeLog("Envio manual de WhatsApp para código {$codigo} falhou: {$erroMsg}", 'ERROR');
         }
         exit;
         
@@ -388,6 +392,9 @@ if (!isset($_SESSION['logado'])) {
 </div>
     <!-- UI Enhancements - Melhorias de UX/UI -->
     <script src="assets/js/ui-enhancements.js"></script>
+    
+    <!-- Código Auto-Increment -->
+    <script src="assets/js/codigo-auto-increment.js"></script>
     
 </body>
 </html>
@@ -2745,7 +2752,10 @@ body {
             <div class="form-grid">
                 <div class="form-group">
                     <label for="codigo">Código de Rastreio</label>
-                    <input type="text" name="codigo" id="codigo" placeholder="Digite o código..." required>
+                    <input type="text" name="codigo" id="codigo" placeholder="Digite o código... (Ctrl + Plus para incrementar)" required>
+                    <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">
+                        <i class="fas fa-info-circle"></i> O sistema lembra o último código e sugere o próximo automaticamente. Use o botão +1 ou Ctrl + Plus para incrementar.
+                    </small>
                 </div>
                 <div class="form-group">
                     <label for="cidade">Cidade Vinculada</label>
@@ -4554,6 +4564,9 @@ window.STATUS_PRESETS = <?php echo json_encode(array_map(function($p){ return ['
 </script>
     <!-- UI Enhancements - Melhorias de UX/UI -->
     <script src="assets/js/ui-enhancements.js"></script>
+    
+    <!-- Código Auto-Increment -->
+    <script src="assets/js/codigo-auto-increment.js"></script>
     
 </body>
 </html>

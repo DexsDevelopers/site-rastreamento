@@ -13,8 +13,6 @@ header("Expires: 0");
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/rastreio_media.php';
-require_once 'includes/validation_helper.php';
-require_once 'includes/log_helper.php';
 
 $codigo = $cidade = "";
 $statusList = [];
@@ -27,6 +25,11 @@ $fotoPedidoSrc = null;
 $expressValor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
 $isExpress = false;
 $autoLoadFromUrl = false;
+
+// Verificar conexão com banco
+if (!isset($pdo) || $pdo === null) {
+    die("❌ Erro: Não foi possível conectar ao banco de dados. Verifique as configurações em includes/db_connect.php");
+}
 
 // Verificar se há código na URL (GET) e buscar cidade automaticamente
 if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {

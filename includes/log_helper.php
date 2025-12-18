@@ -8,13 +8,22 @@ class LogHelper {
     private static $logLevel = 'INFO';
     
     public static function init() {
-        self::$logFile = getConfig('LOG_FILE', __DIR__ . '/../logs/system.log');
-        self::$logLevel = getConfig('LOG_LEVEL', 'INFO');
+        // Usar function_exists para verificar se getConfig está disponível
+        if (function_exists('getConfig')) {
+            self::$logFile = getConfig('LOG_FILE', __DIR__ . '/../logs/system.log');
+            self::$logLevel = getConfig('LOG_LEVEL', 'INFO');
+        } else {
+            // Fallback se getConfig não estiver disponível
+            self::$logFile = __DIR__ . '/../logs/system.log';
+            self::$logLevel = 'INFO';
+        }
         
         // Criar diretório se não existir
-        $logDir = dirname(self::$logFile);
-        if (!is_dir($logDir)) {
-            mkdir($logDir, 0755, true);
+        if (self::$logFile) {
+            $logDir = dirname(self::$logFile);
+            if (!is_dir($logDir)) {
+                @mkdir($logDir, 0755, true);
+            }
         }
     }
     
@@ -121,9 +130,7 @@ class LogHelper {
     }
 }
 
-// Manter compatibilidade com função antiga (deprecated)
-function writeLog($message, $level = 'INFO') {
-    LogHelper::log($message, $level);
-}
+// NÃO redefinir writeLog aqui - usar a função do config.php
+// Se quiser usar LogHelper, chame diretamente: LogHelper::info(), LogHelper::error(), etc.
 ?>
 
