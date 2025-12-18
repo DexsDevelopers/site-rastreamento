@@ -26,4 +26,11 @@ uploads/*.pdf
 .DS_Store
 Thumbs.db
 
+# Arquivos de debug/teste
+debug/
+*_test.php
+base64_test.txt
+
+
+
 

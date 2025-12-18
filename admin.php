@@ -9,6 +9,8 @@ require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/whatsapp_helper.php';
 require_once 'includes/rastreio_media.php';
+require_once 'includes/validation_helper.php';
+require_once 'includes/log_helper.php';
 
 // ===== ENDPOINT AJAX: ENVIAR WHATSAPP MANUALMENTE =====
 // DEVE SER PROCESSADO ANTES DE QUALQUER SAÍDA HTML
@@ -25,7 +27,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
     $codigo = sanitizeInput($_POST['codigo']);
     
     // Log para debug
-    writeLog("Envio manual WhatsApp solicitado para código: {$codigo}", 'INFO');
+    LogHelper::info("Envio manual WhatsApp solicitado para código: {$codigo}");
     
     try {
         // Verificar se a API do WhatsApp está configurada
@@ -64,7 +66,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
             exit;
         }
         
-        writeLog("Iniciando envio manual de WhatsApp para código {$codigo}, telefone {$contato['telefone_normalizado']}", 'INFO');
+        LogHelper::info("Iniciando envio manual de WhatsApp para código {$codigo}", ['telefone' => $contato['telefone_normalizado'] ?? 'não informado']);
         
         // Verificar se o bot está online antes de enviar
         $statusUrl = $apiConfig['base_url'] . '/status';
@@ -83,7 +85,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         curl_close($statusCh);
         
         if ($statusResponse === false || $statusHttpCode !== 200) {
-            writeLog("Bot WhatsApp não está acessível. Status HTTP: {$statusHttpCode}", 'ERROR');
+            LogHelper::error("Bot WhatsApp não está acessível", ['status_http' => $statusHttpCode]);
             echo json_encode([
                 'success' => false, 
                 'message' => '❌ Bot WhatsApp não está online ou não está acessível. Verifique se o bot está rodando e o ngrok está ativo.'
@@ -93,7 +95,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         
         $statusData = json_decode($statusResponse, true);
         if (!$statusData || !isset($statusData['ready']) || !$statusData['ready']) {
-            writeLog("Bot WhatsApp não está pronto. Status: " . json_encode($statusData), 'ERROR');
+            LogHelper::error("Bot WhatsApp não está pronto", ['status_data' => $statusData]);
             echo json_encode([
                 'success' => false, 
                 'message' => '❌ Bot WhatsApp não está conectado ao WhatsApp. Verifique a conexão do bot.'
@@ -115,7 +117,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
                 'success' => true, 
                 'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
             ]);
-            writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
+            LogHelper::info("Envio manual de WhatsApp para código {$codigo} concluído com sucesso");
         } else {
             $erroMsg = 'Erro desconhecido';
             if ($ultimaNotif) {
@@ -131,7 +133,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
                 'success' => false, 
                 'message' => "❌ Falha ao enviar notificação: {$erroMsg}"
             ]);
-            writeLog("Envio manual de WhatsApp para código {$codigo} falhou: {$erroMsg}", 'ERROR');
+            LogHelper::error("Envio manual de WhatsApp para código {$codigo} falhou", ['erro' => $erroMsg]);
         }
         exit;
         
@@ -384,6 +386,9 @@ if (!isset($_SESSION['logado'])) {
     }
     </script>
 </div>
+    <!-- UI Enhancements - Melhorias de UX/UI -->
+    <script src="assets/js/ui-enhancements.js"></script>
+    
 </body>
 </html>
 <?php exit; } ?>
@@ -3812,27 +3817,70 @@ function clearSelection() {
 async function bulkDelete() {
     const selected = getSelectedCodes();
     if (selected.length === 0) {
-        notifyWarning('Nenhum item selecionado');
+        if (typeof MessageManager !== 'undefined') {
+            MessageManager.warning('Nenhum item selecionado');
+        } else {
+            notifyWarning('Nenhum item selecionado');
+        }
         return;
     }
     
-    const confirmado = await confirmarExclusaoMassa(selected.length);
-    if (confirmado) {
-        notifyInfo('Excluindo rastreios selecionados...');
+    // Usar ConfirmManager se disponível, senão usar função antiga
+    let confirmed = false;
+    if (typeof ConfirmManager !== 'undefined') {
+        confirmed = await ConfirmManager.show(
+            `Tem certeza que deseja deletar ${selected.length} rastreio(s) selecionado(s)?`,
+            {
+                title: 'Confirmar exclusão em massa',
+                confirmText: `Sim, deletar ${selected.length} item(ns)`,
+                cancelText: 'Cancelar'
+            }
+        );
+    } else if (typeof confirmarExclusaoMassa === 'function') {
+        confirmed = await confirmarExclusaoMassa(selected.length);
+    } else {
+        confirmed = confirm(`Deletar ${selected.length} item(ns)?`);
+    }
+    
+    if (confirmed) {
+        const container = document.getElementById('rastreiosTable') || document.body;
         
-        // Criar formulário para envio
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.style.display = 'none';
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'bulk_delete';
-        input.value = JSON.stringify(selected);
-        form.appendChild(input);
-        
-        document.body.appendChild(form);
-        form.submit();
+        // Usar AjaxHelper se disponível
+        if (typeof AjaxHelper !== 'undefined') {
+            try {
+                await AjaxHelper.post('', {
+                    bulk_delete: JSON.stringify(selected)
+                }, {
+                    showLoading: true,
+                    loadingElement: container,
+                    loadingMessage: 'Excluindo rastreios...',
+                    showSuccess: true,
+                    successMessage: `${selected.length} rastreio(s) deletado(s) com sucesso!`,
+                    showError: true
+                });
+                
+                // Recarregar página após sucesso
+                setTimeout(() => location.reload(), 1000);
+            } catch (error) {
+                // Erro já foi mostrado pelo AjaxHelper
+            }
+        } else {
+            // Fallback para método antigo
+            notifyInfo('Excluindo rastreios selecionados...');
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'bulk_delete';
+            input.value = JSON.stringify(selected);
+            form.appendChild(input);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
 }
 
@@ -4504,5 +4552,8 @@ function toggleAdminMenu() {
 <script>
 window.STATUS_PRESETS = <?php echo json_encode(array_map(function($p){ return ['label'=>$p['label'], 'steps'=>$p['steps']]; }, $STATUS_PRESETS)); ?>
 </script>
+    <!-- UI Enhancements - Melhorias de UX/UI -->
+    <script src="assets/js/ui-enhancements.js"></script>
+    
 </body>
 </html>

@@ -13,6 +13,8 @@ header("Expires: 0");
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/rastreio_media.php';
+require_once 'includes/validation_helper.php';
+require_once 'includes/log_helper.php';
 
 $codigo = $cidade = "";
 $statusList = [];
@@ -1156,8 +1158,45 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Solicitar upgrade express (3 dias)
 async function solicitarExpress(codigo, cidade, btn) {
+    // Prevenir chamadas múltiplas
+    if (window.__expressRequesting) {
+        return;
+    }
+    
+    // CONFIRMAÇÃO OBRIGATÓRIA antes de solicitar
+    const expressValor = '<?= number_format($expressValor, 2, ',', '.') ?>';
+    const confirmMsg = `Você está solicitando a entrega expressa em 3 dias por R$ ${expressValor}.\n\n` +
+                      `Após a confirmação do pagamento PIX, sua entrega será acelerada.\n\n` +
+                      `Deseja continuar?`;
+    
+    // Usar ConfirmManager se disponível, senão usar confirm nativo
+    let confirmed = false;
+    if (typeof ConfirmManager !== 'undefined') {
+        confirmed = await ConfirmManager.show(
+            `Você está solicitando a entrega expressa em 3 dias por R$ ${expressValor}.\n\n` +
+            `Após a confirmação do pagamento PIX, sua entrega será acelerada.\n\n` +
+            `Deseja continuar?`,
+            {
+                title: 'Confirmar Entrega Expressa',
+                confirmText: 'Sim, quero entrega expressa',
+                cancelText: 'Cancelar'
+            }
+        );
+    } else {
+        confirmed = confirm(confirmMsg);
+    }
+    
+    if (!confirmed) {
+        return; // Usuário cancelou
+    }
+    
     try {
-        if (btn) { btn.disabled = true; btn.innerText = 'Solicitando...'; }
+        window.__expressRequesting = true;
+        if (btn) { 
+            btn.disabled = true; 
+            btn.innerText = 'Solicitando...'; 
+        }
+        
         const resp = await fetch('solicitar_express.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1165,6 +1204,13 @@ async function solicitarExpress(codigo, cidade, btn) {
         });
         const data = await resp.json();
         if (!data.success) throw new Error(data.message || 'Falha ao solicitar.');
+
+        // Mostrar mensagem de sucesso
+        if (typeof MessageManager !== 'undefined') {
+            MessageManager.success('Solicitação de entrega expressa enviada! Verifique as instruções de pagamento PIX abaixo.');
+        } else {
+            alert('Solicitação enviada com sucesso! Verifique as instruções de pagamento PIX.');
+        }
 
         // Recarregar resultados via AJAX para exibir PIX e contagem
         window.__expressJustRequested = true;
@@ -1199,9 +1245,17 @@ async function solicitarExpress(codigo, cidade, btn) {
             }
         } catch (_) { location.reload(); }
     } catch (e) {
-        alert(e.message || 'Erro ao solicitar entrega expressa.');
+        if (typeof MessageManager !== 'undefined') {
+            MessageManager.error(e.message || 'Erro ao solicitar entrega expressa.');
+        } else {
+            alert(e.message || 'Erro ao solicitar entrega expressa.');
+        }
     } finally {
-        if (btn) { btn.disabled = false; btn.innerText = '⚡ Quero entrega em 3 dias'; }
+        window.__expressRequesting = false;
+        if (btn) { 
+            btn.disabled = false; 
+            btn.innerText = '⚡ Quero entrega em 3 dias'; 
+        }
     }
 }
 </script>
