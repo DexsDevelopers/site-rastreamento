@@ -15,21 +15,36 @@
     const CODIGO_INPUT_ID = 'codigo';
     
     /**
-     * Extrai o último caractere numérico ou alfabético do código
-     * Retorna: { base: string, last: string, position: number }
+     * Extrai o último número ANTES de sufixos fixos como "BR"
+     * Retorna: { base: string, number: string, suffix: string }
      */
     function extractLastChar(codigo) {
         if (!codigo || codigo.length === 0) return null;
         
-        // Procura o último dígito numérico
-        const match = codigo.match(/(\d+)$/);
+        // Primeiro, verifica se termina com sufixo fixo comum (BR, US, etc.)
+        // Padrão: qualquer coisa + número + sufixo de 2 letras maiúsculas
+        const suffixMatch = codigo.match(/^(.+?)(\d+)([A-Z]{2,3})$/);
+        if (suffixMatch) {
+            const base = suffixMatch[1];
+            const number = suffixMatch[2];
+            const suffix = suffixMatch[3];
+            return {
+                base: base,
+                last: number,
+                suffix: suffix,
+                type: 'number_with_suffix'
+            };
+        }
+        
+        // Se não encontrou sufixo, procura o último número no final
+        const match = codigo.match(/^(.+?)(\d+)$/);
         if (match) {
-            const numStr = match[1];
-            const base = codigo.substring(0, codigo.length - numStr.length);
+            const numStr = match[2];
+            const base = match[1];
             return {
                 base: base,
                 last: numStr,
-                position: codigo.length - numStr.length,
+                suffix: '',
                 type: 'number'
             };
         }
@@ -41,7 +56,7 @@
             return {
                 base: base,
                 last: letterMatch[1],
-                position: codigo.length - 1,
+                suffix: '',
                 type: 'letter'
             };
         }
@@ -50,12 +65,20 @@
     }
     
     /**
-     * Incrementa o último caractere
+     * Incrementa o último número (respeitando sufixo fixo como BR)
      */
     function incrementLastChar(extracted) {
         if (!extracted) return null;
         
-        if (extracted.type === 'number') {
+        if (extracted.type === 'number_with_suffix') {
+            // Incrementa o número mas mantém o sufixo (ex: GH56YJ1492BR -> GH56YJ1493BR)
+            const num = parseInt(extracted.last, 10);
+            const nextNum = num + 1;
+            // Mantém o mesmo tamanho do número original (preserva zeros à esquerda)
+            const nextStr = String(nextNum).padStart(extracted.last.length, '0');
+            return extracted.base + nextStr + extracted.suffix;
+        } else if (extracted.type === 'number') {
+            // Número simples sem sufixo
             const num = parseInt(extracted.last, 10);
             const nextNum = num + 1;
             const nextStr = String(nextNum).padStart(extracted.last.length, '0');

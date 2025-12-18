@@ -57,6 +57,14 @@ ABC999 → ABC1000
 CODE9 → CODE10
 ```
 
+### Códigos com Sufixo Fixo (como BR)
+```
+GH56YJ1492BR → GH56YJ1493BR
+GH56YJ1491BR → GH56YJ1492BR
+ABC123US → ABC124US
+XYZ999UK → XYZ1000UK
+```
+
 ### Códigos com Letras
 ```
 XYZ → XZA
