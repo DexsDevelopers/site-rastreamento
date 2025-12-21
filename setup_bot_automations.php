@@ -117,10 +117,10 @@ try {
             "👋 Olá! Seja bem-vindo!\n\nDigite */menu* para ver os comandos disponíveis.",
             null,
             null,
-            1,
-            0,
+            0,  // apenas_privado = 0 (funciona em todos os chats)
+            0,  // apenas_grupo = 0
             500,
-            60,
+            30, // cooldown reduzido para 30 segundos
             10
         ],
         [
