@@ -21,19 +21,23 @@
     function extractLastChar(codigo) {
         if (!codigo || codigo.length === 0) return null;
         
-        // Primeiro, verifica se termina com sufixo fixo comum (BR, US, etc.)
-        // Padrão: qualquer coisa + número + sufixo de 2 letras maiúsculas
+        // Primeiro, verifica se termina com sufixo de 2-3 letras MAIÚSCULAS (BR, US, etc.)
+        // Se sim, extrai o número ANTES do sufixo
         const suffixMatch = codigo.match(/^(.+?)(\d+)([A-Z]{2,3})$/);
         if (suffixMatch) {
-            const base = suffixMatch[1];
-            const number = suffixMatch[2];
-            const suffix = suffixMatch[3];
-            return {
-                base: base,
-                last: number,
-                suffix: suffix,
-                type: 'number_with_suffix'
-            };
+            const base = suffixMatch[1];        // Ex: "GH56YJ"
+            const number = suffixMatch[2];      // Ex: "1492"
+            const suffix = suffixMatch[3];      // Ex: "BR"
+            
+            // Validação: garante que o sufixo são apenas letras maiúsculas
+            if (suffix && /^[A-Z]{2,3}$/.test(suffix) && number && base) {
+                return {
+                    base: base,
+                    last: number,
+                    suffix: suffix,
+                    type: 'number_with_suffix'
+                };
+            }
         }
         
         // Se não encontrou sufixo, procura o último número no final
@@ -49,18 +53,7 @@
             };
         }
         
-        // Se não encontrou número, procura última letra
-        const letterMatch = codigo.match(/([A-Za-z])$/);
-        if (letterMatch) {
-            const base = codigo.substring(0, codigo.length - 1);
-            return {
-                base: base,
-                last: letterMatch[1],
-                suffix: '',
-                type: 'letter'
-            };
-        }
-        
+        // Não tenta extrair letras - retorna null
         return null;
     }
     
@@ -76,7 +69,16 @@
             const nextNum = num + 1;
             // Mantém o mesmo tamanho do número original (preserva zeros à esquerda)
             const nextStr = String(nextNum).padStart(extracted.last.length, '0');
-            return extracted.base + nextStr + extracted.suffix;
+            const resultado = extracted.base + nextStr + extracted.suffix;
+            console.log('Incremento com sufixo:', {
+                original: extracted.base + extracted.last + extracted.suffix,
+                incrementado: resultado,
+                base: extracted.base,
+                numero_antigo: extracted.last,
+                numero_novo: nextStr,
+                sufixo: extracted.suffix
+            });
+            return resultado;
         } else if (extracted.type === 'number') {
             // Número simples sem sufixo
             const num = parseInt(extracted.last, 10);
@@ -84,18 +86,9 @@
             const nextStr = String(nextNum).padStart(extracted.last.length, '0');
             return extracted.base + nextStr;
         } else {
-            // Incrementa letra
-            const char = extracted.last.toUpperCase();
-            const charCode = char.charCodeAt(0);
-            
-            if (char === 'Z') {
-                // Se for Z, volta para A e adiciona 1 (vira AA, AB, etc)
-                // Mas vamos fazer mais simples: incrementa e se passar de Z, adiciona número
-                return extracted.base + '0';
-            }
-            
-            const nextChar = String.fromCharCode(charCode + 1);
-            return extracted.base + nextChar;
+            // Não deve chegar aqui - tipos válidos são 'number_with_suffix' e 'number'
+            console.error('Tipo desconhecido no incremento:', extracted.type);
+            return null;
         }
     }
     

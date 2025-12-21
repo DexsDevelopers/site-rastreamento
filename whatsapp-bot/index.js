@@ -177,6 +177,13 @@ setInterval(() => {
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
 const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number, isFinanceiro?: boolean, transactionId?: string }
+
+// ===== SISTEMA DE AUTOMAÇÕES =====
+let automationsCache = []; // Cache das automações
+let automationsSettings = {}; // Configurações do bot
+let lastAutomationsLoad = 0; // Timestamp do último carregamento
+const AUTOMATIONS_CACHE_TTL = 60000; // 1 minuto de cache
+const automationCooldowns = new Map(); // key: `${automationId}-${jid}`, value: timestamp
 // State management: amarrar messageId da poll com contexto
 const pollContext = new Map(); // key: messageId, value: { type: string, jid: string, options: array, commandMap: object, timestamp: number }
 // Anti-loop: evitar processar o mesmo voto duas vezes
@@ -692,6 +699,257 @@ function checkMemory() {
       log.info('Forçando garbage collection...');
       global.gc();
     }
+  }
+}
+
+// ===== SISTEMA DE AUTOMAÇÕES - FUNÇÕES =====
+
+// Carregar automações do servidor
+async function loadAutomations() {
+  try {
+    // Verificar cache
+    if (Date.now() - lastAutomationsLoad < AUTOMATIONS_CACHE_TTL && automationsCache.length > 0) {
+      return automationsCache;
+    }
+    
+    const apiUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=get_automations`;
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN
+      },
+      timeout: 10000
+    });
+    
+    if (response.data && response.data.success) {
+      automationsCache = response.data.automations || [];
+      lastAutomationsLoad = Date.now();
+      log.info(`[AUTOMATIONS] ${automationsCache.length} automações carregadas`);
+    }
+    
+    return automationsCache;
+  } catch (error) {
+    log.warn(`[AUTOMATIONS] Erro ao carregar automações: ${error.message}`);
+    return automationsCache; // Retornar cache antigo em caso de erro
+  }
+}
+
+// Carregar configurações do bot
+async function loadBotSettings() {
+  try {
+    const apiUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=get_settings`;
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN
+      },
+      timeout: 10000
+    });
+    
+    if (response.data && response.data.success) {
+      automationsSettings = response.data.settings || {};
+      log.info(`[AUTOMATIONS] Configurações carregadas`);
+    }
+    
+    return automationsSettings;
+  } catch (error) {
+    log.warn(`[AUTOMATIONS] Erro ao carregar configurações: ${error.message}`);
+    return automationsSettings;
+  }
+}
+
+// Verificar se mensagem corresponde a uma automação
+function matchAutomation(text, automation) {
+  if (!text || !automation.gatilho) return false;
+  
+  const lowerText = text.toLowerCase().trim();
+  const gatilho = automation.gatilho.toLowerCase();
+  
+  switch (automation.tipo) {
+    case 'mensagem_especifica':
+      // Match exato
+      return lowerText === gatilho;
+      
+    case 'palavra_chave':
+      // Match com palavras-chave separadas por |
+      const keywords = gatilho.split('|').map(k => k.trim());
+      return keywords.some(keyword => {
+        // Verifica se a palavra-chave está presente na mensagem
+        return lowerText.includes(keyword) || lowerText === keyword;
+      });
+      
+    case 'regex':
+      // Match com expressão regular
+      try {
+        const regex = new RegExp(automation.gatilho, 'i');
+        return regex.test(text);
+      } catch (e) {
+        log.warn(`[AUTOMATIONS] Regex inválido: ${automation.gatilho}`);
+        return false;
+      }
+      
+    default:
+      return false;
+  }
+}
+
+// Verificar cooldown
+function checkCooldown(automationId, jid, cooldownSeconds) {
+  if (!cooldownSeconds || cooldownSeconds <= 0) return false;
+  
+  const key = `${automationId}-${jid}`;
+  const lastUse = automationCooldowns.get(key);
+  
+  if (!lastUse) return false;
+  
+  const elapsed = (Date.now() - lastUse) / 1000;
+  return elapsed < cooldownSeconds;
+}
+
+// Registrar uso de automação
+function registerAutomationUse(automationId, jid) {
+  const key = `${automationId}-${jid}`;
+  automationCooldowns.set(key, Date.now());
+  
+  // Limpar cooldowns antigos (mais de 1 hora)
+  const oneHourAgo = Date.now() - 3600000;
+  for (const [k, v] of automationCooldowns.entries()) {
+    if (v < oneHourAgo) automationCooldowns.delete(k);
+  }
+}
+
+// Registrar log de execução na API
+async function logAutomationExecution(automation, jid, message, response, grupoId, grupoNome) {
+  try {
+    if (!automationsSettings.log_automations) return;
+    
+    const numero = jid.split('@')[0];
+    
+    await axios.post(
+      `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=log_execution`,
+      {
+        automation_id: automation.id,
+        jid_origem: jid,
+        numero_origem: numero,
+        mensagem_recebida: message,
+        resposta_enviada: response,
+        grupo_id: grupoId,
+        grupo_nome: grupoNome
+      },
+      {
+        headers: {
+          'x-api-token': RASTREAMENTO_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      }
+    );
+    
+    // Incrementar contador
+    await axios.post(
+      `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=increment_usage`,
+      { automation_id: automation.id },
+      {
+        headers: {
+          'x-api-token': RASTREAMENTO_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      }
+    );
+  } catch (error) {
+    // Silencioso - não falhar por causa de log
+  }
+}
+
+// Processar automações para uma mensagem
+async function processAutomations(remoteJid, text, msg) {
+  try {
+    // Verificar se automações estão habilitadas
+    if (!automationsSettings.automations_enabled) return false;
+    if (!automationsSettings.bot_enabled) return false;
+    
+    // Carregar automações (do cache ou API)
+    const automations = await loadAutomations();
+    if (!automations || automations.length === 0) return false;
+    
+    const isGroup = remoteJid.includes('@g.us');
+    const grupoId = isGroup ? remoteJid : null;
+    let grupoNome = null;
+    
+    // Tentar obter nome do grupo
+    if (isGroup && sock) {
+      try {
+        const groupMetadata = await sock.groupMetadata(remoteJid);
+        grupoNome = groupMetadata?.subject || null;
+      } catch (e) {
+        // Ignorar erro ao obter metadata
+      }
+    }
+    
+    // Verificar cada automação por ordem de prioridade
+    for (const automation of automations) {
+      // Verificar se é para grupo/privado
+      if (automation.apenas_privado == 1 && isGroup) continue;
+      if (automation.apenas_grupo == 1 && !isGroup) continue;
+      
+      // Verificar se é para grupo específico
+      if (automation.grupo_id && automation.grupo_id !== remoteJid) continue;
+      
+      // Verificar match
+      if (!matchAutomation(text, automation)) continue;
+      
+      // Verificar cooldown
+      if (checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
+        log.info(`[AUTOMATIONS] Cooldown ativo para automação ${automation.id} e JID ${remoteJid}`);
+        continue;
+      }
+      
+      // Match encontrado! Enviar resposta
+      log.success(`[AUTOMATIONS] ✅ Match: "${automation.nome}" para "${text.substring(0, 50)}..."`);
+      
+      // Aplicar delay se configurado
+      if (automation.delay_ms && automation.delay_ms > 0) {
+        await new Promise(resolve => setTimeout(resolve, automation.delay_ms));
+      }
+      
+      // Enviar resposta
+      try {
+        await sock.sendMessage(remoteJid, { text: automation.resposta });
+        
+        // Registrar uso
+        registerAutomationUse(automation.id, remoteJid);
+        
+        // Log na API
+        logAutomationExecution(automation, remoteJid, text, automation.resposta, grupoId, grupoNome);
+        
+        return true; // Automação executada
+      } catch (sendError) {
+        log.error(`[AUTOMATIONS] Erro ao enviar resposta: ${sendError.message}`);
+      }
+    }
+    
+    return false; // Nenhuma automação correspondeu
+  } catch (error) {
+    log.error(`[AUTOMATIONS] Erro ao processar: ${error.message}`);
+    return false;
+  }
+}
+
+// Salvar informações de grupo
+async function saveGroupInfo(jid, nome, descricao, participantes) {
+  try {
+    await axios.post(
+      `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=save_grupo`,
+      { jid, nome, descricao, participantes },
+      {
+        headers: {
+          'x-api-token': RASTREAMENTO_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      }
+    );
+  } catch (error) {
+    // Silencioso
   }
 }
 
@@ -1448,6 +1706,20 @@ async function start() {
         
         startHeartbeat();
         startPing();
+        
+        // Carregar automações e configurações
+        log.info('[AUTOMATIONS] Carregando automações e configurações...');
+        loadBotSettings().then(() => {
+          log.success('[AUTOMATIONS] Configurações carregadas!');
+        }).catch(err => {
+          log.warn(`[AUTOMATIONS] Erro ao carregar configurações: ${err.message}`);
+        });
+        
+        loadAutomations().then(autos => {
+          log.success(`[AUTOMATIONS] ${autos.length} automações prontas!`);
+        }).catch(err => {
+          log.warn(`[AUTOMATIONS] Erro ao carregar automações: ${err.message}`);
+        });
       }
 
       if (connection === 'close') {
@@ -1542,6 +1814,15 @@ async function start() {
         if ((msg.message.imageMessage || msg.message.documentMessage) && waitingPhoto.has(remoteJid)) {
           await processPhotoUpload(remoteJid, msg);
           return;
+        }
+        
+        // ===== PROCESSAR AUTOMAÇÕES =====
+        // Verificar se a mensagem corresponde a alguma automação configurada
+        if (text && text.trim()) {
+          const automationProcessed = await processAutomations(remoteJid, text, msg);
+          if (automationProcessed) {
+            return; // Automação respondeu, não continuar
+          }
         }
 
         if (AUTO_REPLY) {
@@ -1772,6 +2053,44 @@ app.post('/reset-loop', auth, async (req, res) => {
   disconnectTimestamps = [];
   reconnectAttempts = 0;
   res.json({ ok: true, message: 'Estado de loop resetado. Use /reconnect para reconectar.' });
+});
+
+// Recarregar automações
+app.post('/reload-automations', auth, async (req, res) => {
+  log.info('Recarregando automações via API...');
+  try {
+    // Forçar reload limpando cache
+    lastAutomationsLoad = 0;
+    
+    const settings = await loadBotSettings();
+    const automations = await loadAutomations();
+    
+    res.json({ 
+      ok: true, 
+      message: 'Automações recarregadas!',
+      count: automations.length,
+      settings_loaded: Object.keys(settings).length > 0
+    });
+  } catch (error) {
+    res.json({ ok: false, error: error.message });
+  }
+});
+
+// Listar automações carregadas
+app.get('/automations', auth, (req, res) => {
+  res.json({
+    ok: true,
+    count: automationsCache.length,
+    automations: automationsCache.map(a => ({
+      id: a.id,
+      nome: a.nome,
+      tipo: a.tipo,
+      gatilho: a.gatilho,
+      ativo: true
+    })),
+    settings: automationsSettings,
+    cache_age_seconds: Math.round((Date.now() - lastAutomationsLoad) / 1000)
+  });
 });
 
 // Enviar poll (enquete)
