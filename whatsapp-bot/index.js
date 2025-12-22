@@ -863,13 +863,26 @@ async function logAutomationExecution(automation, jid, message, response, grupoI
 // Processar automações para uma mensagem
 async function processAutomations(remoteJid, text, msg) {
   try {
+    log.info(`[AUTOMATIONS] Processando: "${text}" de ${remoteJid.split('@')[0]}`);
+    
     // Verificar se automações estão habilitadas
-    if (!automationsSettings.automations_enabled) return false;
-    if (!automationsSettings.bot_enabled) return false;
+    if (!automationsSettings.automations_enabled) {
+      log.warn(`[AUTOMATIONS] automations_enabled = false`);
+      return false;
+    }
+    if (!automationsSettings.bot_enabled) {
+      log.warn(`[AUTOMATIONS] bot_enabled = false`);
+      return false;
+    }
     
     // Carregar automações (do cache ou API)
     const automations = await loadAutomations();
-    if (!automations || automations.length === 0) return false;
+    if (!automations || automations.length === 0) {
+      log.warn(`[AUTOMATIONS] Nenhuma automação carregada`);
+      return false;
+    }
+    
+    log.info(`[AUTOMATIONS] ${automations.length} automações disponíveis`);
     
     const isGroup = remoteJid.includes('@g.us');
     const grupoId = isGroup ? remoteJid : null;
@@ -1796,6 +1809,9 @@ async function start() {
         
         const remoteJid = msg.key.remoteJid;
         const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        
+        // DEBUG: Log de todas as mensagens recebidas
+        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${text.substring(0, 50)}"`);
         
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
