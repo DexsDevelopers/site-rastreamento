@@ -20,6 +20,7 @@ try {
         tipo ENUM('mensagem_especifica', 'palavra_chave', 'regex') DEFAULT 'mensagem_especifica',
         gatilho VARCHAR(500) NOT NULL COMMENT 'Texto ou regex que ativa a automação',
         resposta TEXT NOT NULL COMMENT 'Mensagem de resposta',
+        imagem_url VARCHAR(500) DEFAULT NULL COMMENT 'URL da imagem a enviar com a resposta',
         grupo_id VARCHAR(100) DEFAULT NULL COMMENT 'JID do grupo específico ou NULL para todos',
         grupo_nome VARCHAR(255) DEFAULT NULL COMMENT 'Nome do grupo para exibição',
         apenas_privado TINYINT(1) DEFAULT 0 COMMENT 'Se 1, só funciona em chat privado',
@@ -39,6 +40,16 @@ try {
     
     $pdo->exec($sql);
     echo "✅ Tabela bot_automations criada/verificada!\n";
+    
+    // Adicionar coluna imagem_url se não existir (para tabelas já existentes)
+    try {
+        $pdo->exec("ALTER TABLE bot_automations ADD COLUMN imagem_url VARCHAR(500) DEFAULT NULL COMMENT 'URL da imagem a enviar com a resposta' AFTER resposta");
+        echo "✅ Coluna imagem_url adicionada!\n";
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), 'Duplicate column') === false) {
+            // Coluna já existe, tudo ok
+        }
+    }
     
     // Tabela de logs de uso das automações
     $sql2 = "CREATE TABLE IF NOT EXISTS bot_automation_logs (

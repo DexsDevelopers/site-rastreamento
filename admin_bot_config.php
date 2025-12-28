@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $tipo = sanitizeInput($_POST['tipo'] ?? 'mensagem_especifica');
                 $gatilho = sanitizeInput($_POST['gatilho'] ?? '');
                 $resposta = $_POST['resposta'] ?? ''; // Não sanitizar para manter formatação
+                $imagemUrl = sanitizeInput($_POST['imagem_url'] ?? '') ?: null;
                 $grupoId = sanitizeInput($_POST['grupo_id'] ?? '') ?: null;
                 $grupoNome = sanitizeInput($_POST['grupo_nome'] ?? '') ?: null;
                 $apenasPrivado = isset($_POST['apenas_privado']) ? 1 : 0;
@@ -62,21 +63,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 if ($id > 0) {
                     // Atualizar
                     $sql = "UPDATE bot_automations SET 
-                            nome = ?, descricao = ?, tipo = ?, gatilho = ?, resposta = ?,
+                            nome = ?, descricao = ?, tipo = ?, gatilho = ?, resposta = ?, imagem_url = ?,
                             grupo_id = ?, grupo_nome = ?, apenas_privado = ?, apenas_grupo = ?,
                             delay_ms = ?, cooldown_segundos = ?, prioridade = ?, ativo = ?
                             WHERE id = ?";
-                    executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, 
+                    executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
                         $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
                         $delayMs, $cooldown, $prioridade, $ativo, $id]);
                     $response = ['success' => true, 'message' => 'Automação atualizada!', 'id' => $id];
                 } else {
                     // Inserir
                     $sql = "INSERT INTO bot_automations 
-                            (nome, descricao, tipo, gatilho, resposta, grupo_id, grupo_nome, 
+                            (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                              apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
                         $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
                         $delayMs, $cooldown, $prioridade, $ativo]);
                     $newId = $pdo->lastInsertId();
@@ -182,6 +183,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             case 'get_grupos':
                 $grupos = fetchData($pdo, "SELECT * FROM bot_grupos ORDER BY nome");
                 $response = ['success' => true, 'data' => $grupos];
+                break;
+                
+            case 'upload_image':
+                // Upload de imagem para automação
+                if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+                    $response = ['success' => false, 'message' => 'Nenhuma imagem enviada'];
+                    break;
+                }
+                
+                $file = $_FILES['image'];
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                
+                if (!in_array($file['type'], $allowedTypes)) {
+                    $response = ['success' => false, 'message' => 'Tipo de arquivo não permitido'];
+                    break;
+                }
+                
+                if ($file['size'] > 5 * 1024 * 1024) {
+                    $response = ['success' => false, 'message' => 'Arquivo muito grande (máx 5MB)'];
+                    break;
+                }
+                
+                // Criar diretório se não existir
+                $uploadDir = 'uploads/bot_images/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                
+                // Gerar nome único
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $filename = 'auto_' . uniqid() . '_' . time() . '.' . $ext;
+                $filepath = $uploadDir . $filename;
+                
+                if (move_uploaded_file($file['tmp_name'], $filepath)) {
+                    // Gerar URL completa
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+                    $baseUrl = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/';
+                    $imageUrl = $baseUrl . $filepath;
+                    
+                    $response = ['success' => true, 'url' => $imageUrl, 'path' => $filepath];
+                } else {
+                    $response = ['success' => false, 'message' => 'Erro ao salvar arquivo'];
+                }
                 break;
         }
     } catch (Exception $e) {
@@ -848,6 +892,37 @@ foreach ($settings as $s) {
                     </p>
                 </div>
                 
+                <!-- Campo de Imagem -->
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">
+                        <i class="fas fa-image mr-1"></i> Imagem (opcional)
+                    </label>
+                    <div class="flex gap-3">
+                        <input type="text" name="imagem_url" id="autoImagemUrl" class="input-field flex-1"
+                            placeholder="https://exemplo.com/imagem.jpg" 
+                            onchange="previewImage(this.value)">
+                        <button type="button" onclick="document.getElementById('imageUpload').click()" 
+                            class="btn btn-secondary" title="Upload de imagem">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="imageUpload" class="hidden" accept="image/*" onchange="uploadImage(this)">
+                    <p class="text-xs text-zinc-500 mt-1">
+                        Cole uma URL de imagem ou faça upload. Formatos: JPG, PNG, GIF, WebP
+                    </p>
+                    <!-- Preview da imagem -->
+                    <div id="imagePreview" class="mt-3 hidden">
+                        <div class="relative inline-block">
+                            <img id="imagePreviewImg" src="" alt="Preview" 
+                                class="max-h-32 rounded-lg border border-zinc-700">
+                            <button type="button" onclick="clearImage()" 
+                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600">
+                                <i class="fas fa-times text-xs text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Grupo Específico (opcional)</label>
@@ -980,6 +1055,7 @@ foreach ($settings as $s) {
                 document.getElementById('autoTipo').value = automation.tipo;
                 document.getElementById('autoGatilho').value = automation.gatilho;
                 document.getElementById('autoResposta').value = automation.resposta;
+                document.getElementById('autoImagemUrl').value = automation.imagem_url || '';
                 document.getElementById('autoGrupoId').value = automation.grupo_id || '';
                 document.getElementById('autoGrupoNome').value = automation.grupo_nome || '';
                 document.getElementById('autoPrioridade').value = automation.prioridade || 0;
@@ -988,11 +1064,19 @@ foreach ($settings as $s) {
                 document.getElementById('autoApenasPrivado').checked = automation.apenas_privado == 1;
                 document.getElementById('autoApenasGrupo').checked = automation.apenas_grupo == 1;
                 document.getElementById('autoAtivo').checked = automation.ativo == 1;
+                
+                // Preview da imagem se existir
+                if (automation.imagem_url) {
+                    previewImage(automation.imagem_url);
+                } else {
+                    document.getElementById('imagePreview').classList.add('hidden');
+                }
             } else {
                 document.getElementById('modalTitle').textContent = 'Nova Automação';
                 form.reset();
                 document.getElementById('automationId').value = '';
                 document.getElementById('autoAtivo').checked = true;
+                document.getElementById('imagePreview').classList.add('hidden');
             }
             
             modal.classList.add('active');
@@ -1073,6 +1157,7 @@ foreach ($settings as $s) {
                         <div class="flex items-center gap-4">
                             ${a.grupo_nome ? `<span><i class="fas fa-users mr-1"></i>${escapeHtml(a.grupo_nome)}</span>` : '<span><i class="fas fa-globe mr-1"></i>Todos os chats</span>'}
                             <span><i class="fas fa-chart-bar mr-1"></i>${a.contador_uso || 0} usos</span>
+                            ${a.imagem_url ? '<span class="text-emerald-400"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
                             ${a.delay_ms > 0 ? `<span><i class="fas fa-clock mr-1"></i>${a.delay_ms}ms</span>` : ''}
                         </div>
                         <div class="flex items-center gap-2">
@@ -1331,6 +1416,69 @@ foreach ($settings as $s) {
             const nomeInput = document.getElementById('autoGrupoNome');
             const selectedOption = select.options[select.selectedIndex];
             nomeInput.value = selectedOption.text !== 'Todos os chats' ? selectedOption.text : '';
+        }
+        
+        // ===== FUNÇÕES DE IMAGEM =====
+        function previewImage(url) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('imagePreviewImg');
+            
+            if (url && url.trim()) {
+                img.src = url;
+                img.onload = () => preview.classList.remove('hidden');
+                img.onerror = () => {
+                    preview.classList.add('hidden');
+                    showToast('URL de imagem inválida', 'error');
+                };
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+        
+        function clearImage() {
+            document.getElementById('autoImagemUrl').value = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+        }
+        
+        async function uploadImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // Validar tamanho (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Imagem muito grande! Máximo 5MB', 'error');
+                return;
+            }
+            
+            // Validar tipo
+            if (!file.type.startsWith('image/')) {
+                showToast('Arquivo deve ser uma imagem', 'error');
+                return;
+            }
+            
+            showToast('Fazendo upload...', 'warning');
+            
+            const formData = new FormData();
+            formData.append('action', 'upload_image');
+            formData.append('image', file);
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success && data.url) {
+                    document.getElementById('autoImagemUrl').value = data.url;
+                    previewImage(data.url);
+                    showToast('Imagem enviada!', 'success');
+                } else {
+                    showToast(data.message || 'Erro no upload', 'error');
+                }
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+            
+            // Limpar input
+            input.value = '';
         }
         
         // ===== UTILIDADES =====

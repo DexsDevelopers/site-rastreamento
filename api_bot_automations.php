@@ -50,7 +50,7 @@ try {
         case 'get_automations':
             // Buscar automações ativas
             $automations = fetchData($pdo, 
-                "SELECT id, nome, tipo, gatilho, resposta, grupo_id, grupo_nome, 
+                "SELECT id, nome, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                         apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade
                  FROM bot_automations 
                  WHERE ativo = 1 

@@ -926,7 +926,19 @@ async function processAutomations(remoteJid, text, msg) {
       
       // Enviar resposta
       try {
-        await sock.sendMessage(remoteJid, { text: automation.resposta });
+        // Verificar se tem imagem configurada
+        if (automation.imagem_url && automation.imagem_url.trim()) {
+          log.info(`[AUTOMATIONS] Enviando com imagem: ${automation.imagem_url}`);
+          
+          // Enviar imagem com caption (texto)
+          await sock.sendMessage(remoteJid, {
+            image: { url: automation.imagem_url },
+            caption: automation.resposta
+          });
+        } else {
+          // Enviar apenas texto
+          await sock.sendMessage(remoteJid, { text: automation.resposta });
+        }
         
         // Registrar uso
         registerAutomationUse(automation.id, remoteJid);
@@ -937,6 +949,18 @@ async function processAutomations(remoteJid, text, msg) {
         return true; // Automação executada
       } catch (sendError) {
         log.error(`[AUTOMATIONS] Erro ao enviar resposta: ${sendError.message}`);
+        
+        // Se falhar com imagem, tentar só texto
+        if (automation.imagem_url) {
+          try {
+            log.warn(`[AUTOMATIONS] Tentando enviar apenas texto após falha de imagem`);
+            await sock.sendMessage(remoteJid, { text: automation.resposta });
+            registerAutomationUse(automation.id, remoteJid);
+            return true;
+          } catch (textError) {
+            log.error(`[AUTOMATIONS] Também falhou só texto: ${textError.message}`);
+          }
+        }
       }
     }
     
@@ -1287,6 +1311,15 @@ async function start() {
 
     // Listener para capturar eventos de poll em messages.upsert (QUANDO USUÁRIO VOTA)
     sock.ev.on('messages.upsert', async (m) => {
+      // DEBUG: Log de todas as mensagens no primeiro handler
+      const allMsgs = m.messages || [];
+      for (const dbgMsg of allMsgs) {
+        const dbgJid = dbgMsg.key?.remoteJid || 'unknown';
+        const msgTypes = Object.keys(dbgMsg.message || {}).join(', ') || 'vazio';
+        const dbgText = dbgMsg.message?.conversation || dbgMsg.message?.extendedTextMessage?.text || `[tipos: ${msgTypes}]`;
+        log.info(`🔵 [HANDLER-POLL] Msg de ${dbgJid.split('@')[0]}: "${dbgText.substring(0, 50)}" | fromMe=${dbgMsg.key?.fromMe}`);
+      }
+      
       if (!isReady || !sock) return;
       
       try {
@@ -1805,24 +1838,32 @@ async function start() {
     sock.ev.on('messages.upsert', async (m) => {
       try {
         const msg = m.messages?.[0];
-        if (!msg?.message || msg.key.fromMe) return;
+        if (!msg?.message) return;
         
         const remoteJid = msg.key.remoteJid;
         const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        const isFromMe = msg.key.fromMe;
         
         // DEBUG: Log de todas as mensagens recebidas
-        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${text.substring(0, 50)}"`);
+        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${text.substring(0, 50)}" | fromMe=${isFromMe}`);
         
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
         
         // Aceitar comandos com / (rastreamento) ou ! (financeiro)
+        // Para comandos, aceitar também mensagens próprias (para testes)
         if (text.startsWith('/') || text.startsWith('!')) {
+          log.info(`🎯 Comando detectado: "${text}" de ${remoteJid.split('@')[0]}`);
           const result = await processAdminCommand(remoteJid, text);
           // Se poll foi enviada, não enviar mensagem de texto adicional
           if (result && !result.pollSent && result.message) {
             await sock.sendMessage(remoteJid, { text: result.message });
           }
+          return;
+        }
+        
+        // Para outras mensagens, ignorar se forem mensagens próprias
+        if (isFromMe) {
           return;
         }
         
