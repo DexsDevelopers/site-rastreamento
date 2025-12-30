@@ -1060,13 +1060,13 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     // Se o bot não for admin, o WhatsApp retornará erro que será capturado
     
     switch (command) {
-      case '/ban':
-      case '/kick':
-      case '/remover': {
+      case '$ban':
+      case '$kick':
+      case '$remover': {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar o /ban:*\n\n• Responda a mensagem da pessoa\n• Ou marque: /ban @pessoa\n• Ou digite: /ban 5511999999999' 
+            message: '❌ *Como usar o $ban:*\n\n• Responda a mensagem da pessoa\n• Ou marque: $ban @pessoa\n• Ou digite: $ban 5511999999999' 
           };
         }
         
@@ -1103,12 +1103,12 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
-      case '/promote':
-      case '/promover': {
+      case '$promote':
+      case '$promover': {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar o /promote:*\n\n• Responda a mensagem da pessoa\n• Ou marque: /promote @pessoa\n• Ou digite: /promote 5511999999999' 
+            message: '❌ *Como usar o $promote:*\n\n• Responda a mensagem da pessoa\n• Ou marque: $promote @pessoa\n• Ou digite: $promote 5511999999999' 
           };
         }
         
@@ -1129,12 +1129,12 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
-      case '/demote':
-      case '/rebaixar': {
+      case '$demote':
+      case '$rebaixar': {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar o /demote:*\n\n• Responda a mensagem do admin\n• Ou marque: /demote @pessoa\n• Ou digite: /demote 5511999999999' 
+            message: '❌ *Como usar o $demote:*\n\n• Responda a mensagem do admin\n• Ou marque: $demote @pessoa\n• Ou digite: $demote 5511999999999' 
           };
         }
         
@@ -1155,9 +1155,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
-      case '/todos':
-      case '/all':
-      case '/marcar': {
+      case '$todos':
+      case '$all':
+      case '$marcar': {
         // Marcar todos do grupo
         const mentions = groupMetadata.participants.map(p => p.id);
         const mentionText = groupMetadata.participants
@@ -1165,7 +1165,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           .join(' ');
         
         // Texto adicional após o comando
-        const extraText = text.replace(/^\/(todos|all|marcar)\s*/i, '').trim();
+        const extraText = text.replace(/^\$(todos|all|marcar)\s*/i, '').trim();
         const finalText = extraText 
           ? `📢 *${extraText}*\n\n${mentionText}`
           : `📢 *Atenção todos!*\n\n${mentionText}`;
@@ -1177,7 +1177,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         };
       }
       
-      case '/link': {
+      case '$link': {
         // Obter link do grupo
         try {
           const inviteCode = await sock.groupInviteCode(remoteJid);
@@ -1190,8 +1190,8 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
-      case '/fechar':
-      case '/close': {
+      case '$fechar':
+      case '$close': {
         // Fechar grupo (só admins podem enviar)
         try {
           await sock.groupSettingUpdate(remoteJid, 'announcement');
@@ -1204,8 +1204,8 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
-      case '/abrir':
-      case '/open': {
+      case '$abrir':
+      case '$open': {
         // Abrir grupo (todos podem enviar)
         try {
           await sock.groupSettingUpdate(remoteJid, 'not_announcement');
@@ -1238,8 +1238,8 @@ async function processAdminCommand(from, text, msg = null) {
     const isFinanceiro = prefix === '!';
     const isRastreamento = prefix === '/';
     
-    // Verificar se é comando de admin de grupo primeiro
-    const groupAdminCommands = ['/ban', '/kick', '/remover', '/promote', '/promover', '/demote', '/rebaixar', '/todos', '/all', '/marcar', '/link', '/fechar', '/close', '/abrir', '/open'];
+    // Verificar se é comando de admin de grupo primeiro (prefixo $)
+    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open'];
     const commandLower = text.split(' ')[0].toLowerCase();
     
     if (msg && groupAdminCommands.includes(commandLower)) {
@@ -2099,9 +2099,9 @@ async function start() {
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
         
-        // Aceitar comandos com / (rastreamento) ou ! (financeiro)
+        // Aceitar comandos com / (rastreamento), ! (financeiro) ou $ (comandos de grupo)
         // Para comandos, aceitar também mensagens próprias (para testes)
-        if (text.startsWith('/') || text.startsWith('!')) {
+        if (text.startsWith('/') || text.startsWith('!') || text.startsWith('$')) {
           log.info(`🎯 Comando detectado: "${text}" de ${remoteJid.split('@')[0]}`);
           const result = await processAdminCommand(remoteJid, text, msg);
           // Se poll foi enviada, não enviar mensagem de texto adicional
