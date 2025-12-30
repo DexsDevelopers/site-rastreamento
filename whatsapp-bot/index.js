@@ -1080,18 +1080,34 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
-    // Verificar se a mensagem é uma resposta (para identificar o alvo)
-    const quotedMessage = msg.message?.extendedTextMessage?.contextInfo;
-    const quotedParticipant = quotedMessage?.participant;
+    // Verificar se a mensagem é uma resposta ou está marcada (para identificar o alvo)
+    const extendedText = msg.message?.extendedTextMessage;
+    const contextInfo = extendedText?.contextInfo;
+    const quotedMessage = contextInfo?.quotedMessage;
+    const quotedParticipant = contextInfo?.participant || quotedMessage?.participant;
     
     // Verificar se há menções na mensagem (@pessoa)
-    const mentionedJids = quotedMessage?.mentionedJid || [];
+    const mentionedJids = contextInfo?.mentionedJid || [];
     
-    // Prioridade: 1. Mensagem respondida, 2. Menção @, 3. Número digitado
+    // Log detalhado para debug
+    log.info(`[GROUP ADMIN] Command: ${command}`);
+    log.info(`[GROUP ADMIN] ExtendedText existe: ${!!extendedText}`);
+    log.info(`[GROUP ADMIN] ContextInfo existe: ${!!contextInfo}`);
+    log.info(`[GROUP ADMIN] ContextInfo completo: ${JSON.stringify(contextInfo ? {
+      participant: contextInfo.participant,
+      stanzaId: contextInfo.stanzaId,
+      remoteJid: contextInfo.remoteJid,
+      hasQuotedMessage: !!quotedMessage
+    } : 'null')}`);
+    log.info(`[GROUP ADMIN] QuotedParticipant: ${quotedParticipant || 'não encontrado'}`);
+    log.info(`[GROUP ADMIN] Mentions: ${mentionedJids.length} (${JSON.stringify(mentionedJids)})`);
+    
+    // Prioridade: 1. Mensagem marcada/respondida (participant do contextInfo), 2. Menção @, 3. Número digitado
     let targetJid = quotedParticipant;
     
     if (!targetJid && mentionedJids.length > 0) {
       targetJid = mentionedJids[0]; // Pegar a primeira menção
+      log.info(`[GROUP ADMIN] Usando menção: ${targetJid}`);
     }
     
     // Se não tem resposta nem menção, verificar se digitou um número
@@ -1103,9 +1119,12 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         // Se parecer um número de telefone
         if (/^\d{10,15}$/.test(numero)) {
           targetJid = numero + '@s.whatsapp.net';
+          log.info(`[GROUP ADMIN] Usando número digitado: ${targetJid}`);
         }
       }
     }
+    
+    log.info(`[GROUP ADMIN] TargetJid final: ${targetJid || 'não encontrado'}`);
     
     // Obter metadata do grupo
     let groupMetadata;
@@ -1144,7 +1163,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar o $ban:*\n\n• Responda a mensagem da pessoa\n• Ou marque: $ban @pessoa\n• Ou digite: $ban 5511999999999' 
+            message: '❌ *Como usar o $ban:*\n\n• Marque a mensagem da pessoa e digite: $ban\n• Ou mencione: $ban @pessoa\n• Ou digite: $ban 5511999999999\n\n_💡 Dica: Marque a mensagem da pessoa e digite apenas $ban_'
           };
         }
         
