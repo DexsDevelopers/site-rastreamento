@@ -1011,23 +1011,41 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     try {
       groupMetadata = await sock.groupMetadata(remoteJid);
     } catch (e) {
+      log.error(`[GROUP ADMIN] Erro ao obter metadata: ${e.message}`);
       return { success: false, message: '❌ Erro ao obter informações do grupo.' };
     }
     
-    // Verificar se o bot é admin
-    const botNumber = sock.user?.id?.split(':')[0] + '@s.whatsapp.net';
-    const botIsAdmin = groupMetadata.participants.some(
-      p => (p.id === botNumber || p.id.includes(sock.user?.id?.split(':')[0])) && (p.admin === 'admin' || p.admin === 'superadmin')
-    );
+    // Extrair número do bot (pode vir em vários formatos)
+    const botId = sock.user?.id || '';
+    const botNumber = botId.split(':')[0].split('@')[0]; // Pegar só o número
+    
+    log.info(`[GROUP ADMIN] Bot ID: ${botId}, Número extraído: ${botNumber}`);
+    log.info(`[GROUP ADMIN] Participantes admins: ${JSON.stringify(groupMetadata.participants.filter(p => p.admin).map(p => ({id: p.id, admin: p.admin})))}`);
+    
+    // Verificar se o bot é admin - comparar só o número
+    const botIsAdmin = groupMetadata.participants.some(p => {
+      const participantNumber = p.id.split('@')[0].split(':')[0];
+      const isBot = participantNumber === botNumber;
+      const isAdmin = p.admin === 'admin' || p.admin === 'superadmin';
+      if (isBot) {
+        log.info(`[GROUP ADMIN] Bot encontrado como participante: ${p.id}, admin: ${p.admin}`);
+      }
+      return isBot && isAdmin;
+    });
     
     if (!botIsAdmin) {
+      log.warn(`[GROUP ADMIN] Bot NÃO é admin. Bot number: ${botNumber}`);
       return { success: false, message: '❌ O bot precisa ser admin do grupo para usar este comando.' };
     }
     
-    // Verificar se quem enviou é admin
-    const senderIsAdmin = groupMetadata.participants.some(
-      p => p.id === senderJid && (p.admin === 'admin' || p.admin === 'superadmin')
-    );
+    // Verificar se quem enviou é admin - comparar mais flexível
+    const senderNumber = senderJid.split('@')[0].split(':')[0];
+    const senderIsAdmin = groupMetadata.participants.some(p => {
+      const participantNumber = p.id.split('@')[0].split(':')[0];
+      return participantNumber === senderNumber && (p.admin === 'admin' || p.admin === 'superadmin');
+    });
+    
+    log.info(`[GROUP ADMIN] Sender: ${senderNumber}, é admin: ${senderIsAdmin}`);
     
     if (!senderIsAdmin) {
       return { success: false, message: '❌ Apenas admins do grupo podem usar este comando.' };
@@ -1045,9 +1063,11 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
         
         // Não permitir banir admin
-        const targetIsAdmin = groupMetadata.participants.some(
-          p => p.id === targetJid && (p.admin === 'admin' || p.admin === 'superadmin')
-        );
+        const targetNumber = targetJid.split('@')[0].split(':')[0];
+        const targetIsAdmin = groupMetadata.participants.some(p => {
+          const participantNumber = p.id.split('@')[0].split(':')[0];
+          return participantNumber === targetNumber && (p.admin === 'admin' || p.admin === 'superadmin');
+        });
         
         if (targetIsAdmin) {
           return { success: false, message: '❌ Não é possível banir um admin do grupo.' };
@@ -1060,7 +1080,6 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'remove');
-          const targetNumber = targetJid.split('@')[0];
           log.success(`[GROUP] Usuário ${targetNumber} banido do grupo ${groupMetadata.subject}`);
           return { 
             success: true, 
@@ -1084,11 +1103,11 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'promote');
-          const targetNumber = targetJid.split('@')[0];
-          log.success(`[GROUP] Usuário ${targetNumber} promovido a admin`);
+          const promoteNumber = targetJid.split('@')[0];
+          log.success(`[GROUP] Usuário ${promoteNumber} promovido a admin`);
           return { 
             success: true, 
-            message: `✅ @${targetNumber} agora é admin do grupo!`,
+            message: `✅ @${promoteNumber} agora é admin do grupo!`,
             mentions: [targetJid]
           };
         } catch (e) {
@@ -1107,11 +1126,11 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'demote');
-          const targetNumber = targetJid.split('@')[0];
-          log.success(`[GROUP] Admin ${targetNumber} rebaixado`);
+          const demoteNumber = targetJid.split('@')[0];
+          log.success(`[GROUP] Admin ${demoteNumber} rebaixado`);
           return { 
             success: true, 
-            message: `✅ @${targetNumber} não é mais admin.`,
+            message: `✅ @${demoteNumber} não é mais admin.`,
             mentions: [targetJid]
           };
         } catch (e) {
