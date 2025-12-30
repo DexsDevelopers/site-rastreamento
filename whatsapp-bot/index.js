@@ -2314,7 +2314,27 @@ async function start() {
         if (!msg?.message) return;
         
         const remoteJid = msg.key.remoteJid;
-        const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        // Extrair texto de várias formas (mensagem normal, respondida, etc)
+        let text = msg.message.conversation || 
+                   msg.message.extendedTextMessage?.text || 
+                   msg.message.imageMessage?.caption ||
+                   msg.message.videoMessage?.caption ||
+                   '';
+        
+        // Se for mensagem respondida, pegar o texto da mensagem original também
+        if (msg.message.extendedTextMessage?.contextInfo?.quotedMessage) {
+          const quoted = msg.message.extendedTextMessage.contextInfo.quotedMessage;
+          const quotedText = quoted.conversation || 
+                            quoted.extendedTextMessage?.text ||
+                            quoted.imageMessage?.caption ||
+                            quoted.videoMessage?.caption ||
+                            '';
+          if (quotedText) {
+            text = quotedText; // Usar texto da mensagem original quando respondida
+            log.info(`[ANTILINK] Mensagem respondida detectada, texto original: "${quotedText.substring(0, 50)}"`);
+          }
+        }
+        
         const isFromMe = msg.key.fromMe;
         
         // DEBUG: Log de todas as mensagens recebidas
@@ -2357,49 +2377,79 @@ async function start() {
           log.info(`[ANTILINK] Grupo: ${remoteJid.split('@')[0]}, Config: ${JSON.stringify(antilinkConfig || 'não configurado')}`);
           
           if (antilinkConfig?.enabled) {
-            // Regex para detectar links
-            const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|net|org|br|io|me|tv|info|co|app|dev|xyz|site|online|store|shop|link|click|ly|bit\.ly|wa\.me|chat\.whatsapp\.com)[^\s]*)/gi;
+            // Regex melhorado para detectar links (mais abrangente)
+            const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.(com|net|org|br|io|me|tv|info|co|app|dev|xyz|site|online|store|shop|link|click|ly|bit\.ly|wa\.me|chat\.whatsapp\.com|gg|gg\.gg|tinyurl|t\.co|goo\.gl|youtu\.be|youtube\.com|instagram\.com|facebook\.com|twitter\.com|tiktok\.com)[^\s]*)/gi;
             
-            const hasLink = linkRegex.test(text);
-            log.info(`[ANTILINK] Texto: "${text.substring(0, 50)}", Contém link: ${hasLink}`);
+            // Testar o regex
+            const matches = text.match(linkRegex);
+            const hasLink = matches && matches.length > 0;
+            
+            log.info(`[ANTILINK] Texto: "${text.substring(0, 100)}"`);
+            log.info(`[ANTILINK] Contém link: ${hasLink}, Matches: ${matches ? JSON.stringify(matches) : 'nenhum'}`);
             
             if (hasLink) {
-              const senderJid = msg.key.participant || msg.key.remoteJid;
+              // Pegar JID do sender - pode vir de várias formas
+              let senderJid = msg.key.participant || msg.key.remoteJid;
+              
+              // Se for mensagem respondida, pegar o participant da mensagem original
+              if (msg.message.extendedTextMessage?.contextInfo?.participant) {
+                senderJid = msg.message.extendedTextMessage.contextInfo.participant;
+                log.info(`[ANTILINK] Sender da mensagem original (respondida): ${senderJid}`);
+              }
+              
+              log.info(`[ANTILINK] Sender JID: ${senderJid}, RemoteJid: ${remoteJid}`);
               
               // Verificar se o sender é admin (admins podem enviar links)
               try {
                 const groupMetadata = await sock.groupMetadata(remoteJid);
+                
+                // Verificar se o sender é admin
                 const senderIsAdmin = groupMetadata.participants.some(p => {
+                  const senderNumber = senderJid.split('@')[0].split(':')[0];
+                  const participantNumber = p.id.split('@')[0].split(':')[0];
                   const match = p.id === senderJid || 
-                                p.id.split('@')[0] === senderJid.split('@')[0] ||
-                                p.id.includes(senderJid.split('@')[0].split(':')[0]);
-                  return match && (p.admin === 'admin' || p.admin === 'superadmin');
+                                participantNumber === senderNumber ||
+                                p.id.includes(senderNumber);
+                  const isAdmin = match && (p.admin === 'admin' || p.admin === 'superadmin');
+                  if (isAdmin) {
+                    log.info(`[ANTILINK] Sender é admin, permitindo link`);
+                  }
+                  return isAdmin;
                 });
+                
+                log.info(`[ANTILINK] Sender é admin? ${senderIsAdmin}`);
                 
                 if (!senderIsAdmin) {
                   // Remover o membro que enviou link
                   log.warn(`[ANTILINK] Link detectado de ${senderJid.split('@')[0]} no grupo ${groupMetadata.subject}`);
                   
                   try {
+                    // Tentar remover usando o JID completo
                     await sock.groupParticipantsUpdate(remoteJid, [senderJid], 'remove');
                     const senderNumber = senderJid.split('@')[0];
                     await sock.sendMessage(remoteJid, { 
                       text: `🚫 *Anti-Link*\n\n@${senderNumber} foi removido por enviar link.\n\n_Links não são permitidos neste grupo._`,
                       mentions: [senderJid]
                     });
-                    log.success(`[ANTILINK] Usuário ${senderNumber} removido por enviar link`);
+                    log.success(`[ANTILINK] ✅ Usuário ${senderNumber} removido por enviar link`);
                   } catch (removeError) {
-                    log.error(`[ANTILINK] Erro ao remover usuário: ${removeError.message}`);
+                    log.error(`[ANTILINK] ❌ Erro ao remover usuário: ${removeError.message}`);
+                    log.error(`[ANTILINK] Stack: ${removeError.stack}`);
                     // Se não conseguir remover, apenas avisar
                     await sock.sendMessage(remoteJid, { 
-                      text: `⚠️ Link detectado! Não foi possível remover o usuário (bot precisa ser admin).`
+                      text: `⚠️ Link detectado! Não foi possível remover o usuário.\n\n_Erro: ${removeError.message}_`
                     });
                   }
                   return;
+                } else {
+                  log.info(`[ANTILINK] Sender é admin, não removendo`);
                 }
               } catch (e) {
                 log.error(`[ANTILINK] Erro ao verificar: ${e.message}`);
+                log.error(`[ANTILINK] Stack: ${e.stack}`);
               }
+            } else {
+              log.info(`[ANTILINK] Nenhum link detectado no texto`);
             }
           }
         }
