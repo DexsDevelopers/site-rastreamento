@@ -177,6 +177,8 @@ setInterval(() => {
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
 const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number, isFinanceiro?: boolean, transactionId?: string }
+// Configuração de anti-link por grupo
+const antilinkGroups = new Map(); // key: groupJid, value: { enabled: boolean, allowAdmins: boolean }
 
 // ===== SISTEMA DE AUTOMAÇÕES =====
 let automationsCache = []; // Cache das automações
@@ -1218,6 +1220,59 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
+      case '$antilink': {
+        // Configurar anti-link no grupo
+        const args = text.split(' ').slice(1);
+        const action = args[0]?.toLowerCase();
+        
+        if (!action || !['on', 'off', 'status'].includes(action)) {
+          const currentStatus = antilinkGroups.get(remoteJid);
+          return { 
+            success: false, 
+            message: `🔗 *Anti-Link*\n\n` +
+                     `Status atual: ${currentStatus?.enabled ? '✅ Ativado' : '❌ Desativado'}\n\n` +
+                     `*Como usar:*\n` +
+                     `• $antilink on - Ativar\n` +
+                     `• $antilink off - Desativar\n` +
+                     `• $antilink status - Ver status`
+          };
+        }
+        
+        if (action === 'status') {
+          const config = antilinkGroups.get(remoteJid);
+          return { 
+            success: true, 
+            message: `🔗 *Status Anti-Link*\n\n` +
+                     `Grupo: ${groupMetadata.subject}\n` +
+                     `Status: ${config?.enabled ? '✅ Ativado' : '❌ Desativado'}\n\n` +
+                     `_Quando ativado, membros que enviarem links serão removidos automaticamente._`
+          };
+        }
+        
+        if (action === 'on') {
+          antilinkGroups.set(remoteJid, { enabled: true, allowAdmins: true });
+          log.success(`[ANTILINK] Ativado no grupo ${groupMetadata.subject}`);
+          return { 
+            success: true, 
+            message: `✅ *Anti-Link Ativado!*\n\n` +
+                     `Membros que enviarem links serão removidos automaticamente.\n\n` +
+                     `⚠️ _Admins podem enviar links normalmente._`
+          };
+        }
+        
+        if (action === 'off') {
+          antilinkGroups.set(remoteJid, { enabled: false, allowAdmins: true });
+          log.success(`[ANTILINK] Desativado no grupo ${groupMetadata.subject}`);
+          return { 
+            success: true, 
+            message: `❌ *Anti-Link Desativado!*\n\n` +
+                     `Membros podem enviar links normalmente.`
+          };
+        }
+        
+        return null;
+      }
+      
       default:
         return null; // Não é um comando de admin de grupo
     }
@@ -1239,7 +1294,7 @@ async function processAdminCommand(from, text, msg = null) {
     const isRastreamento = prefix === '/';
     
     // Verificar se é comando de admin de grupo primeiro (prefixo $)
-    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open'];
+    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink'];
     const commandLower = text.split(' ')[0].toLowerCase();
     
     if (msg && groupAdminCommands.includes(commandLower)) {
@@ -2122,6 +2177,55 @@ async function start() {
         // Para outras mensagens, ignorar se forem mensagens próprias
         if (isFromMe) {
           return;
+        }
+        
+        // ===== VERIFICAR ANTI-LINK =====
+        const isGroup = remoteJid.includes('@g.us');
+        if (isGroup && text) {
+          const antilinkConfig = antilinkGroups.get(remoteJid);
+          if (antilinkConfig?.enabled) {
+            // Regex para detectar links
+            const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|net|org|br|io|me|tv|info|co|app|dev|xyz|site|online|store|shop|link|click|ly|bit\.ly|wa\.me|chat\.whatsapp\.com)[^\s]*)/gi;
+            
+            if (linkRegex.test(text)) {
+              const senderJid = msg.key.participant || msg.key.remoteJid;
+              
+              // Verificar se o sender é admin (admins podem enviar links)
+              try {
+                const groupMetadata = await sock.groupMetadata(remoteJid);
+                const senderIsAdmin = groupMetadata.participants.some(p => {
+                  const match = p.id === senderJid || 
+                                p.id.split('@')[0] === senderJid.split('@')[0] ||
+                                p.id.includes(senderJid.split('@')[0].split(':')[0]);
+                  return match && (p.admin === 'admin' || p.admin === 'superadmin');
+                });
+                
+                if (!senderIsAdmin) {
+                  // Remover o membro que enviou link
+                  log.warn(`[ANTILINK] Link detectado de ${senderJid.split('@')[0]} no grupo ${groupMetadata.subject}`);
+                  
+                  try {
+                    await sock.groupParticipantsUpdate(remoteJid, [senderJid], 'remove');
+                    const senderNumber = senderJid.split('@')[0];
+                    await sock.sendMessage(remoteJid, { 
+                      text: `🚫 *Anti-Link*\n\n@${senderNumber} foi removido por enviar link.\n\n_Links não são permitidos neste grupo._`,
+                      mentions: [senderJid]
+                    });
+                    log.success(`[ANTILINK] Usuário ${senderNumber} removido por enviar link`);
+                  } catch (removeError) {
+                    log.error(`[ANTILINK] Erro ao remover usuário: ${removeError.message}`);
+                    // Se não conseguir remover, apenas avisar
+                    await sock.sendMessage(remoteJid, { 
+                      text: `⚠️ Link detectado! Não foi possível remover o usuário (bot precisa ser admin).`
+                    });
+                  }
+                  return;
+                }
+              } catch (e) {
+                log.error(`[ANTILINK] Erro ao verificar: ${e.message}`);
+              }
+            }
+          }
         }
         
         // Verificar se está aguardando foto (rastreamento ou financeiro)
