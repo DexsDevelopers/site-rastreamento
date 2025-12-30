@@ -1006,7 +1006,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     const quotedMessage = msg.message?.extendedTextMessage?.contextInfo;
     const targetJid = quotedMessage?.participant;
     
-    // Obter metadata do grupo para verificar se o bot é admin
+    // Obter metadata do grupo
     let groupMetadata;
     try {
       groupMetadata = await sock.groupMetadata(remoteJid);
@@ -1015,41 +1015,26 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
       return { success: false, message: '❌ Erro ao obter informações do grupo.' };
     }
     
-    // Extrair número do bot (pode vir em vários formatos)
-    const botId = sock.user?.id || '';
-    const botNumber = botId.split(':')[0].split('@')[0]; // Pegar só o número
+    log.info(`[GROUP ADMIN] Grupo: ${groupMetadata.subject}, Total participantes: ${groupMetadata.participants.length}`);
     
-    log.info(`[GROUP ADMIN] Bot ID: ${botId}, Número extraído: ${botNumber}`);
-    log.info(`[GROUP ADMIN] Participantes admins: ${JSON.stringify(groupMetadata.participants.filter(p => p.admin).map(p => ({id: p.id, admin: p.admin})))}`);
-    
-    // Verificar se o bot é admin - comparar só o número
-    const botIsAdmin = groupMetadata.participants.some(p => {
-      const participantNumber = p.id.split('@')[0].split(':')[0];
-      const isBot = participantNumber === botNumber;
-      const isAdmin = p.admin === 'admin' || p.admin === 'superadmin';
-      if (isBot) {
-        log.info(`[GROUP ADMIN] Bot encontrado como participante: ${p.id}, admin: ${p.admin}`);
-      }
-      return isBot && isAdmin;
-    });
-    
-    if (!botIsAdmin) {
-      log.warn(`[GROUP ADMIN] Bot NÃO é admin. Bot number: ${botNumber}`);
-      return { success: false, message: '❌ O bot precisa ser admin do grupo para usar este comando.' };
-    }
-    
-    // Verificar se quem enviou é admin - comparar mais flexível
-    const senderNumber = senderJid.split('@')[0].split(':')[0];
+    // Verificar se quem enviou é admin
+    // Como o WhatsApp usa LIDs, vamos verificar pelo participant da mensagem diretamente
     const senderIsAdmin = groupMetadata.participants.some(p => {
-      const participantNumber = p.id.split('@')[0].split(':')[0];
-      return participantNumber === senderNumber && (p.admin === 'admin' || p.admin === 'superadmin');
+      // Comparar diretamente o JID do sender com os participantes
+      const match = p.id === senderJid || 
+                    p.id.split('@')[0] === senderJid.split('@')[0] ||
+                    p.id.includes(senderJid.split('@')[0].split(':')[0]);
+      return match && (p.admin === 'admin' || p.admin === 'superadmin');
     });
     
-    log.info(`[GROUP ADMIN] Sender: ${senderNumber}, é admin: ${senderIsAdmin}`);
+    log.info(`[GROUP ADMIN] Sender JID: ${senderJid}, é admin: ${senderIsAdmin}`);
     
     if (!senderIsAdmin) {
       return { success: false, message: '❌ Apenas admins do grupo podem usar este comando.' };
     }
+    
+    // Nota: A verificação se o BOT é admin será feita pela própria ação
+    // Se o bot não for admin, o WhatsApp retornará erro que será capturado
     
     switch (command) {
       case '/ban':
@@ -1088,6 +1073,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           };
         } catch (e) {
           log.error(`[GROUP] Erro ao banir: ${e.message}`);
+          if (e.message.includes('not-authorized') || e.message.includes('403') || e.message.includes('admin')) {
+            return { success: false, message: '❌ O bot precisa ser admin do grupo para banir membros.' };
+          }
           return { success: false, message: '❌ Erro ao remover usuário: ' + e.message };
         }
       }
@@ -1111,6 +1099,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
             mentions: [targetJid]
           };
         } catch (e) {
+          if (e.message.includes('not-authorized') || e.message.includes('403') || e.message.includes('admin')) {
+            return { success: false, message: '❌ O bot precisa ser admin do grupo para promover membros.' };
+          }
           return { success: false, message: '❌ Erro ao promover: ' + e.message };
         }
       }
@@ -1134,6 +1125,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
             mentions: [targetJid]
           };
         } catch (e) {
+          if (e.message.includes('not-authorized') || e.message.includes('403') || e.message.includes('admin')) {
+            return { success: false, message: '❌ O bot precisa ser admin do grupo para rebaixar membros.' };
+          }
           return { success: false, message: '❌ Erro ao rebaixar: ' + e.message };
         }
       }
@@ -1180,6 +1174,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           await sock.groupSettingUpdate(remoteJid, 'announcement');
           return { success: true, message: '🔒 Grupo fechado! Apenas admins podem enviar mensagens.' };
         } catch (e) {
+          if (e.message.includes('not-authorized') || e.message.includes('403') || e.message.includes('admin')) {
+            return { success: false, message: '❌ O bot precisa ser admin do grupo para alterar configurações.' };
+          }
           return { success: false, message: '❌ Erro ao fechar grupo: ' + e.message };
         }
       }
@@ -1191,6 +1188,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           await sock.groupSettingUpdate(remoteJid, 'not_announcement');
           return { success: true, message: '🔓 Grupo aberto! Todos podem enviar mensagens.' };
         } catch (e) {
+          if (e.message.includes('not-authorized') || e.message.includes('403') || e.message.includes('admin')) {
+            return { success: false, message: '❌ O bot precisa ser admin do grupo para alterar configurações.' };
+          }
           return { success: false, message: '❌ Erro ao abrir grupo: ' + e.message };
         }
       }
