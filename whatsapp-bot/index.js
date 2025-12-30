@@ -990,9 +990,204 @@ async function saveGroupInfo(jid, nome, descricao, participantes) {
   }
 }
 
+// ===== COMANDOS DE ADMIN DO GRUPO =====
+// Comandos como /ban, /kick, /promote, /demote
+async function processGroupAdminCommand(remoteJid, text, msg) {
+  try {
+    const isGroup = remoteJid.includes('@g.us');
+    if (!isGroup) {
+      return { success: false, message: '❌ Este comando só funciona em grupos.' };
+    }
+    
+    const command = text.split(' ')[0].toLowerCase();
+    const senderJid = msg.key.participant || msg.key.remoteJid;
+    
+    // Verificar se a mensagem é uma resposta (para identificar o alvo)
+    const quotedMessage = msg.message?.extendedTextMessage?.contextInfo;
+    const targetJid = quotedMessage?.participant;
+    
+    // Obter metadata do grupo para verificar se o bot é admin
+    let groupMetadata;
+    try {
+      groupMetadata = await sock.groupMetadata(remoteJid);
+    } catch (e) {
+      return { success: false, message: '❌ Erro ao obter informações do grupo.' };
+    }
+    
+    // Verificar se o bot é admin
+    const botNumber = sock.user?.id?.split(':')[0] + '@s.whatsapp.net';
+    const botIsAdmin = groupMetadata.participants.some(
+      p => (p.id === botNumber || p.id.includes(sock.user?.id?.split(':')[0])) && (p.admin === 'admin' || p.admin === 'superadmin')
+    );
+    
+    if (!botIsAdmin) {
+      return { success: false, message: '❌ O bot precisa ser admin do grupo para usar este comando.' };
+    }
+    
+    // Verificar se quem enviou é admin
+    const senderIsAdmin = groupMetadata.participants.some(
+      p => p.id === senderJid && (p.admin === 'admin' || p.admin === 'superadmin')
+    );
+    
+    if (!senderIsAdmin) {
+      return { success: false, message: '❌ Apenas admins do grupo podem usar este comando.' };
+    }
+    
+    switch (command) {
+      case '/ban':
+      case '/kick':
+      case '/remover': {
+        if (!targetJid) {
+          return { 
+            success: false, 
+            message: '❌ *Como usar:* Responda a mensagem da pessoa que deseja banir e envie /ban' 
+          };
+        }
+        
+        // Não permitir banir admin
+        const targetIsAdmin = groupMetadata.participants.some(
+          p => p.id === targetJid && (p.admin === 'admin' || p.admin === 'superadmin')
+        );
+        
+        if (targetIsAdmin) {
+          return { success: false, message: '❌ Não é possível banir um admin do grupo.' };
+        }
+        
+        // Não permitir banir a si mesmo
+        if (targetJid === senderJid) {
+          return { success: false, message: '❌ Você não pode se banir.' };
+        }
+        
+        try {
+          await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'remove');
+          const targetNumber = targetJid.split('@')[0];
+          log.success(`[GROUP] Usuário ${targetNumber} banido do grupo ${groupMetadata.subject}`);
+          return { 
+            success: true, 
+            message: `✅ Usuário @${targetNumber} foi removido do grupo.`,
+            mentions: [targetJid]
+          };
+        } catch (e) {
+          log.error(`[GROUP] Erro ao banir: ${e.message}`);
+          return { success: false, message: '❌ Erro ao remover usuário: ' + e.message };
+        }
+      }
+      
+      case '/promote':
+      case '/promover': {
+        if (!targetJid) {
+          return { 
+            success: false, 
+            message: '❌ *Como usar:* Responda a mensagem da pessoa e envie /promote' 
+          };
+        }
+        
+        try {
+          await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'promote');
+          const targetNumber = targetJid.split('@')[0];
+          log.success(`[GROUP] Usuário ${targetNumber} promovido a admin`);
+          return { 
+            success: true, 
+            message: `✅ @${targetNumber} agora é admin do grupo!`,
+            mentions: [targetJid]
+          };
+        } catch (e) {
+          return { success: false, message: '❌ Erro ao promover: ' + e.message };
+        }
+      }
+      
+      case '/demote':
+      case '/rebaixar': {
+        if (!targetJid) {
+          return { 
+            success: false, 
+            message: '❌ *Como usar:* Responda a mensagem de um admin e envie /demote' 
+          };
+        }
+        
+        try {
+          await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'demote');
+          const targetNumber = targetJid.split('@')[0];
+          log.success(`[GROUP] Admin ${targetNumber} rebaixado`);
+          return { 
+            success: true, 
+            message: `✅ @${targetNumber} não é mais admin.`,
+            mentions: [targetJid]
+          };
+        } catch (e) {
+          return { success: false, message: '❌ Erro ao rebaixar: ' + e.message };
+        }
+      }
+      
+      case '/todos':
+      case '/all':
+      case '/marcar': {
+        // Marcar todos do grupo
+        const mentions = groupMetadata.participants.map(p => p.id);
+        const mentionText = groupMetadata.participants
+          .map(p => `@${p.id.split('@')[0]}`)
+          .join(' ');
+        
+        // Texto adicional após o comando
+        const extraText = text.replace(/^\/(todos|all|marcar)\s*/i, '').trim();
+        const finalText = extraText 
+          ? `📢 *${extraText}*\n\n${mentionText}`
+          : `📢 *Atenção todos!*\n\n${mentionText}`;
+        
+        return { 
+          success: true, 
+          message: finalText,
+          mentions: mentions
+        };
+      }
+      
+      case '/link': {
+        // Obter link do grupo
+        try {
+          const inviteCode = await sock.groupInviteCode(remoteJid);
+          return { 
+            success: true, 
+            message: `🔗 *Link do Grupo*\n\nhttps://chat.whatsapp.com/${inviteCode}` 
+          };
+        } catch (e) {
+          return { success: false, message: '❌ Erro ao obter link: ' + e.message };
+        }
+      }
+      
+      case '/fechar':
+      case '/close': {
+        // Fechar grupo (só admins podem enviar)
+        try {
+          await sock.groupSettingUpdate(remoteJid, 'announcement');
+          return { success: true, message: '🔒 Grupo fechado! Apenas admins podem enviar mensagens.' };
+        } catch (e) {
+          return { success: false, message: '❌ Erro ao fechar grupo: ' + e.message };
+        }
+      }
+      
+      case '/abrir':
+      case '/open': {
+        // Abrir grupo (todos podem enviar)
+        try {
+          await sock.groupSettingUpdate(remoteJid, 'not_announcement');
+          return { success: true, message: '🔓 Grupo aberto! Todos podem enviar mensagens.' };
+        } catch (e) {
+          return { success: false, message: '❌ Erro ao abrir grupo: ' + e.message };
+        }
+      }
+      
+      default:
+        return null; // Não é um comando de admin de grupo
+    }
+  } catch (error) {
+    log.error(`[GROUP ADMIN] Erro: ${error.message}`);
+    return { success: false, message: '❌ Erro ao processar comando: ' + error.message };
+  }
+}
+
 // ===== PROCESSAMENTO DE COMANDOS =====
 // Aceita comandos com / (rastreamento) ou ! (financeiro)
-async function processAdminCommand(from, text) {
+async function processAdminCommand(from, text, msg = null) {
   try {
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     
@@ -1000,6 +1195,18 @@ async function processAdminCommand(from, text) {
     const prefix = text.charAt(0);
     const isFinanceiro = prefix === '!';
     const isRastreamento = prefix === '/';
+    
+    // Verificar se é comando de admin de grupo primeiro
+    const groupAdminCommands = ['/ban', '/kick', '/remover', '/promote', '/promover', '/demote', '/rebaixar', '/todos', '/all', '/marcar', '/link', '/fechar', '/close', '/abrir', '/open'];
+    const commandLower = text.split(' ')[0].toLowerCase();
+    
+    if (msg && groupAdminCommands.includes(commandLower)) {
+      log.info(`[GROUP ADMIN] Comando de grupo detectado: ${commandLower}`);
+      const result = await processGroupAdminCommand(from, text, msg);
+      if (result) {
+        return result;
+      }
+    }
     
     const apiUrl = isFinanceiro ? FINANCEIRO_API_URL : RASTREAMENTO_API_URL;
     const apiToken = isFinanceiro ? FINANCEIRO_TOKEN : RASTREAMENTO_TOKEN;
@@ -1854,10 +2061,18 @@ async function start() {
         // Para comandos, aceitar também mensagens próprias (para testes)
         if (text.startsWith('/') || text.startsWith('!')) {
           log.info(`🎯 Comando detectado: "${text}" de ${remoteJid.split('@')[0]}`);
-          const result = await processAdminCommand(remoteJid, text);
+          const result = await processAdminCommand(remoteJid, text, msg);
           // Se poll foi enviada, não enviar mensagem de texto adicional
           if (result && !result.pollSent && result.message) {
-            await sock.sendMessage(remoteJid, { text: result.message });
+            // Verificar se precisa enviar com mentions
+            if (result.mentions && result.mentions.length > 0) {
+              await sock.sendMessage(remoteJid, { 
+                text: result.message, 
+                mentions: result.mentions 
+              });
+            } else {
+              await sock.sendMessage(remoteJid, { text: result.message });
+            }
           }
           return;
         }
