@@ -179,6 +179,8 @@ const lastReplyAt = new Map(); // key: jid, value: timestamp
 const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number, isFinanceiro?: boolean, transactionId?: string }
 // Configuração de anti-link por grupo
 const antilinkGroups = new Map(); // key: groupJid, value: { enabled: boolean, allowAdmins: boolean }
+// Grupos com automações desativadas
+const disabledAutomationGroups = new Set(); // key: groupJid
 
 // ===== SISTEMA DE AUTOMAÇÕES =====
 let automationsCache = []; // Cache das automações
@@ -867,7 +869,13 @@ async function processAutomations(remoteJid, text, msg) {
   try {
     log.info(`[AUTOMATIONS] Processando: "${text}" de ${remoteJid.split('@')[0]}`);
     
-    // Verificar se automações estão habilitadas
+    // Verificar se automações estão desativadas para este grupo específico
+    if (disabledAutomationGroups.has(remoteJid)) {
+      log.info(`[AUTOMATIONS] Automações desativadas para este grupo`);
+      return false;
+    }
+    
+    // Verificar se automações estão habilitadas globalmente
     if (!automationsSettings.automations_enabled) {
       log.warn(`[AUTOMATIONS] automations_enabled = false`);
       return false;
@@ -1273,6 +1281,60 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         return null;
       }
       
+      case '$automacao':
+      case '$automacoes': {
+        // Ativar/desativar automações no grupo
+        const args = text.split(' ').slice(1);
+        const action = args[0]?.toLowerCase();
+        
+        if (!action || !['on', 'off', 'status'].includes(action)) {
+          const isDisabled = disabledAutomationGroups.has(remoteJid);
+          return { 
+            success: false, 
+            message: `🤖 *Automações do Grupo*\n\n` +
+                     `Status atual: ${isDisabled ? '❌ Desativadas' : '✅ Ativadas'}\n\n` +
+                     `*Como usar:*\n` +
+                     `• $automacao on - Ativar automações\n` +
+                     `• $automacao off - Desativar automações\n` +
+                     `• $automacao status - Ver status`
+          };
+        }
+        
+        if (action === 'status') {
+          const isDisabled = disabledAutomationGroups.has(remoteJid);
+          return { 
+            success: true, 
+            message: `🤖 *Status das Automações*\n\n` +
+                     `Grupo: ${groupMetadata.subject}\n` +
+                     `Status: ${isDisabled ? '❌ Desativadas' : '✅ Ativadas'}\n\n` +
+                     `_Quando desativadas, o bot não responde automaticamente neste grupo._`
+          };
+        }
+        
+        if (action === 'on') {
+          disabledAutomationGroups.delete(remoteJid);
+          log.success(`[AUTOMACAO] Ativadas no grupo ${groupMetadata.subject}`);
+          return { 
+            success: true, 
+            message: `✅ *Automações Ativadas!*\n\n` +
+                     `O bot agora responderá às automações configuradas neste grupo.`
+          };
+        }
+        
+        if (action === 'off') {
+          disabledAutomationGroups.add(remoteJid);
+          log.success(`[AUTOMACAO] Desativadas no grupo ${groupMetadata.subject}`);
+          return { 
+            success: true, 
+            message: `❌ *Automações Desativadas!*\n\n` +
+                     `O bot não responderá mais automaticamente neste grupo.\n\n` +
+                     `_Comandos ($ban, $antilink, etc) continuam funcionando._`
+          };
+        }
+        
+        return null;
+      }
+      
       default:
         return null; // Não é um comando de admin de grupo
     }
@@ -1294,7 +1356,7 @@ async function processAdminCommand(from, text, msg = null) {
     const isRastreamento = prefix === '/';
     
     // Verificar se é comando de admin de grupo primeiro (prefixo $)
-    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink'];
+    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes'];
     const commandLower = text.split(' ')[0].toLowerCase();
     
     if (msg && groupAdminCommands.includes(commandLower)) {
