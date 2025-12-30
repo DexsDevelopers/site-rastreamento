@@ -2245,11 +2245,18 @@ async function start() {
         const isGroup = remoteJid.includes('@g.us');
         if (isGroup && text) {
           const antilinkConfig = antilinkGroups.get(remoteJid);
+          
+          // Debug: mostrar se antilink está ativo
+          log.info(`[ANTILINK] Grupo: ${remoteJid.split('@')[0]}, Config: ${JSON.stringify(antilinkConfig || 'não configurado')}`);
+          
           if (antilinkConfig?.enabled) {
             // Regex para detectar links
             const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|net|org|br|io|me|tv|info|co|app|dev|xyz|site|online|store|shop|link|click|ly|bit\.ly|wa\.me|chat\.whatsapp\.com)[^\s]*)/gi;
             
-            if (linkRegex.test(text)) {
+            const hasLink = linkRegex.test(text);
+            log.info(`[ANTILINK] Texto: "${text.substring(0, 50)}", Contém link: ${hasLink}`);
+            
+            if (hasLink) {
               const senderJid = msg.key.participant || msg.key.remoteJid;
               
               // Verificar se o sender é admin (admins podem enviar links)
