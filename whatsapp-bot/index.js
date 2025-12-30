@@ -181,6 +181,8 @@ const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp:
 const antilinkGroups = new Map(); // key: groupJid, value: { enabled: boolean, allowAdmins: boolean }
 // Grupos com automações desativadas
 const disabledAutomationGroups = new Set(); // key: groupJid
+// Flag para saber se as configurações de grupo já foram carregadas
+let groupSettingsLoaded = false;
 
 // ===== SISTEMA DE AUTOMAÇÕES =====
 let automationsCache = []; // Cache das automações
@@ -703,6 +705,72 @@ function checkMemory() {
       log.info('Forçando garbage collection...');
       global.gc();
     }
+  }
+}
+
+// ===== SISTEMA DE CONFIGURAÇÕES DE GRUPO =====
+
+// Carregar configurações de todos os grupos do servidor
+async function loadGroupSettings() {
+  try {
+    const apiUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=get_all_group_settings`;
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN
+      },
+      timeout: 10000
+    });
+    
+    if (response.data && response.data.success) {
+      const settings = response.data.data || [];
+      
+      // Limpar configurações antigas
+      antilinkGroups.clear();
+      disabledAutomationGroups.clear();
+      
+      // Carregar configurações
+      for (const s of settings) {
+        if (s.antilink_enabled == 1) {
+          antilinkGroups.set(s.grupo_jid, { 
+            enabled: true, 
+            allowAdmins: s.antilink_allow_admins == 1 
+          });
+        }
+        if (s.automations_enabled == 0) {
+          disabledAutomationGroups.add(s.grupo_jid);
+        }
+      }
+      
+      groupSettingsLoaded = true;
+      log.info(`[GROUP SETTINGS] ${settings.length} configurações de grupo carregadas`);
+      log.info(`[GROUP SETTINGS] Antilink ativo em ${antilinkGroups.size} grupos`);
+      log.info(`[GROUP SETTINGS] Automações desativadas em ${disabledAutomationGroups.size} grupos`);
+    }
+  } catch (error) {
+    log.warn(`[GROUP SETTINGS] Erro ao carregar: ${error.message}`);
+  }
+}
+
+// Salvar configuração de grupo no servidor
+async function saveGroupSettings(grupoJid, grupoNome, config) {
+  try {
+    const apiUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=save_group_settings`;
+    await axios.post(apiUrl, {
+      grupo_jid: grupoJid,
+      grupo_nome: grupoNome,
+      antilink_enabled: config.antilinkEnabled ? 1 : 0,
+      antilink_allow_admins: config.antilinkAllowAdmins !== false ? 1 : 0,
+      automations_enabled: config.automationsEnabled !== false ? 1 : 0
+    }, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    log.info(`[GROUP SETTINGS] Configurações salvas para ${grupoNome || grupoJid}`);
+  } catch (error) {
+    log.error(`[GROUP SETTINGS] Erro ao salvar: ${error.message}`);
   }
 }
 
@@ -1259,22 +1327,38 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         
         if (action === 'on') {
           antilinkGroups.set(remoteJid, { enabled: true, allowAdmins: true });
+          // Salvar no banco de dados
+          const isAutomationDisabled = disabledAutomationGroups.has(remoteJid);
+          saveGroupSettings(remoteJid, groupMetadata.subject, {
+            antilinkEnabled: true,
+            antilinkAllowAdmins: true,
+            automationsEnabled: !isAutomationDisabled
+          });
           log.success(`[ANTILINK] Ativado no grupo ${groupMetadata.subject}`);
           return { 
             success: true, 
             message: `✅ *Anti-Link Ativado!*\n\n` +
                      `Membros que enviarem links serão removidos automaticamente.\n\n` +
-                     `⚠️ _Admins podem enviar links normalmente._`
+                     `⚠️ _Admins podem enviar links normalmente._\n\n` +
+                     `💾 _Configuração salva permanentemente._`
           };
         }
         
         if (action === 'off') {
           antilinkGroups.set(remoteJid, { enabled: false, allowAdmins: true });
+          // Salvar no banco de dados
+          const isAutomationDisabled = disabledAutomationGroups.has(remoteJid);
+          saveGroupSettings(remoteJid, groupMetadata.subject, {
+            antilinkEnabled: false,
+            antilinkAllowAdmins: true,
+            automationsEnabled: !isAutomationDisabled
+          });
           log.success(`[ANTILINK] Desativado no grupo ${groupMetadata.subject}`);
           return { 
             success: true, 
             message: `❌ *Anti-Link Desativado!*\n\n` +
-                     `Membros podem enviar links normalmente.`
+                     `Membros podem enviar links normalmente.\n\n` +
+                     `💾 _Configuração salva permanentemente._`
           };
         }
         
@@ -1284,10 +1368,10 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
       case '$automacao':
       case '$automacoes': {
         // Ativar/desativar automações no grupo
-        const args = text.split(' ').slice(1);
-        const action = args[0]?.toLowerCase();
+        const argsAuto = text.split(' ').slice(1);
+        const actionAuto = argsAuto[0]?.toLowerCase();
         
-        if (!action || !['on', 'off', 'status'].includes(action)) {
+        if (!actionAuto || !['on', 'off', 'status'].includes(actionAuto)) {
           const isDisabled = disabledAutomationGroups.has(remoteJid);
           return { 
             success: false, 
@@ -1300,7 +1384,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           };
         }
         
-        if (action === 'status') {
+        if (actionAuto === 'status') {
           const isDisabled = disabledAutomationGroups.has(remoteJid);
           return { 
             success: true, 
@@ -1311,24 +1395,40 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           };
         }
         
-        if (action === 'on') {
+        if (actionAuto === 'on') {
           disabledAutomationGroups.delete(remoteJid);
+          // Salvar no banco de dados
+          const isAntilinkEnabled = antilinkGroups.get(remoteJid)?.enabled || false;
+          saveGroupSettings(remoteJid, groupMetadata.subject, {
+            antilinkEnabled: isAntilinkEnabled,
+            antilinkAllowAdmins: true,
+            automationsEnabled: true
+          });
           log.success(`[AUTOMACAO] Ativadas no grupo ${groupMetadata.subject}`);
           return { 
             success: true, 
             message: `✅ *Automações Ativadas!*\n\n` +
-                     `O bot agora responderá às automações configuradas neste grupo.`
+                     `O bot agora responderá às automações configuradas neste grupo.\n\n` +
+                     `💾 _Configuração salva permanentemente._`
           };
         }
         
-        if (action === 'off') {
+        if (actionAuto === 'off') {
           disabledAutomationGroups.add(remoteJid);
+          // Salvar no banco de dados
+          const isAntilinkEnabled = antilinkGroups.get(remoteJid)?.enabled || false;
+          saveGroupSettings(remoteJid, groupMetadata.subject, {
+            antilinkEnabled: isAntilinkEnabled,
+            antilinkAllowAdmins: true,
+            automationsEnabled: false
+          });
           log.success(`[AUTOMACAO] Desativadas no grupo ${groupMetadata.subject}`);
           return { 
             success: true, 
             message: `❌ *Automações Desativadas!*\n\n` +
                      `O bot não responderá mais automaticamente neste grupo.\n\n` +
-                     `_Comandos ($ban, $antilink, etc) continuam funcionando._`
+                     `_Comandos ($ban, $antilink, etc) continuam funcionando._\n\n` +
+                     `💾 _Configuração salva permanentemente._`
           };
         }
         
@@ -2125,6 +2225,13 @@ async function start() {
           log.success('[AUTOMATIONS] Configurações carregadas!');
         }).catch(err => {
           log.warn(`[AUTOMATIONS] Erro ao carregar configurações: ${err.message}`);
+        });
+        
+        // Carregar configurações de grupos (antilink, automações por grupo)
+        loadGroupSettings().then(() => {
+          log.success('[GROUP SETTINGS] Configurações de grupos carregadas!');
+        }).catch(err => {
+          log.warn(`[GROUP SETTINGS] Erro ao carregar: ${err.message}`);
         });
         
         loadAutomations().then(autos => {

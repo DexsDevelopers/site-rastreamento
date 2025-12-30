@@ -41,6 +41,24 @@ try {
     $pdo->exec($sql);
     echo "✅ Tabela bot_automations criada/verificada!\n";
     
+    // Tabela de configurações por grupo (antilink, automações, etc)
+    $sqlGroupSettings = "CREATE TABLE IF NOT EXISTS bot_group_settings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        grupo_jid VARCHAR(100) NOT NULL UNIQUE,
+        grupo_nome VARCHAR(255) DEFAULT NULL,
+        antilink_enabled TINYINT(1) DEFAULT 0 COMMENT 'Se anti-link está ativo',
+        antilink_allow_admins TINYINT(1) DEFAULT 1 COMMENT 'Se admins podem enviar links',
+        automations_enabled TINYINT(1) DEFAULT 1 COMMENT 'Se automações estão ativas no grupo',
+        welcome_enabled TINYINT(1) DEFAULT 0 COMMENT 'Se boas-vindas está ativo',
+        welcome_message TEXT DEFAULT NULL COMMENT 'Mensagem de boas-vindas customizada',
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_grupo_jid (grupo_jid)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    
+    $pdo->exec($sqlGroupSettings);
+    echo "✅ Tabela bot_group_settings criada/verificada!\n";
+    
     // Adicionar coluna imagem_url se não existir (para tabelas já existentes)
     try {
         $pdo->exec("ALTER TABLE bot_automations ADD COLUMN imagem_url VARCHAR(500) DEFAULT NULL COMMENT 'URL da imagem a enviar com a resposta' AFTER resposta");

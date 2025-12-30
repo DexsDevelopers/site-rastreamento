@@ -190,6 +190,51 @@ try {
             }
             break;
             
+        case 'get_group_settings':
+            // Buscar configurações de um grupo específico
+            $grupoJid = sanitizeInput($_GET['grupo_jid'] ?? '');
+            if ($grupoJid) {
+                $settings = fetchOne($pdo, "SELECT * FROM bot_group_settings WHERE grupo_jid = ?", [$grupoJid]);
+                $response = ['success' => true, 'data' => $settings];
+            } else {
+                $response = ['success' => false, 'error' => 'grupo_jid não informado'];
+            }
+            break;
+            
+        case 'get_all_group_settings':
+            // Buscar configurações de todos os grupos (para inicialização do bot)
+            $allSettings = fetchData($pdo, "SELECT * FROM bot_group_settings");
+            $response = ['success' => true, 'data' => $allSettings, 'count' => count($allSettings)];
+            break;
+            
+        case 'save_group_settings':
+            // Salvar/atualizar configurações de grupo
+            $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+            
+            $grupoJid = sanitizeInput($input['grupo_jid'] ?? '');
+            $grupoNome = sanitizeInput($input['grupo_nome'] ?? '');
+            $antilinkEnabled = isset($input['antilink_enabled']) ? (int)$input['antilink_enabled'] : 0;
+            $antilinkAllowAdmins = isset($input['antilink_allow_admins']) ? (int)$input['antilink_allow_admins'] : 1;
+            $automationsEnabled = isset($input['automations_enabled']) ? (int)$input['automations_enabled'] : 1;
+            
+            if ($grupoJid) {
+                $sql = "INSERT INTO bot_group_settings 
+                        (grupo_jid, grupo_nome, antilink_enabled, antilink_allow_admins, automations_enabled)
+                        VALUES (?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE 
+                        grupo_nome = VALUES(grupo_nome),
+                        antilink_enabled = VALUES(antilink_enabled),
+                        antilink_allow_admins = VALUES(antilink_allow_admins),
+                        automations_enabled = VALUES(automations_enabled),
+                        atualizado_em = NOW()";
+                executeQuery($pdo, $sql, [$grupoJid, $grupoNome, $antilinkEnabled, $antilinkAllowAdmins, $automationsEnabled]);
+                
+                $response = ['success' => true, 'message' => 'Configurações salvas'];
+            } else {
+                $response = ['success' => false, 'error' => 'grupo_jid não informado'];
+            }
+            break;
+            
         default:
             $response = ['success' => false, 'error' => 'Ação não reconhecida: ' . $action];
     }
