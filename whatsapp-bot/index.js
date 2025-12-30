@@ -1004,7 +1004,30 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     
     // Verificar se a mensagem é uma resposta (para identificar o alvo)
     const quotedMessage = msg.message?.extendedTextMessage?.contextInfo;
-    const targetJid = quotedMessage?.participant;
+    const quotedParticipant = quotedMessage?.participant;
+    
+    // Verificar se há menções na mensagem (@pessoa)
+    const mentionedJids = quotedMessage?.mentionedJid || [];
+    
+    // Prioridade: 1. Mensagem respondida, 2. Menção @, 3. Número digitado
+    let targetJid = quotedParticipant;
+    
+    if (!targetJid && mentionedJids.length > 0) {
+      targetJid = mentionedJids[0]; // Pegar a primeira menção
+    }
+    
+    // Se não tem resposta nem menção, verificar se digitou um número
+    if (!targetJid) {
+      const args = text.split(' ').slice(1);
+      if (args.length > 0) {
+        // Limpar o número (remover @, +, -, espaços)
+        let numero = args[0].replace(/[@+\-\s]/g, '');
+        // Se parecer um número de telefone
+        if (/^\d{10,15}$/.test(numero)) {
+          targetJid = numero + '@s.whatsapp.net';
+        }
+      }
+    }
     
     // Obter metadata do grupo
     let groupMetadata;
@@ -1043,7 +1066,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar:* Responda a mensagem da pessoa que deseja banir e envie /ban' 
+            message: '❌ *Como usar o /ban:*\n\n• Responda a mensagem da pessoa\n• Ou marque: /ban @pessoa\n• Ou digite: /ban 5511999999999' 
           };
         }
         
@@ -1085,7 +1108,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar:* Responda a mensagem da pessoa e envie /promote' 
+            message: '❌ *Como usar o /promote:*\n\n• Responda a mensagem da pessoa\n• Ou marque: /promote @pessoa\n• Ou digite: /promote 5511999999999' 
           };
         }
         
@@ -1111,7 +1134,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         if (!targetJid) {
           return { 
             success: false, 
-            message: '❌ *Como usar:* Responda a mensagem de um admin e envie /demote' 
+            message: '❌ *Como usar o /demote:*\n\n• Responda a mensagem do admin\n• Ou marque: /demote @pessoa\n• Ou digite: /demote 5511999999999' 
           };
         }
         
