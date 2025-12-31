@@ -2406,7 +2406,7 @@ body {
 <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
-    <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
+    <button class="nav-toggle" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none;">
         <span></span>
         <span></span>
         <span></span>
@@ -4191,16 +4191,38 @@ function toggleAdminMenu() {
 // Fechar menu ao clicar no overlay
 document.addEventListener('DOMContentLoaded', function() {
     // Garantir que o botão hambúrguer apareça no mobile
-    const navToggle = document.querySelector('.nav-toggle');
-    if (navToggle && window.innerWidth <= 768) {
-        navToggle.style.display = 'flex';
-        navToggle.style.visibility = 'visible';
-        navToggle.style.opacity = '1';
-        navToggle.style.position = 'fixed';
-        navToggle.style.top = '16px';
-        navToggle.style.left = '16px';
-        navToggle.style.zIndex = '10001';
+    function showMenuButton() {
+        const navToggle = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
+        if (navToggle) {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                navToggle.style.display = 'flex';
+                navToggle.style.visibility = 'visible';
+                navToggle.style.opacity = '1';
+                navToggle.style.position = 'fixed';
+                navToggle.style.top = '16px';
+                navToggle.style.left = '16px';
+                navToggle.style.zIndex = '10001';
+                navToggle.style.width = '44px';
+                navToggle.style.height = '44px';
+                navToggle.style.background = 'rgba(26, 26, 26, 0.95)';
+                navToggle.style.border = '2px solid rgba(255, 51, 51, 0.3)';
+                navToggle.style.borderRadius = '8px';
+                navToggle.style.cursor = 'pointer';
+            } else {
+                navToggle.style.display = 'none';
+            }
+        }
     }
+    
+    // Mostrar imediatamente
+    showMenuButton();
+    
+    // Mostrar ao redimensionar
+    window.addEventListener('resize', showMenuButton);
+    
+    // Forçar após um pequeno delay para garantir que CSS carregou
+    setTimeout(showMenuButton, 100);
     
     const overlay = document.getElementById('navOverlay');
     if (overlay) {
