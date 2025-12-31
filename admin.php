@@ -1644,6 +1644,32 @@ body {
     pointer-events: auto !important;
     position: relative !important;
     cursor: pointer !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+}
+
+/* Garantir que botões dentro de tabelas sejam sempre clicáveis */
+table .actions .btn,
+table .actions button,
+td .btn,
+td button {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 16px !important;
+    flex-shrink: 0 !important;
+    z-index: 1000 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    cursor: pointer !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
 }
 
 .logout-btn {
