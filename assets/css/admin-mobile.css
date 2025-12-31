@@ -81,57 +81,156 @@ body > *:first-child {
 
 /* Touch targets maiores para mobile */
 @media (max-width: 768px) {
-    /* Menu toggle visível no mobile */
+    /* Menu toggle visível no mobile - sempre visível no topo */
     .menu-toggle,
     .nav-toggle {
         display: flex !important;
+        position: fixed !important;
+        top: max(16px, env(safe-area-inset-top) + 8px) !important;
+        left: 16px !important;
+        z-index: 10001 !important;
+        background: rgba(26, 26, 26, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 2px solid rgba(255, 51, 51, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
     }
     
-    /* Navegação mobile */
+    .nav-toggle:hover {
+        background: rgba(255, 51, 51, 0.15) !important;
+        border-color: rgba(255, 51, 51, 0.5) !important;
+    }
+    
+    /* Navegação mobile - Menu lateral estilo app */
     .admin-nav {
         position: fixed !important;
         top: 0 !important;
         left: -100% !important;
-        width: 280px !important;
+        width: 85% !important;
+        max-width: 320px !important;
         height: 100vh !important;
-        background: var(--card-bg, #1A1A1A) !important;
-        z-index: 1000 !important;
-        transition: left 0.3s ease !important;
+        height: 100dvh !important; /* Dynamic viewport height */
+        background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%) !important;
+        z-index: 10000 !important;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
-        padding: 60px 0 20px 0 !important;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
-        margin: 0 !important; /* Remover qualquer margin */
+        padding: 0 !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5) !important;
+        margin: 0 !important;
+        border-right: 1px solid rgba(255, 51, 51, 0.2) !important;
     }
     
     .admin-nav.active {
-        left: 0;
+        left: 0 !important;
     }
     
+    /* Header do menu mobile */
     .nav-brand {
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border-color, #2A2A2A);
-        margin-bottom: 20px;
-        font-size: 1.25rem;
-        font-weight: 600;
+        padding: max(20px, env(safe-area-inset-top) + 12px) 20px 16px 20px !important;
+        border-bottom: 1px solid rgba(255, 51, 51, 0.2) !important;
+        margin-bottom: 0 !important;
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
+        background: linear-gradient(135deg, rgba(255, 51, 51, 0.1) 0%, transparent 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        color: var(--text-primary, #FFFFFF) !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1 !important;
+        backdrop-filter: blur(10px) !important;
     }
     
+    .nav-brand i {
+        color: var(--primary-color, #FF3333) !important;
+        font-size: 1.5rem !important;
+    }
+    
+    /* Botão fechar no header */
+    .nav-brand::after {
+        content: '✕';
+        margin-left: auto;
+        font-size: 1.5rem;
+        color: var(--text-secondary, #cbd5e1);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .nav-brand:hover::after {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary, #FFFFFF);
+    }
+    
+    /* Ações do menu */
     .nav-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 0 12px;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 12px !important;
     }
     
     .nav-btn {
-        padding: 14px 16px !important;
+        padding: 16px 18px !important;
         font-size: 1rem !important;
-        min-height: 48px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border-radius: 8px;
-        text-align: left;
+        min-height: 56px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 16px !important;
+        border-radius: 12px !important;
+        text-align: left !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-primary, #FFFFFF) !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
+        font-weight: 500 !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .nav-btn::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: var(--primary-color, #FF3333);
+        transform: scaleY(0);
+        transition: transform 0.2s ease;
+    }
+    
+    .nav-btn:hover,
+    .nav-btn:active {
+        background: rgba(255, 51, 51, 0.1) !important;
+        border-color: rgba(255, 51, 51, 0.3) !important;
+        transform: translateX(4px);
+    }
+    
+    .nav-btn:hover::before,
+    .nav-btn:active::before {
+        transform: scaleY(1);
+    }
+    
+    .nav-btn i {
+        font-size: 1.3rem !important;
+        width: 24px;
+        text-align: center;
+        color: var(--primary-color, #FF3333) !important;
+    }
+    
+    .nav-btn.danger {
+        margin-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 20px;
+    }
+    
+    .nav-btn.danger i {
+        color: #EF4444 !important;
     }
     
     /* Overlay para fechar menu */
@@ -139,13 +238,17 @@ body > *:first-child {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        z-index: 999;
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 9999;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
     
     .nav-overlay.active {
         display: block;
+        opacity: 1;
     }
     
     /* Ajustar container quando menu está aberto */
