@@ -1654,14 +1654,14 @@ table .actions .btn,
 table .actions button,
 td .btn,
 td button {
-    min-width: 40px !important;
+    min-width: 50px !important;
     min-height: 40px !important;
     width: auto !important;
     height: auto !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 8px 16px !important;
+    padding: 10px 16px !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
     flex-basis: auto !important;
@@ -1676,6 +1676,44 @@ td button {
     line-height: 1.5 !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
+    margin: 0 4px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+table .actions .btn:hover,
+table .actions button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+table .actions .btn i,
+table .actions button i {
+    display: inline-block !important;
+    margin-right: 6px !important;
+    font-size: 1rem !important;
+    width: 1em !important;
+    height: 1em !important;
+    line-height: 1 !important;
+}
+
+table .actions .btn .btn-text {
+    display: inline-block !important;
+}
+
+@media (max-width: 768px) {
+    table .actions .btn .btn-text {
+        display: none !important;
+    }
+    table .actions .btn {
+        min-width: 44px !important;
+        padding: 10px !important;
+    }
+    table .actions .btn i {
+        margin-right: 0 !important;
+    }
 }
 
 /* Garantir que .actions não colapse */
@@ -3306,20 +3344,20 @@ table .actions button i:only-child {
                         <td>" . date("d/m/Y H:i", strtotime($row['data'])) . "</td>
                         <td>
                             <div class='actions'>
-                                <button class='btn btn-warning btn-sm' onclick='abrirModal(\"{$row['codigo']}\")' title='Editar'>
-                                    <i class='fas fa-edit'></i>
+                                <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$row['codigo']}' title='Editar'>
+                                    <i class='fas fa-edit'></i> <span class='btn-text'>Editar</span>
                                 </button>
-                                <button class='btn btn-info btn-sm' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver detalhes'>
-                                    <i class='fas fa-eye'></i>
+                                <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$row['codigo']}' title='Ver detalhes'>
+                                    <i class='fas fa-eye'></i> <span class='btn-text'>Detalhes</span>
                                 </button>
-                                <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp' style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'>
-                                    <i class='fab fa-whatsapp'></i> WhatsApp
+                                <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$row['codigo']}' title='Enviar atualização via WhatsApp'>
+                                    <i class='fab fa-whatsapp'></i> <span class='btn-text'>WhatsApp</span>
                                 </button>
                                 <form method='POST' style='display:inline' id='formDeletar{$row['codigo']}'>
                                     <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                     <input type='hidden' name='deletar' value='1'>
-                                    <button type='button' onclick='confirmarExclusao(\"formDeletar{$row['codigo']}\", \"rastreio\", \"{$row['codigo']}\")' class='btn btn-danger btn-sm' title='Excluir'>
-                                        <i class='fas fa-trash'></i>
+                                    <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletar{$row['codigo']}' data-codigo='{$row['codigo']}' title='Excluir'>
+                                        <i class='fas fa-trash'></i> <span class='btn-text'>Excluir</span>
                                     </button>
                                 </form>
                             </div>
@@ -3365,13 +3403,13 @@ table .actions button i:only-child {
                         <div class='card-status'>{$statusIcon}{$row['status_atual']}</div>
                         <div class='card-meta'><i class='fas fa-calendar'></i> " . date("d/m/Y H:i", strtotime($row['data'])) . "</div>
                         <div class='card-actions'>
-                            <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
-                            <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
-                            <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\" style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'><i class='fab fa-whatsapp'></i> WhatsApp</button>
+                            <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$row['codigo']}'><i class='fas fa-edit'></i> Editar</button>
+                            <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$row['codigo']}'><i class='fas fa-eye'></i> Detalhes</button>
+                            <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$row['codigo']}'><i class='fab fa-whatsapp'></i> WhatsApp</button>
                             <form method='POST' style='display:inline' id='formDeletarMobile{$row['codigo']}'>
                                 <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                 <input type='hidden' name='deletar' value='1'>
-                                <button type='button' onclick=\"confirmarExclusao('formDeletarMobile{$row['codigo']}', 'rastreio', '{$row['codigo']}')\" class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
+                                <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletarMobile{$row['codigo']}' data-codigo='{$row['codigo']}'><i class='fas fa-trash'></i> Excluir</button>
                             </form>
                         </div>
                     </div>";
@@ -4844,22 +4882,90 @@ document.addEventListener('DOMContentLoaded', function() {
     const observer = new MutationObserver(fixTableButtons);
     observer.observe(document.body, { childList: true, subtree: true });
     
-    // Garantir que abrirModal esteja acessível globalmente
-    if (typeof window.abrirModal === 'undefined') {
-        console.error('abrirModal não está definida! Verificando se o script foi carregado...');
-        // Tentar recarregar o script se necessário
-        const scripts = document.querySelectorAll('script');
-        scripts.forEach(script => {
-            if (script.textContent && script.textContent.includes('function abrirModal')) {
-                try {
-                    eval(script.textContent);
-                    console.log('Script abrirModal recarregado');
-                } catch (e) {
-                    console.error('Erro ao recarregar script:', e);
-                }
-            }
+    // Event listeners para os botões - substituir onclick inline
+    function initTableButtons() {
+        // Botão Editar
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.removeEventListener('click', handleEditClick);
+            btn.addEventListener('click', handleEditClick);
+        });
+        
+        // Botão Detalhes
+        document.querySelectorAll('.btn-details').forEach(btn => {
+            btn.removeEventListener('click', handleDetailsClick);
+            btn.addEventListener('click', handleDetailsClick);
+        });
+        
+        // Botão WhatsApp
+        document.querySelectorAll('.btn-whatsapp').forEach(btn => {
+            btn.removeEventListener('click', handleWhatsAppClick);
+            btn.addEventListener('click', handleWhatsAppClick);
+        });
+        
+        // Botão Excluir
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.removeEventListener('click', handleDeleteClick);
+            btn.addEventListener('click', handleDeleteClick);
         });
     }
+    
+    function handleEditClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const codigo = this.getAttribute('data-codigo');
+        if (codigo && typeof window.abrirModal === 'function') {
+            window.abrirModal(codigo);
+        } else {
+            console.error('Erro: abrirModal não está definida ou código não encontrado', codigo);
+        }
+    }
+    
+    function handleDetailsClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const codigo = this.getAttribute('data-codigo');
+        if (codigo && typeof window.viewDetails === 'function') {
+            window.viewDetails(codigo);
+        } else {
+            console.error('Erro: viewDetails não está definida ou código não encontrado', codigo);
+        }
+    }
+    
+    function handleWhatsAppClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const codigo = this.getAttribute('data-codigo');
+        if (codigo && typeof window.enviarWhatsappManual === 'function') {
+            window.enviarWhatsappManual(codigo);
+        } else {
+            console.error('Erro: enviarWhatsappManual não está definida ou código não encontrado', codigo);
+        }
+    }
+    
+    function handleDeleteClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const formId = this.getAttribute('data-form-id');
+        const codigo = this.getAttribute('data-codigo');
+        if (formId && codigo && typeof window.confirmarExclusao === 'function') {
+            window.confirmarExclusao(formId, 'rastreio', codigo);
+        } else {
+            console.error('Erro: confirmarExclusao não está definida ou dados não encontrados', formId, codigo);
+        }
+    }
+    
+    // Inicializar quando DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTableButtons);
+    } else {
+        initTableButtons();
+    }
+    
+    // Re-inicializar após mudanças no DOM
+    const buttonObserver = new MutationObserver(() => {
+        initTableButtons();
+    });
+    buttonObserver.observe(document.body, { childList: true, subtree: true });
     setTimeout(showMenuButton, 300);
     setTimeout(showMenuButton, 500);
     setTimeout(showMenuButton, 1000);
