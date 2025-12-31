@@ -1415,61 +1415,200 @@ body {
     box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.4);
 }
 
+/* Botões Modernos e Bonitos */
 .btn-success {
-    background: var(--gradient-success);
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-success::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
 }
 
 .btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.4);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+}
+
+.btn-success:hover::before {
+    left: 100%;
+}
+
+.btn-success:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 .btn-warning {
-    background: var(--gradient-warning);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-warning::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
 }
 
 .btn-warning:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(245, 158, 11, 0.4);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+}
+
+.btn-warning:hover::before {
+    left: 100%;
+}
+
+.btn-warning:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 .btn-danger {
-    background: var(--gradient-danger);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-danger::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
 }
 
 .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(239, 68, 68, 0.4);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+}
+
+.btn-danger:hover::before {
+    left: 100%;
+}
+
+.btn-danger:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 .btn-info {
-    background: linear-gradient(135deg, var(--info-color), #0891b2);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 14px 0 rgba(6, 182, 212, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
 }
 
 .btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(6, 182, 212, 0.4);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(6, 182, 212, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 4px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+}
+
+.btn-info:hover::before {
+    left: 100%;
+}
+
+.btn-info:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 .btn-sm {
-    padding: 8px 16px;
+    padding: 10px 18px;
     font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+}
+
+/* Ícones nos botões */
+.btn i {
+    font-size: 1rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s ease;
+}
+
+.btn:hover i {
+    transform: scale(1.1);
+}
+
+/* Botão WhatsApp especial */
+.btn-success.btn-whatsapp {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 50%, #075E54 100%);
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-success.btn-whatsapp:hover {
+    background: linear-gradient(135deg, #4ade80 0%, #25D366 50%, #128C7E 100%);
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .search-bar {
@@ -1661,7 +1800,7 @@ td button {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 10px 16px !important;
+    padding: 10px 18px !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
     flex-basis: auto !important;
@@ -1671,17 +1810,18 @@ td button {
     cursor: pointer !important;
     visibility: visible !important;
     opacity: 1 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     font-size: 0.875rem !important;
     line-height: 1.5 !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
-    margin: 0 4px !important;
+    margin: 0 6px !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-    content: '' !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    gap: 8px !important;
 }
 
 /* Forçar conteúdo visível nos botões */
@@ -1695,18 +1835,29 @@ table .actions button::before {
 
 table .actions .btn:hover,
 table .actions button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(-3px) scale(1.02) !important;
+}
+
+table .actions .btn:active,
+table .actions button:active {
+    transform: translateY(-1px) scale(0.98) !important;
 }
 
 table .actions .btn i,
 table .actions button i {
     display: inline-block !important;
-    margin-right: 6px !important;
+    margin-right: 0 !important;
     font-size: 1rem !important;
     width: 1em !important;
     height: 1em !important;
     line-height: 1 !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)) !important;
+    transition: transform 0.3s ease !important;
+}
+
+table .actions .btn:hover i,
+table .actions button:hover i {
+    transform: scale(1.1) !important;
 }
 
 table .actions .btn .btn-text {
