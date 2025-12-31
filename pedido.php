@@ -526,6 +526,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+        
+        /* Animações suaves */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-card,
+        .info-box,
+        .header {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .gallery-item {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .gallery-item:nth-child(1) { animation-delay: 0.1s; }
+        .gallery-item:nth-child(2) { animation-delay: 0.2s; }
+        .gallery-item:nth-child(3) { animation-delay: 0.3s; }
+        .gallery-item:nth-child(4) { animation-delay: 0.4s; }
+        .gallery-item:nth-child(5) { animation-delay: 0.5s; }
+        .gallery-item:nth-child(6) { animation-delay: 0.6s; }
+        
+        /* Loading state do botão */
+        .submit-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        .submit-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Melhorias de acessibilidade */
+        .form-group input:invalid:not(:placeholder-shown),
+        .form-group select:invalid:not(:placeholder-shown) {
+            border-color: #ef4444;
+        }
+        
+        .form-group input:valid:not(:placeholder-shown),
+        .form-group select:valid:not(:placeholder-shown) {
+            border-color: #16a34a;
+        }
     </style>
 </head>
 <body>
@@ -541,7 +606,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         
         <div class="form-card">
-            <form method="POST" id="pedidoForm">
+            <form method="POST" id="pedidoForm" onsubmit="handleSubmit(event)">
                 <!-- Dados Pessoais -->
                 <h3 style="margin-bottom: 20px; color: var(--primary-color);">
                     <i class="fas fa-user"></i> Dados Pessoais
@@ -642,7 +707,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <textarea name="observacoes" rows="3" placeholder="Pontos de referência, horário preferencial de entrega, etc"></textarea>
                 </div>
                 
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn" id="submitBtn">
                     <i class="fas fa-paper-plane"></i> Enviar Pedido
                 </button>
             </form>
@@ -721,6 +786,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
     
     <script>
+        // Prevenir zoom no mobile
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+        document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+        document.addEventListener('gestureend', function(e) { e.preventDefault(); });
+        
+        // Loading state do formulário
+        function handleSubmit(e) {
+            const form = document.getElementById('pedidoForm');
+            const btn = document.getElementById('submitBtn');
+            
+            if (form.checkValidity()) {
+                btn.classList.add('loading');
+                btn.innerHTML = '<span style="opacity: 0;">Enviando...</span>';
+            }
+        }
+        
         // Máscara de telefone
         document.querySelector('input[name="telefone"]').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
