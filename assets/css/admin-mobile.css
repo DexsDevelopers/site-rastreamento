@@ -1,13 +1,39 @@
 /* ===== CSS RESPONSIVO PARA MOBILE - PWA ===== */
 
-/* Safe Area para iPhone (notch) */
+/* Safe Area para iPhone (notch) - apenas laterais e bottom */
 @supports (padding: max(0px)) {
     body {
         padding-left: max(12px, env(safe-area-inset-left));
         padding-right: max(12px, env(safe-area-inset-right));
-        padding-top: max(12px, env(safe-area-inset-top));
+        padding-top: 0; /* Removido - causa espaço extra */
         padding-bottom: max(12px, env(safe-area-inset-bottom));
     }
+}
+
+/* Reset de espaçamento no topo */
+html, body {
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Container principal sem margin-top extra */
+.container {
+    margin-top: 0 !important;
+    padding-top: 12px !important;
+}
+
+/* Admin nav sem espaço extra */
+.admin-nav {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Remover qualquer espaço antes do primeiro elemento */
+body > *:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
 /* Menu Hambúrguer */
@@ -63,18 +89,19 @@
     
     /* Navegação mobile */
     .admin-nav {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 280px;
-        height: 100vh;
-        background: var(--card-bg, #1A1A1A);
-        z-index: 1000;
-        transition: left 0.3s ease;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 60px 0 20px 0;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        position: fixed !important;
+        top: 0 !important;
+        left: -100% !important;
+        width: 280px !important;
+        height: 100vh !important;
+        background: var(--card-bg, #1A1A1A) !important;
+        z-index: 1000 !important;
+        transition: left 0.3s ease !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 60px 0 20px 0 !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+        margin: 0 !important; /* Remover qualquer margin */
     }
     
     .admin-nav.active {
@@ -133,17 +160,36 @@
         -webkit-tap-highlight-color: rgba(255, 51, 51, 0.2);
     }
     
+    /* Reset completo do body no mobile */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        padding-top: 0 !important;
+    }
+    
     /* Container responsivo */
     .container {
         padding: 12px !important;
         max-width: 100% !important;
+        margin: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 12px !important;
     }
     
-    /* Header mobile */
+    /* Header sem margin-top extra */
     .header {
+        margin-top: 0 !important;
+        padding-top: 20px !important;
         padding: 20px 16px !important;
         border-radius: 16px !important;
         margin-bottom: 16px !important;
+    }
+    
+    /* Remover espaço de elementos antes do container */
+    body > .toast-container,
+    body > #pwaInstallBtn,
+    body > .nav-overlay {
+        margin-top: 0 !important;
     }
     
     .header h1 {
@@ -497,12 +543,18 @@
 /* PWA - Fullscreen mode */
 @media (display-mode: standalone) {
     body {
-        /* Ajustes quando instalado como PWA */
-        padding-top: env(safe-area-inset-top);
+        /* Ajustes quando instalado como PWA - apenas safe area se necessário */
+        padding-top: 0;
     }
     
     .header {
         margin-top: 0;
+        padding-top: max(20px, env(safe-area-inset-top)) !important;
+    }
+    
+    /* Menu toggle ajustado para safe area */
+    .nav-toggle {
+        top: max(16px, env(safe-area-inset-top) + 8px) !important;
     }
 }
 
