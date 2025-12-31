@@ -4797,6 +4797,52 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(showMenuButton, 10);
     setTimeout(showMenuButton, 50);
     setTimeout(showMenuButton, 100);
+    
+    // CORRIGIR BOTÕES DA TABELA - Forçar tamanho mínimo
+    function fixTableButtons() {
+        const buttons = document.querySelectorAll('table .actions .btn, table .actions button, td .btn, td button');
+        buttons.forEach(btn => {
+            const rect = btn.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) {
+                // Forçar tamanho mínimo via inline style
+                btn.style.setProperty('min-width', '40px', 'important');
+                btn.style.setProperty('min-height', '40px', 'important');
+                btn.style.setProperty('width', 'auto', 'important');
+                btn.style.setProperty('height', 'auto', 'important');
+                btn.style.setProperty('display', 'inline-flex', 'important');
+                btn.style.setProperty('padding', '8px 16px', 'important');
+                btn.style.setProperty('flex-shrink', '0', 'important');
+                btn.style.setProperty('box-sizing', 'border-box', 'important');
+                
+                // Garantir que o ícone seja visível
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.style.setProperty('display', 'inline-block', 'important');
+                    icon.style.setProperty('font-size', '1rem', 'important');
+                    icon.style.setProperty('width', '1em', 'important');
+                    icon.style.setProperty('height', '1em', 'important');
+                }
+            }
+        });
+    }
+    
+    // Executar quando DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fixTableButtons);
+    } else {
+        fixTableButtons();
+    }
+    
+    // Executar múltiplas vezes para garantir
+    setTimeout(fixTableButtons, 10);
+    setTimeout(fixTableButtons, 50);
+    setTimeout(fixTableButtons, 100);
+    setTimeout(fixTableButtons, 300);
+    setTimeout(fixTableButtons, 500);
+    
+    // Executar após mudanças no DOM
+    const observer = new MutationObserver(fixTableButtons);
+    observer.observe(document.body, { childList: true, subtree: true });
     setTimeout(showMenuButton, 300);
     setTimeout(showMenuButton, 500);
     setTimeout(showMenuButton, 1000);
