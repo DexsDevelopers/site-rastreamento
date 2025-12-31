@@ -903,14 +903,29 @@ if (isset($_POST['undo_action'])) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 <title>Painel Admin - Helmer Logistics</title>
 <meta name="theme-color" content="#FF3333">
+<meta name="description" content="Painel administrativo Helmer Logistics - Gerencie rastreamentos, mensagens e configurações">
+<meta name="keywords" content="helmer, logistics, admin, rastreamento">
+<meta name="author" content="Helmer Logistics">
+
+<!-- PWA Meta Tags -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Helmer Admin">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Helmer Admin">
+
+<!-- Preconnect para melhor performance -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+<!-- CSS Mobile Responsivo -->
+<link rel="stylesheet" href="assets/css/admin-mobile.css">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- SweetAlert2 para popups bonitos -->

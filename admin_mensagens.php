@@ -111,9 +111,14 @@ foreach ($etapas as $key => $etapa) {
 <head>
     <meta charset="UTF-8">
     <title>Configurações - Mensagens WhatsApp</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#FF3333">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
     <meta http-equiv="Cache-Control" content="no-store" />
     <meta http-equiv="Pragma" content="no-cache" />
+    <link rel="stylesheet" href="assets/css/admin-mobile.css">
     <style>
         * { box-sizing: border-box; }
         body { 

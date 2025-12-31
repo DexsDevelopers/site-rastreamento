@@ -106,6 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
 <head>
     <meta charset="UTF-8">
     <title>Configurações - Entrega Expressa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#FF3333">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
+    <link rel="stylesheet" href="assets/css/admin-mobile.css">
     <style>
         body { background:#0b0b0b; color:#fff; font-family: Arial, sans-serif; margin:0; padding:20px; }
         .container { max-width: 720px; margin: 0 auto; background:#161616; padding:24px; border-radius:12px; border:1px solid #2a2a2a; }

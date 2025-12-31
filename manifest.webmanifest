@@ -1,19 +1,60 @@
 {
-  "name": "Helmer Admin",
-  "short_name": "HelmerAdmin",
-  "start_url": "admin.php",
-  "scope": ".",
+  "name": "Helmer Admin - Painel Administrativo",
+  "short_name": "Helmer Admin",
+  "start_url": "/admin.php",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#2563eb",
-  "description": "Painel administrativo Helmer Logistics",
+  "orientation": "portrait-primary",
+  "background_color": "#0A0A0A",
+  "theme_color": "#FF3333",
+  "description": "Painel administrativo completo Helmer Logistics - Gerencie rastreamentos, mensagens e configurações",
+  "categories": ["business", "productivity"],
   "icons": [
-    { "src": "assets/images/whatsapp-1.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
-    { "src": "assets/images/whatsapp-4.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+    {
+      "src": "assets/images/whatsapp-1.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/whatsapp-4.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Configurações Expressa", "url": "admin_settings.php", "icons": [{"src":"assets/images/whatsapp-2.jpg","sizes":"192x192","type":"image/jpeg"}] }
-  ]
+    {
+      "name": "Rastreamentos",
+      "short_name": "Rastreios",
+      "description": "Ver e gerenciar rastreamentos",
+      "url": "/admin.php",
+      "icons": [{"src": "assets/images/whatsapp-1.jpg", "sizes": "192x192"}]
+    },
+    {
+      "name": "Configurações",
+      "short_name": "Config",
+      "description": "Configurações de entrega expressa",
+      "url": "/admin_settings.php",
+      "icons": [{"src": "assets/images/whatsapp-2.jpg", "sizes": "192x192"}]
+    },
+    {
+      "name": "Bot Config",
+      "short_name": "Bot",
+      "description": "Configurações do bot WhatsApp",
+      "url": "/admin_bot_config.php",
+      "icons": [{"src": "assets/images/whatsapp-3.jpg", "sizes": "192x192"}]
+    },
+    {
+      "name": "Mensagens",
+      "short_name": "Msgs",
+      "description": "Configurar mensagens WhatsApp",
+      "url": "/admin_mensagens.php",
+      "icons": [{"src": "assets/images/whatsapp-4.jpg", "sizes": "192x192"}]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }
 
 
