@@ -3790,12 +3790,27 @@ function abrirModal(codigo) {
 }
 
 function closeModal() {
-    document.getElementById('modal').style.display = 'none';
+    const modal = document.getElementById('modal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Limpar qualquer estado do formulário se necessário
+        const form = document.getElementById('formEditar');
+        if (form) {
+            form.reset();
+        }
+    }
 }
 
 function closeDetailsModal() {
-    document.getElementById('detailsModal').style.display = 'none';
+    const detailsModal = document.getElementById('detailsModal');
+    if (detailsModal) {
+        detailsModal.style.display = 'none';
+    }
 }
+
+// Garantir que closeModal esteja acessível globalmente
+window.closeModal = closeModal;
+window.closeDetailsModal = closeDetailsModal;
 
 // Função para visualizar detalhes
 function viewDetails(codigo) {
@@ -4258,6 +4273,17 @@ window.onclick = function(event) {
     const modal = document.getElementById('modal');
     const detailsModal = document.getElementById('detailsModal');
     
+    // Não fechar se clicar no botão close ou no conteúdo do modal
+    if (event.target.classList.contains('close')) {
+        if (event.target.closest('#modal')) {
+            closeModal();
+        }
+        if (event.target.closest('#detailsModal')) {
+            closeDetailsModal();
+        }
+        return;
+    }
+    
     if (event.target === modal) {
         closeModal();
     }
@@ -4265,6 +4291,69 @@ window.onclick = function(event) {
         closeDetailsModal();
     }
 }
+
+// Adicionar event listeners diretos aos botões close
+document.addEventListener('DOMContentLoaded', function() {
+    // Botão close do modal de edição
+    const modalCloseBtn = document.querySelector('#modal .close');
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal();
+        });
+    }
+    
+    // Botão close do modal de detalhes
+    const detailsCloseBtn = document.querySelector('#detailsModal .close');
+    if (detailsCloseBtn) {
+        detailsCloseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeDetailsModal();
+        });
+    }
+    
+    // Re-aplicar listeners quando o modal for aberto (caso seja recriado dinamicamente)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const modal = document.getElementById('modal');
+                const detailsModal = document.getElementById('detailsModal');
+                
+                if (modal && window.getComputedStyle(modal).display === 'flex') {
+                    const closeBtn = modal.querySelector('.close');
+                    if (closeBtn && !closeBtn.dataset.listenerAdded) {
+                        closeBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            closeModal();
+                        });
+                        closeBtn.dataset.listenerAdded = 'true';
+                    }
+                }
+                
+                if (detailsModal && window.getComputedStyle(detailsModal).display === 'flex') {
+                    const closeBtn = detailsModal.querySelector('.close');
+                    if (closeBtn && !closeBtn.dataset.listenerAdded) {
+                        closeBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            closeDetailsModal();
+                        });
+                        closeBtn.dataset.listenerAdded = 'true';
+                    }
+                }
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['style']
+    });
+});
 
 // Atalhos de teclado
 document.addEventListener('keydown', function(e) {
