@@ -1592,7 +1592,7 @@ body {
     
     /* Menu Hambúrguer Profissional */
     .nav-toggle { 
-        display: none;
+        display: none; /* Escondido por padrão no desktop */
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -1605,6 +1605,20 @@ body {
         transition: all 0.3s ease;
         position: relative;
         z-index: 1001;
+    }
+    
+    /* NO MOBILE: Mostrar o botão */
+    @media (max-width: 768px) {
+        .nav-toggle,
+        #navToggleBtn {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            top: 16px !important;
+            left: 16px !important;
+            z-index: 10001 !important;
+        }
     }
     
     .nav-toggle:hover {
@@ -2043,12 +2057,35 @@ body {
         left: 0 !important;
     }
     
-    .nav-toggle { 
+    /* FORÇAR BOTÃO HAMBÚRGUER VISÍVEL NO MOBILE */
+    .nav-toggle,
+    #navToggleBtn { 
         display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         position: fixed !important;
-        top: max(16px, env(safe-area-inset-top) + 8px) !important;
+        top: 16px !important;
         left: 16px !important;
         z-index: 10001 !important;
+        width: 44px !important;
+        height: 44px !important;
+        background: rgba(26, 26, 26, 0.95) !important;
+        border: 2px solid rgba(255, 51, 51, 0.3) !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+    
+    .nav-toggle span,
+    #navToggleBtn span {
+        display: block !important;
+        width: 24px !important;
+        height: 2px !important;
+        background: #FF3333 !important;
+        border-radius: 2px !important;
     }
     
     .nav-actions { 
