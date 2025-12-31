@@ -1706,13 +1706,21 @@ button.btn i,
     opacity: 1 !important;
     font-size: 1rem !important;
     width: 1em !important;
+    min-width: 1em !important;
     height: 1em !important;
+    min-height: 1em !important;
     line-height: 1 !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
 }
 
 /* Garantir que botões com apenas ícone tenham tamanho mínimo */
 .btn:has(> i:only-child),
-button.btn:has(> i:only-child) {
+button.btn:has(> i:only-child),
+table .actions .btn:has(> i:only-child),
+table .actions button:has(> i:only-child) {
     min-width: 40px !important;
     min-height: 40px !important;
     width: 40px !important;
@@ -1721,6 +1729,17 @@ button.btn:has(> i:only-child) {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+}
+
+/* Fallback para navegadores que não suportam :has() */
+table .actions .btn i:only-child,
+table .actions button i:only-child {
+    display: block !important;
+    width: 1em !important;
+    min-width: 1em !important;
+    height: 1em !important;
+    min-height: 1em !important;
+    margin: 0 auto !important;
 }
 
 .logout-btn {
