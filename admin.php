@@ -5139,12 +5139,13 @@ document.addEventListener('DOMContentLoaded', function() {
         buttons.forEach(btn => {
             const rect = btn.getBoundingClientRect();
             // Sempre forçar estilos, mesmo se já tiver tamanho
-            btn.style.setProperty('min-width', '50px', 'important');
-            btn.style.setProperty('min-height', '40px', 'important');
+            btn.style.setProperty('min-width', '60px', 'important');
+            btn.style.setProperty('min-height', '52px', 'important');
             btn.style.setProperty('width', 'auto', 'important');
             btn.style.setProperty('height', 'auto', 'important');
             btn.style.setProperty('display', 'inline-flex', 'important');
-            btn.style.setProperty('padding', '10px 16px', 'important');
+            btn.style.setProperty('padding', '14px 24px', 'important');
+            btn.style.setProperty('font-size', '1rem', 'important');
             btn.style.setProperty('flex-shrink', '0', 'important');
             btn.style.setProperty('flex-grow', '0', 'important');
             btn.style.setProperty('box-sizing', 'border-box', 'important');
@@ -5175,8 +5176,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Se ainda tiver tamanho 0, forçar width/height fixos
             if (rect.width === 0 || rect.height === 0) {
-                btn.style.setProperty('width', '50px', 'important');
-                btn.style.setProperty('height', '40px', 'important');
+                btn.style.setProperty('width', '60px', 'important');
+                btn.style.setProperty('height', '52px', 'important');
             }
         });
     }
