@@ -974,6 +974,15 @@ if (isset($_POST['undo_action'])) {
         visibility: visible !important;
         opacity: 1 !important;
     }
+    
+    /* Garantir que o menu tenha fundo visível quando ativo */
+    .admin-nav.active {
+        background: #1A1A1A !important;
+        background-color: #1A1A1A !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+    }
 }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
