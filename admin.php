@@ -4372,7 +4372,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Forçar também via className para garantir
             navToggle.classList.add('mobile-visible');
             
-            console.log('Menu button forced visible. Computed display:', window.getComputedStyle(navToggle).display);
+                // Verificar se realmente está visível
+                const computed = window.getComputedStyle(navToggle);
+                const rect = navToggle.getBoundingClientRect();
+                console.log('Menu button forced visible. Display:', computed.display);
+                console.log('Position:', computed.position, 'Top:', computed.top, 'Left:', computed.left);
+                console.log('Z-index:', computed.zIndex);
+                console.log('Width:', rect.width, 'Height:', rect.height);
+                console.log('Bounding rect:', rect);
+                
+                // Forçar também via DOM para garantir
+                navToggle.setAttribute('data-mobile-visible', 'true');
         } else {
             navToggle.style.setProperty('display', 'none', 'important');
             navToggle.classList.remove('mobile-visible');
