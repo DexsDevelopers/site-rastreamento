@@ -65,9 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $telefoneNormalizado = normalizePhoneToDigits($telefone);
             
             if ($telefoneNormalizado) {
-                // Buscar chave PIX das configurações
-                $chavePix = getDynamicConfig('PEDIDO_PIX_KEY', '');
-                
                 $mensagem = "🎉 *Olá, {$nome}!*\n\n";
                 $mensagem .= "✅ Recebemos seu pedido com sucesso!\n\n";
                 $mensagem .= "📦 *Endereço de entrega confirmado:*\n";
@@ -75,14 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($complemento) $mensagem .= " - {$complemento}";
                 $mensagem .= "\n{$bairro} - {$cidade}/{$estado}\n";
                 $mensagem .= "CEP: " . substr($cep, 0, 5) . "-" . substr($cep, 5) . "\n\n";
-                
-                if ($chavePix) {
-                    $mensagem .= "💳 *Chave PIX para pagamento:*\n";
-                    $mensagem .= "`{$chavePix}`\n\n";
-                }
-                
-                $mensagem .= "📸 Após o pagamento, envie o comprovante aqui nesta conversa.\n\n";
-                $mensagem .= "⏳ Assim que confirmarmos, seu pedido será processado!\n\n";
+                $mensagem .= "⏳ Nossa equipe entrará em contato em breve para finalizar seu pedido!\n\n";
                 $mensagem .= "Obrigado pela preferência! 🚚";
                 
                 $resultado = sendWhatsappMessage($telefoneNormalizado, $mensagem);
@@ -106,7 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#FF3333">
     <title>Fazer Pedido - Helmer Logistics</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -131,10 +122,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         body {
             background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%);
+            background-attachment: fixed;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
@@ -163,12 +157,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .form-card {
-            background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+            background: linear-gradient(145deg, rgba(26, 26, 26, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
             border: 1px solid rgba(255, 51, 51, 0.3);
             border-radius: 24px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 51, 51, 0.1);
             margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
         }
         
         .form-group {
@@ -192,14 +200,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 14px 18px;
-            background: #0f0f0f;
-            border: 1px solid var(--border-color);
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .form-group input:focus,
@@ -207,7 +215,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
+            box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.15), 0 4px 12px rgba(255, 51, 51, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-1px);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
         
         .form-row {
@@ -224,38 +239,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .submit-btn {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             color: white;
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(255, 51, 51, 0.4), 0 0 0 0 rgba(255, 51, 51, 0.5);
+        }
+        
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .submit-btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
         
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 51, 51, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(255, 51, 51, 0.5), 0 0 0 4px rgba(255, 51, 51, 0.2);
         }
         
         .submit-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 51, 51, 0.4);
+        }
+        
+        .submit-btn i {
+            margin-right: 8px;
         }
         
         .info-box {
-            background: rgba(255, 51, 51, 0.1);
+            background: linear-gradient(135deg, rgba(255, 51, 51, 0.15) 0%, rgba(255, 102, 0, 0.1) 100%);
             border: 1px solid rgba(255, 51, 51, 0.3);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 24px;
             margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
         }
         
         .info-box i {
             color: var(--primary-color);
-            margin-right: 10px;
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+        
+        .info-box strong {
+            color: var(--primary-color);
+            font-weight: 600;
         }
         
         /* Seção de Referências */
@@ -380,17 +441,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         @media (max-width: 768px) {
-            .form-row,
-            .form-row-3 {
-                grid-template-columns: 1fr;
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                max-width: 100%;
+            }
+            
+            .header {
+                padding: 30px 15px;
+                margin-bottom: 30px;
             }
             
             .header h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+                gap: 15px;
             }
             
             .form-card {
-                padding: 25px;
+                padding: 24px 20px;
+                border-radius: 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+            
+            .info-box {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+            
+            .submit-btn {
+                padding: 16px;
+                font-size: 1rem;
             }
             
             .gallery-grid {
@@ -405,6 +506,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .stats-badges {
                 flex-direction: column;
                 align-items: center;
+                gap: 0.75rem;
+            }
+            
+            /* Prevenir zoom */
+            * {
+                touch-action: manipulation !important;
+            }
+            
+            input,
+            select,
+            textarea {
+                font-size: 16px !important;
             }
         }
         
@@ -424,8 +537,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="info-box">
             <i class="fas fa-info-circle"></i>
-            <strong>Como funciona:</strong> Após preencher o formulário, você receberá as informações de pagamento via WhatsApp. 
-            Assim que o pagamento for confirmado, seu pedido será processado com segurança!
+            <strong>Como funciona:</strong> Preencha seus dados abaixo e nossa equipe entrará em contato via WhatsApp em breve para finalizar seu pedido com segurança e agilidade!
         </div>
         
         <div class="form-card">
@@ -661,11 +773,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </p>
                         <?php if ($whatsappEnviado): ?>
                         <p style="font-size: 14px; color: #25D366; margin-bottom: 10px;">
-                            <i class="fab fa-whatsapp"></i> Enviamos uma mensagem no seu WhatsApp com as instruções de pagamento!
+                            <i class="fab fa-whatsapp"></i> Enviamos uma mensagem no seu WhatsApp! Nossa equipe entrará em contato em breve.
                         </p>
                         <?php else: ?>
                         <p style="font-size: 14px; color: #888;">
-                            Aguarde nosso contato via WhatsApp com as informações de pagamento.
+                            Aguarde nosso contato via WhatsApp. Nossa equipe entrará em contato em breve para finalizar seu pedido.
                         </p>
                         <?php endif; ?>
                     </div>
@@ -694,6 +806,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 </body>
 </html>
+
 
 
 
