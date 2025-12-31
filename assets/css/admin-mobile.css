@@ -81,10 +81,12 @@ body > *:first-child {
 
 /* Touch targets maiores para mobile */
 @media (max-width: 768px) {
-    /* Menu toggle visível no mobile - sempre visível no topo */
+    /* Forçar visibilidade do botão hambúrguer */
     .menu-toggle,
     .nav-toggle {
         display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         position: fixed !important;
         top: max(16px, env(safe-area-inset-top) + 8px) !important;
         left: 16px !important;
@@ -94,6 +96,21 @@ body > *:first-child {
         -webkit-backdrop-filter: blur(10px) !important;
         border: 2px solid rgba(255, 51, 51, 0.3) !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        width: 44px !important;
+        height: 44px !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+    }
+    
+    .nav-toggle span {
+        display: block !important;
+        width: 24px !important;
+        height: 2px !important;
+        background: #FF3333 !important;
+        border-radius: 2px !important;
     }
     
     .nav-toggle:hover {
@@ -119,10 +136,17 @@ body > *:first-child {
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5) !important;
         margin: 0 !important;
         border-right: 1px solid rgba(255, 51, 51, 0.2) !important;
+        display: block !important;
+        visibility: visible !important;
     }
     
     .admin-nav.active {
         left: 0 !important;
+    }
+    
+    /* Garantir que o menu não fique escondido */
+    .admin-nav:not(.active) {
+        left: -100% !important;
     }
     
     /* Header do menu mobile */
@@ -558,6 +582,23 @@ body > *:first-child {
         right: 16px;
         padding: 12px 20px;
         font-size: 0.85rem;
+    }
+}
+
+/* Garantir que o botão hambúrguer apareça no mobile - regra mais específica */
+@media screen and (max-width: 768px) {
+    /* Sobrescrever qualquer CSS inline */
+    body .nav-toggle,
+    body .menu-toggle {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Garantir que o menu não fique escondido por CSS inline */
+    body .admin-nav {
+        display: block !important;
+        visibility: visible !important;
     }
 }
 
