@@ -2347,7 +2347,17 @@ table .actions button i:only-child {
     .card-status { display:flex; align-items:center; gap:6px; color: var(--text-primary); font-size: .95rem; }
     .card-meta { color: var(--text-secondary); font-size: .9rem; }
     .card-actions { display:flex; gap:8px; flex-wrap: wrap; }
-    .card-actions .btn { padding: 8px 12px; border-radius: 10px; }
+    .card-actions .btn { 
+        padding: 10px 18px; 
+        border-radius: 10px; 
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
     .nav-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; }
 
     /* Sistema de Notificações */
