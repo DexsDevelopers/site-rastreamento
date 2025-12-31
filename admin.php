@@ -1020,6 +1020,34 @@ if (isset($_POST['undo_action'])) {
         z-index: 100 !important;
         pointer-events: auto !important;
         position: relative !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        width: auto !important;
+        height: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px 16px !important;
+    }
+    
+    .actions {
+        display: flex !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+    }
+    
+    .actions .btn,
+    .actions button {
+        min-width: 40px !important;
+        min-height: 40px !important;
+        width: auto !important;
+        height: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px 16px !important;
+        flex-shrink: 0 !important;
     }
 }
 </style>
@@ -1598,6 +1626,24 @@ body {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+}
+
+.actions .btn,
+.actions button {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 16px !important;
+    flex-shrink: 0 !important;
+    z-index: 100 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    cursor: pointer !important;
 }
 
 .logout-btn {
