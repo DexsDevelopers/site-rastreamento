@@ -903,7 +903,7 @@ if (isset($_POST['undo_action'])) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Painel Admin - Helmer Logistics</title>
 <meta name="theme-color" content="#FF3333">
 <meta name="description" content="Painel administrativo Helmer Logistics - Gerencie rastreamentos, mensagens e configurações">

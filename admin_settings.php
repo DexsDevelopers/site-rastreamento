@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_expre
 <head>
     <meta charset="UTF-8">
     <title>Configurações - Entrega Expressa</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#FF3333">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.webmanifest">

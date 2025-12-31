@@ -111,7 +111,7 @@ foreach ($etapas as $key => $etapa) {
 <head>
     <meta charset="UTF-8">
     <title>Configurações - Mensagens WhatsApp</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#FF3333">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.webmanifest">
