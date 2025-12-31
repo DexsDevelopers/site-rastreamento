@@ -4309,27 +4309,78 @@ window.onclick = function(event) {
     }
 }
 
-// Adicionar event listeners diretos aos botões close
-document.addEventListener('DOMContentLoaded', function() {
+// Função auxiliar para fechar modal
+function handleCloseModal(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (typeof window.closeModal === 'function') {
+        window.closeModal();
+    } else if (typeof closeModal === 'function') {
+        closeModal();
+    } else {
+        const modal = document.getElementById('modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+}
+
+function handleCloseDetailsModal(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (typeof window.closeDetailsModal === 'function') {
+        window.closeDetailsModal();
+    } else if (typeof closeDetailsModal === 'function') {
+        closeDetailsModal();
+    } else {
+        const detailsModal = document.getElementById('detailsModal');
+        if (detailsModal) {
+            detailsModal.style.display = 'none';
+        }
+    }
+}
+
+// Função para anexar listeners aos botões close
+function attachCloseButtonListeners() {
     // Botão close do modal de edição
     const modalCloseBtn = document.querySelector('#modal .close');
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeModal();
-        });
+    if (modalCloseBtn && !modalCloseBtn.dataset.listenerAttached) {
+        modalCloseBtn.removeEventListener('click', handleCloseModal);
+        modalCloseBtn.addEventListener('click', handleCloseModal);
+        modalCloseBtn.dataset.listenerAttached = 'true';
+    }
+    
+    // Botão Cancelar do modal
+    const cancelBtn = document.querySelector('#modal .btn-cancel-modal');
+    if (cancelBtn && !cancelBtn.dataset.listenerAttached) {
+        cancelBtn.removeEventListener('click', handleCloseModal);
+        cancelBtn.addEventListener('click', handleCloseModal);
+        cancelBtn.dataset.listenerAttached = 'true';
     }
     
     // Botão close do modal de detalhes
     const detailsCloseBtn = document.querySelector('#detailsModal .close');
-    if (detailsCloseBtn) {
-        detailsCloseBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeDetailsModal();
-        });
+    if (detailsCloseBtn && !detailsCloseBtn.dataset.listenerAttached) {
+        detailsCloseBtn.removeEventListener('click', handleCloseDetailsModal);
+        detailsCloseBtn.addEventListener('click', handleCloseDetailsModal);
+        detailsCloseBtn.dataset.listenerAttached = 'true';
     }
+}
+
+// Adicionar event listeners diretos aos botões close
+document.addEventListener('DOMContentLoaded', function() {
+    attachCloseButtonListeners();
+    
+    // Tentar novamente após pequenos atrasos
+    setTimeout(attachCloseButtonListeners, 10);
+    setTimeout(attachCloseButtonListeners, 50);
+    setTimeout(attachCloseButtonListeners, 100);
+    setTimeout(attachCloseButtonListeners, 300);
+    setTimeout(attachCloseButtonListeners, 500);
     
     // Re-aplicar listeners quando o modal for aberto (caso seja recriado dinamicamente)
     const observer = new MutationObserver(function(mutations) {
