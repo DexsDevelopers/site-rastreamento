@@ -4190,6 +4190,18 @@ function toggleAdminMenu() {
 
 // Fechar menu ao clicar no overlay
 document.addEventListener('DOMContentLoaded', function() {
+    // Garantir que o botão hambúrguer apareça no mobile
+    const navToggle = document.querySelector('.nav-toggle');
+    if (navToggle && window.innerWidth <= 768) {
+        navToggle.style.display = 'flex';
+        navToggle.style.visibility = 'visible';
+        navToggle.style.opacity = '1';
+        navToggle.style.position = 'fixed';
+        navToggle.style.top = '16px';
+        navToggle.style.left = '16px';
+        navToggle.style.zIndex = '10001';
+    }
+    
     const overlay = document.getElementById('navOverlay');
     if (overlay) {
         overlay.addEventListener('click', function() {
