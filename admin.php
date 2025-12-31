@@ -3735,7 +3735,7 @@ table .actions button i:only-child {
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Salvar Alterações
                 </button>
-                <button type="button" class="btn btn-warning" onclick="closeModal()">
+                <button type="button" class="btn btn-warning btn-cancel-modal">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
@@ -4335,38 +4335,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                const modal = document.getElementById('modal');
-                const detailsModal = document.getElementById('detailsModal');
-                
-                if (modal && window.getComputedStyle(modal).display === 'flex') {
-                    const closeBtn = modal.querySelector('.close');
-                    if (closeBtn && !closeBtn.dataset.listenerAdded) {
-                        closeBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            closeModal();
-                        });
-                        closeBtn.dataset.listenerAdded = 'true';
+                attachCloseButtonListeners();
+            }
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        if (node.id === 'modal' || node.querySelector('#modal')) {
+                            attachCloseButtonListeners();
+                        }
+                        if (node.id === 'detailsModal' || node.querySelector('#detailsModal')) {
+                            attachCloseButtonListeners();
+                        }
                     }
-                }
-                
-                if (detailsModal && window.getComputedStyle(detailsModal).display === 'flex') {
-                    const closeBtn = detailsModal.querySelector('.close');
-                    if (closeBtn && !closeBtn.dataset.listenerAdded) {
-                        closeBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            closeDetailsModal();
-                        });
-                        closeBtn.dataset.listenerAdded = 'true';
-                    }
-                }
+                });
             }
         });
     });
     
     observer.observe(document.body, {
         attributes: true,
+        childList: true,
         subtree: true,
         attributeFilter: ['style']
     });
