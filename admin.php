@@ -986,9 +986,14 @@ if (isset($_POST['undo_action'])) {
     function forceMenuVisible() {
         const btn = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
         if (btn && (window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches)) {
-            btn.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 16px !important; left: 16px !important; z-index: 10001 !important; width: 44px !important; height: 44px !important; background: rgba(26, 26, 26, 0.95) !important; border: 2px solid rgba(255, 51, 51, 0.3) !important; border-radius: 8px !important; cursor: pointer !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 4px !important;';
+            // Forçar com cssText completo
+            btn.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 16px !important; left: 16px !important; z-index: 999999 !important; width: 48px !important; height: 48px !important; background: #FF3333 !important; border: 3px solid #FFFFFF !important; border-radius: 8px !important; cursor: pointer !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 5px !important; box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8) !important; padding: 0 !important; margin: 0 !important;';
             const spans = btn.querySelectorAll('span');
-            spans.forEach(s => s.style.cssText = 'display: block !important; width: 24px !important; height: 2px !important; background: #FF3333 !important; border-radius: 2px !important;');
+            spans.forEach((s, i) => {
+                s.style.cssText = 'display: block !important; width: 26px !important; height: 3px !important; background: #FFFFFF !important; border-radius: 2px !important; margin: 0 !important;';
+                if (i > 0) s.style.marginTop = '5px';
+            });
+            console.log('Button forced visible with inline styles');
         }
     }
     
@@ -2548,10 +2553,11 @@ body {
 <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
 <!-- BOTÃO HAMBÚRGUER MOBILE - FORA DO ADMIN-NAV PARA GARANTIR VISIBILIDADE -->
-<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none;">
-    <span></span>
-    <span></span>
-    <span></span>
+<!-- TESTE: Botão sempre visível no mobile para debug -->
+<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none; position: fixed; top: 16px; left: 16px; z-index: 999999; width: 48px; height: 48px; background: #FF3333; border: 3px solid #FFFFFF; border-radius: 8px; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; gap: 5px; box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8); padding: 0; margin: 0;">
+    <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px;"></span>
+    <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
+    <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
 </button>
 
 <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
