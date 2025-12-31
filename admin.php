@@ -1916,6 +1916,57 @@ body {
         cursor: not-allowed !important;
         pointer-events: none !important;
     }
+    
+    /* Animações de entrada */
+    @keyframes slideInFromTop {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .admin-nav {
+        animation: slideInFromTop 0.5s ease-out;
+    }
+    
+    .nav-btn {
+        animation: slideInFromTop 0.5s ease-out;
+    }
+    
+    .nav-btn:nth-child(1) { animation-delay: 0.05s; }
+    .nav-btn:nth-child(2) { animation-delay: 0.1s; }
+    .nav-btn:nth-child(3) { animation-delay: 0.15s; }
+    .nav-btn:nth-child(4) { animation-delay: 0.2s; }
+    .nav-btn:nth-child(5) { animation-delay: 0.25s; }
+    .nav-btn:nth-child(6) { animation-delay: 0.3s; }
+    .nav-btn:nth-child(7) { animation-delay: 0.35s; }
+    
+    /* Responsividade desktop - ajustes finos */
+    @media (min-width: 1025px) {
+        .nav-actions {
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (min-width: 1200px) {
+        .nav-actions {
+            gap: 12px;
+        }
+        
+        .nav-btn {
+            padding: 14px 22px;
+            font-size: 0.95rem;
+        }
+    }
 
     /* Botão flutuante PWA */
     #pwaInstallBtn { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: none; padding: 12px 16px; border-radius: 999px; border: none; color: #fff; background: var(--gradient-primary); font-weight: 700; box-shadow: var(--shadow-lg); }
