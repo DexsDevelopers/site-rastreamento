@@ -926,10 +926,71 @@ if (isset($_POST['undo_action'])) {
 
 <!-- CSS Mobile Responsivo -->
 <link rel="stylesheet" href="assets/css/admin-mobile.css">
+<style>
+/* FORÇAR MENU HAMBÚRGUER VISÍVEL NO MOBILE - CSS INLINE */
+@media screen and (max-width: 768px) {
+    #navToggleBtn,
+    .nav-toggle {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        top: 16px !important;
+        left: 16px !important;
+        z-index: 10001 !important;
+        width: 44px !important;
+        height: 44px !important;
+        background: rgba(26, 26, 26, 0.95) !important;
+        border: 2px solid rgba(255, 51, 51, 0.3) !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+    
+    #navToggleBtn span,
+    .nav-toggle span {
+        display: block !important;
+        width: 24px !important;
+        height: 2px !important;
+        background: #FF3333 !important;
+        border-radius: 2px !important;
+    }
+}
+</style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- SweetAlert2 para popups bonitos -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Script imediato para mostrar menu hambúrguer no mobile
+(function() {
+    function forceMenuVisible() {
+        const btn = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
+        if (btn && (window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches)) {
+            btn.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 16px !important; left: 16px !important; z-index: 10001 !important; width: 44px !important; height: 44px !important; background: rgba(26, 26, 26, 0.95) !important; border: 2px solid rgba(255, 51, 51, 0.3) !important; border-radius: 8px !important; cursor: pointer !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 4px !important;';
+            const spans = btn.querySelectorAll('span');
+            spans.forEach(s => s.style.cssText = 'display: block !important; width: 24px !important; height: 2px !important; background: #FF3333 !important; border-radius: 2px !important;');
+        }
+    }
+    
+    // Executar quando DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', forceMenuVisible);
+    } else {
+        forceMenuVisible();
+    }
+    
+    // Executar múltiplas vezes
+    setTimeout(forceMenuVisible, 10);
+    setTimeout(forceMenuVisible, 50);
+    setTimeout(forceMenuVisible, 100);
+    setTimeout(forceMenuVisible, 300);
+    window.addEventListener('resize', forceMenuVisible);
+})();
+</script>
 <style>
 :root {
     --primary-color: #FF3333;
