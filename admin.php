@@ -1698,10 +1698,29 @@ button.btn {
 }
 
 .btn i,
-button.btn i {
+button.btn i,
+.fas,
+.fa {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    font-size: 1rem !important;
+    width: 1em !important;
+    height: 1em !important;
+    line-height: 1 !important;
+}
+
+/* Garantir que botões com apenas ícone tenham tamanho mínimo */
+.btn:has(> i:only-child),
+button.btn:has(> i:only-child) {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .logout-btn {
