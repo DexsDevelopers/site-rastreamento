@@ -3566,16 +3566,8 @@ document.addEventListener('keydown', function(e) {
     });
 <?php endif; ?>
 
-// Inicializar sistema de automações
+// Inicializar sistema
 document.addEventListener('DOMContentLoaded', function() {
-    loadAutomationSettings();
-    
-    // Verificar se há automações ativas e iniciá-las
-    const saved = localStorage.getItem('automationSettings');
-    if (saved) {
-        const automations = JSON.parse(saved);
-        
-        if (automations.statusUpdate && automations.statusUpdate.enabled) {
             startStatusAutomation(automations.statusUpdate.interval);
         }
         
