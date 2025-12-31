@@ -2424,10 +2424,10 @@ body {
 <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
-    <button class="nav-toggle" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none;">
-        <span></span>
-        <span></span>
-        <span></span>
+    <button class="nav-toggle" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none; position: fixed; top: 16px; left: 16px; z-index: 10001; width: 44px; height: 44px; background: rgba(26, 26, 26, 0.95); border: 2px solid rgba(255, 51, 51, 0.3); border-radius: 8px; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; gap: 4px;">
+        <span style="display: block; width: 24px; height: 2px; background: #FF3333; border-radius: 2px;"></span>
+        <span style="display: block; width: 24px; height: 2px; background: #FF3333; border-radius: 2px;"></span>
+        <span style="display: block; width: 24px; height: 2px; background: #FF3333; border-radius: 2px;"></span>
     </button>
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
@@ -4208,28 +4208,53 @@ function toggleAdminMenu() {
 
 // Fechar menu ao clicar no overlay
 document.addEventListener('DOMContentLoaded', function() {
-    // Garantir que o botão hambúrguer apareça no mobile
+    // Garantir que o botão hambúrguer apareça no mobile - FORÇAR
     function showMenuButton() {
         const navToggle = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
         if (navToggle) {
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
+            console.log('Mobile check:', isMobile, 'Width:', window.innerWidth);
+            
             if (isMobile) {
-                navToggle.style.display = 'flex';
-                navToggle.style.visibility = 'visible';
-                navToggle.style.opacity = '1';
-                navToggle.style.position = 'fixed';
-                navToggle.style.top = '16px';
-                navToggle.style.left = '16px';
-                navToggle.style.zIndex = '10001';
-                navToggle.style.width = '44px';
-                navToggle.style.height = '44px';
-                navToggle.style.background = 'rgba(26, 26, 26, 0.95)';
-                navToggle.style.border = '2px solid rgba(255, 51, 51, 0.3)';
-                navToggle.style.borderRadius = '8px';
-                navToggle.style.cursor = 'pointer';
+                // Forçar todos os estilos inline
+                navToggle.style.cssText = `
+                    display: flex !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    position: fixed !important;
+                    top: 16px !important;
+                    left: 16px !important;
+                    z-index: 10001 !important;
+                    width: 44px !important;
+                    height: 44px !important;
+                    background: rgba(26, 26, 26, 0.95) !important;
+                    border: 2px solid rgba(255, 51, 51, 0.3) !important;
+                    border-radius: 8px !important;
+                    cursor: pointer !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    gap: 4px !important;
+                `;
+                
+                // Garantir que os spans apareçam
+                const spans = navToggle.querySelectorAll('span');
+                spans.forEach(span => {
+                    span.style.cssText = `
+                        display: block !important;
+                        width: 24px !important;
+                        height: 2px !important;
+                        background: #FF3333 !important;
+                        border-radius: 2px !important;
+                    `;
+                });
+                
+                console.log('Menu button should be visible now');
             } else {
                 navToggle.style.display = 'none';
             }
+        } else {
+            console.error('Menu button not found!');
         }
     }
     
@@ -4239,8 +4264,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mostrar ao redimensionar
     window.addEventListener('resize', showMenuButton);
     
-    // Forçar após um pequeno delay para garantir que CSS carregou
+    // Forçar múltiplas vezes para garantir
+    setTimeout(showMenuButton, 50);
     setTimeout(showMenuButton, 100);
+    setTimeout(showMenuButton, 300);
+    setTimeout(showMenuButton, 500);
     
     const overlay = document.getElementById('navOverlay');
     if (overlay) {
