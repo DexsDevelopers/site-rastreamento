@@ -1417,15 +1417,17 @@ body {
 
 /* Botões Modernos e Bonitos */
 .btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-                0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(52, 211, 153, 0.45),
+                0 2px 8px rgba(5, 150, 105, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     overflow: hidden;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .btn-success::before {
@@ -1435,16 +1437,17 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: left 0.6s ease;
 }
 
 .btn-success:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 10px 28px rgba(16, 185, 129, 0.6),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 6px 16px rgba(0, 0, 0, 0.35);
-    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 36px rgba(52, 211, 153, 0.55),
+                0 6px 16px rgba(5, 150, 105, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
+    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
 }
 
 .btn-success:hover::before {
@@ -1452,19 +1455,23 @@ body {
 }
 
 .btn-success:active {
-    transform: translateY(-1px) scale(0.98);
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 12px rgba(52, 211, 153, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-                0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.45),
+                0 2px 8px rgba(217, 119, 6, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     overflow: hidden;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .btn-warning::before {
@@ -1474,16 +1481,17 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: left 0.6s ease;
 }
 
 .btn-warning:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 10px 28px rgba(245, 158, 11, 0.6),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 6px 16px rgba(0, 0, 0, 0.35);
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 36px rgba(251, 191, 36, 0.55),
+                0 6px 16px rgba(217, 119, 6, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
+    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
 }
 
 .btn-warning:hover::before {
@@ -1491,19 +1499,23 @@ body {
 }
 
 .btn-warning:active {
-    transform: translateY(-1px) scale(0.98);
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-                0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(248, 113, 113, 0.45),
+                0 2px 8px rgba(220, 38, 38, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     overflow: hidden;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .btn-danger::before {
@@ -1513,16 +1525,17 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: left 0.6s ease;
 }
 
 .btn-danger:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 10px 28px rgba(239, 68, 68, 0.6),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 6px 16px rgba(0, 0, 0, 0.35);
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 36px rgba(248, 113, 113, 0.55),
+                0 6px 16px rgba(220, 38, 38, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 50%, #ef4444 100%);
 }
 
 .btn-danger:hover::before {
@@ -1530,19 +1543,23 @@ body {
 }
 
 .btn-danger:active {
-    transform: translateY(-1px) scale(0.98);
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
 .btn-info {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-                0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(34, 211, 238, 0.45),
+                0 2px 8px rgba(8, 145, 178, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     overflow: hidden;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .btn-info::before {
@@ -1552,16 +1569,17 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: left 0.6s ease;
 }
 
 .btn-info:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 10px 28px rgba(6, 182, 212, 0.6),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 6px 16px rgba(0, 0, 0, 0.35);
-    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 36px rgba(34, 211, 238, 0.55),
+                0 6px 16px rgba(8, 145, 178, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
+    background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 50%, #06b6d4 100%);
 }
 
 .btn-info:hover::before {
@@ -1601,18 +1619,20 @@ body {
 
 /* Botão WhatsApp especial */
 .btn-success.btn-whatsapp {
-    background: linear-gradient(135deg, #25D366 0%, #128C7E 50%, #075E54 100%);
-    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-                0 2px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #4ade80 0%, #25D366 50%, #128C7E 100%);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45),
+                0 2px 8px rgba(18, 140, 126, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
 }
 
 .btn-success.btn-whatsapp:hover {
-    background: linear-gradient(135deg, #4ade80 0%, #25D366 50%, #128C7E 100%);
-    box-shadow: 0 10px 28px rgba(37, 211, 102, 0.6),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 6px 16px rgba(0, 0, 0, 0.35);
-    transform: translateY(-4px) scale(1.03);
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #25D366 100%);
+    box-shadow: 0 14px 36px rgba(37, 211, 102, 0.55),
+                0 6px 16px rgba(18, 140, 126, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
+    transform: translateY(-3px) scale(1.02);
 }
 
 .search-bar {
