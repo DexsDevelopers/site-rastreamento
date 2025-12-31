@@ -140,17 +140,20 @@ body > *:first-child {
         max-width: 320px !important;
         height: 100vh !important;
         height: 100dvh !important; /* Dynamic viewport height */
-        background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%) !important;
+        background: #1A1A1A !important; /* Fundo sólido escuro */
+        background-color: #1A1A1A !important;
+        background-image: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%) !important;
         z-index: 10000 !important;
         transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
         padding: 0 !important;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5) !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.8) !important;
         margin: 0 !important;
-        border-right: 1px solid rgba(255, 51, 51, 0.2) !important;
+        border-right: 2px solid rgba(255, 51, 51, 0.4) !important;
         display: block !important;
         visibility: visible !important;
+        opacity: 1 !important;
     }
     
     .admin-nav.active {
