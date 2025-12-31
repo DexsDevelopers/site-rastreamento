@@ -783,13 +783,17 @@ foreach ($settings as $s) {
     <aside class="sidebar w-64 min-h-screen flex flex-col fixed left-0 top-0" id="sidebar">
         <div class="p-6 border-b border-zinc-800">
                 <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--primary-gradient);">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--primary-gradient);">
                     <i class="fas fa-robot text-white"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg">Bot Config</h1>
                     <p class="text-xs text-zinc-500">WhatsApp Automation</p>
                 </div>
+                <!-- Botão fechar no mobile -->
+                <button onclick="closeSidebar()" class="ml-auto text-zinc-500 hover:text-white md:hidden">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
         </div>
         
@@ -859,7 +863,7 @@ foreach ($settings as $s) {
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Automações</span>
-                        <i class="fas fa-bolt text-emerald-500"></i>
+                        <i class="fas fa-bolt" style="color: #FF3333;"></i>
                     </div>
                     <div class="stat-value" id="statTotal">0</div>
                     <p class="text-xs text-zinc-500 mt-1"><span id="statActive">0</span> ativas</p>
@@ -886,9 +890,9 @@ foreach ($settings as $s) {
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Status Bot</span>
-                        <i class="fas fa-robot text-emerald-500"></i>
+                        <i class="fas fa-robot" style="color: #FF3333;"></i>
                     </div>
-                    <div id="statBotStatus" class="text-2xl font-bold text-emerald-400">--</div>
+                    <div id="statBotStatus" class="text-2xl font-bold" style="color: #FF3333;">--</div>
                     <p class="text-xs text-zinc-500 mt-1" id="statUptime">uptime: --</p>
                 </div>
             </div>
@@ -897,7 +901,7 @@ foreach ($settings as $s) {
             <div class="card">
                 <div class="card-header flex items-center justify-between">
                     <h3 class="font-semibold">Automações Recentes</h3>
-                    <a href="#automations" class="text-emerald-500 text-sm hover:underline" onclick="showSection('automations')">Ver todas</a>
+                    <a href="#automations" class="text-sm hover:underline" style="color: #FF3333;" onclick="showSection('automations')">Ver todas</a>
                 </div>
                 <div class="p-4">
                     <div id="recentAutomations" class="space-y-3">
@@ -1328,7 +1332,7 @@ foreach ($settings as $s) {
                     <div class="grid grid-cols-2 gap-4 mb-3">
                         <div class="bg-zinc-900 rounded-lg p-3">
                             <div class="text-xs text-zinc-500 mb-1">Gatilho</div>
-                            <code class="mono text-sm text-emerald-400">${escapeHtml(a.gatilho)}</code>
+                            <code class="mono text-sm" style="color: #FF3333;">${escapeHtml(a.gatilho)}</code>
                         </div>
                         <div class="bg-zinc-900 rounded-lg p-3">
                             <div class="text-xs text-zinc-500 mb-1">Resposta</div>
@@ -1340,7 +1344,7 @@ foreach ($settings as $s) {
                         <div class="flex items-center gap-4">
                             ${a.grupo_nome ? `<span><i class="fas fa-users mr-1"></i>${escapeHtml(a.grupo_nome)}</span>` : '<span><i class="fas fa-globe mr-1"></i>Todos os chats</span>'}
                             <span><i class="fas fa-chart-bar mr-1"></i>${a.contador_uso || 0} usos</span>
-                            ${a.imagem_url ? '<span class="text-emerald-400"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
+                            ${a.imagem_url ? '<span style="color: #FF3333;"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
                             ${a.delay_ms > 0 ? `<span><i class="fas fa-clock mr-1"></i>${a.delay_ms}ms</span>` : ''}
                         </div>
                         <div class="flex items-center gap-2">
@@ -1360,15 +1364,15 @@ foreach ($settings as $s) {
             return `
                 <div class="flex items-center justify-between p-3 bg-zinc-900 rounded-lg">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg ${a.ativo == 1 ? 'bg-emerald-500/20' : 'bg-zinc-800'} flex items-center justify-center">
-                            <i class="fas fa-bolt ${a.ativo == 1 ? 'text-emerald-400' : 'text-zinc-600'}"></i>
+                        <div class="w-8 h-8 rounded-lg ${a.ativo == 1 ? 'bg-red-500/20' : 'bg-zinc-800'} flex items-center justify-center">
+                            <i class="fas fa-bolt ${a.ativo == 1 ? 'text-red-400' : 'text-zinc-600'}"></i>
                         </div>
                         <div>
                             <h4 class="font-medium text-sm">${escapeHtml(a.nome)}</h4>
                             <p class="text-xs text-zinc-500">${a.contador_uso || 0} usos</p>
                         </div>
                     </div>
-                    <code class="mono text-xs text-emerald-400 max-w-[150px] truncate">${escapeHtml(a.gatilho)}</code>
+                    <code class="mono text-xs max-w-[150px] truncate" style="color: #FF3333;">${escapeHtml(a.gatilho)}</code>
                 </div>
             `;
         }
@@ -1519,7 +1523,8 @@ foreach ($settings as $s) {
                     dot.className = 'status-dot status-online';
                     text.textContent = 'Online';
                     statStatus.textContent = 'Online';
-                    statStatus.className = 'text-2xl font-bold text-emerald-400';
+                    statStatus.className = 'text-2xl font-bold';
+                    statStatus.style.color = '#FF3333';
                     statUptime.textContent = `uptime: ${data.data.uptime}`;
                 } else if (data.success && data.data.online) {
                     dot.className = 'status-dot status-offline';
