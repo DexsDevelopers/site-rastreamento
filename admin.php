@@ -1605,6 +1605,24 @@ body {
         .admin-nav.active {
             left: 0 !important;
         }
+        
+        /* Forçar botão hambúrguer visível no mobile */
+        .nav-toggle,
+        #navToggleBtn {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            top: 16px !important;
+            left: 16px !important;
+            z-index: 10001 !important;
+            width: 44px !important;
+            height: 44px !important;
+            background: rgba(26, 26, 26, 0.95) !important;
+            border: 2px solid rgba(255, 51, 51, 0.3) !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+        }
     }
     
     .nav-actions { 
