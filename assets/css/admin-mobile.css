@@ -631,20 +631,33 @@ body > *:first-child {
         touch-action: manipulation; /* Prevenir zoom duplo toque */
     }
     
-    /* Desabilitar zoom completamente */
+    /* Desabilitar zoom completamente - mas permitir seleção de texto */
     * {
         touch-action: manipulation;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        user-select: none;
     }
     
-    /* Permitir seleção de texto apenas em inputs e textareas */
+    /* Permitir seleção de texto em inputs, textareas e conteúdo editável */
     input,
     textarea,
-    [contenteditable="true"] {
+    [contenteditable="true"],
+    p,
+    span,
+    div:not(.no-select),
+    td,
+    th {
         -webkit-user-select: text;
         user-select: text;
+        -webkit-touch-callout: default;
+    }
+    
+    /* Prevenir seleção apenas em botões e elementos interativos */
+    button,
+    .btn,
+    .nav-btn,
+    a {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
     }
     
     /* Prevenir gestos de zoom */
