@@ -2525,7 +2525,7 @@ body {
                                 </button>
                             </form>
                             
-                            <form method="POST" onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                            <form method="POST" id="formRejeitar_<?= $pedido['id'] ?>" onsubmit="event.preventDefault(); confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>', <?= $pedido['id'] ?>); return false;">
                                 <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
                                 <button type="submit" name="rejeitar_pedido" class="btn btn-danger" style="width: 100%;">
                                     <i class="fas fa-times"></i> Rejeitar
@@ -3601,7 +3601,10 @@ async function confirmarAprovarPedido(form, nomeCliente) {
 }
 
 // Confirmar rejeitar pedido
-async function confirmarRejeitarPedido(form, nomeCliente) {
+async function confirmarRejeitarPedido(form, nomeCliente, pedidoId) {
+    // Prevenir submit padrão (já feito no onsubmit, mas garantindo)
+    event.preventDefault();
+    
     const result = await SwalDark.fire({
         title: '❌ Rejeitar Pedido',
         html: `
@@ -3609,19 +3612,35 @@ async function confirmarRejeitarPedido(form, nomeCliente) {
                 <p style="font-size: 16px; margin-bottom: 15px;">
                     Tem certeza que deseja rejeitar o pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
                 </p>
+                <p style="font-size: 14px; color: #cbd5e1; margin-top: 10px;">
+                    Esta ação não pode ser desfeita.
+                </p>
             </div>
         `,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-times"></i> Rejeitar',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: '<i class="fas fa-times"></i> Sim, Rejeitar',
+        cancelButtonText: '<i class="fas fa-arrow-left"></i> Cancelar',
         reverseButtons: true,
-        confirmButtonColor: '#EF4444'
+        confirmButtonColor: '#EF4444',
+        cancelButtonColor: '#6B7280',
+        focusCancel: true
     });
     
+    // Só submeter se confirmado
     if (result.isConfirmed) {
+        // Desabilitar botão para evitar duplo submit
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejeitando...';
+        }
+        
+        // Submeter formulário
         form.submit();
     }
+    
+    // Retornar false para garantir que não submete
     return false;
 }
 
