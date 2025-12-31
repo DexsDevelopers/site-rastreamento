@@ -2530,10 +2530,10 @@ body {
 <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
-    <button class="nav-toggle" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none; position: fixed; top: 16px; left: 16px; z-index: 10001; width: 44px; height: 44px; background: rgba(26, 26, 26, 0.95); border: 2px solid rgba(255, 51, 51, 0.3); border-radius: 8px; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; gap: 4px;">
-        <span style="display: block; width: 24px; height: 2px; background: #FF3333; border-radius: 2px;"></span>
-        <span style="display: block; width: 24px; height: 2px; background: #FF3333; border-radius: 2px;"></span>
-        <span style="display: block; width: 24px; height: 2px; background: #FF3333; border-radius: 2px;"></span>
+    <button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
     </button>
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
