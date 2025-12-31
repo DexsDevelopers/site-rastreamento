@@ -1670,6 +1670,21 @@ td button {
     visibility: visible !important;
     opacity: 1 !important;
     overflow: visible !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    white-space: nowrap !important;
+}
+
+table .actions .btn i,
+table .actions button i,
+td .btn i,
+td button i {
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+    font-size: 1rem !important;
+    line-height: 1 !important;
+    margin-right: 4px !important;
 }
 
 .logout-btn {
