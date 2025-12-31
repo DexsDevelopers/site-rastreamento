@@ -1577,15 +1577,15 @@ body {
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.5px;
-    border-radius: 12px;
+    border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     min-height: 52px;
     min-width: 52px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Ícones nos botões */
@@ -1859,14 +1859,12 @@ table .actions button::before {
 
 table .actions .btn:hover,
 table .actions button:hover {
-    transform: translateY(-4px) scale(1.03) !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+    transform: translateY(-2px) !important;
 }
 
 table .actions .btn:active,
 table .actions button:active {
-    transform: translateY(-2px) scale(0.97) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(0) !important;
 }
 
 table .actions .btn i,
