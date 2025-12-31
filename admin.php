@@ -2531,6 +2531,13 @@ body {
 <div class="toast-container" id="toastContainer"></div>
 <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
+<!-- BOTÃO HAMBÚRGUER MOBILE - FORA DO ADMIN-NAV PARA GARANTIR VISIBILIDADE -->
+<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none;">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
 <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
