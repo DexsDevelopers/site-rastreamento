@@ -3634,7 +3634,7 @@ table .actions button i:only-child {
     <div class="modal-content">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Editar Rastreio</h3>
-            <button class="close" onclick="closeModal()">&times;</button>
+            <button class="close" type="button">&times;</button>
         </div>
         
         <form method="POST" id="formEditar" enctype="multipart/form-data">
