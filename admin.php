@@ -4615,31 +4615,67 @@ function toggleAdminMenu() {
     const overlay = document.getElementById('navOverlay');
     const body = document.body;
     
-    if (!nav || !btn) return;
+    if (!nav || !btn) {
+        console.error('Menu elements not found');
+        return;
+    }
     
     const isOpen = nav.classList.contains('active');
     
     if (isOpen) {
+        // Fechar menu
         nav.classList.remove('active');
+        nav.classList.remove('open'); // Compatibilidade com CSS antigo
         if (overlay) overlay.classList.remove('active');
         body.classList.remove('menu-open');
         btn.setAttribute('aria-expanded', 'false');
+        body.style.overflow = '';
     } else {
+        // Abrir menu
         nav.classList.add('active');
+        nav.classList.add('open'); // Compatibilidade com CSS antigo
         if (overlay) overlay.classList.add('active');
         body.classList.add('menu-open');
         btn.setAttribute('aria-expanded', 'true');
+        body.style.overflow = 'hidden'; // Prevenir scroll do body
     }
 }
 
-// Fechar menu ao clicar em link
+// Fechar menu ao clicar no overlay
 document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('navOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            toggleAdminMenu();
+        });
+    }
+    
+    // Fechar menu ao clicar em link
     const navLinks = document.querySelectorAll('.nav-actions .nav-btn');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
-            setTimeout(() => toggleAdminMenu(), 100);
+            // Pequeno delay para permitir navegação
+            setTimeout(() => {
+                toggleAdminMenu();
+            }, 150);
         });
     });
+    
+    // Fechar menu ao clicar no X do header (se existir)
+    const navBrand = document.querySelector('.nav-brand');
+    if (navBrand) {
+        // Adicionar evento de clique no brand para fechar
+        navBrand.style.cursor = 'pointer';
+        navBrand.addEventListener('click', function(e) {
+            // Só fechar se clicar no próprio brand, não nos filhos
+            if (e.target === navBrand || e.target.closest('.nav-brand') === navBrand) {
+                const nav = document.getElementById('adminNav');
+                if (nav && nav.classList.contains('active')) {
+                    toggleAdminMenu();
+                }
+            }
+        });
+    }
     
     // Fechar menu ao pressionar ESC
     document.addEventListener('keydown', function(e) {
@@ -4650,6 +4686,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Log para debug
+    console.log('Menu mobile inicializado');
 });
 </script>
 <?php // Expor presets ao JS ?>
