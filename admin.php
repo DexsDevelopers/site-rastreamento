@@ -2864,21 +2864,6 @@ body {
         ?>
     </div>
 
-    <!-- Monitor de Jobs (Cron) -->
-    <div class="automation-panel">
-        <h2><i class="fas fa-clock"></i> Monitor de Jobs (Cron)</h2>
-        <p>Acompanhe as últimas execuções e rode manualmente quando necessário</p>
-        <div class="actions" style="margin:10px 0 15px;">
-            <button class="btn btn-info" onclick="runAutomationCron()"><i class="fas fa-play"></i> Executar Automações</button>
-            <button class="btn btn-warning" onclick="runUpdateCron()"><i class="fas fa-sync"></i> Executar Update</button>
-            <button class="btn btn-primary" onclick="refreshCronLogs()"><i class="fas fa-rotate"></i> Atualizar Logs</button>
-        </div>
-        <div id="cronStatus" class="cron-schedule" style="margin-bottom:10px;"></div>
-        <div class="cron-schedule" style="max-height:240px; overflow:auto">
-            <h4><i class="fas fa-file-alt"></i> Últimos Logs (automation_cron)</h4>
-            <div id="cronLogs" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: .9rem; white-space: pre-wrap;"></div>
-        </div>
-    </div>
 </div>
 
 <!-- Modal edição -->
@@ -4033,47 +4018,6 @@ function notifyInfo(message) {
 
 // Auto-refresh removido - atualização apenas manual (F5)
 
-// ===== Monitor de Cron (Execução e Logs) =====
-function runAutomationCron() {
-    notifyInfo('Executando automações...');
-    fetch('automation_cron.php?cron=true')
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                notifySuccess('Automações executadas');
-                document.getElementById('cronStatus').innerHTML = `<div class="schedule-item"><span><span class="status-indicator active"></span>Última execução</span><span>${new Date().toLocaleString()}</span></div>`;
-                refreshCronLogs();
-            } else {
-                notifyError('Falha nas automações: ' + (data.error||'erro'));
-            }
-        })
-        .catch(()=> notifyError('Erro ao executar automações'));
-}
-
-function runUpdateCron() {
-    notifyInfo('Executando update...');
-    fetch('cron_update.php')
-        .then(()=> {
-            notifySuccess('Update executado');
-            document.getElementById('cronStatus').innerHTML = `<div class="schedule-item"><span><span class="status-indicator active"></span>Update manual</span><span>${new Date().toLocaleString()}</span></div>`;
-        })
-        .catch(()=> notifyError('Erro ao executar update'));
-}
-
-function refreshCronLogs() {
-    fetch('automation_logs.txt', { cache: 'no-store' })
-        .then(r => r.text())
-        .then(t => {
-            const lines = t.trim().split('\n');
-            const last = lines.slice(-50).join('\n');
-            document.getElementById('cronLogs').textContent = last || 'Sem logs.';
-        })
-        .catch(()=> {
-            document.getElementById('cronLogs').textContent = 'Sem logs disponíveis.';
-        });
-}
-
-document.addEventListener('DOMContentLoaded', refreshCronLogs);
 
 // Função para enviar WhatsApp manualmente
 function enviarWhatsappManual(codigo) {
