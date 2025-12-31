@@ -251,42 +251,45 @@ foreach ($settings as $s) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Configuração do Bot | Helmer Logistics</title>
-    <meta name="theme-color" content="#10b981">
+    <meta name="theme-color" content="#FF3333">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/admin-mobile.css">
     <style>
         :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
+            --primary: #FF3333;
+            --primary-dark: #E02020;
+            --primary-gradient: linear-gradient(135deg, #FF3333 0%, #FF6B6B 100%);
             --accent: #f59e0b;
-            --bg-dark: #0f0f12;
-            --bg-card: #18181b;
-            --bg-input: #27272a;
-            --border: #3f3f46;
-            --text: #fafafa;
-            --text-muted: #a1a1aa;
+            --bg-dark: #0F0F0F;
+            --bg-card: #1A1A1A;
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #FFFFFF;
+            --text-muted: rgba(255, 255, 255, 0.7);
         }
         
         * { box-sizing: border-box; }
         
         body {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg-dark);
             color: var(--text);
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
         
         .mono { font-family: 'JetBrains Mono', monospace; }
         
         /* Sidebar */
         .sidebar {
-            background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 100%);
+            background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
             border-right: 1px solid var(--border);
         }
         
@@ -296,19 +299,26 @@ foreach ($settings as $s) {
         }
         
         .sidebar-item:hover, .sidebar-item.active {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(255, 51, 51, 0.1);
             border-left-color: var(--primary);
         }
         
         .sidebar-item.active {
-            background: rgba(16, 185, 129, 0.15);
+            background: rgba(255, 51, 51, 0.15);
         }
         
         /* Cards */
         .card {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .card:hover {
+            border-color: rgba(255, 51, 51, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         
         .card-header {
@@ -338,23 +348,29 @@ foreach ($settings as $s) {
         
         /* Buttons */
         .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 500;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            min-height: 44px;
         }
         
         .btn-primary {
-            background: var(--primary);
+            background: var(--primary-gradient);
             color: white;
+            box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
         }
         
         .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 51, 51, 0.5);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.97);
         }
         
         .btn-secondary {
@@ -542,18 +558,25 @@ foreach ($settings as $s) {
         
         /* Stat Card */
         .stat-card {
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 51, 51, 0.05) 100%);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .stat-card:hover {
+            border-color: rgba(255, 51, 51, 0.3);
+            transform: translateY(-2px);
         }
         
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary) 0%, #34d399 100%);
+            background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         /* Scrollbar */
@@ -599,14 +622,168 @@ foreach ($settings as $s) {
         .toast.success { border-left: 4px solid #22c55e; }
         .toast.error { border-left: 4px solid #ef4444; }
         .toast.warning { border-left: 4px solid #f59e0b; }
+        
+        /* ===== RESPONSIVO MOBILE ===== */
+        @media screen and (max-width: 768px) {
+            /* Menu Hambúrguer */
+            .menu-toggle {
+                display: flex !important;
+                position: fixed !important;
+                top: max(16px, env(safe-area-inset-top) + 8px) !important;
+                left: 16px !important;
+                z-index: 999999 !important;
+                width: 52px !important;
+                height: 52px !important;
+                background: var(--primary-gradient) !important;
+                border: none !important;
+                border-radius: 14px !important;
+                box-shadow: 0 4px 16px rgba(255, 51, 51, 0.4), 0 0 20px rgba(255, 51, 51, 0.3) !important;
+                cursor: pointer !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 5px !important;
+                padding: 0 !important;
+            }
+            
+            .menu-toggle span {
+                display: block !important;
+                width: 26px !important;
+                height: 3px !important;
+                background: #FFFFFF !important;
+                border-radius: 3px !important;
+                transition: all 0.2s !important;
+            }
+            
+            /* Sidebar Mobile */
+            .sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: -100% !important;
+                width: 85% !important;
+                max-width: 320px !important;
+                height: 100vh !important;
+                height: 100dvh !important;
+                z-index: 10000 !important;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6) !important;
+            }
+            
+            .sidebar.active {
+                left: 0 !important;
+            }
+            
+            /* Overlay */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+            
+            .sidebar-overlay.active {
+                display: block;
+                opacity: 1;
+            }
+            
+            /* Main Content Mobile */
+            main {
+                margin-left: 0 !important;
+                padding: 16px !important;
+                padding-top: 80px !important;
+            }
+            
+            /* Header Mobile */
+            header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 16px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            /* Stats Grid Mobile */
+            .grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+            }
+            
+            /* Cards Mobile */
+            .card {
+                margin-bottom: 16px !important;
+            }
+            
+            /* Buttons Mobile */
+            .btn {
+                width: 100% !important;
+                justify-content: center !important;
+                margin-bottom: 12px !important;
+            }
+            
+            /* Modal Mobile */
+            .modal-content {
+                width: 95% !important;
+                max-width: 95% !important;
+                margin: 10px !important;
+                max-height: 90vh !important;
+            }
+            
+            /* Form Grid Mobile */
+            .grid.grid-cols-2,
+            .grid.grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Table Mobile */
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                font-size: 0.875rem !important;
+                min-width: 600px;
+            }
+            
+            /* Toast Mobile */
+            .toast {
+                left: 16px !important;
+                right: 16px !important;
+                bottom: 80px !important;
+                width: auto !important;
+            }
+        }
+        
+        /* Desktop - manter sidebar visível */
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none !important;
+            }
+            
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="flex">
+    <!-- Menu Hambúrguer Mobile -->
+    <button class="menu-toggle hidden" id="menuToggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Overlay para fechar sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <!-- Sidebar -->
-    <aside class="sidebar w-64 min-h-screen flex flex-col fixed left-0 top-0">
+    <aside class="sidebar w-64 min-h-screen flex flex-col fixed left-0 top-0" id="sidebar">
         <div class="p-6 border-b border-zinc-800">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--primary-gradient);">
                     <i class="fas fa-robot text-white"></i>
                 </div>
                 <div>
@@ -1516,12 +1693,61 @@ foreach ($settings as $s) {
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {
+                closeModal();
+                closeSidebar();
+            }
             if (e.key === 'n' && e.ctrlKey) {
                 e.preventDefault();
                 openModal();
             }
         });
+        
+        // ===== SIDEBAR MOBILE =====
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isActive = sidebar.classList.contains('active');
+            
+            if (isActive) {
+                closeSidebar();
+            } else {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Fechar sidebar ao clicar em um link
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+        
+        // Mostrar menu hambúrguer no mobile
+        function updateMenuVisibility() {
+            const menuToggle = document.getElementById('menuToggle');
+            if (window.innerWidth <= 768) {
+                menuToggle.classList.remove('hidden');
+            } else {
+                menuToggle.classList.add('hidden');
+                closeSidebar();
+            }
+        }
+        
+        window.addEventListener('resize', updateMenuVisibility);
+        updateMenuVisibility();
     </script>
 </body>
 </html>
