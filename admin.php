@@ -4843,6 +4843,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Executar após mudanças no DOM
     const observer = new MutationObserver(fixTableButtons);
     observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Garantir que abrirModal esteja acessível globalmente
+    if (typeof window.abrirModal === 'undefined') {
+        console.error('abrirModal não está definida! Verificando se o script foi carregado...');
+        // Tentar recarregar o script se necessário
+        const scripts = document.querySelectorAll('script');
+        scripts.forEach(script => {
+            if (script.textContent && script.textContent.includes('function abrirModal')) {
+                try {
+                    eval(script.textContent);
+                    console.log('Script abrirModal recarregado');
+                } catch (e) {
+                    console.error('Erro ao recarregar script:', e);
+                }
+            }
+        });
+    }
     setTimeout(showMenuButton, 300);
     setTimeout(showMenuButton, 500);
     setTimeout(showMenuButton, 1000);
