@@ -3634,7 +3634,7 @@ table .actions button i:only-child {
     <div class="modal-content">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Editar Rastreio</h3>
-            <button class="close" type="button">&times;</button>
+            <button class="close" type="button" onclick="document.getElementById('modal').style.display='none'">&times;</button>
         </div>
         
         <form method="POST" id="formEditar" enctype="multipart/form-data">
@@ -3735,7 +3735,7 @@ table .actions button i:only-child {
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Salvar Alterações
                 </button>
-                <button type="button" class="btn btn-warning btn-cancel-modal">
+                <button type="button" class="btn btn-warning" onclick="document.getElementById('modal').style.display='none'">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
