@@ -1895,11 +1895,14 @@ table .actions .btn .btn-text {
         display: none !important;
     }
     table .actions .btn {
-        min-width: 44px !important;
-        padding: 10px !important;
+        min-width: 56px !important;
+        min-height: 56px !important;
+        padding: 14px !important;
+        font-size: 1.1rem !important;
     }
     table .actions .btn i {
         margin-right: 0 !important;
+        font-size: 1.3rem !important;
     }
 }
 
