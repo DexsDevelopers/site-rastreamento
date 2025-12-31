@@ -2065,7 +2065,7 @@ body {
         left: 0 !important;
     }
     
-    /* FORÇAR BOTÃO HAMBÚRGUER VISÍVEL NO MOBILE */
+    /* FORÇAR BOTÃO HAMBÚRGUER VISÍVEL NO MOBILE - FUNDO VERMELHO BRILHANTE */
     .nav-toggle,
     #navToggleBtn { 
         display: flex !important;
@@ -2074,26 +2074,30 @@ body {
         position: fixed !important;
         top: 16px !important;
         left: 16px !important;
-        z-index: 10001 !important;
-        width: 44px !important;
-        height: 44px !important;
-        background: rgba(26, 26, 26, 0.95) !important;
-        border: 2px solid rgba(255, 51, 51, 0.3) !important;
+        z-index: 99999 !important; /* Z-index muito alto */
+        width: 48px !important;
+        height: 48px !important;
+        background: #FF3333 !important; /* Fundo vermelho bem visível */
+        border: 2px solid #FFFFFF !important; /* Borda branca */
         border-radius: 8px !important;
         cursor: pointer !important;
         flex-direction: column !important;
         justify-content: center !important;
         align-items: center !important;
-        gap: 4px !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important; /* Sombra para destacar */
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
     .nav-toggle span,
     #navToggleBtn span {
         display: block !important;
-        width: 24px !important;
-        height: 2px !important;
-        background: #FF3333 !important;
+        width: 26px !important;
+        height: 3px !important;
+        background: #FFFFFF !important; /* Barras brancas */
         border-radius: 2px !important;
+        margin: 0 !important;
     }
     
     .nav-actions { 
@@ -4325,41 +4329,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
         console.log('Mobile check:', isMobile, 'Width:', window.innerWidth);
         
-        if (isMobile) {
-            // Remover qualquer estilo que possa estar escondendo
-            navToggle.removeAttribute('style');
+            if (isMobile) {
+                // Remover qualquer estilo que possa estar escondendo
+                navToggle.removeAttribute('style');
+                
+                // Forçar todos os estilos inline com setProperty para garantir
+                navToggle.style.setProperty('display', 'flex', 'important');
+                navToggle.style.setProperty('visibility', 'visible', 'important');
+                navToggle.style.setProperty('opacity', '1', 'important');
+                navToggle.style.setProperty('position', 'fixed', 'important');
+                navToggle.style.setProperty('top', '16px', 'important');
+                navToggle.style.setProperty('left', '16px', 'important');
+                navToggle.style.setProperty('z-index', '99999', 'important'); // Z-index muito alto
+                navToggle.style.setProperty('width', '48px', 'important'); // Um pouco maior
+                navToggle.style.setProperty('height', '48px', 'important'); // Um pouco maior
+                navToggle.style.setProperty('background', '#FF3333', 'important'); // Fundo vermelho bem visível
+                navToggle.style.setProperty('border', '2px solid #FFFFFF', 'important'); // Borda branca
+                navToggle.style.setProperty('border-radius', '8px', 'important');
+                navToggle.style.setProperty('cursor', 'pointer', 'important');
+                navToggle.style.setProperty('flex-direction', 'column', 'important');
+                navToggle.style.setProperty('justify-content', 'center', 'important');
+                navToggle.style.setProperty('align-items', 'center', 'important');
+                navToggle.style.setProperty('gap', '5px', 'important');
+                navToggle.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.5)', 'important'); // Sombra para destacar
+                navToggle.style.setProperty('padding', '0', 'important');
+                navToggle.style.setProperty('margin', '0', 'important');
             
-            // Forçar todos os estilos inline com setProperty para garantir
-            navToggle.style.setProperty('display', 'flex', 'important');
-            navToggle.style.setProperty('visibility', 'visible', 'important');
-            navToggle.style.setProperty('opacity', '1', 'important');
-            navToggle.style.setProperty('position', 'fixed', 'important');
-            navToggle.style.setProperty('top', '16px', 'important');
-            navToggle.style.setProperty('left', '16px', 'important');
-            navToggle.style.setProperty('z-index', '10001', 'important');
-            navToggle.style.setProperty('width', '44px', 'important');
-            navToggle.style.setProperty('height', '44px', 'important');
-            navToggle.style.setProperty('background', 'rgba(26, 26, 26, 0.95)', 'important');
-            navToggle.style.setProperty('border', '2px solid rgba(255, 51, 51, 0.3)', 'important');
-            navToggle.style.setProperty('border-radius', '8px', 'important');
-            navToggle.style.setProperty('cursor', 'pointer', 'important');
-            navToggle.style.setProperty('flex-direction', 'column', 'important');
-            navToggle.style.setProperty('justify-content', 'center', 'important');
-            navToggle.style.setProperty('align-items', 'center', 'important');
-            navToggle.style.setProperty('gap', '4px', 'important');
-            
-            // Garantir que os spans apareçam
-            const spans = navToggle.querySelectorAll('span');
-            spans.forEach((span, index) => {
-                span.style.setProperty('display', 'block', 'important');
-                span.style.setProperty('width', '24px', 'important');
-                span.style.setProperty('height', '2px', 'important');
-                span.style.setProperty('background', '#FF3333', 'important');
-                span.style.setProperty('border-radius', '2px', 'important');
-                if (index < spans.length - 1) {
-                    span.style.setProperty('margin-bottom', '4px', 'important');
-                }
-            });
+                // Garantir que os spans apareçam - BARRAS BRANCAS para contrastar com fundo vermelho
+                const spans = navToggle.querySelectorAll('span');
+                spans.forEach((span, index) => {
+                    span.style.setProperty('display', 'block', 'important');
+                    span.style.setProperty('width', '26px', 'important'); // Um pouco maior
+                    span.style.setProperty('height', '3px', 'important'); // Um pouco mais grosso
+                    span.style.setProperty('background', '#FFFFFF', 'important'); // BRANCO para contrastar
+                    span.style.setProperty('border-radius', '2px', 'important');
+                    span.style.setProperty('margin', '0', 'important');
+                    if (index < spans.length - 1) {
+                        span.style.setProperty('margin-bottom', '5px', 'important');
+                    }
+                });
             
             // Forçar também via className para garantir
             navToggle.classList.add('mobile-visible');
