@@ -1681,6 +1681,16 @@ td button {
     border-radius: 8px !important;
     font-weight: 500 !important;
     transition: all 0.2s ease !important;
+    content: '' !important;
+}
+
+/* Forçar conteúdo visível nos botões */
+table .actions .btn::before,
+table .actions button::before {
+    content: '' !important;
+    display: inline-block !important;
+    min-width: 1px !important;
+    min-height: 1px !important;
 }
 
 table .actions .btn:hover,
@@ -4845,25 +4855,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const buttons = document.querySelectorAll('table .actions .btn, table .actions button, td .btn, td button');
         buttons.forEach(btn => {
             const rect = btn.getBoundingClientRect();
+            // Sempre forçar estilos, mesmo se já tiver tamanho
+            btn.style.setProperty('min-width', '50px', 'important');
+            btn.style.setProperty('min-height', '40px', 'important');
+            btn.style.setProperty('width', 'auto', 'important');
+            btn.style.setProperty('height', 'auto', 'important');
+            btn.style.setProperty('display', 'inline-flex', 'important');
+            btn.style.setProperty('padding', '10px 16px', 'important');
+            btn.style.setProperty('flex-shrink', '0', 'important');
+            btn.style.setProperty('flex-grow', '0', 'important');
+            btn.style.setProperty('box-sizing', 'border-box', 'important');
+            btn.style.setProperty('visibility', 'visible', 'important');
+            btn.style.setProperty('opacity', '1', 'important');
+            btn.style.setProperty('pointer-events', 'auto', 'important');
+            btn.style.setProperty('z-index', '1000', 'important');
+            btn.style.setProperty('position', 'relative', 'important');
+            
+            // Garantir que o ícone seja visível
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.style.setProperty('display', 'inline-block', 'important');
+                icon.style.setProperty('font-size', '1rem', 'important');
+                icon.style.setProperty('width', '1em', 'important');
+                icon.style.setProperty('height', '1em', 'important');
+                icon.style.setProperty('visibility', 'visible', 'important');
+                icon.style.setProperty('opacity', '1', 'important');
+            }
+            
+            // Garantir que o texto seja visível
+            const text = btn.querySelector('.btn-text');
+            if (text) {
+                text.style.setProperty('display', 'inline-block', 'important');
+                text.style.setProperty('visibility', 'visible', 'important');
+                text.style.setProperty('opacity', '1', 'important');
+            }
+            
+            // Se ainda tiver tamanho 0, forçar width/height fixos
             if (rect.width === 0 || rect.height === 0) {
-                // Forçar tamanho mínimo via inline style
-                btn.style.setProperty('min-width', '40px', 'important');
-                btn.style.setProperty('min-height', '40px', 'important');
-                btn.style.setProperty('width', 'auto', 'important');
-                btn.style.setProperty('height', 'auto', 'important');
-                btn.style.setProperty('display', 'inline-flex', 'important');
-                btn.style.setProperty('padding', '8px 16px', 'important');
-                btn.style.setProperty('flex-shrink', '0', 'important');
-                btn.style.setProperty('box-sizing', 'border-box', 'important');
-                
-                // Garantir que o ícone seja visível
-                const icon = btn.querySelector('i');
-                if (icon) {
-                    icon.style.setProperty('display', 'inline-block', 'important');
-                    icon.style.setProperty('font-size', '1rem', 'important');
-                    icon.style.setProperty('width', '1em', 'important');
-                    icon.style.setProperty('height', '1em', 'important');
-                }
+                btn.style.setProperty('width', '50px', 'important');
+                btn.style.setProperty('height', '40px', 'important');
             }
         });
     }
