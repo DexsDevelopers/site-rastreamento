@@ -1685,6 +1685,23 @@ td button i {
     font-size: 1rem !important;
     line-height: 1 !important;
     margin-right: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Garantir que botões tenham conteúdo visível */
+.btn,
+button.btn {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    white-space: nowrap !important;
+}
+
+.btn i,
+button.btn i {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .logout-btn {
