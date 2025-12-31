@@ -1620,7 +1620,7 @@ body {
         transform: translateY(-2px);
     }
 
-    /* Nav superior com efeito de vidro - Design Profissional */
+    /* Nav superior moderno com glassmorphism */
     .admin-nav {
         position: sticky;
         top: 12px;
@@ -1629,33 +1629,62 @@ body {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        padding: 16px 24px;
-        background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
-        border: 1px solid rgba(255, 51, 51, 0.2);
+        gap: 20px;
+        padding: 18px 28px;
+        background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(15, 15, 15, 0.98) 100%);
+        border: 1px solid rgba(255, 51, 51, 0.25);
         border-radius: 20px;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
-                    0 0 0 1px rgba(255, 51, 51, 0.1) inset,
-                    0 2px 8px rgba(255, 51, 51, 0.1);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 
+                    0 0 0 1px rgba(255, 51, 51, 0.15) inset,
+                    0 4px 12px rgba(255, 51, 51, 0.15);
         z-index: 1000;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .admin-nav::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
     }
     
     .nav-brand { 
-        font-weight: 700; 
+        font-weight: 800; 
         letter-spacing: 0.5px; 
         display: flex; 
         align-items: center; 
-        gap: 12px;
-        font-size: 1.2rem;
+        gap: 14px;
+        font-size: 1.3rem;
         color: var(--text-primary);
-        text-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .nav-brand::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 32px;
+        background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
+        border-radius: 2px;
     }
     
     .nav-brand i {
-        color: var(--primary-color);
-        font-size: 1.4rem;
+        color: transparent;
+        background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        font-size: 1.6rem;
+        filter: drop-shadow(0 0 8px rgba(255, 51, 51, 0.5));
     }
     
     /* Menu Hambúrguer Profissional */
@@ -1778,68 +1807,114 @@ body {
     
     .nav-actions { 
         display: flex; 
-        gap: 10px; 
+        gap: 12px; 
         flex-wrap: wrap;
         align-items: center;
+        position: relative;
+        z-index: 1;
     }
     
     .nav-btn {
-        padding: 12px 20px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 14px 22px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         color: var(--text-primary);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        font-weight: 500;
+        gap: 10px;
+        font-weight: 600;
         font-size: 0.95rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+        white-space: nowrap;
     }
     
     .nav-btn::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%);
+        transform: scaleY(0);
+        transform-origin: bottom;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0 4px 4px 0;
+    }
+    
+    .nav-btn::after {
         content: '';
         position: absolute;
         top: 0;
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.15), transparent);
         transition: left 0.5s ease;
     }
     
     .nav-btn:hover::before {
+        transform: scaleY(1);
+    }
+    
+    .nav-btn:hover::after {
         left: 100%;
     }
     
     .nav-btn:hover { 
         transform: translateY(-2px); 
-        box-shadow: 0 8px 20px rgba(255, 51, 51, 0.3), 
-                    0 0 0 1px rgba(255, 51, 51, 0.2) inset;
-        background: rgba(255, 51, 51, 0.1);
+        box-shadow: 0 8px 24px rgba(255, 51, 51, 0.25), 
+                    0 0 0 1px rgba(255, 51, 51, 0.3) inset;
+        background: linear-gradient(135deg, rgba(255, 51, 51, 0.15) 0%, rgba(255, 102, 0, 0.1) 100%);
         border-color: rgba(255, 51, 51, 0.4);
     }
     
     .nav-btn:active {
         transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(255, 51, 51, 0.2);
     }
     
     .nav-btn i {
-        font-size: 1rem;
+        font-size: 1.1rem;
+        color: #FF3333;
+        transition: all 0.3s ease;
+        filter: drop-shadow(0 0 4px rgba(255, 51, 51, 0.4));
+    }
+    
+    .nav-btn:hover i {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 8px rgba(255, 51, 51, 0.6));
     }
     
     .nav-btn.danger {
-        background: rgba(239, 68, 68, 0.1);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
         border-color: rgba(239, 68, 68, 0.3);
     }
     
+    .nav-btn.danger i {
+        color: #EF4444;
+        filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+    }
+    
     .nav-btn.danger:hover {
-        background: rgba(239, 68, 68, 0.2);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
         border-color: rgba(239, 68, 68, 0.5);
-        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+    }
+    
+    .nav-btn.danger:hover i {
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+    }
+    
+    /* Botão desabilitado */
+    .nav-btn[style*="opacity"] {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
     }
 
     /* Botão flutuante PWA */
@@ -2609,24 +2684,51 @@ body {
 
 <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()" style="display: none !important; pointer-events: none !important;"></div>
 <div class="admin-nav" id="adminNav">
-    <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
+    <div class="nav-brand">
+        <i class="fas fa-truck"></i> 
+        <span>Helmer Admin</span>
+    </div>
     <button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
         <span></span>
         <span></span>
         <span></span>
     </button>
     <div class="nav-actions">
-        <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
-        <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
-        <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
-        <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Mensagens WhatsApp</a>
-        <a href="admin_bot_config.php" class="nav-btn"><i class="fas fa-robot"></i> Config Bot</a>
+        <a href="admin_indicacoes.php" class="nav-btn" title="Gerenciar indicações">
+            <i class="fas fa-users"></i> 
+            <span>Indicações</span>
+        </a>
+        <a href="index.php" class="nav-btn" title="Voltar para página inicial">
+            <i class="fas fa-home"></i> 
+            <span>Página inicial</span>
+        </a>
+        <a href="admin_settings.php" class="nav-btn" title="Configurações rápidas">
+            <i class="fas fa-gear"></i> 
+            <span>Configurações</span>
+        </a>
+        <a href="admin_mensagens.php" class="nav-btn" title="Mensagens WhatsApp">
+            <i class="fas fa-comment-dots"></i> 
+            <span>Mensagens</span>
+        </a>
+        <a href="admin_bot_config.php" class="nav-btn" title="Configuração do Bot">
+            <i class="fas fa-robot"></i> 
+            <span>Config Bot</span>
+        </a>
         <?php if (!empty($_SESSION['undo_action'])): ?>
-            <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i class="fas fa-rotate-left"></i> Desfazer</a>
+            <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;" title="Desfazer última ação">
+                <i class="fas fa-rotate-left"></i> 
+                <span>Desfazer</span>
+            </a>
         <?php else: ?>
-            <span class="nav-btn" style="opacity:.5; cursor:not-allowed"><i class="fas fa-rotate-left"></i> Desfazer</span>
+            <span class="nav-btn" style="opacity:.5; cursor:not-allowed" title="Nada para desfazer">
+                <i class="fas fa-rotate-left"></i> 
+                <span>Desfazer</span>
+            </span>
         <?php endif; ?>
-        <a href="admin.php?logout=1" class="nav-btn danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        <a href="admin.php?logout=1" class="nav-btn danger" title="Sair do sistema">
+            <i class="fas fa-sign-out-alt"></i> 
+            <span>Sair</span>
+        </a>
     </div>
 </div>
 <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action" value="1"></form>
