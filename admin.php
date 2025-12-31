@@ -1860,12 +1860,52 @@ td button {
     box-sizing: border-box !important;
     margin: 0 8px !important;
     border: none !important;
-    border-radius: 12px !important;
+    border-radius: 16px !important;
     font-weight: 600 !important;
     letter-spacing: 0.5px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
     gap: 10px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Botão Editar (Warning) */
+table .actions .btn-warning,
+table .actions button.btn-warning {
+    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%) !important;
+    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.5),
+                0 3px 10px rgba(217, 119, 6, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+}
+
+/* Botão Detalhes (Info) */
+table .actions .btn-info,
+table .actions button.btn-info {
+    background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 50%, #06b6d4 100%) !important;
+    box-shadow: 0 8px 24px rgba(34, 211, 238, 0.5),
+                0 3px 10px rgba(8, 145, 178, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+}
+
+/* Botão WhatsApp (Success) */
+table .actions .btn-success,
+table .actions button.btn-success {
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #25D366 100%) !important;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.5),
+                0 3px 10px rgba(18, 140, 126, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+}
+
+/* Botão Excluir (Danger) */
+table .actions .btn-danger,
+table .actions button.btn-danger {
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 50%, #ef4444 100%) !important;
+    box-shadow: 0 8px 24px rgba(248, 113, 113, 0.5),
+                0 3px 10px rgba(220, 38, 38, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
 }
 
 /* Forçar conteúdo visível nos botões */
