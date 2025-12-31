@@ -1516,7 +1516,7 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
-    z-index: 1000;
+    z-index: 10000;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -2580,7 +2580,7 @@ body {
     <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
 </button>
 
-<div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
+<div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()" style="display: none !important; pointer-events: none !important;"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
     <button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
@@ -4350,7 +4350,11 @@ function toggleAdminMenu() {
         // Fechar menu
         nav.classList.remove('active');
         nav.classList.remove('open'); // Compatibilidade com CSS antigo
-        if (overlay) overlay.classList.remove('active');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.style.display = 'none';
+            overlay.style.pointerEvents = 'none';
+        }
         body.classList.remove('menu-open');
         btn.setAttribute('aria-expanded', 'false');
         body.style.overflow = '';
@@ -4358,7 +4362,11 @@ function toggleAdminMenu() {
         // Abrir menu
         nav.classList.add('active');
         nav.classList.add('open'); // Compatibilidade com CSS antigo
-        if (overlay) overlay.classList.add('active');
+        if (overlay) {
+            overlay.classList.add('active');
+            overlay.style.display = 'block';
+            overlay.style.pointerEvents = 'auto';
+        }
         body.classList.add('menu-open');
         btn.setAttribute('aria-expanded', 'true');
         body.style.overflow = 'hidden'; // Prevenir scroll do body

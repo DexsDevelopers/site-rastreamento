@@ -233,7 +233,7 @@ html, body {
     
     /* Overlay com blur */
     .nav-overlay {
-        display: none;
+        display: none !important;
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.7);
@@ -242,11 +242,13 @@ html, body {
         -webkit-backdrop-filter: blur(8px);
         opacity: 0;
         transition: opacity var(--transition-normal);
+        pointer-events: none !important;
     }
     
     .nav-overlay.active {
-        display: block;
+        display: block !important;
         opacity: 1;
+        pointer-events: auto !important;
     }
     
     body.menu-open {
@@ -383,6 +385,27 @@ html, body {
         padding: 12px 20px !important;
         min-height: 44px !important;
         font-size: 0.9rem !important;
+    }
+    
+    /* Garantir que botões sejam clicáveis */
+    .btn,
+    button,
+    .btn-sm,
+    .btn-warning,
+    .btn-info,
+    .btn-primary,
+    .btn-secondary {
+        z-index: 10 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+    }
+    
+    /* Garantir que tabelas e seus botões sejam clicáveis */
+    table .btn,
+    table button {
+        z-index: 10 !important;
+        pointer-events: auto !important;
+        position: relative !important;
     }
 }
 
