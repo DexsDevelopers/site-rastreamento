@@ -1746,19 +1746,38 @@ body {
 }
 
 .close {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    font-size: 1.8rem;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px 12px;
     border-radius: 50%;
     transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 10001 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    flex-shrink: 0;
 }
 
 .close:hover {
-    background: var(--border-color);
-    color: var(--text-primary);
+    background: rgba(255, 51, 51, 0.9);
+    border-color: rgba(255, 51, 51, 1);
+    color: white;
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
+}
+
+.close:active {
+    transform: scale(0.95) rotate(90deg);
 }
 
 .actions {
