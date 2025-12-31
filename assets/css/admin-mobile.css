@@ -1,4 +1,17 @@
 /* ===== CSS RESPONSIVO PARA MOBILE - PWA ===== */
+/* IMPORTANTE: Este arquivo deve ser carregado DEPOIS do CSS principal para sobrescrever estilos */
+
+/* Forçar visibilidade do menu hambúrguer no mobile - regra global */
+@media screen and (max-width: 768px) {
+    /* Sobrescrever qualquer CSS que esconda o botão */
+    .nav-toggle,
+    .menu-toggle {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+}
 
 /* Safe Area para iPhone (notch) - apenas laterais e bottom */
 @supports (padding: max(0px)) {
