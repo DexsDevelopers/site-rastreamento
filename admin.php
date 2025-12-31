@@ -994,6 +994,33 @@ if (isset($_POST['undo_action'])) {
         visibility: visible !important;
         display: block !important;
     }
+    
+    /* Garantir que botões sejam sempre clicáveis */
+    .btn,
+    button:not(.nav-toggle):not(.close),
+    .btn-sm,
+    .btn-warning,
+    .btn-info,
+    .btn-primary,
+    .btn-secondary {
+        z-index: 100 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+    }
+    
+    /* Garantir que células da tabela sejam clicáveis */
+    table td,
+    table th {
+        position: relative;
+        z-index: 1;
+    }
+    
+    table .btn,
+    table button {
+        z-index: 100 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+    }
 }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
