@@ -930,33 +930,49 @@ if (isset($_POST['undo_action'])) {
 /* FORÇAR MENU HAMBÚRGUER VISÍVEL NO MOBILE - CSS INLINE */
 @media screen and (max-width: 768px) {
     #navToggleBtn,
-    .nav-toggle {
+    .nav-toggle,
+    [data-mobile-visible="true"],
+    .nav-toggle.mobile-visible {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
         position: fixed !important;
         top: 16px !important;
         left: 16px !important;
-        z-index: 10001 !important;
-        width: 44px !important;
-        height: 44px !important;
-        background: rgba(26, 26, 26, 0.95) !important;
-        border: 2px solid rgba(255, 51, 51, 0.3) !important;
+        z-index: 999999 !important; /* Z-index extremamente alto */
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        background: #FF3333 !important;
+        background-color: #FF3333 !important;
+        border: 3px solid #FFFFFF !important;
         border-radius: 8px !important;
         cursor: pointer !important;
         flex-direction: column !important;
         justify-content: center !important;
         align-items: center !important;
-        gap: 4px !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
     }
     
     #navToggleBtn span,
-    .nav-toggle span {
+    .nav-toggle span,
+    [data-mobile-visible="true"] span {
         display: block !important;
-        width: 24px !important;
-        height: 2px !important;
-        background: #FF3333 !important;
+        width: 26px !important;
+        height: 3px !important;
+        min-width: 26px !important;
+        min-height: 3px !important;
+        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         border-radius: 2px !important;
+        margin: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 }
 </style>
