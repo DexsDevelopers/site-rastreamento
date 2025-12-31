@@ -4096,14 +4096,18 @@ document.addEventListener('keydown', function(e) {
 // Mostrar notificações de sucesso do PHP
 <?php if (isset($success_message)): ?>
     document.addEventListener('DOMContentLoaded', function() {
-        notifySuccess('<?= addslashes($success_message) ?>');
+        if (typeof notifySuccess === 'function') {
+            notifySuccess(<?= json_encode($success_message) ?>);
+        }
     });
 <?php endif; ?>
 
 // Mostrar notificações de erro do PHP
 <?php if (isset($error_message)): ?>
     document.addEventListener('DOMContentLoaded', function() {
-        notifyError('<?= addslashes($error_message) ?>');
+        if (typeof notifyError === 'function') {
+            notifyError(<?= json_encode($error_message) ?>);
+        }
     });
 <?php endif; ?>
 
@@ -4913,10 +4917,53 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         e.stopPropagation();
         const codigo = this.getAttribute('data-codigo');
-        if (codigo && typeof window.abrirModal === 'function') {
-            window.abrirModal(codigo);
-        } else {
-            console.error('Erro: abrirModal não está definida ou código não encontrado', codigo);
+        if (codigo) {
+            // Tentar usar abrirModal se existir
+            if (typeof window.abrirModal === 'function') {
+                window.abrirModal(codigo);
+            } else if (typeof abrirModal === 'function') {
+                abrirModal(codigo);
+            } else {
+                // Fallback: fazer fetch diretamente
+                fetch("get_etapas.php?codigo=" + codigo + "&t=" + Date.now())
+                    .then(r => r.json())
+                    .then(data => {
+                        const modal = document.getElementById('modal');
+                        if (modal) {
+                            modal.style.display = 'flex';
+                            const editCodigo = document.getElementById('edit_codigo');
+                            if (editCodigo) editCodigo.value = codigo;
+                            const editCidade = document.getElementById('edit_cidade');
+                            if (editCidade) editCidade.value = data.cidade || '';
+                            const editData = document.getElementById('edit_data');
+                            if (editData) editData.value = data.data_inicial || new Date().toISOString().slice(0,16);
+                            const editTaxaValor = document.getElementById('edit_taxa_valor');
+                            if (editTaxaValor) editTaxaValor.value = data.taxa_valor || '';
+                            const editTaxaPix = document.getElementById('edit_taxa_pix');
+                            if (editTaxaPix) editTaxaPix.value = data.taxa_pix || '';
+                            const cbPostado = document.getElementById('cb_postado');
+                            if (cbPostado) cbPostado.checked = data.etapas && data.etapas.includes('postado');
+                            const cbTransito = document.getElementById('cb_transito');
+                            if (cbTransito) cbTransito.checked = data.etapas && data.etapas.includes('transito');
+                            const cbDistribuicao = document.getElementById('cb_distribuicao');
+                            if (cbDistribuicao) cbDistribuicao.checked = data.etapas && data.etapas.includes('distribuicao');
+                            const cbEntrega = document.getElementById('cb_entrega');
+                            if (cbEntrega) cbEntrega.checked = data.etapas && data.etapas.includes('entrega');
+                            const cbEntregue = document.getElementById('cb_entregue');
+                            if (cbEntregue) cbEntregue.checked = data.etapas && data.etapas.includes('entregue');
+                            const editClienteNome = document.getElementById('edit_cliente_nome');
+                            if (editClienteNome) editClienteNome.value = data.cliente_nome || '';
+                            const editClienteWhatsapp = document.getElementById('edit_cliente_whatsapp');
+                            if (editClienteWhatsapp) editClienteWhatsapp.value = data.cliente_whatsapp || '';
+                            const editClienteNotificar = document.getElementById('edit_cliente_notificar');
+                            if (editClienteNotificar) editClienteNotificar.checked = !!data.cliente_notificar;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar dados:', error);
+                        alert('Erro ao carregar dados do rastreio');
+                    });
+            }
         }
     }
     
