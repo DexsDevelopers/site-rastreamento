@@ -249,7 +249,7 @@ foreach ($settings as $s) {
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Configuração do Bot | Helmer Logistics</title>
     <meta name="theme-color" content="#FF3333">
     <meta name="apple-mobile-web-app-capable" content="yes">
