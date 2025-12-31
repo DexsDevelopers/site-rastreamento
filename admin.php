@@ -1663,6 +1663,8 @@ td button {
     justify-content: center !important;
     padding: 8px 16px !important;
     flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    flex-basis: auto !important;
     z-index: 1000 !important;
     pointer-events: auto !important;
     position: relative !important;
@@ -1673,6 +1675,23 @@ td button {
     font-size: 0.875rem !important;
     line-height: 1.5 !important;
     white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+
+/* Garantir que .actions não colapse */
+table .actions {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    width: auto !important;
+}
+
+/* Garantir que células da tabela não colapsem */
+table td {
+    min-width: 0 !important;
+    overflow: visible !important;
 }
 
 table .actions .btn i,
