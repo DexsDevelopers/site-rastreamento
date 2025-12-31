@@ -1,137 +1,99 @@
-/* ===== CSS RESPONSIVO PARA MOBILE - PWA ===== */
-/* IMPORTANTE: Este arquivo deve ser carregado DEPOIS do CSS principal para sobrescrever estilos */
+/* ===== CSS MODERNO E OTIMIZADO PARA MOBILE - PWA ===== */
+/* Design moderno, rápido e bonito para mobile */
 
-/* Forçar visibilidade do menu hambúrguer no mobile - regra global */
-@media screen and (max-width: 768px) {
-    /* Sobrescrever qualquer CSS que esconda o botão */
-    .nav-toggle,
-    .menu-toggle {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-    }
+/* ===== VARIÁVEIS CSS MODERNAS ===== */
+:root {
+    --primary-gradient: linear-gradient(135deg, #FF3333 0%, #FF6B6B 100%);
+    --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --dark-gradient: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
+    --card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    --glass-bg: rgba(26, 26, 26, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 20px rgba(255, 51, 51, 0.3);
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Safe Area para iPhone (notch) - apenas laterais e bottom */
-@supports (padding: max(0px)) {
-    body {
-        padding-left: max(12px, env(safe-area-inset-left));
-        padding-right: max(12px, env(safe-area-inset-right));
-        padding-top: 0; /* Removido - causa espaço extra */
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
-    }
+/* ===== RESET E BASE ===== */
+* {
+    -webkit-tap-highlight-color: rgba(255, 51, 51, 0.2);
+    box-sizing: border-box;
 }
 
-/* Reset de espaçamento no topo */
 html, body {
     margin: 0 !important;
+    padding: 0 !important;
     padding-top: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-/* Container principal sem margin-top extra */
-.container {
-    margin-top: 0 !important;
-    padding-top: 12px !important;
-}
-
-/* Admin nav sem espaço extra */
-.admin-nav {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-/* Remover qualquer espaço antes do primeiro elemento */
-body > *:first-child {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-/* Menu Hambúrguer */
-.menu-toggle,
-.nav-toggle {
-    display: none;
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 1001;
-    background: var(--card-bg, #1A1A1A);
-    border: 1px solid var(--border-color, #2A2A2A);
-    border-radius: 8px;
-    padding: 12px;
-    cursor: pointer;
-    color: var(--text-primary, #FFFFFF);
-    flex-direction: column;
-    gap: 4px;
-    width: 44px;
-    height: 44px;
-    justify-content: center;
-    align-items: center;
-}
-
-.nav-toggle span {
-    display: block;
-    width: 24px;
-    height: 2px;
-    background: currentColor;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-}
-
-.nav-toggle[aria-expanded="true"] span:nth-child(1) {
-    transform: rotate(45deg) translate(6px, 6px);
-}
-
-.nav-toggle[aria-expanded="true"] span:nth-child(2) {
-    opacity: 0;
-}
-
-.nav-toggle[aria-expanded="true"] span:nth-child(3) {
-    transform: rotate(-45deg) translate(6px, -6px);
-}
-
-/* Touch targets maiores para mobile */
-@media (max-width: 768px) {
-    /* Forçar visibilidade do botão hambúrguer */
+/* ===== BOTÃO HAMBÚRGUER MODERNO ===== */
+@media screen and (max-width: 768px) {
+    .nav-toggle,
     .menu-toggle,
-    .nav-toggle {
+    #navToggleBtn {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
         position: fixed !important;
         top: max(16px, env(safe-area-inset-top) + 8px) !important;
         left: 16px !important;
-        z-index: 10001 !important;
-        background: rgba(26, 26, 26, 0.95) !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
-        border: 2px solid rgba(255, 51, 51, 0.3) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-        width: 44px !important;
-        height: 44px !important;
+        z-index: 999999 !important;
+        width: 52px !important;
+        height: 52px !important;
+        background: var(--primary-gradient) !important;
+        border: none !important;
+        border-radius: 14px !important;
+        box-shadow: var(--shadow-md), var(--shadow-glow) !important;
+        cursor: pointer !important;
         flex-direction: column !important;
         justify-content: center !important;
         align-items: center !important;
-        gap: 4px !important;
-        cursor: pointer !important;
+        gap: 5px !important;
+        padding: 0 !important;
+        transition: all var(--transition-fast) !important;
+        will-change: transform;
     }
     
-    .nav-toggle span {
+    .nav-toggle:active,
+    #navToggleBtn:active {
+        transform: scale(0.95) !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+    
+    .nav-toggle span,
+    #navToggleBtn span {
         display: block !important;
-        width: 24px !important;
-        height: 2px !important;
-        background: #FF3333 !important;
-        border-radius: 2px !important;
+        width: 26px !important;
+        height: 3px !important;
+        background: #FFFFFF !important;
+        border-radius: 3px !important;
+        transition: all var(--transition-fast) !important;
+        will-change: transform;
     }
     
-    .nav-toggle:hover {
-        background: rgba(255, 51, 51, 0.15) !important;
-        border-color: rgba(255, 51, 51, 0.5) !important;
+    .nav-toggle[aria-expanded="true"] span:nth-child(1) {
+        transform: rotate(45deg) translate(7px, 7px) !important;
     }
     
-    /* Navegação mobile - Menu lateral estilo app */
+    .nav-toggle[aria-expanded="true"] span:nth-child(2) {
+        opacity: 0 !important;
+    }
+    
+    .nav-toggle[aria-expanded="true"] span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px) !important;
+    }
+}
+
+/* ===== MENU LATERAL MODERNO ===== */
+@media screen and (max-width: 768px) {
     .admin-nav {
         position: fixed !important;
         top: 0 !important;
@@ -139,97 +101,94 @@ body > *:first-child {
         width: 85% !important;
         max-width: 320px !important;
         height: 100vh !important;
-        height: 100dvh !important; /* Dynamic viewport height */
-        background: #1A1A1A !important; /* Fundo sólido escuro */
+        height: 100dvh !important;
+        background: var(--dark-gradient) !important;
         background-color: #1A1A1A !important;
-        background-image: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%) !important;
         z-index: 10000 !important;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: left var(--transition-normal) !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
         padding: 0 !important;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.8) !important;
+        box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6) !important;
         margin: 0 !important;
-        border-right: 2px solid rgba(255, 51, 51, 0.4) !important;
+        border-right: 1px solid rgba(255, 51, 51, 0.2) !important;
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
+        will-change: left;
     }
     
     .admin-nav.active {
         left: 0 !important;
     }
     
-    /* Garantir que o menu não fique escondido */
-    .admin-nav:not(.active) {
-        left: -100% !important;
-    }
-    
-    /* Header do menu mobile */
+    /* Header do menu com glassmorphism */
     .nav-brand {
-        padding: max(20px, env(safe-area-inset-top) + 12px) 20px 16px 20px !important;
-        border-bottom: 1px solid rgba(255, 51, 51, 0.2) !important;
-        margin-bottom: 0 !important;
-        font-size: 1.3rem !important;
+        padding: max(24px, env(safe-area-inset-top) + 16px) 20px 20px 20px !important;
+        border-bottom: 1px solid rgba(255, 51, 51, 0.15) !important;
+        margin-bottom: 8px !important;
+        font-size: 1.4rem !important;
         font-weight: 700 !important;
-        background: linear-gradient(135deg, rgba(255, 51, 51, 0.1) 0%, transparent 100%) !important;
+        background: linear-gradient(135deg, rgba(255, 51, 51, 0.15) 0%, transparent 100%) !important;
         display: flex !important;
         align-items: center !important;
         gap: 12px !important;
-        color: var(--text-primary, #FFFFFF) !important;
+        color: #FFFFFF !important;
         position: sticky !important;
         top: 0 !important;
         z-index: 1 !important;
-        backdrop-filter: blur(10px) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
     }
     
     .nav-brand i {
-        color: var(--primary-color, #FF3333) !important;
-        font-size: 1.5rem !important;
+        color: #FF3333 !important;
+        font-size: 1.6rem !important;
     }
     
-    /* Botão fechar no header */
     .nav-brand::after {
         content: '✕';
         margin-left: auto;
-        font-size: 1.5rem;
-        color: var(--text-secondary, #cbd5e1);
+        font-size: 1.8rem;
+        color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 6px;
-        transition: all 0.2s;
+        padding: 6px 10px;
+        border-radius: 8px;
+        transition: all var(--transition-fast);
     }
     
-    .nav-brand:hover::after {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--text-primary, #FFFFFF);
+    .nav-brand:active::after {
+        background: rgba(255, 255, 255, 0.15);
+        color: #FFFFFF;
+        transform: scale(0.95);
     }
     
-    /* Ações do menu */
+    /* Botões do menu modernos */
     .nav-actions {
         display: flex !important;
         flex-direction: column !important;
-        gap: 4px !important;
+        gap: 6px !important;
         padding: 12px !important;
     }
     
     .nav-btn {
-        padding: 16px 18px !important;
+        padding: 18px 20px !important;
         font-size: 1rem !important;
-        min-height: 56px !important;
+        min-height: 60px !important;
         display: flex !important;
         align-items: center !important;
         gap: 16px !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
         text-align: left !important;
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        color: var(--text-primary, #FFFFFF) !important;
+        background: var(--card-gradient) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important;
         text-decoration: none !important;
-        transition: all 0.2s ease !important;
+        transition: all var(--transition-fast) !important;
         font-weight: 500 !important;
         position: relative !important;
         overflow: hidden !important;
+        will-change: transform;
     }
     
     .nav-btn::before {
@@ -239,51 +198,50 @@ body > *:first-child {
         top: 0;
         height: 100%;
         width: 4px;
-        background: var(--primary-color, #FF3333);
+        background: var(--primary-gradient);
         transform: scaleY(0);
-        transition: transform 0.2s ease;
+        transition: transform var(--transition-fast);
+        border-radius: 0 4px 4px 0;
     }
     
-    .nav-btn:hover,
     .nav-btn:active {
-        background: rgba(255, 51, 51, 0.1) !important;
+        background: rgba(255, 51, 51, 0.15) !important;
         border-color: rgba(255, 51, 51, 0.3) !important;
-        transform: translateX(4px);
+        transform: translateX(4px) scale(0.98);
     }
     
-    .nav-btn:hover::before,
     .nav-btn:active::before {
         transform: scaleY(1);
     }
     
     .nav-btn i {
-        font-size: 1.3rem !important;
-        width: 24px;
+        font-size: 1.4rem !important;
+        width: 28px;
         text-align: center;
-        color: var(--primary-color, #FF3333) !important;
+        color: #FF3333 !important;
     }
     
     .nav-btn.danger {
-        margin-top: 8px;
+        margin-top: 12px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding-top: 20px;
+        padding-top: 22px;
     }
     
     .nav-btn.danger i {
         color: #EF4444 !important;
     }
     
-    /* Overlay para fechar menu */
+    /* Overlay com blur */
     .nav-overlay {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.75);
+        background: rgba(0, 0, 0, 0.7);
         z-index: 9999;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity var(--transition-normal);
     }
     
     .nav-overlay.active {
@@ -291,334 +249,347 @@ body > *:first-child {
         opacity: 1;
     }
     
-    /* Ajustar container quando menu está aberto */
     body.menu-open {
         overflow: hidden;
     }
-    
-    body.menu-open .container {
-        margin-left: 0;
-    }
-    * {
-        -webkit-tap-highlight-color: rgba(255, 51, 51, 0.2);
-    }
-    
-    /* Reset completo do body no mobile */
-    body {
-        margin: 0 !important;
-        padding: 0 !important;
-        padding-top: 0 !important;
-    }
-    
-    /* Container responsivo */
+}
+
+/* ===== CONTAINER E LAYOUT ===== */
+@media screen and (max-width: 768px) {
     .container {
-        padding: 12px !important;
+        padding: 16px !important;
         max-width: 100% !important;
         margin: 0 !important;
-        margin-top: 0 !important;
-        padding-top: 12px !important;
+        padding-top: 72px !important; /* Espaço para o botão hambúrguer */
     }
     
-    /* Header sem margin-top extra */
+    /* Header moderno */
     .header {
         margin-top: 0 !important;
-        padding-top: 20px !important;
-        padding: 20px 16px !important;
-        border-radius: 16px !important;
-        margin-bottom: 16px !important;
-    }
-    
-    /* Remover espaço de elementos antes do container */
-    body > .toast-container,
-    body > #pwaInstallBtn,
-    body > .nav-overlay {
-        margin-top: 0 !important;
+        padding: 24px 20px !important;
+        border-radius: 20px !important;
+        margin-bottom: 20px !important;
+        background: var(--card-gradient) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: var(--shadow-md) !important;
+        backdrop-filter: blur(10px) !important;
     }
     
     .header h1 {
-        font-size: 1.75rem !important;
+        font-size: 1.9rem !important;
         margin-bottom: 8px !important;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700 !important;
     }
     
     .header p {
         font-size: 0.95rem !important;
+        color: rgba(255, 255, 255, 0.7) !important;
     }
-    
-    /* Grid responsivo - 1 coluna no mobile */
-    .stats-grid,
-    .form-grid,
-    .checkbox-group {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-    }
-    
-    /* Cards menores */
+}
+
+/* ===== CARDS MODERNOS ===== */
+@media screen and (max-width: 768px) {
     .stat-card,
     .card {
-        padding: 16px !important;
-        border-radius: 12px !important;
-        margin-bottom: 12px !important;
+        padding: 20px !important;
+        border-radius: 16px !important;
+        margin-bottom: 16px !important;
+        background: var(--card-gradient) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: var(--shadow-md) !important;
+        transition: all var(--transition-fast) !important;
+        will-change: transform;
     }
     
-    /* Botões maiores para touch */
+    .stat-card:active,
+    .card:active {
+        transform: scale(0.98);
+        box-shadow: var(--shadow-sm) !important;
+    }
+    
+    /* Stats grid */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transition: transform var(--transition-normal);
+    }
+    
+    .stat-card:active::before {
+        transform: scaleX(1);
+    }
+}
+
+/* ===== BOTÕES MODERNOS ===== */
+@media screen and (max-width: 768px) {
     .btn {
-        padding: 14px 20px !important;
+        padding: 16px 24px !important;
         font-size: 1rem !important;
-        min-height: 44px; /* Tamanho mínimo recomendado para touch */
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 8px;
+        min-height: 52px !important;
+        width: 100% !important;
+        justify-content: center !important;
+        margin-bottom: 12px !important;
+        border-radius: 14px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        transition: all var(--transition-fast) !important;
+        will-change: transform;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-primary {
+        background: var(--primary-gradient) !important;
+        color: #FFFFFF !important;
+        box-shadow: var(--shadow-md), var(--shadow-glow) !important;
+    }
+    
+    .btn-primary:active {
+        transform: scale(0.97) translateY(1px);
+        box-shadow: var(--shadow-sm) !important;
+    }
+    
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    .btn-secondary:active {
+        background: rgba(255, 255, 255, 0.15) !important;
+        transform: scale(0.97);
     }
     
     .btn-sm {
-        padding: 10px 16px !important;
-        min-height: 40px;
+        padding: 12px 20px !important;
+        min-height: 44px !important;
+        font-size: 0.9rem !important;
     }
-    
-    /* Navegação mobile */
-    .nav-grid,
-    .nav-buttons {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-    }
-    
-    .nav-btn {
-        padding: 16px !important;
-        font-size: 1rem !important;
-        min-height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 12px;
-    }
-    
-    .nav-btn i {
-        font-size: 1.25rem !important;
-        width: 24px;
-    }
-    
-    /* Tabelas responsivas */
-    .table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    table {
-        font-size: 0.875rem !important;
-        min-width: 600px;
-    }
-    
-    table th,
-    table td {
-        padding: 10px 8px !important;
-    }
-    
-    /* Formulários mobile */
+}
+
+/* ===== FORMULÁRIOS MODERNOS ===== */
+@media screen and (max-width: 768px) {
     .form-group {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
     
     .form-group input,
     .form-group select,
     .form-group textarea {
         font-size: 16px !important; /* Evita zoom no iOS */
-        padding: 14px !important;
-        min-height: 44px;
+        padding: 16px !important;
+        min-height: 52px !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #FFFFFF !important;
+        transition: all var(--transition-fast) !important;
     }
     
-    /* Modal mobile */
-    .modal-content {
-        width: 95% !important;
-        max-width: 95% !important;
-        margin: 10px !important;
-        max-height: 90vh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none !important;
+        border-color: #FF3333 !important;
+        box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
     }
     
-    /* Sidebar mobile (se houver) */
-    .sidebar {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        height: 100vh;
-        width: 280px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .sidebar.active {
-        left: 0;
-    }
-    
-    /* Overlay para fechar sidebar */
-    .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        z-index: 999;
-    }
-    
-    .sidebar-overlay.active {
+    .form-group label {
+        font-weight: 600 !important;
+        margin-bottom: 8px !important;
+        color: rgba(255, 255, 255, 0.9) !important;
         display: block;
     }
-    
-    /* Menu hambúrguer */
-    .menu-toggle {
-        display: block !important;
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 1001;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 12px;
-        cursor: pointer;
-        color: var(--text-primary);
-    }
-    
-    /* Ajustes de texto */
-    h1, h2, h3 {
-        font-size: 1.5rem !important;
-    }
-    
-    h2 {
-        font-size: 1.25rem !important;
-    }
-    
-    h3 {
-        font-size: 1.1rem !important;
-    }
-    
-    /* Inputs de busca */
-    .search-box {
-        width: 100% !important;
-        margin-bottom: 12px;
-    }
-    
-    /* Badges e tags */
-    .badge {
-        font-size: 0.75rem !important;
-        padding: 4px 8px !important;
-    }
-    
-    /* Toast notifications */
-    .toast {
-        left: 12px !important;
-        right: 12px !important;
-        width: auto !important;
-        bottom: 80px; /* Acima da barra de navegação */
-    }
-    
-    /* Scrollbar mobile */
-    ::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
-    }
-    
-    /* Espaçamento reduzido */
-    .mb-4, .mb-5, .mb-6 {
-        margin-bottom: 16px !important;
-    }
-    
-    .mt-4, .mt-5, .mt-6 {
-        margin-top: 16px !important;
-    }
-    
-    /* Cards de ação */
-    .action-card {
-        padding: 16px !important;
-    }
-    
-    /* Imagens responsivas */
-    img {
-        max-width: 100%;
-        height: auto;
-    }
-    
-    /* Ocultar elementos desnecessários no mobile */
-    .desktop-only {
-        display: none !important;
-    }
-    
-    .mobile-only {
-        display: block !important;
-    }
 }
 
-/* Tablet */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .stats-grid,
-    .form-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-    
-    .nav-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
-
-/* Botão Instalar PWA */
-#pwaInstallBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 998;
-    background: var(--primary-color, #FF3333);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 14px 24px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
-    display: none;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-#pwaInstallBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 51, 51, 0.5);
-}
-
-#pwaInstallBtn.show {
-    display: flex;
-}
-
-@media (max-width: 768px) {
-    #pwaInstallBtn {
-        bottom: 80px; /* Acima da barra de navegação se houver */
-        right: 16px;
-        padding: 12px 20px;
-        font-size: 0.85rem;
-    }
-}
-
-/* Garantir que o botão hambúrguer apareça no mobile - regra mais específica */
+/* ===== TABELAS RESPONSIVAS ===== */
 @media screen and (max-width: 768px) {
-    /* Sobrescrever qualquer CSS inline */
-    body .nav-toggle,
-    body .menu-toggle {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 16px;
+        background: var(--card-gradient);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 8px;
     }
     
-    /* Garantir que o menu não fique escondido por CSS inline */
-    body .admin-nav {
-        display: block !important;
-        visibility: visible !important;
+    table {
+        font-size: 0.875rem !important;
+        min-width: 600px;
+        width: 100%;
+    }
+    
+    table th,
+    table td {
+        padding: 12px 10px !important;
+    }
+    
+    table thead {
+        background: rgba(255, 51, 51, 0.1);
+    }
+    
+    table tbody tr {
+        transition: background var(--transition-fast);
+    }
+    
+    table tbody tr:active {
+        background: rgba(255, 255, 255, 0.05);
     }
 }
 
-/* Desktop - manter como está */
+/* ===== ANIMAÇÕES SUAVES ===== */
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .container > * {
+        animation: fadeIn 0.4s ease-out;
+    }
+    
+    .stat-card,
+    .card {
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.2s; }
+}
+
+/* ===== PERFORMANCE ===== */
+@media screen and (max-width: 768px) {
+    /* GPU acceleration para elementos animados */
+    .admin-nav,
+    .nav-toggle,
+    .btn,
+    .stat-card,
+    .card {
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+    
+    /* Otimizar scroll */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Reduzir repaints */
+    .container,
+    .header,
+    .stat-card {
+        contain: layout style paint;
+    }
+}
+
+/* ===== PREVENIR ZOOM ===== */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important;
+        touch-action: manipulation;
+    }
+    
+    * {
+        touch-action: manipulation;
+    }
+    
+    input,
+    textarea,
+    [contenteditable="true"],
+    p,
+    span,
+    div:not(.no-select),
+    td,
+    th {
+        -webkit-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+    
+    button,
+    .btn,
+    .nav-btn,
+    a {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+    
+    html {
+        touch-action: pan-x pan-y;
+        -ms-touch-action: pan-x pan-y;
+    }
+    
+    body {
+        touch-action: pan-x pan-y;
+        -ms-touch-action: pan-x pan-y;
+    }
+}
+
+/* ===== PWA MODE ===== */
+@media (display-mode: standalone) {
+    body {
+        padding-top: 0;
+    }
+    
+    .header {
+        margin-top: 0;
+        padding-top: max(24px, env(safe-area-inset-top) + 16px) !important;
+    }
+    
+    .nav-toggle {
+        top: max(16px, env(safe-area-inset-top) + 8px) !important;
+    }
+}
+
+/* ===== DESKTOP ===== */
 @media (min-width: 1025px) {
     .mobile-only {
         display: none !important;
@@ -628,7 +599,6 @@ body > *:first-child {
         display: block !important;
     }
     
-    /* Menu desktop - sempre visível */
     .admin-nav {
         position: relative !important;
         left: 0 !important;
@@ -645,117 +615,28 @@ body > *:first-child {
     .nav-overlay {
         display: none !important;
     }
-    
-    .nav-actions {
-        flex-direction: row !important;
-        gap: 10px !important;
-    }
 }
 
-/* Modo paisagem mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-    .header h1 {
-        font-size: 1.5rem !important;
-    }
-    
-    .stats-grid {
+/* ===== TABLET ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .stats-grid,
+    .form-grid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 }
 
-/* Ajustes para telas muito pequenas */
+/* ===== TELAS MUITO PEQUENAS ===== */
 @media (max-width: 360px) {
     .header h1 {
-        font-size: 1.5rem !important;
+        font-size: 1.6rem !important;
     }
     
     .btn {
         font-size: 0.9rem !important;
-        padding: 12px 16px !important;
+        padding: 14px 20px !important;
+    }
+    
+    .container {
+        padding: 12px !important;
     }
 }
-
-/* Prevenir zoom em inputs (iOS) - mas manter tamanho legível */
-@media screen and (max-width: 768px) {
-    input[type="text"],
-    input[type="email"],
-    input[type="number"],
-    input[type="tel"],
-    input[type="password"],
-    select,
-    textarea {
-        font-size: 16px !important;
-        touch-action: manipulation; /* Prevenir zoom duplo toque */
-    }
-    
-    /* Desabilitar zoom completamente - mas permitir seleção de texto */
-    * {
-        touch-action: manipulation;
-    }
-    
-    /* Permitir seleção de texto em inputs, textareas e conteúdo editável */
-    input,
-    textarea,
-    [contenteditable="true"],
-    p,
-    span,
-    div:not(.no-select),
-    td,
-    th {
-        -webkit-user-select: text;
-        user-select: text;
-        -webkit-touch-callout: default;
-    }
-    
-    /* Prevenir seleção apenas em botões e elementos interativos */
-    button,
-    .btn,
-    .nav-btn,
-    a {
-        -webkit-user-select: none;
-        user-select: none;
-        -webkit-touch-callout: none;
-    }
-    
-    /* Prevenir gestos de zoom */
-    html {
-        touch-action: pan-x pan-y;
-        -ms-touch-action: pan-x pan-y;
-    }
-    
-    body {
-        touch-action: pan-x pan-y;
-        -ms-touch-action: pan-x pan-y;
-    }
-}
-
-/* Animações suaves */
-@media (prefers-reduced-motion: no-preference) {
-    * {
-        transition: transform 0.2s ease, opacity 0.2s ease;
-    }
-}
-
-/* Dark mode (já está implementado, mas garantir) */
-@media (prefers-color-scheme: dark) {
-    /* Já está em dark mode por padrão */
-}
-
-/* PWA - Fullscreen mode */
-@media (display-mode: standalone) {
-    body {
-        /* Ajustes quando instalado como PWA - apenas safe area se necessário */
-        padding-top: 0;
-    }
-    
-    .header {
-        margin-top: 0;
-        padding-top: max(20px, env(safe-area-inset-top)) !important;
-    }
-    
-    /* Menu toggle ajustado para safe area */
-    .nav-toggle {
-        top: max(16px, env(safe-area-inset-top) + 8px) !important;
-    }
-}
-

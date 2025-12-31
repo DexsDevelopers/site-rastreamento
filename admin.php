@@ -925,7 +925,18 @@ if (isset($_POST['undo_action'])) {
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 <!-- CSS Mobile Responsivo -->
-<link rel="stylesheet" href="assets/css/admin-mobile.css">
+<!-- CSS Mobile Moderno - Carregamento otimizado -->
+<link rel="stylesheet" href="assets/css/admin-mobile.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/css/admin-mobile.css"></noscript>
+<script>
+// Fallback para carregamento assíncrono do CSS
+(function() {
+    var link = document.querySelector('link[href="assets/css/admin-mobile.css"]');
+    if (link && link.media === 'print') {
+        link.onload = function() { this.media = 'all'; };
+    }
+})();
+</script>
 <style>
 /* FORÇAR MENU HAMBÚRGUER VISÍVEL NO MOBILE - CSS INLINE */
 @media screen and (max-width: 768px) {
