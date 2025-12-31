@@ -2380,6 +2380,7 @@ body {
 <div class="toast-container" id="toastContainer"></div>
 <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
+<div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
     <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
@@ -4569,10 +4570,45 @@ window.addEventListener('appinstalled', () => {
 function toggleAdminMenu() {
     const nav = document.getElementById('adminNav');
     const btn = document.querySelector('.nav-toggle');
+    const overlay = document.getElementById('navOverlay');
+    const body = document.body;
+    
     if (!nav || !btn) return;
-    const open = nav.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    
+    const isOpen = nav.classList.contains('active');
+    
+    if (isOpen) {
+        nav.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        body.classList.remove('menu-open');
+        btn.setAttribute('aria-expanded', 'false');
+    } else {
+        nav.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+        body.classList.add('menu-open');
+        btn.setAttribute('aria-expanded', 'true');
+    }
 }
+
+// Fechar menu ao clicar em link
+document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-actions .nav-btn');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            setTimeout(() => toggleAdminMenu(), 100);
+        });
+    });
+    
+    // Fechar menu ao pressionar ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const nav = document.getElementById('adminNav');
+            if (nav && nav.classList.contains('active')) {
+                toggleAdminMenu();
+            }
+        }
+    });
+});
 </script>
 <?php // Expor presets ao JS ?>
 <script>
