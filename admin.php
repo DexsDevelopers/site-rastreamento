@@ -1591,19 +1591,23 @@ body {
 }
 
 .btn-sm {
-    padding: 14px 24px;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-height: 52px;
-    min-width: 52px;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    padding: 18px 28px !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    min-height: 64px !important;
+    min-width: 140px !important;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.5 !important;
 }
 
 /* Ícones nos botões */
@@ -1831,19 +1835,19 @@ body {
     overflow: visible !important;
 }
 
-/* Garantir que botões dentro de tabelas sejam sempre clicáveis */
+/* Garantir que botões dentro de tabelas sejam sempre clicáveis - ESTILO APLICATIVO */
 table .actions .btn,
 table .actions button,
 td .btn,
 td button {
-    min-width: 60px !important;
-    min-height: 52px !important;
+    min-width: 160px !important;
+    min-height: 64px !important;
     width: auto !important;
     height: auto !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 14px 24px !important;
+    padding: 18px 28px !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
     flex-basis: auto !important;
@@ -1853,19 +1857,20 @@ td button {
     cursor: pointer !important;
     visibility: visible !important;
     opacity: 1 !important;
-    overflow: hidden !important;
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
+    overflow: visible !important;
+    font-size: 1.1rem !important;
+    line-height: 1.6 !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
-    margin: 0 8px !important;
+    margin: 0 10px !important;
     border: none !important;
-    border-radius: 16px !important;
+    border-radius: 18px !important;
     font-weight: 600 !important;
     letter-spacing: 0.5px !important;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    gap: 10px !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+    gap: 12px !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    text-overflow: clip !important;
 }
 
 /* Botão Editar (Warning) */
@@ -1931,12 +1936,13 @@ table .actions .btn i,
 table .actions button i {
     display: inline-block !important;
     margin-right: 0 !important;
-    font-size: 1.2rem !important;
-    width: 1.2em !important;
-    height: 1.2em !important;
+    font-size: 1.3rem !important;
+    width: 1.3em !important;
+    height: 1.3em !important;
     line-height: 1 !important;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) !important;
     transition: transform 0.3s ease !important;
+    flex-shrink: 0 !important;
 }
 
 table .actions .btn:hover i,
@@ -1946,21 +1952,34 @@ table .actions button:hover i {
 
 table .actions .btn .btn-text {
     display: inline-block !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    flex-shrink: 0 !important;
 }
 
 @media (max-width: 768px) {
     table .actions .btn .btn-text {
-        display: none !important;
+        display: inline-block !important;
     }
     table .actions .btn {
-        min-width: 56px !important;
-        min-height: 56px !important;
-        padding: 14px !important;
-        font-size: 1.1rem !important;
+        min-width: 140px !important;
+        min-height: 64px !important;
+        padding: 18px 24px !important;
+        font-size: 1rem !important;
+        gap: 10px !important;
     }
     table .actions .btn i {
         margin-right: 0 !important;
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important;
+    }
+    .actions {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    .actions .btn {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 }
 
@@ -2433,24 +2452,42 @@ table .actions button i:only-child {
     .card-city { color: var(--text-secondary); font-size: .95rem; }
     .card-status { display:flex; align-items:center; gap:6px; color: var(--text-primary); font-size: .95rem; }
     .card-meta { color: var(--text-secondary); font-size: .9rem; }
-    .card-actions { display:flex; gap:10px; flex-wrap: wrap; }
+    .card-actions { 
+        display:flex; 
+        gap:12px; 
+        flex-wrap: wrap; 
+        flex-direction: column;
+        width: 100%;
+    }
     .card-actions .btn { 
-        padding: 14px 24px; 
-        border-radius: 12px; 
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        min-height: 52px;
-        min-width: 52px;
-        font-size: 1rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        padding: 18px 28px !important; 
+        border-radius: 18px !important; 
+        font-weight: 600 !important;
+        letter-spacing: 0.5px !important;
+        min-height: 64px !important;
+        min-width: 100% !important;
+        width: 100% !important;
+        font-size: 1.1rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        overflow: visible !important;
+        white-space: nowrap !important;
+        text-overflow: clip !important;
         gap: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     .card-actions .btn i {
-        font-size: 1.2rem;
+        font-size: 1.3rem !important;
+        flex-shrink: 0 !important;
+    }
+    .card-actions .btn .btn-text {
+        display: inline-block !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
     }
     .nav-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; }
 
@@ -3815,8 +3852,8 @@ table .actions button i:only-child {
 </div>
 
 <script>
-// Funções do modal
-function abrirModal(codigo) {
+// Funções do modal - GLOBAL
+window.abrirModal = function abrirModal(codigo) {
     fetch("get_etapas.php?codigo=" + codigo + "&t=" + Date.now())
       .then(r => r.json())
       .then(data => {
@@ -3863,6 +3900,9 @@ function abrirModal(codigo) {
           alert('Erro ao carregar dados do rastreio');
       });
 }
+
+// Garantir que abrirModal seja acessível globalmente
+window.abrirModal = abrirModal;
 
 function closeModal() {
     const modal = document.getElementById('modal');
@@ -5233,21 +5273,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(showMenuButton, 50);
     setTimeout(showMenuButton, 100);
     
-    // CORRIGIR BOTÕES DA TABELA - Forçar tamanho mínimo
+    // CORRIGIR BOTÕES DA TABELA - Forçar tamanho mínimo ESTILO APLICATIVO
     function fixTableButtons() {
         const buttons = document.querySelectorAll('table .actions .btn, table .actions button, td .btn, td button');
         buttons.forEach(btn => {
             const rect = btn.getBoundingClientRect();
+            const isMobile = window.innerWidth <= 768;
             // Sempre forçar estilos, mesmo se já tiver tamanho
-            btn.style.setProperty('min-width', '60px', 'important');
-            btn.style.setProperty('min-height', '52px', 'important');
-            btn.style.setProperty('width', 'auto', 'important');
+            btn.style.setProperty('min-width', isMobile ? '140px' : '160px', 'important');
+            btn.style.setProperty('min-height', '64px', 'important');
+            btn.style.setProperty('width', isMobile ? '100%' : 'auto', 'important');
             btn.style.setProperty('height', 'auto', 'important');
             btn.style.setProperty('display', 'inline-flex', 'important');
-            btn.style.setProperty('padding', '14px 24px', 'important');
-            btn.style.setProperty('font-size', '1rem', 'important');
+            btn.style.setProperty('padding', isMobile ? '18px 24px' : '18px 28px', 'important');
+            btn.style.setProperty('font-size', isMobile ? '1rem' : '1.1rem', 'important');
             btn.style.setProperty('flex-shrink', '0', 'important');
             btn.style.setProperty('flex-grow', '0', 'important');
+            btn.style.setProperty('overflow', 'visible', 'important');
+            btn.style.setProperty('white-space', 'nowrap', 'important');
+            btn.style.setProperty('text-overflow', 'clip', 'important');
             btn.style.setProperty('box-sizing', 'border-box', 'important');
             btn.style.setProperty('visibility', 'visible', 'important');
             btn.style.setProperty('opacity', '1', 'important');
@@ -5330,14 +5374,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleEditClick(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         const codigo = this.getAttribute('data-codigo');
+        console.log('Botão Editar clicado, código:', codigo);
         if (codigo) {
-            // Tentar usar abrirModal se existir
+            // Garantir que abrirModal está disponível globalmente
             if (typeof window.abrirModal === 'function') {
+                console.log('Chamando window.abrirModal');
                 window.abrirModal(codigo);
             } else if (typeof abrirModal === 'function') {
+                console.log('Chamando abrirModal');
                 abrirModal(codigo);
             } else {
+                console.log('abrirModal não encontrado, usando fallback');
                 // Fallback: fazer fetch diretamente
                 fetch("get_etapas.php?codigo=" + codigo + "&t=" + Date.now())
                     .then(r => r.json())
