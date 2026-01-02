@@ -1080,8 +1080,8 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
-    // Comando $menu - mostrar menu de comandos
-    if (command === '$menu') {
+    // Comando $menu - mostrar menu de comandos (também aceita $help e $ajuda)
+    if (command === '$menu' || command === '$help' || command === '$ajuda') {
       const menuText = `🤖 *MENU DE COMANDOS DO GRUPO*\n\n` +
                       `*Comandos de Administração:*\n` +
                       `• \`$ban @pessoa\` - Banir membro do grupo\n` +
