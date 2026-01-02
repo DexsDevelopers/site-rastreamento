@@ -1,0 +1,4 @@
+Arquivo de teste para verificar se o Git está funcionando corretamente.
+Data: 2025-01-30
+Este arquivo pode ser deletado após o teste.
+
