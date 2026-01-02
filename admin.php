@@ -1383,211 +1383,155 @@ body {
     transform: scale(1.2);
 }
 
+/* ============================================
+   BOTÕES REDESENHADOS - DESIGN MODERNO 2025
+   ============================================ */
+
 .btn {
-    padding: 12px 24px;
+    padding: 16px 32px;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1rem;
-    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 10px;
     text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent
+    );
+    transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 
 .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
 }
 
 .btn-primary {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #FF3333 0%, #FF5555 50%, #FF6600 100%);
     color: white;
-    border: none;
-    box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
-    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(255, 51, 51, 0.4),
+                0 2px 8px rgba(255, 102, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #FF4444 0%, #FF6666 50%, #FF7700 100%);
+    box-shadow: 0 10px 30px rgba(255, 51, 51, 0.5),
+                0 4px 12px rgba(255, 102, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Botões Modernos e Bonitos */
+/* Botão Success - Verde Moderno */
 .btn-success {
-    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
     color: white;
-    border: none;
-    box-shadow: 0 6px 20px rgba(52, 211, 153, 0.45),
-                0 2px 8px rgba(5, 150, 105, 0.35),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-
-.btn-success::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transition: left 0.6s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4),
+                0 2px 8px rgba(5, 150, 105, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-success:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 36px rgba(52, 211, 153, 0.55),
-                0 6px 16px rgba(5, 150, 105, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
-    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5),
+                0 4px 12px rgba(5, 150, 105, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.btn-success:hover::before {
-    left: 100%;
-}
-
-.btn-success:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 4px 12px rgba(52, 211, 153, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
-}
-
+/* Botão Warning - Amarelo/Laranja Moderno */
 .btn-warning {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
     color: white;
-    border: none;
-    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.45),
-                0 2px 8px rgba(217, 119, 6, 0.35),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-
-.btn-warning::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transition: left 0.6s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4),
+                0 2px 8px rgba(217, 119, 6, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-warning:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 36px rgba(251, 191, 36, 0.55),
-                0 6px 16px rgba(217, 119, 6, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
-    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.5),
+                0 4px 12px rgba(217, 119, 6, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.btn-warning:hover::before {
-    left: 100%;
-}
-
-.btn-warning:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
-}
-
+/* Botão Danger - Vermelho Moderno */
 .btn-danger {
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
     color: white;
-    border: none;
-    box-shadow: 0 6px 20px rgba(248, 113, 113, 0.45),
-                0 2px 8px rgba(220, 38, 38, 0.35),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-
-.btn-danger::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transition: left 0.6s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4),
+                0 2px 8px rgba(220, 38, 38, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-danger:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 36px rgba(248, 113, 113, 0.55),
-                0 6px 16px rgba(220, 38, 38, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
-    background: linear-gradient(135deg, #fca5a5 0%, #f87171 50%, #ef4444 100%);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5),
+                0 4px 12px rgba(220, 38, 38, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.btn-danger:hover::before {
-    left: 100%;
-}
-
-.btn-danger:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
-}
-
+/* Botão Info - Azul Ciano Moderno */
 .btn-info {
-    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
     color: white;
-    border: none;
-    box-shadow: 0 6px 20px rgba(34, 211, 238, 0.45),
-                0 2px 8px rgba(8, 145, 178, 0.35),
-                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.2) inset;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-
-.btn-info::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transition: left 0.6s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4),
+                0 2px 8px rgba(8, 145, 178, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-info:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 36px rgba(34, 211, 238, 0.55),
-                0 6px 16px rgba(8, 145, 178, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset;
-    background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 50%, #06b6d4 100%);
-}
-
-.btn-info:hover::before {
-    left: 100%;
-}
-
-.btn-info:active {
-    transform: translateY(-1px) scale(0.98);
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+    box-shadow: 0 10px 30px rgba(6, 182, 212, 0.5),
+                0 4px 12px rgba(8, 145, 178, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .btn-sm {
@@ -1646,9 +1590,30 @@ body {
     flex-wrap: wrap;
 }
 
+/* Barra de Busca Moderna */
 .search-bar input {
     flex: 1;
     min-width: 200px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.search-bar input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 51, 51, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1),
+                0 4px 12px rgba(255, 51, 51, 0.2);
+}
+
+.search-bar input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .filters {
@@ -1658,18 +1623,51 @@ body {
     flex-wrap: wrap;
 }
 
+/* Botões de Filtro Modernos */
 .filter-btn {
-    padding: 8px 16px;
-    background: var(--border-color);
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
-    border: none;
-    border-radius: 6px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.filter-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.2), transparent);
+    transition: left 0.4s ease;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 51, 51, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 51, 51, 0.2);
+}
+
+.filter-btn:hover::before {
+    left: 100%;
 }
 
 .filter-btn.active {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, rgba(255, 51, 51, 0.2) 0%, rgba(255, 102, 0, 0.15) 100%);
+    border-color: rgba(255, 51, 51, 0.5);
+    color: #FF3333;
+    box-shadow: 0 4px 16px rgba(255, 51, 51, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    font-weight: 700;
 }
 
 .table-container {
