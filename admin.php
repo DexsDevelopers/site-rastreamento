@@ -1171,15 +1171,16 @@ body {
 }
 
 .stat-card i {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
+    font-size: 2rem;
+    margin-bottom: 12px;
     display: block;
+    color: var(--primary-color);
 }
 
 .stat-card h3 {
-    font-size: 2rem;
+    font-size: 1.75rem;
     margin-bottom: 5px;
-    color: var(--primary-color);
+    color: var(--text-primary);
 }
 
 .stat-card p {
@@ -1235,7 +1236,6 @@ body {
 .form-group select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
 }
 
 .photo-upload {
@@ -1245,11 +1245,11 @@ body {
 }
 
 .photo-preview {
-    border: 2px dashed rgba(255,255,255,0.15);
-    border-radius: 12px;
-    padding: 18px;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
     text-align: center;
-    background: rgba(255,255,255,0.03);
+    background: var(--dark-bg);
 }
 
 .photo-preview img {
@@ -1272,17 +1272,17 @@ body {
 }
 
 .photo-preview-actions input[type="file"] {
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(0,0,0,0.25);
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--dark-bg);
     color: var(--text-secondary);
 }
 
 .details-photo img {
     width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
     margin-top: 8px;
 }
 
@@ -1908,19 +1908,19 @@ table .actions button i:only-child {
         font-size: 1.4rem;
     }
     
-    /* Menu Hambúrguer Profissional */
+    /* Menu Hambúrguer Minimalista */
     .nav-toggle { 
         display: none; /* Escondido por padrão no desktop */
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        width: 44px;
-        height: 44px;
-        background: rgba(255, 51, 51, 0.1);
-        border: 2px solid rgba(255, 51, 51, 0.3);
-        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         position: relative;
         z-index: 1001;
     }
@@ -1948,23 +1948,21 @@ table .actions button i:only-child {
     }
     
     .nav-toggle:hover {
-        background: rgba(255, 51, 51, 0.2);
-        border-color: rgba(255, 51, 51, 0.5);
-        transform: scale(1.05);
+        background: var(--border-color);
+        border-color: var(--primary-color);
     }
     
     .nav-toggle:active {
-        transform: scale(0.95);
+        opacity: 0.8;
     }
     
     .nav-toggle span {
         display: block;
-        width: 24px;
-        height: 3px;
+        width: 20px;
+        height: 2px;
         background: var(--primary-color);
-        border-radius: 3px;
-        transition: all 0.3s ease;
-        box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+        border-radius: 2px;
+        transition: all 0.2s ease;
     }
     
     .nav-toggle span:nth-child(1) {
@@ -2178,18 +2176,17 @@ table .actions button i:only-child {
     }
 
     .toast {
-        background: rgba(255,255,255,0.08);
+        background: var(--card-bg);
         color: var(--text-primary);
-        padding: 15px 20px;
+        padding: 12px 16px;
         border-radius: 8px;
-        box-shadow: 0 10px 24px rgba(0,0,0,0.25);
-        border-left: 4px solid var(--primary-color);
-        min-width: 300px;
-        max-width: 400px;
+        box-shadow: var(--shadow);
+        border-left: 3px solid var(--primary-color);
+        min-width: 280px;
+        max-width: 380px;
         display: flex;
         align-items: center;
         gap: 10px;
-        animation: slideInRight 0.3s ease;
         position: relative;
     }
 
@@ -2225,45 +2222,9 @@ table .actions button i:only-child {
         color: var(--text-primary);
     }
 
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    @keyframes pulse {
-        0% {
-            box-shadow: 0 0 20px #ff6600;
-            transform: scale(1);
-        }
-        50% {
-            box-shadow: 0 0 30px #ff3300;
-            transform: scale(1.05);
-        }
-        100% {
-            box-shadow: 0 0 20px #ff6600;
-            transform: scale(1);
-        }
-    }
-
     .toast.fade-out {
-        animation: slideOutRight 0.3s ease forwards;
+        opacity: 0;
+        transition: opacity 0.2s ease;
     }
 
     /* Sistema de Automações */
