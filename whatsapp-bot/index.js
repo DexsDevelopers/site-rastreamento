@@ -1072,18 +1072,14 @@ async function saveGroupInfo(jid, nome, descricao, participantes) {
 // Comandos como /ban, /kick, /promote, /demote
 async function processGroupAdminCommand(remoteJid, text, msg) {
   try {
-    const isGroup = remoteJid.includes('@g.us');
-    if (!isGroup) {
-      return { success: false, message: '❌ Este comando só funciona em grupos.' };
-    }
-    
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
     log.info(`[GROUP ADMIN] Comando extraído: "${command}" | Texto completo: "${text}"`);
+    log.info(`[GROUP ADMIN] RemoteJid: ${remoteJid}`);
     
     // Comando $menu - mostrar menu de comandos (também aceita $help e $ajuda)
-    // Este comando não precisa de verificação de admin, qualquer um pode ver o menu
+    // Este comando funciona em grupos e também em chat privado (para testes)
     if (command === '$menu' || command === '$help' || command === '$ajuda') {
       log.info(`[GROUP ADMIN] Comando $menu detectado!`);
       const menuText = `🤖 *MENU DE COMANDOS DO GRUPO*\n\n` +
@@ -1111,6 +1107,11 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
       
       log.info(`[GROUP ADMIN] Retornando menu com ${menuText.length} caracteres`);
       return { success: true, message: menuText };
+    }
+    
+    const isGroup = remoteJid.includes('@g.us');
+    if (!isGroup) {
+      return { success: false, message: '❌ Este comando só funciona em grupos.' };
     }
     
     // Verificar se a mensagem é uma resposta ou está marcada (para identificar o alvo)
