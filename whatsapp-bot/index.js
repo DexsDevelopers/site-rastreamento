@@ -2341,17 +2341,26 @@ async function start() {
                    '';
         
         // Se for mensagem respondida, pegar o texto da mensagem original também
+        // MAS: se o texto atual for um comando ($, /, !), manter o comando e não sobrescrever
+        const isCommand = text.trim().startsWith('$') || text.trim().startsWith('/') || text.trim().startsWith('!');
+        let quotedText = '';
+        
         if (msg.message.extendedTextMessage?.contextInfo?.quotedMessage) {
           const quoted = msg.message.extendedTextMessage.contextInfo.quotedMessage;
-          const quotedText = quoted.conversation || 
-                            quoted.extendedTextMessage?.text ||
-                            quoted.imageMessage?.caption ||
-                            quoted.videoMessage?.caption ||
-                            '';
-          if (quotedText) {
-            text = quotedText; // Usar texto da mensagem original quando respondida
-            log.info(`[ANTILINK] Mensagem respondida detectada, texto original: "${quotedText.substring(0, 50)}"`);
-          }
+          quotedText = quoted.conversation || 
+                       quoted.extendedTextMessage?.text ||
+                       quoted.imageMessage?.caption ||
+                       quoted.videoMessage?.caption ||
+                       '';
+        }
+        
+        // Se não for comando, usar o texto da mensagem original quando respondida (para anti-link)
+        if (quotedText && !isCommand) {
+          text = quotedText; // Usar texto da mensagem original quando respondida
+          log.info(`[ANTILINK] Mensagem respondida detectada, texto original: "${quotedText.substring(0, 50)}"`);
+        } else if (isCommand) {
+          // Se for comando, manter o texto do comando atual
+          log.info(`[COMMAND] Comando detectado em resposta, mantendo comando: "${text.substring(0, 50)}"`);
         }
         
         const isFromMe = msg.key.fromMe;
