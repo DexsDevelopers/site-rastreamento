@@ -1080,6 +1080,34 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
+    // Comando $menu - mostrar menu de comandos
+    if (command === '$menu') {
+      const menuText = `🤖 *MENU DE COMANDOS DO GRUPO*\n\n` +
+                      `*Comandos de Administração:*\n` +
+                      `• \`$ban @pessoa\` - Banir membro do grupo\n` +
+                      `• \`$kick @pessoa\` - Remover membro do grupo\n` +
+                      `• \`$promote @pessoa\` - Promover a admin\n` +
+                      `• \`$demote @pessoa\` - Remover admin\n` +
+                      `• \`$todos\` ou \`$all\` - Marcar todos os membros\n` +
+                      `• \`$link\` - Obter link do grupo\n` +
+                      `• \`$fechar\` - Fechar grupo (só admins podem falar)\n` +
+                      `• \`$abrir\` - Abrir grupo (todos podem falar)\n\n` +
+                      `*Configurações do Bot:*\n` +
+                      `• \`$antilink on\` - Ativar anti-link\n` +
+                      `• \`$antilink off\` - Desativar anti-link\n` +
+                      `• \`$antilink status\` - Ver status do anti-link\n` +
+                      `• \`$automacao on\` - Ativar automações\n` +
+                      `• \`$automacao off\` - Desativar automações\n` +
+                      `• \`$automacao status\` - Ver status das automações\n\n` +
+                      `*Como usar:*\n` +
+                      `• Marque a pessoa ou responda a mensagem dela\n` +
+                      `• Ou mencione: \`$ban @pessoa\`\n` +
+                      `• Ou digite o número: \`$ban 5511999999999\`\n\n` +
+                      `⚠️ *Atenção:* O bot precisa ser admin do grupo para executar comandos de administração.`;
+      
+      return { success: true, message: menuText };
+    }
+    
     // Verificar se a mensagem é uma resposta ou está marcada (para identificar o alvo)
     const extendedText = msg.message?.extendedTextMessage;
     const contextInfo = extendedText?.contextInfo;
@@ -1475,7 +1503,7 @@ async function processAdminCommand(from, text, msg = null) {
     const isRastreamento = prefix === '/';
     
     // Verificar se é comando de admin de grupo primeiro (prefixo $)
-    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes'];
+    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes', '$menu', '$help', '$ajuda'];
     const commandLower = text.split(' ')[0].toLowerCase();
     
     if (msg && groupAdminCommands.includes(commandLower)) {
