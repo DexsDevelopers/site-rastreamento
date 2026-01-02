@@ -1080,8 +1080,12 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
+    log.info(`[GROUP ADMIN] Comando extraído: "${command}" | Texto completo: "${text}"`);
+    
     // Comando $menu - mostrar menu de comandos (também aceita $help e $ajuda)
+    // Este comando não precisa de verificação de admin, qualquer um pode ver o menu
     if (command === '$menu' || command === '$help' || command === '$ajuda') {
+      log.info(`[GROUP ADMIN] Comando $menu detectado!`);
       const menuText = `🤖 *MENU DE COMANDOS DO GRUPO*\n\n` +
                       `*Comandos de Administração:*\n` +
                       `• \`$ban @pessoa\` - Banir membro do grupo\n` +
@@ -1105,6 +1109,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
                       `• Ou digite o número: \`$ban 5511999999999\`\n\n` +
                       `⚠️ *Atenção:* O bot precisa ser admin do grupo para executar comandos de administração.`;
       
+      log.info(`[GROUP ADMIN] Retornando menu com ${menuText.length} caracteres`);
       return { success: true, message: menuText };
     }
     
