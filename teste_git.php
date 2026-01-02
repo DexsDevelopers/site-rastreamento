@@ -33,81 +33,125 @@ $git_info = [];
 $git_available = false;
 $git_method = 'Nenhum método disponível';
 
+// Verificar funções desabilitadas de forma segura
+$disabled_functions_str = ini_get('disable_functions');
+$disabled_functions_list = [];
+if ($disabled_functions_str && is_string($disabled_functions_str)) {
+    $disabled_functions_list = array_map('trim', explode(',', $disabled_functions_str));
+}
+
 // Método 1: shell_exec
-if (function_exists('shell_exec') && !in_array('shell_exec', explode(',', ini_get('disable_functions')))) {
-    $git_branch = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --abbrev-ref HEAD 2>&1');
-    $git_commit = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --short HEAD 2>&1');
-    $git_date = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git log -1 --format=%ci 2>&1');
-    
-    if ($git_branch && !preg_match('/^(fatal|error|not found)/i', trim($git_branch))) {
-        $git_info = [
-            'branch' => trim($git_branch) ?: 'N/A',
-            'commit' => trim($git_commit) ?: 'N/A',
-            'last_commit_date' => trim($git_date) ?: 'N/A'
-        ];
-        $git_available = true;
-        $git_method = 'shell_exec';
+try {
+    if (function_exists('shell_exec') && !in_array('shell_exec', $disabled_functions_list, true)) {
+        $git_branch = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --abbrev-ref HEAD 2>&1');
+        if ($git_branch && is_string($git_branch)) {
+            $git_branch = trim($git_branch);
+            if ($git_branch && !preg_match('/^(fatal|error|not found)/i', $git_branch)) {
+                $git_commit = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --short HEAD 2>&1');
+                $git_date = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git log -1 --format=%ci 2>&1');
+                
+                $git_info = [
+                    'branch' => $git_branch ?: 'N/A',
+                    'commit' => ($git_commit && is_string($git_commit)) ? trim($git_commit) : 'N/A',
+                    'last_commit_date' => ($git_date && is_string($git_date)) ? trim($git_date) : 'N/A'
+                ];
+                $git_available = true;
+                $git_method = 'shell_exec';
+            }
+        }
     }
+} catch (Exception $e) {
+    // Ignorar erros silenciosamente
 }
 
 // Método 2: exec (se shell_exec não funcionou)
-if (!$git_available && function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
-    $output = [];
-    @exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --abbrev-ref HEAD 2>&1', $output, $return_var);
-    if ($return_var === 0 && !empty($output)) {
-        $git_branch = trim($output[0]);
-        $output = [];
-        @exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --short HEAD 2>&1', $output, $return_var);
-        $git_commit = ($return_var === 0 && !empty($output)) ? trim($output[0]) : 'N/A';
-        $output = [];
-        @exec('cd ' . escapeshellarg(__DIR__) . ' && git log -1 --format=%ci 2>&1', $output, $return_var);
-        $git_date = ($return_var === 0 && !empty($output)) ? trim($output[0]) : 'N/A';
-        
-        $git_info = [
-            'branch' => $git_branch ?: 'N/A',
-            'commit' => $git_commit,
-            'last_commit_date' => $git_date
-        ];
-        $git_available = true;
-        $git_method = 'exec';
+if (!$git_available) {
+    try {
+        if (function_exists('exec') && !in_array('exec', $disabled_functions_list, true)) {
+            $output = [];
+            $return_var = 1;
+            @exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --abbrev-ref HEAD 2>&1', $output, $return_var);
+            if ($return_var === 0 && !empty($output) && is_array($output)) {
+                $git_branch = trim($output[0]);
+                $output = [];
+                @exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --short HEAD 2>&1', $output, $return_var);
+                $git_commit = ($return_var === 0 && !empty($output) && is_array($output)) ? trim($output[0]) : 'N/A';
+                $output = [];
+                @exec('cd ' . escapeshellarg(__DIR__) . ' && git log -1 --format=%ci 2>&1', $output, $return_var);
+                $git_date = ($return_var === 0 && !empty($output) && is_array($output)) ? trim($output[0]) : 'N/A';
+                
+                $git_info = [
+                    'branch' => $git_branch ?: 'N/A',
+                    'commit' => $git_commit,
+                    'last_commit_date' => $git_date
+                ];
+                $git_available = true;
+                $git_method = 'exec';
+            }
+        }
+    } catch (Exception $e) {
+        // Ignorar erros silenciosamente
     }
 }
 
 // Método 3: Tentar ler arquivo .git/HEAD diretamente
 if (!$git_available) {
-    $git_head_file = __DIR__ . '/.git/HEAD';
-    if (file_exists($git_head_file) && is_readable($git_head_file)) {
-        $head_content = @file_get_contents($git_head_file);
-        if ($head_content) {
-            $head_content = trim($head_content);
-            // Formato: ref: refs/heads/main
-            if (preg_match('/ref:\s*refs\/heads\/(.+)/', $head_content, $matches)) {
-                $git_info['branch'] = trim($matches[1]);
-            } else {
-                $git_info['branch'] = substr($head_content, 0, 7); // Primeiros 7 caracteres do commit
-            }
-            
-            // Tentar ler o commit atual
-            $git_refs_file = __DIR__ . '/.git/refs/heads/' . ($git_info['branch'] ?? 'main');
-            if (file_exists($git_refs_file) && is_readable($git_refs_file)) {
-                $commit_hash = trim(@file_get_contents($git_refs_file));
-                $git_info['commit'] = substr($commit_hash, 0, 7);
-            } else {
-                $git_info['commit'] = 'N/A';
-            }
-            
-            // Tentar ler data do último commit
-            $git_logs_dir = __DIR__ . '/.git/logs/HEAD';
-            if (file_exists($git_logs_dir) && is_readable($git_logs_dir)) {
-                $log_content = @file_get_contents($git_logs_dir);
-                if ($log_content) {
-                    $lines = explode("\n", trim($log_content));
-                    if (!empty($lines)) {
-                        $last_line = end($lines);
-                        $parts = explode("\t", $last_line);
-                        if (isset($parts[0])) {
-                            $timestamp = explode(' ', $parts[0])[0];
-                            $git_info['last_commit_date'] = date('Y-m-d H:i:s', $timestamp);
+    try {
+        $git_head_file = __DIR__ . '/.git/HEAD';
+        if (file_exists($git_head_file) && is_readable($git_head_file)) {
+            $head_content = @file_get_contents($git_head_file);
+            if ($head_content && is_string($head_content)) {
+                $head_content = trim($head_content);
+                // Formato: ref: refs/heads/main
+                if (preg_match('/ref:\s*refs\/heads\/(.+)/', $head_content, $matches) && isset($matches[1])) {
+                    $git_info['branch'] = trim($matches[1]);
+                    $branch_name = $git_info['branch'];
+                } else {
+                    $git_info['branch'] = substr($head_content, 0, 7); // Primeiros 7 caracteres do commit
+                    $branch_name = 'main'; // Fallback
+                }
+                
+                // Tentar ler o commit atual
+                if (isset($branch_name)) {
+                    $git_refs_file = __DIR__ . '/.git/refs/heads/' . $branch_name;
+                    if (file_exists($git_refs_file) && is_readable($git_refs_file)) {
+                        $commit_hash = @file_get_contents($git_refs_file);
+                        if ($commit_hash && is_string($commit_hash)) {
+                            $git_info['commit'] = substr(trim($commit_hash), 0, 7);
+                        } else {
+                            $git_info['commit'] = 'N/A';
+                        }
+                    } else {
+                        $git_info['commit'] = 'N/A';
+                    }
+                } else {
+                    $git_info['commit'] = 'N/A';
+                }
+                
+                // Tentar ler data do último commit
+                $git_logs_dir = __DIR__ . '/.git/logs/HEAD';
+                if (file_exists($git_logs_dir) && is_readable($git_logs_dir)) {
+                    $log_content = @file_get_contents($git_logs_dir);
+                    if ($log_content && is_string($log_content)) {
+                        $lines = explode("\n", trim($log_content));
+                        if (!empty($lines)) {
+                            $last_line = end($lines);
+                            if ($last_line) {
+                                $parts = explode("\t", $last_line);
+                                if (isset($parts[0]) && !empty($parts[0])) {
+                                    $timestamp_parts = explode(' ', $parts[0]);
+                                    if (isset($timestamp_parts[0]) && is_numeric($timestamp_parts[0])) {
+                                        $timestamp = (int)$timestamp_parts[0];
+                                        $git_info['last_commit_date'] = date('Y-m-d H:i:s', $timestamp);
+                                    } else {
+                                        $git_info['last_commit_date'] = 'N/A';
+                                    }
+                                } else {
+                                    $git_info['last_commit_date'] = 'N/A';
+                                }
+                            } else {
+                                $git_info['last_commit_date'] = 'N/A';
+                            }
                         } else {
                             $git_info['last_commit_date'] = 'N/A';
                         }
@@ -117,13 +161,13 @@ if (!$git_available) {
                 } else {
                     $git_info['last_commit_date'] = 'N/A';
                 }
-            } else {
-                $git_info['last_commit_date'] = 'N/A';
+                
+                $git_available = true;
+                $git_method = 'Leitura direta de arquivos .git';
             }
-            
-            $git_available = true;
-            $git_method = 'Leitura direta de arquivos .git';
         }
+    } catch (Exception $e) {
+        // Ignorar erros silenciosamente
     }
 }
 
@@ -135,10 +179,6 @@ if (!$git_available) {
         'last_commit_date' => 'N/A'
     ];
 }
-
-// Adicionar informações sobre funções desabilitadas
-$disabled_functions = ini_get('disable_functions');
-$disabled_functions_list = $disabled_functions ? explode(',', $disabled_functions) : [];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
