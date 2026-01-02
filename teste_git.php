@@ -28,25 +28,117 @@ $memory_limit = ini_get('memory_limit');
 $memory_usage = memory_get_usage(true);
 $memory_peak = memory_get_peak_usage(true);
 
-// Informações do Git (se disponível)
+// Informações do Git (tentando múltiplos métodos)
 $git_info = [];
-if (function_exists('shell_exec')) {
-    $git_branch = @shell_exec('git rev-parse --abbrev-ref HEAD 2>&1');
-    $git_commit = @shell_exec('git rev-parse --short HEAD 2>&1');
-    $git_date = @shell_exec('git log -1 --format=%ci 2>&1');
+$git_available = false;
+$git_method = 'Nenhum método disponível';
+
+// Método 1: shell_exec
+if (function_exists('shell_exec') && !in_array('shell_exec', explode(',', ini_get('disable_functions')))) {
+    $git_branch = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --abbrev-ref HEAD 2>&1');
+    $git_commit = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --short HEAD 2>&1');
+    $git_date = @shell_exec('cd ' . escapeshellarg(__DIR__) . ' && git log -1 --format=%ci 2>&1');
     
+    if ($git_branch && !preg_match('/^(fatal|error|not found)/i', trim($git_branch))) {
+        $git_info = [
+            'branch' => trim($git_branch) ?: 'N/A',
+            'commit' => trim($git_commit) ?: 'N/A',
+            'last_commit_date' => trim($git_date) ?: 'N/A'
+        ];
+        $git_available = true;
+        $git_method = 'shell_exec';
+    }
+}
+
+// Método 2: exec (se shell_exec não funcionou)
+if (!$git_available && function_exists('exec') && !in_array('exec', explode(',', ini_get('disable_functions')))) {
+    $output = [];
+    @exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --abbrev-ref HEAD 2>&1', $output, $return_var);
+    if ($return_var === 0 && !empty($output)) {
+        $git_branch = trim($output[0]);
+        $output = [];
+        @exec('cd ' . escapeshellarg(__DIR__) . ' && git rev-parse --short HEAD 2>&1', $output, $return_var);
+        $git_commit = ($return_var === 0 && !empty($output)) ? trim($output[0]) : 'N/A';
+        $output = [];
+        @exec('cd ' . escapeshellarg(__DIR__) . ' && git log -1 --format=%ci 2>&1', $output, $return_var);
+        $git_date = ($return_var === 0 && !empty($output)) ? trim($output[0]) : 'N/A';
+        
+        $git_info = [
+            'branch' => $git_branch ?: 'N/A',
+            'commit' => $git_commit,
+            'last_commit_date' => $git_date
+        ];
+        $git_available = true;
+        $git_method = 'exec';
+    }
+}
+
+// Método 3: Tentar ler arquivo .git/HEAD diretamente
+if (!$git_available) {
+    $git_head_file = __DIR__ . '/.git/HEAD';
+    if (file_exists($git_head_file) && is_readable($git_head_file)) {
+        $head_content = @file_get_contents($git_head_file);
+        if ($head_content) {
+            $head_content = trim($head_content);
+            // Formato: ref: refs/heads/main
+            if (preg_match('/ref:\s*refs\/heads\/(.+)/', $head_content, $matches)) {
+                $git_info['branch'] = trim($matches[1]);
+            } else {
+                $git_info['branch'] = substr($head_content, 0, 7); // Primeiros 7 caracteres do commit
+            }
+            
+            // Tentar ler o commit atual
+            $git_refs_file = __DIR__ . '/.git/refs/heads/' . ($git_info['branch'] ?? 'main');
+            if (file_exists($git_refs_file) && is_readable($git_refs_file)) {
+                $commit_hash = trim(@file_get_contents($git_refs_file));
+                $git_info['commit'] = substr($commit_hash, 0, 7);
+            } else {
+                $git_info['commit'] = 'N/A';
+            }
+            
+            // Tentar ler data do último commit
+            $git_logs_dir = __DIR__ . '/.git/logs/HEAD';
+            if (file_exists($git_logs_dir) && is_readable($git_logs_dir)) {
+                $log_content = @file_get_contents($git_logs_dir);
+                if ($log_content) {
+                    $lines = explode("\n", trim($log_content));
+                    if (!empty($lines)) {
+                        $last_line = end($lines);
+                        $parts = explode("\t", $last_line);
+                        if (isset($parts[0])) {
+                            $timestamp = explode(' ', $parts[0])[0];
+                            $git_info['last_commit_date'] = date('Y-m-d H:i:s', $timestamp);
+                        } else {
+                            $git_info['last_commit_date'] = 'N/A';
+                        }
+                    } else {
+                        $git_info['last_commit_date'] = 'N/A';
+                    }
+                } else {
+                    $git_info['last_commit_date'] = 'N/A';
+                }
+            } else {
+                $git_info['last_commit_date'] = 'N/A';
+            }
+            
+            $git_available = true;
+            $git_method = 'Leitura direta de arquivos .git';
+        }
+    }
+}
+
+// Se nenhum método funcionou
+if (!$git_available) {
     $git_info = [
-        'branch' => trim($git_branch) ?: 'N/A',
-        'commit' => trim($git_commit) ?: 'N/A',
-        'last_commit_date' => trim($git_date) ?: 'N/A'
-    ];
-} else {
-    $git_info = [
-        'branch' => 'shell_exec não disponível',
+        'branch' => 'N/A',
         'commit' => 'N/A',
         'last_commit_date' => 'N/A'
     ];
 }
+
+// Adicionar informações sobre funções desabilitadas
+$disabled_functions = ini_get('disable_functions');
+$disabled_functions_list = $disabled_functions ? explode(',', $disabled_functions) : [];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -198,8 +290,10 @@ if (function_exists('shell_exec')) {
                 <div class="info-item">
                     <strong>Branch Atual:</strong>
                     <span><?= htmlspecialchars($git_info['branch']) ?></span>
-                    <?php if ($git_info['branch'] !== 'N/A' && $git_info['branch'] !== 'shell_exec não disponível'): ?>
+                    <?php if ($git_available): ?>
                         <span class="status-badge status-success">✓ Ativo</span>
+                    <?php else: ?>
+                        <span class="status-badge status-warning">⚠ Não detectado</span>
                     <?php endif; ?>
                 </div>
                 <div class="info-item">
@@ -210,6 +304,16 @@ if (function_exists('shell_exec')) {
                     <strong>Data do Commit:</strong>
                     <span><?= htmlspecialchars($git_info['last_commit_date']) ?></span>
                 </div>
+                <div class="info-item">
+                    <strong>Método de Detecção:</strong>
+                    <span><?= htmlspecialchars($git_method) ?></span>
+                </div>
+                <?php if (!empty($disabled_functions_list)): ?>
+                <div class="info-item">
+                    <strong>Funções Desabilitadas:</strong>
+                    <span><?= htmlspecialchars(implode(', ', array_map('trim', $disabled_functions_list))) ?></span>
+                </div>
+                <?php endif; ?>
             </div>
             
             <!-- Informações do PHP -->
@@ -290,15 +394,23 @@ if (function_exists('shell_exec')) {
                 <h2>✅ Status do Git</h2>
                 <div class="info-item">
                     <strong>Status:</strong>
-                    <?php if ($git_info['branch'] !== 'N/A' && $git_info['branch'] !== 'shell_exec não disponível'): ?>
-                        <span class="status-badge status-success">✓ Git Funcionando</span>
+                    <?php if ($git_available): ?>
+                        <span class="status-badge status-success">✓ Git Detectado e Funcionando</span>
                     <?php else: ?>
-                        <span class="status-badge status-warning">⚠ Verificação Limitada</span>
+                        <span class="status-badge status-warning">⚠ Git Não Detectado</span>
                     <?php endif; ?>
                 </div>
                 <div class="info-item">
                     <strong>Observação:</strong>
-                    <span>Este arquivo foi criado para testar o funcionamento do Git. Pode ser deletado após o teste.</span>
+                    <span>
+                        <?php if ($git_available): ?>
+                            Git está funcionando corretamente! As informações foram obtidas através de: <?= htmlspecialchars($git_method) ?>.
+                        <?php else: ?>
+                            Não foi possível detectar informações do Git. Isso pode ocorrer se o repositório não estiver no servidor ou se as funções de execução estiverem desabilitadas. O Git pode estar funcionando normalmente via linha de comando.
+                        <?php endif; ?>
+                        <br><br>
+                        Este arquivo foi criado para testar o funcionamento do Git. Pode ser deletado após o teste.
+                    </span>
                 </div>
             </div>
         </div>
