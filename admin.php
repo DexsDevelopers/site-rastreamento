@@ -4026,6 +4026,9 @@ function viewDetails(codigo) {
       });
 }
 
+// Garantir que viewDetails esteja disponível globalmente
+window.viewDetails = viewDetails;
+
 // (Removido modal rápido de taxa)
 
 // Função de busca
@@ -4178,6 +4181,9 @@ async function confirmarExclusao(formId, tipo = 'rastreio', codigo = '') {
         }
     }
 }
+
+// Garantir que confirmarExclusao esteja disponível globalmente
+window.confirmarExclusao = confirmarExclusao;
 
 // Confirmação genérica
 async function confirmarAcao(mensagem, titulo = 'Confirmar', icone = 'question') {
@@ -5054,7 +5060,7 @@ function enviarWhatsappManual(codigo) {
     console.log('[WhatsApp] Iniciando envio para código:', codigo);
     
     // Desabilitar botão durante o envio
-    const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"], button[onclick*='enviarWhatsappManual("${codigo}")']`);
+    const buttons = document.querySelectorAll(`.btn-whatsapp[data-codigo="${codigo}"]`);
     buttons.forEach(btn => {
         btn.disabled = true;
         const originalHTML = btn.innerHTML;
@@ -5150,6 +5156,9 @@ function enviarWhatsappManual(codigo) {
         console.error('URL:', window.location.href);
     });
 }
+
+// Garantir que enviarWhatsappManual esteja disponível globalmente
+window.enviarWhatsappManual = enviarWhatsappManual;
 </script>
 <script>
 // Registrar Service Worker e gerenciar botão de instalação
