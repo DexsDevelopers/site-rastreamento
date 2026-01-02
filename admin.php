@@ -1833,19 +1833,19 @@ body {
     overflow: visible !important;
 }
 
-/* Garantir que botões dentro de tabelas sejam sempre clicáveis - ESTILO APLICATIVO */
+/* Botões da Tabela - Design Moderno Redesenhado */
 table .actions .btn,
 table .actions button,
 td .btn,
 td button {
-    min-width: 160px !important;
-    min-height: 64px !important;
+    min-width: 140px !important;
+    min-height: 56px !important;
     width: auto !important;
     height: auto !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 18px 28px !important;
+    padding: 14px 24px !important;
     flex-shrink: 0 !important;
     flex-grow: 0 !important;
     flex-basis: auto !important;
@@ -1856,59 +1856,112 @@ td button {
     visibility: visible !important;
     opacity: 1 !important;
     overflow: visible !important;
-    font-size: 1.1rem !important;
-    line-height: 1.6 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
-    margin: 0 10px !important;
-    border: none !important;
-    border-radius: 18px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.5px !important;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    gap: 12px !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    margin: 0 6px !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    text-transform: uppercase !important;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    gap: 8px !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
     text-overflow: clip !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Botão Editar (Warning) */
+table .actions .btn:hover,
+table .actions button:hover,
+td .btn:hover,
+td button:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+table .actions .btn:active,
+table .actions button:active,
+td .btn:active,
+td button:active {
+    transform: translateY(0) scale(0.98) !important;
+    transition: all 0.1s ease !important;
+}
+
+/* Botões da Tabela - Cores Específicas Modernas */
 table .actions .btn-warning,
 table .actions button.btn-warning {
-    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%) !important;
-    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.5),
-                0 3px 10px rgba(217, 119, 6, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3),
+                0 2px 4px rgba(217, 119, 6, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Botão Detalhes (Info) */
+table .actions .btn-warning:hover,
+table .actions button.btn-warning:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4),
+                0 4px 8px rgba(217, 119, 6, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
 table .actions .btn-info,
 table .actions button.btn-info {
-    background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 50%, #06b6d4 100%) !important;
-    box-shadow: 0 8px 24px rgba(34, 211, 238, 0.5),
-                0 3px 10px rgba(8, 145, 178, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3),
+                0 2px 4px rgba(8, 145, 178, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Botão WhatsApp (Success) */
+table .actions .btn-info:hover,
+table .actions button.btn-info:hover {
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.4),
+                0 4px 8px rgba(8, 145, 178, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
 table .actions .btn-success,
 table .actions button.btn-success {
-    background: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #25D366 100%) !important;
-    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.5),
-                0 3px 10px rgba(18, 140, 126, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3),
+                0 2px 4px rgba(5, 150, 105, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Botão Excluir (Danger) */
+table .actions .btn-success:hover,
+table .actions button.btn-success:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4),
+                0 4px 8px rgba(5, 150, 105, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
 table .actions .btn-danger,
 table .actions button.btn-danger {
-    background: linear-gradient(135deg, #fca5a5 0%, #f87171 50%, #ef4444 100%) !important;
-    box-shadow: 0 8px 24px rgba(248, 113, 113, 0.5),
-                0 3px 10px rgba(220, 38, 38, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.25) inset,
-                0 -2px 0 rgba(0, 0, 0, 0.25) inset !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3),
+                0 2px 4px rgba(220, 38, 38, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+table .actions .btn-danger:hover,
+table .actions button.btn-danger:hover {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4),
+                0 4px 8px rgba(220, 38, 38, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Forçar conteúdo visível nos botões */
