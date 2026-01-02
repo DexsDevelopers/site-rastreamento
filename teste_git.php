@@ -136,13 +136,17 @@ if (!$git_available) {
                         $lines = explode("\n", trim($log_content));
                         if (!empty($lines)) {
                             $last_line = end($lines);
-                            if ($last_line) {
+                            if ($last_line && trim($last_line) !== '') {
+                                // Formato: timestamp1 timestamp2 timezone\told_hash new_hash\tmessage
                                 $parts = explode("\t", $last_line);
                                 if (isset($parts[0]) && !empty($parts[0])) {
-                                    $timestamp_parts = explode(' ', $parts[0]);
+                                    $timestamp_parts = preg_split('/\s+/', trim($parts[0]));
                                     if (isset($timestamp_parts[0]) && is_numeric($timestamp_parts[0])) {
                                         $timestamp = (int)$timestamp_parts[0];
-                                        $git_info['last_commit_date'] = date('Y-m-d H:i:s', $timestamp);
+                                        $timezone_offset = isset($timestamp_parts[1]) ? (int)$timestamp_parts[1] : 0;
+                                        // Ajustar para timezone (offset em segundos, formato +/-HHMM)
+                                        $offset_seconds = ($timezone_offset % 100) * 60 + floor($timezone_offset / 100) * 3600;
+                                        $git_info['last_commit_date'] = date('Y-m-d H:i:s', $timestamp + $offset_seconds);
                                     } else {
                                         $git_info['last_commit_date'] = 'N/A';
                                     }
@@ -159,7 +163,29 @@ if (!$git_available) {
                         $git_info['last_commit_date'] = 'N/A';
                     }
                 } else {
-                    $git_info['last_commit_date'] = 'N/A';
+                    // Tentar método alternativo: ler do objeto commit diretamente
+                    if (isset($git_info['commit']) && $git_info['commit'] !== 'N/A') {
+                        $commit_hash = trim(@file_get_contents($git_refs_file));
+                        if ($commit_hash && strlen($commit_hash) >= 7) {
+                            // Tentar ler do objeto commit (primeiros 2 chars são diretório)
+                            $commit_obj_path = __DIR__ . '/.git/objects/' . substr($commit_hash, 0, 2) . '/' . substr($commit_hash, 2);
+                            if (file_exists($commit_obj_path) && is_readable($commit_obj_path)) {
+                                $commit_obj = @gzuncompress(@file_get_contents($commit_obj_path));
+                                if ($commit_obj && preg_match('/committer\s+[^<]+<[^>]+>\s+(\d+)\s+([+-]\d+)/', $commit_obj, $matches)) {
+                                    $timestamp = (int)$matches[1];
+                                    $git_info['last_commit_date'] = date('Y-m-d H:i:s', $timestamp);
+                                } else {
+                                    $git_info['last_commit_date'] = 'N/A';
+                                }
+                            } else {
+                                $git_info['last_commit_date'] = 'N/A';
+                            }
+                        } else {
+                            $git_info['last_commit_date'] = 'N/A';
+                        }
+                    } else {
+                        $git_info['last_commit_date'] = 'N/A';
+                    }
                 }
                 
                 $git_available = true;
