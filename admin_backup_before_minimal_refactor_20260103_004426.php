@@ -946,7 +946,119 @@ if (isset($_POST['undo_action'])) {
 })();
 </script>
 <style>
-/* CSS Minimalista - Removido para evitar conflitos */
+/* FORÇAR MENU HAMBÚRGUER VISÍVEL NO MOBILE - CSS INLINE */
+@media screen and (max-width: 768px) {
+    #navToggleBtn,
+    .nav-toggle,
+    [data-mobile-visible="true"],
+    .nav-toggle.mobile-visible {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        top: 16px !important;
+        left: 16px !important;
+        z-index: 999999 !important; /* Z-index extremamente alto */
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        background: #FF3333 !important;
+        background-color: #FF3333 !important;
+        border: 3px solid #FFFFFF !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+    
+    #navToggleBtn span,
+    .nav-toggle span,
+    [data-mobile-visible="true"] span {
+        display: block !important;
+        width: 26px !important;
+        height: 3px !important;
+        min-width: 26px !important;
+        min-height: 3px !important;
+        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
+        border-radius: 2px !important;
+        margin: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Garantir que o menu tenha fundo visível quando ativo */
+    .admin-nav.active {
+        background: #1A1A1A !important;
+        background-color: #1A1A1A !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+    }
+    
+    /* Garantir que botões sejam sempre clicáveis */
+    .btn,
+    button:not(.nav-toggle):not(.close),
+    .btn-sm,
+    .btn-warning,
+    .btn-info,
+    .btn-primary,
+    .btn-secondary {
+        z-index: 100 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+    }
+    
+    /* Garantir que células da tabela sejam clicáveis */
+    table td,
+    table th {
+        position: relative;
+        z-index: 1;
+    }
+    
+    table .btn,
+    table button {
+        z-index: 100 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        width: auto !important;
+        height: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px 16px !important;
+    }
+    
+    .actions {
+        display: flex !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+    }
+    
+    .actions .btn,
+    .actions button {
+        min-width: 40px !important;
+        min-height: 40px !important;
+        width: auto !important;
+        height: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px 16px !important;
+        flex-shrink: 0 !important;
+    }
+}
+</style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- SweetAlert2 para popups bonitos -->
@@ -954,55 +1066,35 @@ if (isset($_POST['undo_action'])) {
 <!-- JavaScript removido - Menu hambúrguer agora é controlado apenas por CSS -->
 <style>
 /* ============================================
-   DESIGN SYSTEM CORPORATIVO MINIMALISTA
+   DESIGN SYSTEM HELMER CORPORATE - DARK MODE
    ============================================ */
 :root {
-    /* Escala Z-Index Padronizada */
-    --z-base: 1;
-    --z-dropdown: 10;
-    --z-sticky: 20;
-    --z-fixed: 30;
-    --z-modal-backdrop: 40;
-    --z-modal: 50;
+    /* Cores Principais - Helmer Corporate */
+    --primary-color: #FF3333;
+    --secondary-color: #FF6600;
+    --success-color: #16A34A;
+    --warning-color: #F59E0B;
+    --danger-color: #EF4444;
+    --info-color: #06b6d4;
     
-    /* Cores Corporativas Neutras */
-    --color-primary: #2563eb;
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-danger: #ef4444;
-    --color-info: #3b82f6;
+    /* Backgrounds - Minimalista Profissional */
+    --dark-bg: #0A0A0A;
+    --card-bg: #161616;
+    --surface-bg: #161616;
     
-    /* Backgrounds */
-    --bg-body: #ffffff;
-    --bg-card: #f9fafb;
-    --bg-hover: #f3f4f6;
+    /* Bordas e Divisores - Sutis */
+    --border-color: #262626;
+    --border-subtle: #2A2A2A;
     
-    /* Bordas */
-    --border-color: #e5e7eb;
-    --border-hover: #d1d5db;
+    /* Texto - Alta Legibilidade */
+    --text-primary: #EDEDED;
+    --text-secondary: #cbd5e1;
+    --text-muted: #A3A3A3;
     
-    /* Texto */
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    
-    /* Sombras Minimalistas */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    
-    /* Aliases para compatibilidade (manter funcionalidades) */
-    --primary-color: var(--color-primary);
-    --success-color: var(--color-success);
-    --warning-color: var(--color-warning);
-    --danger-color: var(--color-danger);
-    --info-color: var(--color-info);
-    --dark-bg: var(--bg-body);
-    --card-bg: var(--bg-card);
-    --border-subtle: var(--border-color);
-    --text-muted: var(--text-secondary);
-    --shadow-lg: var(--shadow-md);
-    --shadow-xl: var(--shadow-md);
+    /* Sombras - Profundidade Sutil */
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -1012,12 +1104,12 @@ if (isset($_POST['undo_action'])) {
 }
 
 body {
-    background: var(--bg-body);
+    background: var(--dark-bg);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-    line-height: 1.5;
-    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 400;
 }
 
 .container {
@@ -1027,17 +1119,18 @@ body {
 }
 
 .header {
-    background: var(--bg-card);
-    padding: 24px;
-    border-radius: 8px;
-    margin-bottom: 24px;
+    background: var(--card-bg);
+    padding: 32px 24px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
 }
 
 .header h1 {
-    color: var(--text-primary);
+    color: var(--primary-color);
     text-align: center;
-    font-size: 24px;
+    font-size: 2rem;
     margin-bottom: 8px;
     font-weight: 600;
 }
@@ -1045,7 +1138,8 @@ body {
 .header p {
     text-align: center;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 1rem;
+    font-weight: 400;
 }
 
 .stats-grid {
@@ -1465,8 +1559,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: var(--z-modal);
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -1510,14 +1604,15 @@ body {
     transition: all 0.2s ease;
     width: 32px;
     height: 32px;
-    min-width: 32px;
-    min-height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    position: relative;
-    z-index: var(--z-base);
+    z-index: 10001 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
     flex-shrink: 0;
 }
 
@@ -1540,95 +1635,271 @@ body {
 
 .actions .btn,
 .actions button {
-    min-width: 40px;
-    min-height: 40px;
-    padding: 8px 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    z-index: var(--z-base);
+    min-width: 40px !important;
+    min-height: 40px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 16px !important;
+    flex-shrink: 0 !important;
+    z-index: 100 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    cursor: pointer !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
 }
 
-/* Botões da Tabela - Minimalista e Funcional */
-table .actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
+/* Botões da Tabela - Minimalista */
 table .actions .btn,
-table .actions button {
-    min-width: 100px;
-    min-height: 36px;
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    z-index: var(--z-base);
+table .actions button,
+td .btn,
+td button {
+    min-width: 100px !important;
+    min-height: 36px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 16px !important;
+    flex-shrink: 0 !important;
+    z-index: 1000 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    cursor: pointer !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    margin: 0 4px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    transition: opacity 0.2s ease !important;
+    gap: 6px !important;
 }
 
-table .actions .btn-warning {
-    background: var(--color-warning);
-    border: 1px solid var(--color-warning);
-    color: white;
+table .actions .btn:hover,
+table .actions button:hover,
+td .btn:hover,
+td button:hover {
+    opacity: 0.9 !important;
 }
 
-table .actions .btn-info {
-    background: var(--color-info);
-    border: 1px solid var(--color-info);
-    color: white;
+table .actions .btn:active,
+table .actions button:active,
+td .btn:active,
+td button:active {
+    opacity: 0.8 !important;
 }
 
-table .actions .btn-success {
-    background: var(--color-success);
-    border: 1px solid var(--color-success);
-    color: white;
+/* Botões da Tabela - Cores Minimalistas */
+table .actions .btn-warning,
+table .actions button.btn-warning {
+    background: var(--warning-color) !important;
+    border: 1px solid var(--warning-color) !important;
+    color: white !important;
 }
 
-table .actions .btn-danger {
-    background: var(--color-danger);
-    border: 1px solid var(--color-danger);
-    color: white;
+table .actions .btn-info,
+table .actions button.btn-info {
+    background: var(--info-color) !important;
+    border: 1px solid var(--info-color) !important;
+    color: white !important;
 }
 
-/* Botões mobile - maior para toque */
+table .actions .btn-success,
+table .actions button.btn-success {
+    background: var(--success-color) !important;
+    border: 1px solid var(--success-color) !important;
+    color: white !important;
+}
+
+table .actions .btn-danger,
+table .actions button.btn-danger {
+    background: var(--danger-color) !important;
+    border: 1px solid var(--danger-color) !important;
+    color: white !important;
+}
+
+/* Forçar conteúdo visível nos botões */
+table .actions .btn::before,
+table .actions button::before {
+    content: '' !important;
+    display: inline-block !important;
+    min-width: 1px !important;
+    min-height: 1px !important;
+}
+
+table .actions .btn:hover,
+table .actions button:hover {
+    transform: translateY(-2px) !important;
+}
+
+table .actions .btn:active,
+table .actions button:active {
+    transform: translateY(0) !important;
+}
+
+table .actions .btn i,
+table .actions button i {
+    display: inline-block !important;
+    margin-right: 0 !important;
+    font-size: 1.3rem !important;
+    width: 1.3em !important;
+    height: 1.3em !important;
+    line-height: 1 !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) !important;
+    transition: transform 0.3s ease !important;
+    flex-shrink: 0 !important;
+}
+
+table .actions .btn:hover i,
+table .actions button:hover i {
+    transform: scale(1.15) !important;
+}
+
+table .actions .btn .btn-text {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    flex-shrink: 0 !important;
+}
+
 @media (max-width: 768px) {
-    table .actions {
-        flex-direction: column;
-        width: 100%;
+    table .actions .btn .btn-text {
+        display: inline-block !important;
     }
-    
     table .actions .btn {
-        width: 100%;
-        min-height: 44px;
-        padding: 12px 16px;
-        font-size: 0.9375rem;
+        min-width: 140px !important;
+        min-height: 64px !important;
+        padding: 18px 24px !important;
+        font-size: 1rem !important;
+        gap: 10px !important;
     }
+    table .actions .btn i {
+        margin-right: 0 !important;
+        font-size: 1.2rem !important;
+    }
+    .actions {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    .actions .btn {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Garantir que .actions não colapse */
+table .actions {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    width: auto !important;
+}
+
+/* Garantir que células da tabela não colapsem */
+table td {
+    min-width: 0 !important;
+    overflow: visible !important;
+}
+
+table .actions .btn i,
+table .actions button i,
+td .btn i,
+td button i {
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+    font-size: 1rem !important;
+    line-height: 1 !important;
+    margin-right: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Garantir que botões tenham conteúdo visível */
+.btn,
+button.btn {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    white-space: nowrap !important;
+}
+
+.btn i,
+button.btn i,
+.fas,
+.fa {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1rem !important;
+    width: 1em !important;
+    min-width: 1em !important;
+    height: 1em !important;
+    min-height: 1em !important;
+    line-height: 1 !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+/* Garantir que botões com apenas ícone tenham tamanho mínimo */
+.btn:has(> i:only-child),
+button.btn:has(> i:only-child),
+table .actions .btn:has(> i:only-child),
+table .actions button:has(> i:only-child) {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Fallback para navegadores que não suportam :has() */
+table .actions .btn i:only-child,
+table .actions button i:only-child {
+    display: block !important;
+    width: 1em !important;
+    min-width: 1em !important;
+    height: 1em !important;
+    min-height: 1em !important;
+    margin: 0 auto !important;
 }
 
 .logout-btn {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: var(--color-danger);
+    background: var(--danger-color);
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 6px;
+    border-radius: 25px;
     cursor: pointer;
-    font-weight: 500;
-    transition: opacity 0.2s ease;
-    z-index: var(--z-fixed);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    z-index: 100;
 }
 
-.logout-btn:hover {
-    opacity: 0.9;
-}
+    .logout-btn:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+    }
 
     /* Nav superior minimalista */
     .admin-nav {
@@ -1683,18 +1954,22 @@ table .actions .btn-danger {
     /* NO MOBILE: Mostrar o botão */
     @media (max-width: 768px) {
         .nav-toggle,
-        #navToggleBtn {
-            display: flex;
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: var(--z-modal);
-            width: 44px;
-            height: 44px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            cursor: pointer;
+        #navToggleBtn,
+        .nav-toggle.mobile-visible,
+        #navToggleBtn.mobile-visible {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            top: 16px !important;
+            left: 16px !important;
+            z-index: 10001 !important;
+            width: 44px !important;
+            height: 44px !important;
+            background: rgba(26, 26, 26, 0.95) !important;
+            border: 2px solid rgba(255, 51, 51, 0.3) !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
         }
     }
     
@@ -1756,7 +2031,7 @@ table .actions .btn-danger {
             align-items: stretch;
             padding: 0;
             margin: 0;
-            z-index: var(--z-modal);
+            z-index: 10000;
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: var(--card-bg);
             border-right: 1px solid var(--border-color);
@@ -1831,7 +2106,7 @@ table .actions .btn-danger {
         display: none;
     }
     
-    /* Overlay do menu mobile - NÃO bloqueia cliques quando fechado */
+    /* Overlay do menu mobile - controlado apenas por CSS */
     .nav-overlay {
         display: none;
         position: fixed;
@@ -1840,9 +2115,10 @@ table .actions .btn-danger {
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.5);
-        z-index: var(--z-modal-backdrop);
+        z-index: 9999;
         pointer-events: none;
         opacity: 0;
+        transition: opacity 0.3s ease, pointer-events 0.3s ease;
     }
     
     .nav-overlay.active {
@@ -1876,20 +2152,7 @@ table .actions .btn-danger {
     }
 
     /* Botão flutuante PWA */
-    #pwaInstallBtn {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        z-index: var(--z-fixed);
-        display: none;
-        padding: 12px 16px;
-        border-radius: 8px;
-        border: none;
-        color: #fff;
-        background: var(--color-primary);
-        font-weight: 600;
-        box-shadow: var(--shadow-md);
-    }
+    #pwaInstallBtn { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: none; padding: 12px 16px; border-radius: 999px; border: none; color: #fff; background: var(--gradient-primary); font-weight: 700; box-shadow: var(--shadow-lg); }
 
     /* Cartões responsivos para lista de códigos (mobile) */
     .cards-list { display: none; }
