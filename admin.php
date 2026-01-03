@@ -1063,38 +1063,7 @@ if (isset($_POST['undo_action'])) {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- SweetAlert2 para popups bonitos -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-// Script imediato para mostrar menu hambúrguer no mobile
-(function() {
-    function forceMenuVisible() {
-        const btn = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
-        if (btn && (window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches)) {
-            // Forçar com cssText completo
-            btn.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 16px !important; left: 16px !important; z-index: 999999 !important; width: 48px !important; height: 48px !important; background: #FF3333 !important; border: 3px solid #FFFFFF !important; border-radius: 8px !important; cursor: pointer !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 5px !important; box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8) !important; padding: 0 !important; margin: 0 !important;';
-            const spans = btn.querySelectorAll('span');
-            spans.forEach((s, i) => {
-                s.style.cssText = 'display: block !important; width: 26px !important; height: 3px !important; background: #FFFFFF !important; border-radius: 2px !important; margin: 0 !important;';
-                if (i > 0) s.style.marginTop = '5px';
-            });
-            console.log('Button forced visible with inline styles');
-        }
-    }
-    
-    // Executar quando DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', forceMenuVisible);
-    } else {
-        forceMenuVisible();
-    }
-    
-    // Executar múltiplas vezes
-    setTimeout(forceMenuVisible, 10);
-    setTimeout(forceMenuVisible, 50);
-    setTimeout(forceMenuVisible, 100);
-    setTimeout(forceMenuVisible, 300);
-    window.addEventListener('resize', forceMenuVisible);
-})();
-</script>
+<!-- JavaScript removido - Menu hambúrguer agora é controlado apenas por CSS -->
 <style>
 :root {
     --primary-color: #FF3333;
@@ -1492,7 +1461,7 @@ body {
     border-collapse: collapse;
 }
 
-.table th {
+    .table th {
     background: var(--dark-bg);
     color: var(--text-primary);
     padding: 12px;
@@ -1501,7 +1470,7 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-.table td {
+    .table td {
     padding: 12px;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
@@ -2231,7 +2200,7 @@ table .actions button i:only-child {
     }
 
     .toast.fade-out {
-        opacity: 0;
+            opacity: 0;
         transition: opacity 0.2s ease;
     }
 
@@ -3600,8 +3569,8 @@ select:focus-visible {
     </div>
 
     <!-- Lista de Rastreios -->
-    <div class="table-container" style="overflow-x:auto; -webkit-overflow-scrolling: touch;">
-        <table class="table" id="rastreiosTable" style="min-width: 760px;">
+    <div class="table-container" id="tabela-container">
+        <table class="table" id="rastreiosTable">
             <thead>
                 <tr>
                     <th style="width: 50px;">
@@ -3937,7 +3906,12 @@ window.abrirModal = function abrirModal(codigo) {
       })
       .catch(error => {
           console.error('Erro ao carregar dados:', error);
-          alert('Erro ao carregar dados do rastreio');
+          SwalDark.fire({
+              icon: 'error',
+              title: 'Erro',
+              text: 'Erro ao carregar dados do rastreio',
+              confirmButtonText: 'OK'
+          });
       });
 }
 
@@ -4030,7 +4004,12 @@ function viewDetails(codigo) {
       })
       .catch(error => {
           console.error('Erro ao carregar detalhes:', error);
-          alert('Erro ao carregar detalhes do rastreio');
+          SwalDark.fire({
+              icon: 'error',
+              title: 'Erro',
+              text: 'Erro ao carregar detalhes do rastreio',
+              confirmButtonText: 'OK'
+          });
       });
 }
 
@@ -4515,16 +4494,9 @@ function attachCloseButtonListeners() {
     }
 }
 
-// Adicionar event listeners diretos aos botões close
+    // Adicionar event listeners diretos aos botões close
 document.addEventListener('DOMContentLoaded', function() {
     attachCloseButtonListeners();
-    
-    // Tentar novamente após pequenos atrasos
-    setTimeout(attachCloseButtonListeners, 10);
-    setTimeout(attachCloseButtonListeners, 50);
-    setTimeout(attachCloseButtonListeners, 100);
-    setTimeout(attachCloseButtonListeners, 300);
-    setTimeout(attachCloseButtonListeners, 500);
     
     // Re-aplicar listeners quando o modal for aberto (caso seja recriado dinamicamente)
     const observer = new MutationObserver(function(mutations) {
@@ -5238,165 +5210,18 @@ function toggleAdminMenu() {
     }
 }
 
-// Fechar menu ao clicar no overlay
+// Inicialização do sistema
 document.addEventListener('DOMContentLoaded', function() {
-    // Garantir que o botão hambúrguer apareça no mobile - FORÇAR
-    function showMenuButton() {
-        const navToggle = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
-        if (!navToggle) {
-            console.error('Menu button not found!');
-            return;
-        }
-        
-        const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
-        console.log('Mobile check:', isMobile, 'Width:', window.innerWidth);
-        
-            if (isMobile) {
-                // Remover qualquer estilo que possa estar escondendo
-                navToggle.removeAttribute('style');
-                
-                // Forçar todos os estilos inline com setProperty para garantir
-                navToggle.style.setProperty('display', 'flex', 'important');
-                navToggle.style.setProperty('visibility', 'visible', 'important');
-                navToggle.style.setProperty('opacity', '1', 'important');
-                navToggle.style.setProperty('position', 'fixed', 'important');
-                navToggle.style.setProperty('top', '16px', 'important');
-                navToggle.style.setProperty('left', '16px', 'important');
-                navToggle.style.setProperty('z-index', '99999', 'important'); // Z-index muito alto
-                navToggle.style.setProperty('width', '48px', 'important'); // Um pouco maior
-                navToggle.style.setProperty('height', '48px', 'important'); // Um pouco maior
-                navToggle.style.setProperty('background', '#FF3333', 'important'); // Fundo vermelho bem visível
-                navToggle.style.setProperty('border', '2px solid #FFFFFF', 'important'); // Borda branca
-                navToggle.style.setProperty('border-radius', '8px', 'important');
-                navToggle.style.setProperty('cursor', 'pointer', 'important');
-                navToggle.style.setProperty('flex-direction', 'column', 'important');
-                navToggle.style.setProperty('justify-content', 'center', 'important');
-                navToggle.style.setProperty('align-items', 'center', 'important');
-                navToggle.style.setProperty('gap', '5px', 'important');
-                navToggle.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.5)', 'important'); // Sombra para destacar
-                navToggle.style.setProperty('padding', '0', 'important');
-                navToggle.style.setProperty('margin', '0', 'important');
-            
-                // Garantir que os spans apareçam - BARRAS BRANCAS para contrastar com fundo vermelho
-                const spans = navToggle.querySelectorAll('span');
-                spans.forEach((span, index) => {
-                    span.style.setProperty('display', 'block', 'important');
-                    span.style.setProperty('width', '26px', 'important'); // Um pouco maior
-                    span.style.setProperty('height', '3px', 'important'); // Um pouco mais grosso
-                    span.style.setProperty('background', '#FFFFFF', 'important'); // BRANCO para contrastar
-                    span.style.setProperty('border-radius', '2px', 'important');
-                    span.style.setProperty('margin', '0', 'important');
-                    if (index < spans.length - 1) {
-                        span.style.setProperty('margin-bottom', '5px', 'important');
-                    }
-                });
-            
-            // Forçar também via className para garantir
-            navToggle.classList.add('mobile-visible');
-            
-                // Verificar se realmente está visível
-                const computed = window.getComputedStyle(navToggle);
-                const rect = navToggle.getBoundingClientRect();
-                console.log('Menu button forced visible. Display:', computed.display);
-                console.log('Position:', computed.position, 'Top:', computed.top, 'Left:', computed.left);
-                console.log('Z-index:', computed.zIndex);
-                console.log('Width:', rect.width, 'Height:', rect.height);
-                console.log('Bounding rect:', rect);
-                
-                // Forçar também via DOM para garantir
-                navToggle.setAttribute('data-mobile-visible', 'true');
-        } else {
-            navToggle.style.setProperty('display', 'none', 'important');
-            navToggle.classList.remove('mobile-visible');
-        }
-    }
-    
-    // Mostrar imediatamente
-    showMenuButton();
-    
-    // Mostrar ao redimensionar
-    window.addEventListener('resize', showMenuButton);
-    
-    // Forçar múltiplas vezes para garantir
-    setTimeout(showMenuButton, 10);
-    setTimeout(showMenuButton, 50);
-    setTimeout(showMenuButton, 100);
-    
-    // CORRIGIR BOTÕES DA TABELA - Forçar tamanho mínimo ESTILO APLICATIVO
-    function fixTableButtons() {
-        const buttons = document.querySelectorAll('table .actions .btn, table .actions button, td .btn, td button');
-        buttons.forEach(btn => {
-            const rect = btn.getBoundingClientRect();
-            const isMobile = window.innerWidth <= 768;
-            // Sempre forçar estilos, mesmo se já tiver tamanho
-            btn.style.setProperty('min-width', isMobile ? '140px' : '160px', 'important');
-            btn.style.setProperty('min-height', '64px', 'important');
-            btn.style.setProperty('width', isMobile ? '100%' : 'auto', 'important');
-            btn.style.setProperty('height', 'auto', 'important');
-            btn.style.setProperty('display', 'inline-flex', 'important');
-            btn.style.setProperty('padding', isMobile ? '18px 24px' : '18px 28px', 'important');
-            btn.style.setProperty('font-size', isMobile ? '1rem' : '1.1rem', 'important');
-            btn.style.setProperty('flex-shrink', '0', 'important');
-            btn.style.setProperty('flex-grow', '0', 'important');
-            btn.style.setProperty('overflow', 'visible', 'important');
-            btn.style.setProperty('white-space', 'nowrap', 'important');
-            btn.style.setProperty('text-overflow', 'clip', 'important');
-            btn.style.setProperty('box-sizing', 'border-box', 'important');
-            btn.style.setProperty('visibility', 'visible', 'important');
-            btn.style.setProperty('opacity', '1', 'important');
-            btn.style.setProperty('pointer-events', 'auto', 'important');
-            btn.style.setProperty('z-index', '1000', 'important');
-            btn.style.setProperty('position', 'relative', 'important');
-            
-            // Garantir que o ícone seja visível
-            const icon = btn.querySelector('i');
-            if (icon) {
-                icon.style.setProperty('display', 'inline-block', 'important');
-                icon.style.setProperty('font-size', '1rem', 'important');
-                icon.style.setProperty('width', '1em', 'important');
-                icon.style.setProperty('height', '1em', 'important');
-                icon.style.setProperty('visibility', 'visible', 'important');
-                icon.style.setProperty('opacity', '1', 'important');
-            }
-            
-            // Garantir que o texto seja visível
-            const text = btn.querySelector('.btn-text');
-            if (text) {
-                text.style.setProperty('display', 'inline-block', 'important');
-                text.style.setProperty('visibility', 'visible', 'important');
-                text.style.setProperty('opacity', '1', 'important');
-            }
-            
-            // Se ainda tiver tamanho 0, forçar width/height fixos
-            if (rect.width === 0 || rect.height === 0) {
-                btn.style.setProperty('width', '60px', 'important');
-                btn.style.setProperty('height', '52px', 'important');
-            }
-        });
-    }
-    
-    // Executar quando DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fixTableButtons);
-    } else {
-        fixTableButtons();
-    }
-    
-    // Executar múltiplas vezes para garantir
-    setTimeout(fixTableButtons, 10);
-    setTimeout(fixTableButtons, 50);
-    setTimeout(fixTableButtons, 100);
-    setTimeout(fixTableButtons, 300);
-    setTimeout(fixTableButtons, 500);
-    
-    // Executar após mudanças no DOM
-    const observer = new MutationObserver(fixTableButtons);
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Menu hambúrguer e botões são controlados apenas por CSS - sem necessidade de JavaScript
     
     // ===== EVENT DELEGATION - CORRIGIR BOTÕES =====
-    // Usar event delegation para gerenciar todos os cliques de botões
-    // Isso resolve o problema de botões não funcionarem - um único listener no document
-    document.addEventListener('click', function(e) {
+    // Usar event delegation no container da tabela e cards para melhor performance
+    // Isso resolve o problema de botões não funcionarem - um único listener no container
+    const tableContainer = document.getElementById('tabela-container') || document.querySelector('.table-container');
+    const cardsContainer = document.getElementById('rastreiosCards') || document.querySelector('.cards-list');
+    
+    // Função para processar cliques em botões de ação
+    function handleActionClick(e) {
         // Verificar se o clique foi em um botão de ação (usando closest para pegar o botão mesmo se clicar no ícone)
         const btn = e.target.closest('.btn-edit, .btn-details, .btn-whatsapp, .btn-delete');
         if (!btn) return;
@@ -5438,10 +5263,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 break;
         }
+    }
+    
+    // Adicionar listeners nos containers (event delegation)
+    if (tableContainer) {
+        tableContainer.addEventListener('click', handleActionClick);
+    }
+    if (cardsContainer) {
+        cardsContainer.addEventListener('click', handleActionClick);
+    }
+    
+    // Fallback: listener no document para garantir que funciona mesmo se containers não existirem
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.table-container, .cards-list')) {
+            handleActionClick(e);
+        }
     });
-    setTimeout(showMenuButton, 300);
-    setTimeout(showMenuButton, 500);
-    setTimeout(showMenuButton, 1000);
     
     const overlay = document.getElementById('navOverlay');
     if (overlay) {
