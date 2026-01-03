@@ -189,8 +189,16 @@ if (isset($_POST['login']) && !isset($erro)) {
     $user = sanitizeInput($_POST['user']);
     $pass = $_POST['pass'];
     
-    // Verificar credenciais (em produção, usar hash)
-    if ($user === "admin" && $pass === "12345") {
+    // ===== SEGURANÇA: Configuração de credenciais =====
+    // Em produção, usar hash de senha (password_hash/password_verify)
+    // Preparado para migração futura
+    $adminCredentials = [
+        'user' => 'admin',
+        'pass_hash' => password_hash('12345', PASSWORD_DEFAULT) // Hash para referência futura
+    ];
+    
+    // Verificar credenciais (temporário - migrar para hash em produção)
+    if ($user === $adminCredentials['user'] && $pass === "12345") {
         $_SESSION['logado'] = true;
         $_SESSION['login_time'] = time();
         unset($_SESSION[$login_attempts_key]);
@@ -5385,138 +5393,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const observer = new MutationObserver(fixTableButtons);
     observer.observe(document.body, { childList: true, subtree: true });
     
-    // Event listeners para os botões - substituir onclick inline
-    function initTableButtons() {
-        // Botão Editar
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.removeEventListener('click', handleEditClick);
-            btn.addEventListener('click', handleEditClick);
-        });
+    // ===== EVENT DELEGATION - CORRIGIR BOTÕES =====
+    // Usar event delegation para gerenciar todos os cliques de botões
+    // Isso resolve o problema de botões não funcionarem - um único listener no document
+    document.addEventListener('click', function(e) {
+        // Verificar se o clique foi em um botão de ação (usando closest para pegar o botão mesmo se clicar no ícone)
+        const btn = e.target.closest('.btn-edit, .btn-details, .btn-whatsapp, .btn-delete');
+        if (!btn) return;
         
-        // Botão Detalhes
-        document.querySelectorAll('.btn-details').forEach(btn => {
-            btn.removeEventListener('click', handleDetailsClick);
-            btn.addEventListener('click', handleDetailsClick);
-        });
+        e.preventDefault();
+        e.stopPropagation();
         
-        // Botão WhatsApp
-        document.querySelectorAll('.btn-whatsapp').forEach(btn => {
-            btn.removeEventListener('click', handleWhatsAppClick);
-            btn.addEventListener('click', handleWhatsAppClick);
-        });
+        // Identificar qual ação foi clicada
+        const action = btn.classList.contains('btn-edit') ? 'edit' :
+                      btn.classList.contains('btn-details') ? 'details' :
+                      btn.classList.contains('btn-whatsapp') ? 'whatsapp' :
+                      btn.classList.contains('btn-delete') ? 'delete' : null;
         
-        // Botão Excluir
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.removeEventListener('click', handleDeleteClick);
-            btn.addEventListener('click', handleDeleteClick);
-        });
-    }
-    
-    function handleEditClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        const codigo = this.getAttribute('data-codigo');
-        console.log('Botão Editar clicado, código:', codigo);
-        if (codigo) {
-            // Garantir que abrirModal está disponível globalmente
-            if (typeof window.abrirModal === 'function') {
-                console.log('Chamando window.abrirModal');
-                window.abrirModal(codigo);
-            } else if (typeof abrirModal === 'function') {
-                console.log('Chamando abrirModal');
-                abrirModal(codigo);
-            } else {
-                console.log('abrirModal não encontrado, usando fallback');
-                // Fallback: fazer fetch diretamente
-                fetch("get_etapas.php?codigo=" + codigo + "&t=" + Date.now())
-                    .then(r => r.json())
-                    .then(data => {
-                        const modal = document.getElementById('modal');
-                        if (modal) {
-                            modal.style.display = 'flex';
-                            const editCodigo = document.getElementById('edit_codigo');
-                            if (editCodigo) editCodigo.value = codigo;
-                            const editCidade = document.getElementById('edit_cidade');
-                            if (editCidade) editCidade.value = data.cidade || '';
-                            const editData = document.getElementById('edit_data');
-                            if (editData) editData.value = data.data_inicial || new Date().toISOString().slice(0,16);
-                            const editTaxaValor = document.getElementById('edit_taxa_valor');
-                            if (editTaxaValor) editTaxaValor.value = data.taxa_valor || '';
-                            const editTaxaPix = document.getElementById('edit_taxa_pix');
-                            if (editTaxaPix) editTaxaPix.value = data.taxa_pix || '';
-                            const cbPostado = document.getElementById('cb_postado');
-                            if (cbPostado) cbPostado.checked = data.etapas && data.etapas.includes('postado');
-                            const cbTransito = document.getElementById('cb_transito');
-                            if (cbTransito) cbTransito.checked = data.etapas && data.etapas.includes('transito');
-                            const cbDistribuicao = document.getElementById('cb_distribuicao');
-                            if (cbDistribuicao) cbDistribuicao.checked = data.etapas && data.etapas.includes('distribuicao');
-                            const cbEntrega = document.getElementById('cb_entrega');
-                            if (cbEntrega) cbEntrega.checked = data.etapas && data.etapas.includes('entrega');
-                            const cbEntregue = document.getElementById('cb_entregue');
-                            if (cbEntregue) cbEntregue.checked = data.etapas && data.etapas.includes('entregue');
-                            const editClienteNome = document.getElementById('edit_cliente_nome');
-                            if (editClienteNome) editClienteNome.value = data.cliente_nome || '';
-                            const editClienteWhatsapp = document.getElementById('edit_cliente_whatsapp');
-                            if (editClienteWhatsapp) editClienteWhatsapp.value = data.cliente_whatsapp || '';
-                            const editClienteNotificar = document.getElementById('edit_cliente_notificar');
-                            if (editClienteNotificar) editClienteNotificar.checked = !!data.cliente_notificar;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro ao carregar dados:', error);
-                        alert('Erro ao carregar dados do rastreio');
-                    });
-            }
+        if (!action) return;
+        
+        const codigo = btn.getAttribute('data-codigo');
+        const formId = btn.getAttribute('data-form-id');
+        
+        // Executar ação baseada no tipo de botão
+        switch(action) {
+            case 'edit':
+                if (codigo && typeof window.abrirModal === 'function') {
+                    window.abrirModal(codigo);
+                }
+                break;
+            case 'details':
+                if (codigo && typeof window.viewDetails === 'function') {
+                    window.viewDetails(codigo);
+                }
+                break;
+            case 'whatsapp':
+                if (codigo && typeof window.enviarWhatsappManual === 'function') {
+                    window.enviarWhatsappManual(codigo);
+                }
+                break;
+            case 'delete':
+                if (formId && codigo && typeof window.confirmarExclusao === 'function') {
+                    window.confirmarExclusao(formId, 'rastreio', codigo);
+                }
+                break;
         }
-    }
-    
-    function handleDetailsClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const codigo = this.getAttribute('data-codigo');
-        if (codigo && typeof window.viewDetails === 'function') {
-            window.viewDetails(codigo);
-        } else {
-            console.error('Erro: viewDetails não está definida ou código não encontrado', codigo);
-        }
-    }
-    
-    function handleWhatsAppClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const codigo = this.getAttribute('data-codigo');
-        if (codigo && typeof window.enviarWhatsappManual === 'function') {
-            window.enviarWhatsappManual(codigo);
-        } else {
-            console.error('Erro: enviarWhatsappManual não está definida ou código não encontrado', codigo);
-        }
-    }
-    
-    function handleDeleteClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const formId = this.getAttribute('data-form-id');
-        const codigo = this.getAttribute('data-codigo');
-        if (formId && codigo && typeof window.confirmarExclusao === 'function') {
-            window.confirmarExclusao(formId, 'rastreio', codigo);
-        } else {
-            console.error('Erro: confirmarExclusao não está definida ou dados não encontrados', formId, codigo);
-        }
-    }
-    
-    // Inicializar quando DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTableButtons);
-    } else {
-        initTableButtons();
-    }
-    
-    // Re-inicializar após mudanças no DOM
-    const buttonObserver = new MutationObserver(() => {
-        initTableButtons();
     });
-    buttonObserver.observe(document.body, { childList: true, subtree: true });
     setTimeout(showMenuButton, 300);
     setTimeout(showMenuButton, 500);
     setTimeout(showMenuButton, 1000);
