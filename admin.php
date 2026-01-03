@@ -3284,15 +3284,14 @@ select:focus-visible {
 <div class="toast-container" id="toastContainer"></div>
 <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
-<!-- BOTÃO HAMBÚRGUER MOBILE - FORA DO ADMIN-NAV PARA GARANTIR VISIBILIDADE -->
-<!-- TESTE: Botão sempre visível no mobile para debug -->
-<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none; position: fixed; top: 16px; left: 16px; z-index: 999999; width: 48px; height: 48px; background: #FF3333; border: 3px solid #FFFFFF; border-radius: 8px; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; gap: 5px; box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8); padding: 0; margin: 0;">
-    <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px;"></span>
-    <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
-    <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
+<!-- BOTÃO HAMBÚRGUER MOBILE -->
+<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
 </button>
 
-<div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()" style="display: none !important; pointer-events: none !important;"></div>
+<div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
     <div class="nav-brand">
         <i class="fas fa-truck"></i> 
