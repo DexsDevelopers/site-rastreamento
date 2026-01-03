@@ -1065,20 +1065,36 @@ if (isset($_POST['undo_action'])) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- JavaScript removido - Menu hambúrguer agora é controlado apenas por CSS -->
 <style>
+/* ============================================
+   DESIGN SYSTEM HELMER CORPORATE - DARK MODE
+   ============================================ */
 :root {
+    /* Cores Principais - Helmer Corporate */
     --primary-color: #FF3333;
     --secondary-color: #FF6600;
     --success-color: #16A34A;
     --warning-color: #F59E0B;
     --danger-color: #EF4444;
     --info-color: #06b6d4;
+    
+    /* Backgrounds - Minimalista Profissional */
     --dark-bg: #0A0A0A;
-    --card-bg: #1A1A1A;
-    --border-color: #2A2A2A;
-    --text-primary: #FFFFFF;
+    --card-bg: #161616;
+    --surface-bg: #161616;
+    
+    /* Bordas e Divisores - Sutis */
+    --border-color: #262626;
+    --border-subtle: #2A2A2A;
+    
+    /* Texto - Alta Legibilidade */
+    --text-primary: #EDEDED;
     --text-secondary: #cbd5e1;
+    --text-muted: #A3A3A3;
+    
+    /* Sombras - Profundidade Sutil */
     --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -1088,7 +1104,7 @@ if (isset($_POST['undo_action'])) {
 }
 
 body {
-    background: #0A0A0A;
+    background: var(--dark-bg);
     color: var(--text-primary);
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
@@ -1501,6 +1517,39 @@ body {
 .badge-warning {
     background: var(--warning-color);
     color: black;
+}
+
+/* Ícones de Status - Sem estilos inline */
+.status-icon {
+    margin-right: 6px;
+}
+
+.status-icon.status-success {
+    color: var(--success-color);
+}
+
+.status-icon.status-warning {
+    color: var(--warning-color);
+}
+
+.status-icon.status-info {
+    color: var(--info-color);
+}
+
+.status-icon.status-default {
+    color: var(--text-secondary);
+}
+
+/* Estado vazio da tabela */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+/* Formulário inline para botão de exclusão */
+.form-inline {
+    display: inline;
 }
 
 .modal {
@@ -3635,39 +3684,44 @@ select:focus-visible {
 
                     $statusIcon = "";
                     if (strpos($row['status_atual'], 'Entregue') !== false) {
-                        $statusIcon = "<i class='fas fa-check-circle' style='color: var(--success-color);'></i> ";
+                        $statusIcon = "<i class='fas fa-check-circle status-icon status-success'></i> ";
                     } elseif (strpos($row['status_atual'], 'Saiu para entrega') !== false) {
-                        $statusIcon = "<i class='fas fa-truck' style='color: var(--warning-color);'></i> ";
+                        $statusIcon = "<i class='fas fa-truck status-icon status-warning'></i> ";
                     } elseif (strpos($row['status_atual'], 'Em trânsito') !== false) {
-                        $statusIcon = "<i class='fas fa-shipping-fast' style='color: var(--info-color);'></i> ";
+                        $statusIcon = "<i class='fas fa-shipping-fast status-icon status-info'></i> ";
                     } else {
-                        $statusIcon = "<i class='fas fa-box' style='color: var(--text-secondary);'></i> ";
+                        $statusIcon = "<i class='fas fa-box status-icon status-default'></i> ";
                     }
 
-                    echo "<tr data-codigo='{$row['codigo']}' data-cidade='{$row['cidade']}' data-status='{$row['status_atual']}'>
+                    $codigoEscaped = htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8');
+                    $cidadeEscaped = htmlspecialchars($row['cidade'], ENT_QUOTES, 'UTF-8');
+                    $statusEscaped = htmlspecialchars($row['status_atual'], ENT_QUOTES, 'UTF-8');
+                    $dataFormatada = date("d/m/Y H:i", strtotime($row['data']));
+                    
+                    echo "<tr data-codigo='{$codigoEscaped}' data-cidade='{$cidadeEscaped}' data-status='{$statusEscaped}'>
                         <td>
-                            <input type='checkbox' class='row-checkbox' value='{$row['codigo']}' onchange='updateSelection()'>
+                            <input type='checkbox' class='row-checkbox' value='{$codigoEscaped}' onchange='updateSelection()'>
                         </td>
-                        <td><strong>{$row['codigo']}</strong></td>
-                        <td>{$row['cidade']}</td>
-                        <td>{$statusIcon}{$row['status_atual']}</td>
-                        <td>$badge</td>
-                        <td>" . date("d/m/Y H:i", strtotime($row['data'])) . "</td>
+                        <td><strong>{$codigoEscaped}</strong></td>
+                        <td>{$cidadeEscaped}</td>
+                        <td>{$statusIcon}{$statusEscaped}</td>
+                        <td>{$badge}</td>
+                        <td>{$dataFormatada}</td>
                         <td>
                             <div class='actions'>
-                                <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$row['codigo']}' title='Editar'>
+                                <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$codigoEscaped}' title='Editar'>
                                     <i class='fas fa-edit'></i> <span class='btn-text'>Editar</span>
                                 </button>
-                                <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$row['codigo']}' title='Ver detalhes'>
+                                <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$codigoEscaped}' title='Ver detalhes'>
                                     <i class='fas fa-eye'></i> <span class='btn-text'>Detalhes</span>
                                 </button>
-                                <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$row['codigo']}' title='Enviar atualização via WhatsApp'>
+                                <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$codigoEscaped}' title='Enviar atualização via WhatsApp'>
                                     <i class='fab fa-whatsapp'></i> <span class='btn-text'>WhatsApp</span>
                                 </button>
-                                <form method='POST' style='display:inline' id='formDeletar{$row['codigo']}'>
-                                    <input type='hidden' name='codigo' value='{$row['codigo']}'>
+                                <form method='POST' class='form-inline' id='formDeletar{$codigoEscaped}'>
+                                    <input type='hidden' name='codigo' value='{$codigoEscaped}'>
                                     <input type='hidden' name='deletar' value='1'>
-                                    <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletar{$row['codigo']}' data-codigo='{$row['codigo']}' title='Excluir'>
+                                    <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletar{$codigoEscaped}' data-codigo='{$codigoEscaped}' title='Excluir'>
                                         <i class='fas fa-trash'></i> <span class='btn-text'>Excluir</span>
                                     </button>
                                 </form>
@@ -3676,7 +3730,7 @@ select:focus-visible {
                     </tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='7' style='text-align: center; padding: 20px; color: var(--text-secondary);'>
+                    echo "<tr><td colspan='7' class='empty-state'>
                             <i class='fas fa-inbox'></i> Nenhum rastreio encontrado
                           </td></tr>";
                 }
@@ -3695,32 +3749,37 @@ select:focus-visible {
                     : "<span class='badge badge-success'><i class='fas fa-check'></i> Sem taxa</span>";
                 $statusIcon = "";
                 if (strpos($row['status_atual'], 'Entregue') !== false) {
-                    $statusIcon = "<i class='fas fa-check-circle' style='color: var(--success-color);'></i> ";
+                    $statusIcon = "<i class='fas fa-check-circle status-icon status-success'></i> ";
                 } elseif (strpos($row['status_atual'], 'Saiu para entrega') !== false) {
-                    $statusIcon = "<i class='fas fa-truck' style='color: var(--warning-color);'></i> ";
+                    $statusIcon = "<i class='fas fa-truck status-icon status-warning'></i> ";
                 } elseif (strpos($row['status_atual'], 'Em trânsito') !== false) {
-                    $statusIcon = "<i class='fas fa-shipping-fast' style='color: var(--info-color);'></i> ";
+                    $statusIcon = "<i class='fas fa-shipping-fast status-icon status-info'></i> ";
                 } else {
-                    $statusIcon = "<i class='fas fa-box' style='color: var(--text-secondary);'></i> ";
+                    $statusIcon = "<i class='fas fa-box status-icon status-default'></i> ";
                 }
-                echo "<div class='card-item' data-codigo='{$row['codigo']}'>
+                $codigoEscapedCard = htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8');
+                $cidadeEscapedCard = htmlspecialchars($row['cidade'], ENT_QUOTES, 'UTF-8');
+                $statusEscapedCard = htmlspecialchars($row['status_atual'], ENT_QUOTES, 'UTF-8');
+                $dataFormatadaCard = date("d/m/Y H:i", strtotime($row['data']));
+                
+                echo "<div class='card-item' data-codigo='{$codigoEscapedCard}'>
                         <div class='card-header'>
                             <div>
-                                <div class='card-code'>{$row['codigo']}</div>
-                                <div class='card-city'><i class='fas fa-map-marker-alt'></i> {$row['cidade']}</div>
+                                <div class='card-code'>{$codigoEscapedCard}</div>
+                                <div class='card-city'><i class='fas fa-map-marker-alt'></i> {$cidadeEscapedCard}</div>
                             </div>
                             <div>{$badge}</div>
                         </div>
-                        <div class='card-status'>{$statusIcon}{$row['status_atual']}</div>
-                        <div class='card-meta'><i class='fas fa-calendar'></i> " . date("d/m/Y H:i", strtotime($row['data'])) . "</div>
+                        <div class='card-status'>{$statusIcon}{$statusEscapedCard}</div>
+                        <div class='card-meta'><i class='fas fa-calendar'></i> {$dataFormatadaCard}</div>
                         <div class='card-actions'>
-                            <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$row['codigo']}'><i class='fas fa-edit'></i> Editar</button>
-                            <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$row['codigo']}'><i class='fas fa-eye'></i> Detalhes</button>
-                            <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$row['codigo']}'><i class='fab fa-whatsapp'></i> WhatsApp</button>
-                            <form method='POST' style='display:inline' id='formDeletarMobile{$row['codigo']}'>
-                                <input type='hidden' name='codigo' value='{$row['codigo']}'>
+                            <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$codigoEscapedCard}'><i class='fas fa-edit'></i> Editar</button>
+                            <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$codigoEscapedCard}'><i class='fas fa-eye'></i> Detalhes</button>
+                            <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$codigoEscapedCard}'><i class='fab fa-whatsapp'></i> WhatsApp</button>
+                            <form method='POST' class='form-inline' id='formDeletarMobile{$codigoEscapedCard}'>
+                                <input type='hidden' name='codigo' value='{$codigoEscapedCard}'>
                                 <input type='hidden' name='deletar' value='1'>
-                                <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletarMobile{$row['codigo']}' data-codigo='{$row['codigo']}'><i class='fas fa-trash'></i> Excluir</button>
+                                <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletarMobile{$codigoEscapedCard}' data-codigo='{$codigoEscapedCard}'><i class='fas fa-trash'></i> Excluir</button>
                             </form>
                         </div>
                     </div>";
@@ -5214,69 +5273,59 @@ function toggleAdminMenu() {
 document.addEventListener('DOMContentLoaded', function() {
     // Menu hambúrguer e botões são controlados apenas por CSS - sem necessidade de JavaScript
     
-    // ===== EVENT DELEGATION - CORRIGIR BOTÕES =====
-    // Usar event delegation no container da tabela e cards para melhor performance
-    // Isso resolve o problema de botões não funcionarem - um único listener no container
-    const tableContainer = document.getElementById('tabela-container') || document.querySelector('.table-container');
-    const cardsContainer = document.getElementById('rastreiosCards') || document.querySelector('.cards-list');
-    
-    // Função para processar cliques em botões de ação
-    function handleActionClick(e) {
-        // Verificar se o clique foi em um botão de ação (usando closest para pegar o botão mesmo se clicar no ícone)
-        const btn = e.target.closest('.btn-edit, .btn-details, .btn-whatsapp, .btn-delete');
-        if (!btn) return;
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Identificar qual ação foi clicada
-        const action = btn.classList.contains('btn-edit') ? 'edit' :
-                      btn.classList.contains('btn-details') ? 'details' :
-                      btn.classList.contains('btn-whatsapp') ? 'whatsapp' :
-                      btn.classList.contains('btn-delete') ? 'delete' : null;
-        
-        if (!action) return;
-        
-        const codigo = btn.getAttribute('data-codigo');
-        const formId = btn.getAttribute('data-form-id');
-        
-        // Executar ação baseada no tipo de botão
-        switch(action) {
-            case 'edit':
-                if (codigo && typeof window.abrirModal === 'function') {
-                    window.abrirModal(codigo);
-                }
-                break;
-            case 'details':
-                if (codigo && typeof window.viewDetails === 'function') {
-                    window.viewDetails(codigo);
-                }
-                break;
-            case 'whatsapp':
-                if (codigo && typeof window.enviarWhatsappManual === 'function') {
-                    window.enviarWhatsappManual(codigo);
-                }
-                break;
-            case 'delete':
-                if (formId && codigo && typeof window.confirmarExclusao === 'function') {
-                    window.confirmarExclusao(formId, 'rastreio', codigo);
-                }
-                break;
-        }
-    }
-    
-    // Adicionar listeners nos containers (event delegation)
-    if (tableContainer) {
-        tableContainer.addEventListener('click', handleActionClick);
-    }
-    if (cardsContainer) {
-        cardsContainer.addEventListener('click', handleActionClick);
-    }
-    
-    // Fallback: listener no document para garantir que funciona mesmo se containers não existirem
+    // ===== EVENT DELEGATION - CORREÇÃO CRÍTICA DOS BOTÕES =====
+    // Um único listener no document usando closest() - funciona sempre, em qualquer dispositivo
+    // Isso resolve definitivamente o problema de botões não funcionarem
     document.addEventListener('click', function(e) {
-        if (e.target.closest('.table-container, .cards-list')) {
-            handleActionClick(e);
+        // Verificar se o clique foi em um botão de ação usando closest()
+        const btnDelete = e.target.closest('.btn-delete');
+        const btnEdit = e.target.closest('.btn-edit');
+        const btnDetails = e.target.closest('.btn-details');
+        const btnWhatsapp = e.target.closest('.btn-whatsapp');
+        
+        // Processar exclusão
+        if (btnDelete) {
+            e.preventDefault();
+            e.stopPropagation();
+            const formId = btnDelete.getAttribute('data-form-id');
+            const codigo = btnDelete.getAttribute('data-codigo');
+            if (formId && codigo && typeof window.confirmarExclusao === 'function') {
+                window.confirmarExclusao(formId, 'rastreio', codigo);
+            }
+            return;
+        }
+        
+        // Processar edição
+        if (btnEdit) {
+            e.preventDefault();
+            e.stopPropagation();
+            const codigo = btnEdit.getAttribute('data-codigo');
+            if (codigo && typeof window.abrirModal === 'function') {
+                window.abrirModal(codigo);
+            }
+            return;
+        }
+        
+        // Processar detalhes
+        if (btnDetails) {
+            e.preventDefault();
+            e.stopPropagation();
+            const codigo = btnDetails.getAttribute('data-codigo');
+            if (codigo && typeof window.viewDetails === 'function') {
+                window.viewDetails(codigo);
+            }
+            return;
+        }
+        
+        // Processar WhatsApp
+        if (btnWhatsapp) {
+            e.preventDefault();
+            e.stopPropagation();
+            const codigo = btnWhatsapp.getAttribute('data-codigo');
+            if (codigo && typeof window.enviarWhatsappManual === 'function') {
+                window.enviarWhatsappManual(codigo);
+            }
+            return;
         }
     });
     
