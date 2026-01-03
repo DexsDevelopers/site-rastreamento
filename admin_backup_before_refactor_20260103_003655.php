@@ -3260,151 +3260,6 @@ select:focus-visible {
         margin-bottom: 16px !important;
     }
 }
-
-/* ===== CLASSES PARA PEDIDOS PENDENTES ===== */
-.pedidos-pendentes-section {
-    margin-bottom: 40px;
-}
-
-.pedidos-pendentes-container {
-    background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 24px;
-    padding: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-
-.pedidos-pendentes-title {
-    margin-bottom: 20px;
-    color: var(--warning-color);
-}
-
-.pedidos-pendentes-subtitle {
-    color: var(--text-secondary);
-    margin-bottom: 25px;
-}
-
-.pedidos-pendentes-grid {
-    display: grid;
-    gap: 20px;
-}
-
-.pedido-item-container {
-    background: #0f0f0f;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 25px;
-}
-
-.pedido-item-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.pedido-item-info {
-    flex: 1;
-    min-width: 250px;
-}
-
-.pedido-item-name {
-    color: var(--text-primary);
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
-
-.pedido-item-meta {
-    display: grid;
-    gap: 10px;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
-
-.pedido-item-address {
-    margin-top: 15px;
-    padding: 15px;
-    background: rgba(255, 51, 51, 0.05);
-    border-radius: 12px;
-    border-left: 3px solid var(--primary-color);
-}
-
-.pedido-item-address-title {
-    color: var(--primary-color);
-    display: block;
-    margin-bottom: 8px;
-}
-
-.pedido-item-address-content {
-    color: var(--text-secondary);
-    line-height: 1.8;
-}
-
-.pedido-item-address-notes {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
-}
-
-.pedido-item-address-notes-title {
-    color: var(--text-primary);
-}
-
-.pedido-item-address-notes-text {
-    color: var(--text-secondary);
-    margin-top: 5px;
-}
-
-.pedido-item-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 200px;
-}
-
-.pedido-item-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.pedido-item-input {
-    width: 100%;
-    padding: 10px;
-    background: #1a1a1a;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-}
-
-/* Classes para ícones de stats */
-.stat-icon-info {
-    color: var(--info-color);
-}
-
-.stat-icon-danger {
-    color: var(--danger-color);
-}
-
-.stat-icon-success {
-    color: var(--success-color);
-}
-
-.stat-icon-warning {
-    color: var(--warning-color);
-}
-
-.stat-card-warning {
-    border: 2px solid var(--warning-color);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
-}
-
-/* Input readonly no modal */
-.input-readonly {
-    background: #333;
-    color: #999;
-}
 </style>
 </head>
 <body>
@@ -3506,29 +3361,29 @@ select:focus-visible {
     <!-- Dashboard Stats -->
     <div class="stats-grid">
         <div class="stat-card">
-            <i class="fas fa-box stat-icon-info"></i>
-            <h3><?= htmlspecialchars($totalRastreios, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-box" style="color: var(--info-color);"></i>
+            <h3><?= $totalRastreios ?></h3>
             <p>Total de Rastreios</p>
         </div>
         <div class="stat-card">
-            <i class="fas fa-dollar-sign stat-icon-danger"></i>
-            <h3><?= htmlspecialchars($comTaxa, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-dollar-sign" style="color: var(--danger-color);"></i>
+            <h3><?= $comTaxa ?></h3>
             <p>Com Taxa Pendente</p>
         </div>
         <div class="stat-card">
-            <i class="fas fa-check-circle stat-icon-success"></i>
-            <h3><?= htmlspecialchars($semTaxa, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+            <h3><?= $semTaxa ?></h3>
             <p>Sem Taxa</p>
         </div>
         <div class="stat-card">
-            <i class="fas fa-truck-loading stat-icon-warning"></i>
-            <h3><?= htmlspecialchars($entregues, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-truck-loading" style="color: var(--warning-color);"></i>
+            <h3><?= $entregues ?></h3>
             <p>Entregues</p>
         </div>
         <?php if ($totalPedidosPendentes > 0): ?>
-        <div class="stat-card stat-card-warning">
-            <i class="fas fa-shopping-cart stat-icon-warning"></i>
-            <h3><?= htmlspecialchars($totalPedidosPendentes, ENT_QUOTES, 'UTF-8') ?></h3>
+        <div class="stat-card" style="border: 2px solid var(--warning-color); background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);">
+            <i class="fas fa-shopping-cart" style="color: var(--warning-color);"></i>
+            <h3><?= $totalPedidosPendentes ?></h3>
             <p>Pedidos Pendentes</p>
         </div>
         <?php endif; ?>
@@ -3536,63 +3391,64 @@ select:focus-visible {
 
     <!-- Seção de Pedidos Pendentes -->
     <?php if ($totalPedidosPendentes > 0): ?>
-    <div class="pedidos-pendentes-section">
-        <div class="pedidos-pendentes-container">
-            <h2 class="pedidos-pendentes-title">
-                <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= htmlspecialchars($totalPedidosPendentes, ENT_QUOTES, 'UTF-8') ?>)
+    <div style="margin-bottom: 40px;">
+        <div style="background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+            <h2 style="margin-bottom: 20px; color: var(--warning-color);">
+                <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
             </h2>
-            <p class="pedidos-pendentes-subtitle">
+            <p style="color: var(--text-secondary); margin-bottom: 25px;">
                 Clientes que preencheram o formulário aguardando aprovação e código de rastreio
             </p>
             
-            <div class="pedidos-pendentes-grid">
+            <div style="display: grid; gap: 20px;">
                 <?php foreach ($pedidosPendentes as $pedido): ?>
-                <div class="pedido-item-container">
-                    <div class="pedido-item-content">
-                        <div class="pedido-item-info">
-                            <h3 class="pedido-item-name">
-                                <i class="fas fa-user"></i> <?= htmlspecialchars($pedido['nome'], ENT_QUOTES, 'UTF-8') ?>
+                <div style="background: #0f0f0f; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px; font-size: 1.2rem;">
+                                <i class="fas fa-user"></i> <?= htmlspecialchars($pedido['nome']) ?>
                             </h3>
                             
-                            <div class="pedido-item-meta">
-                                <div><i class="fas fa-phone"></i> <?= htmlspecialchars($pedido['telefone'], ENT_QUOTES, 'UTF-8') ?></div>
+                            <div style="display: grid; gap: 10px; color: var(--text-secondary); font-size: 0.95rem;">
+                                <div><i class="fas fa-phone"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
                                 <?php if ($pedido['email']): ?>
-                                <div><i class="fas fa-envelope"></i> <?= htmlspecialchars($pedido['email'], ENT_QUOTES, 'UTF-8') ?></div>
+                                <div><i class="fas fa-envelope"></i> <?= htmlspecialchars($pedido['email']) ?></div>
                                 <?php endif; ?>
-                                <div><i class="fas fa-calendar"></i> <?= htmlspecialchars(date('d/m/Y H:i', strtotime($pedido['data_pedido'])), ENT_QUOTES, 'UTF-8') ?></div>
+                                <div><i class="fas fa-calendar"></i> <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
                             </div>
                             
-                            <div class="pedido-item-address">
-                                <strong class="pedido-item-address-title">
+                            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 51, 51, 0.05); border-radius: 12px; border-left: 3px solid var(--primary-color);">
+                                <strong style="color: var(--primary-color); display: block; margin-bottom: 8px;">
                                     <i class="fas fa-map-marker-alt"></i> Endereço de Entrega:
                                 </strong>
-                                <div class="pedido-item-address-content">
-                                    <?= htmlspecialchars($pedido['rua'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($pedido['numero'], ENT_QUOTES, 'UTF-8') ?>
-                                    <?php if ($pedido['complemento']): ?><br><?= htmlspecialchars($pedido['complemento'], ENT_QUOTES, 'UTF-8') ?><?php endif; ?><br>
-                                    <?= htmlspecialchars($pedido['bairro'], ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars($pedido['cidade'], ENT_QUOTES, 'UTF-8') ?>/<?= htmlspecialchars($pedido['estado'], ENT_QUOTES, 'UTF-8') ?><br>
-                                    CEP: <?= htmlspecialchars($pedido['cep'], ENT_QUOTES, 'UTF-8') ?>
+                                <div style="color: var(--text-secondary); line-height: 1.8;">
+                                    <?= htmlspecialchars($pedido['rua']) ?>, <?= htmlspecialchars($pedido['numero']) ?>
+                                    <?php if ($pedido['complemento']): ?><br><?= htmlspecialchars($pedido['complemento']) ?><?php endif; ?><br>
+                                    <?= htmlspecialchars($pedido['bairro']) ?> - <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
+                                    CEP: <?= htmlspecialchars($pedido['cep']) ?>
                                 </div>
                                 <?php if ($pedido['observacoes']): ?>
-                                <div class="pedido-item-address-notes">
-                                    <strong class="pedido-item-address-notes-title">Observações:</strong>
-                                    <p class="pedido-item-address-notes-text"><?= nl2br(htmlspecialchars($pedido['observacoes'], ENT_QUOTES, 'UTF-8')) ?></p>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                                    <strong style="color: var(--text-primary);">Observações:</strong>
+                                    <p style="color: var(--text-secondary); margin-top: 5px;"><?= nl2br(htmlspecialchars($pedido['observacoes'])) ?></p>
                                 </div>
                                 <?php endif; ?>
                             </div>
                         </div>
                         
-                        <div class="pedido-item-actions">
-                            <form method="POST" class="pedido-item-form" onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES, 'UTF-8') ?>')">
-                                <input type="hidden" name="pedido_id" value="<?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>">
-                                <input type="text" name="codigo_rastreio" placeholder="Código de rastreio" required class="pedido-item-input">
-                                <button type="submit" name="aprovar_pedido" class="btn btn-success">
+                        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 200px;">
+                            <form method="POST" onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')" style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                <input type="text" name="codigo_rastreio" placeholder="Código de rastreio" required 
+                                       style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                                <button type="submit" name="aprovar_pedido" class="btn btn-success" style="width: 100%;">
                                     <i class="fas fa-check"></i> Aprovar
                                 </button>
                             </form>
                             
-                            <form method="POST" id="formRejeitar_<?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>" class="pedido-item-form" onsubmit="event.preventDefault(); confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES, 'UTF-8') ?>', <?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>); return false;">
-                                <input type="hidden" name="pedido_id" value="<?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>">
-                                <button type="submit" name="rejeitar_pedido" class="btn btn-danger">
+                            <form method="POST" id="formRejeitar_<?= $pedido['id'] ?>" onsubmit="event.preventDefault(); confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>', <?= $pedido['id'] ?>); return false;">
+                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                <button type="submit" name="rejeitar_pedido" class="btn btn-danger" style="width: 100%;">
                                     <i class="fas fa-times"></i> Rejeitar
                                 </button>
                             </form>
@@ -3932,7 +3788,7 @@ select:focus-visible {
             <div class="form-grid">
                 <div class="form-group">
                     <label for="edit_codigo">Código de Rastreio</label>
-                    <input type="text" name="codigo" id="edit_codigo" readonly class="input-readonly">
+                    <input type="text" name="codigo" id="edit_codigo" readonly style="background: #333; color: #999;">
                 </div>
                 <div class="form-group">
                     <label for="edit_cidade">Cidade Vinculada</label>
