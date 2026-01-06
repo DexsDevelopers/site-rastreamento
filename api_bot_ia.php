@@ -264,6 +264,9 @@ switch ($action) {
             saveConversation($pdo, $phone, 'user', $message);
         }
         
+        // Base de conhecimento desabilitada - usar apenas IA
+        // (Comentado para usar apenas IA do Gemini)
+        /*
         // Verificar se é pergunta sobre data/hora (sempre usar IA para essas)
         $messageLower = mb_strtolower(trim($message));
         $isDateTimeQuestion = preg_match('/\b(hoje|agora|que\s+dia|que\s+hora|data|horário|dia\s+é|hora\s+é|quando)\b/i', $messageLower);
@@ -287,6 +290,7 @@ switch ($action) {
                 exit;
             }
         }
+        */
         
         // 2. Usar Gemini
         $apiKey = getIASetting($pdo, 'gemini_api_key', '');
@@ -351,17 +355,8 @@ switch ($action) {
         $dateTimeInfo .= "- Hora atual: {$currentTime} (horário de Brasília)\n";
         $dateTimeInfo .= "- Quando o usuário perguntar sobre data, hora, dia da semana, etc., use essas informações.\n";
         
-        // Adicionar conhecimento ao prompt do sistema
-        $knowledgeContext = "";
-        $allKnowledge = fetchData($pdo, "SELECT pergunta, resposta FROM bot_ia_knowledge WHERE ativo = 1 ORDER BY prioridade DESC LIMIT 20");
-        if ($allKnowledge) {
-            $knowledgeContext = "\n\nBASE DE CONHECIMENTO (use como referência):\n";
-            foreach ($allKnowledge as $k) {
-                $knowledgeContext .= "- Pergunta: {$k['pergunta']} | Resposta: {$k['resposta']}\n";
-            }
-        }
-        
-        $fullSystemPrompt = $systemPrompt . $dateTimeInfo . $knowledgeContext;
+        // Base de conhecimento desabilitada - usar apenas IA
+        $fullSystemPrompt = $systemPrompt . $dateTimeInfo;
         
         // Obter contexto da conversa
         $context = [];

@@ -85,7 +85,7 @@ try {
         ['ia_temperature', '0.7', 'Temperatura (criatividade) da IA'],
         ['ia_system_prompt', 'Você é um assistente virtual amigável e prestativo. Responda de forma clara, objetiva e em português brasileiro. Use emojis quando apropriado para tornar a conversa mais agradável.', 'Prompt de sistema da IA'],
         ['ia_context_messages', '10', 'Quantidade de mensagens anteriores para contexto'],
-        ['ia_use_knowledge', '1', 'Usar base de conhecimento personalizada'],
+        ['ia_use_knowledge', '0', 'Usar base de conhecimento personalizada (0=desabilitado, usar apenas IA)'],
         ['ia_learn_from_corrections', '1', 'Aprender com correções do admin'],
         ['ia_quota_disabled', '0', 'Quota desabilitada (0=ativa, 1=desativada por quota excedida)'],
         ['ia_fallback_response', 'Desculpe, não consegui processar sua mensagem no momento. Por favor, tente novamente em alguns instantes ou entre em contato com um atendente.', 'Resposta quando a IA falha']
