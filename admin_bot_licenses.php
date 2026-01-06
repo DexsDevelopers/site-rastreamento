@@ -437,6 +437,24 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
             font-family: inherit;
         }
         
+        .form-group select {
+            background: #1a1a1a;
+            cursor: pointer;
+        }
+        
+        .form-group select option {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .form-group select option:hover,
+        .form-group select option:checked {
+            background: linear-gradient(135deg, #FF3333, #FF6600);
+            color: #ffffff;
+        }
+        
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: var(--primary);

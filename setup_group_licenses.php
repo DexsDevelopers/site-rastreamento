@@ -63,9 +63,12 @@ try {
     $pdo->exec($sql3);
     echo "<p>✅ Tabela <code>bot_license_plans</code> criada com sucesso!</p>";
     
-    // Inserir planos padrão se não existirem
+    // Inserir planos padrão se não existirem (força recriação se menos de 6)
     $checkPlans = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_license_plans");
-    if ($checkPlans['total'] == 0) {
+    if ($checkPlans['total'] < 6) {
+        // Limpar planos existentes e recriar
+        $pdo->exec("DELETE FROM bot_license_plans");
+        
         $plans = [
             ['Semanal', 7, 19.90, 'Licença por 7 dias'],
             ['Quinzenal', 15, 34.90, 'Licença por 15 dias'],
@@ -80,8 +83,11 @@ try {
                 "INSERT INTO bot_license_plans (name, days, price, description) VALUES (?, ?, ?, ?)",
                 $plan
             );
+            echo "<p>✅ Plano '{$plan[0]}' - {$plan[1]} dias - R$ " . number_format($plan[2], 2, ',', '.') . " inserido!</p>";
         }
-        echo "<p>✅ Planos padrão inseridos!</p>";
+        echo "<p>✅ " . count($plans) . " planos inseridos!</p>";
+    } else {
+        echo "<p>✅ Planos já existem (" . $checkPlans['total'] . " planos)</p>";
     }
     
     echo "<hr>";
