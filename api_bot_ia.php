@@ -168,10 +168,24 @@ function callGeminiAPI($apiKey, $model, $messages, $systemPrompt, $temperature, 
         return ['success' => false, 'error' => "Erro cURL: {$error}"];
     }
     
-    if ($httpCode !== 200) {
+        if ($httpCode !== 200) {
         $errorData = json_decode($response, true);
         $errorMsg = $errorData['error']['message'] ?? "HTTP {$httpCode}";
-        return ['success' => false, 'error' => $errorMsg, 'httpCode' => $httpCode];
+        $errorDetails = $errorData['error'] ?? [];
+        
+        // Detectar quota excedida especificamente
+        $isQuotaExceeded = false;
+        if ($httpCode === 429 || strpos(strtolower($errorMsg), 'quota') !== false || strpos(strtolower($errorMsg), 'exceeded') !== false) {
+            $isQuotaExceeded = true;
+        }
+        
+        return [
+            'success' => false, 
+            'error' => $errorMsg, 
+            'httpCode' => $httpCode,
+            'quotaExceeded' => $isQuotaExceeded,
+            'errorDetails' => $errorDetails
+        ];
     }
     
     $result = json_decode($response, true);
@@ -247,6 +261,23 @@ switch ($action) {
             exit;
         }
         
+        // Verificar se quota está desabilitada (flag de quota excedida)
+        $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
+        if ($quotaDisabled) {
+            // Se quota está desabilitada, usar apenas base de conhecimento
+            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, a IA está temporariamente indisponível. Tente novamente mais tarde.');
+            error_log("[BOT_IA] Quota desabilitada - usando apenas base de conhecimento");
+            
+            echo json_encode([
+                'success' => true,
+                'response' => $fallback,
+                'source' => 'fallback',
+                'error' => 'Quota desabilitada',
+                'quota_exceeded' => true
+            ]);
+            exit;
+        }
+        
         $model = getIASetting($pdo, 'ia_model', 'gemini-2.0-flash');
         $systemPrompt = getIASetting($pdo, 'ia_system_prompt', 'Você é um assistente virtual amigável.');
         $temperature = getIASetting($pdo, 'ia_temperature', '0.7');
@@ -297,11 +328,20 @@ switch ($action) {
             // Log detalhado do erro
             $errorMsg = $result['error'] ?? 'Erro desconhecido';
             $httpCode = $result['httpCode'] ?? null;
+            $quotaExceeded = $result['quotaExceeded'] ?? false;
+            
             error_log("[BOT_IA] Erro ao chamar Gemini: {$errorMsg}" . ($httpCode ? " (HTTP {$httpCode})" : ""));
             error_log("[BOT_IA] Mensagem original: " . substr($message, 0, 100));
             
-            // Se for rate limit, mensagem específica
-            if ($httpCode === 429) {
+            // Se quota foi excedida, desativar automaticamente e usar apenas base de conhecimento
+            if ($quotaExceeded || ($httpCode === 429 && strpos(strtolower($errorMsg), 'quota') !== false)) {
+                // Marcar quota como desabilitada
+                setIASetting($pdo, 'ia_quota_disabled', '1');
+                error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA - Desativando IA automaticamente. Use apenas base de conhecimento.");
+                
+                $fallback = '⚠️ A cota gratuita da IA foi excedida. Estou usando apenas respostas da base de conhecimento. Entre em contato com o administrador para mais informações.';
+            } elseif ($httpCode === 429) {
+                // Rate limit temporário
                 $fallback = '⏳ Estou recebendo muitas mensagens agora. Aguarde alguns minutos e tente novamente.';
             } elseif (strpos(strtolower($errorMsg), 'api key') !== false || strpos(strtolower($errorMsg), 'invalid') !== false) {
                 $fallback = '⚠️ A configuração da IA precisa ser atualizada. Entre em contato com o administrador.';
@@ -317,7 +357,8 @@ switch ($action) {
                 'response' => $fallback,
                 'source' => 'fallback',
                 'error' => $errorMsg,
-                'httpCode' => $httpCode
+                'httpCode' => $httpCode,
+                'quotaExceeded' => $quotaExceeded
             ]);
             exit;
         }

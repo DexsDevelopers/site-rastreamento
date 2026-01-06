@@ -224,6 +224,7 @@ $stats = [
 
 $iaEnabled = getIASetting($pdo, 'ia_enabled', '1') === '1';
 $apiKeyConfigured = !empty(getIASetting($pdo, 'gemini_api_key', ''));
+$quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -583,6 +584,24 @@ $apiKeyConfigured = !empty(getIASetting($pdo, 'gemini_api_key', ''));
         </div>
         <?php endif; ?>
         
+        <?php if ($quotaDisabled): ?>
+        <div class="alert alert-danger" style="margin-bottom: 2rem; padding: 1.5rem; border-left: 4px solid var(--danger);">
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <strong style="font-size: 1.1rem;">🚫 Quota do Gemini Excedida</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.8);">
+                        A cota gratuita da API do Gemini foi excedida. A IA está usando <strong>apenas a base de conhecimento</strong>.<br>
+                        <strong>Opções:</strong> Aguarde a renovação da quota (geralmente mensal) ou atualize para um plano pago.
+                        <br><small style="color:rgba(255,255,255,0.6);">Você pode reativar em <strong>Configurações</strong> quando a quota for renovada.</small>
+                    </p>
+                </div>
+                <button onclick="document.querySelector('[data-tab=settings]').click()" class="btn btn-danger">
+                    <i class="fas fa-cog"></i> Ver Configurações
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
+        
         <!-- Status -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -789,6 +808,17 @@ $apiKeyConfigured = !empty(getIASetting($pdo, 'gemini_api_key', ''));
                                 <option value="0">Não</option>
                             </select>
                         </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Status da Quota</label>
+                        <select name="ia_quota_disabled" id="setting_ia_quota_disabled">
+                            <option value="0">Ativa (IA funcionando)</option>
+                            <option value="1">Desativada (Quota excedida - usar apenas base de conhecimento)</option>
+                        </select>
+                        <small style="color:rgba(255,255,255,0.5)">
+                            Se a quota do Gemini foi excedida, desative aqui. A IA usará apenas a base de conhecimento.
+                        </small>
                     </div>
                     
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Configurações</button>
