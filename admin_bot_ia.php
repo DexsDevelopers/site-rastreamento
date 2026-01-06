@@ -612,6 +612,9 @@ $apiKeyConfigured = !empty(getIASetting($pdo, 'gemini_api_key', ''));
             <div class="tab" data-tab="feedback"><i class="fas fa-comments"></i> Feedback</div>
             <div class="tab" data-tab="settings"><i class="fas fa-cog"></i> Configurações</div>
             <div class="tab" data-tab="test"><i class="fas fa-flask"></i> Testar IA</div>
+            <a href="debug_bot_ia.php" class="tab" style="text-decoration:none;color:inherit;">
+                <i class="fas fa-bug"></i> Debug
+            </a>
         </div>
         
         <!-- Seção: Conhecimento -->
