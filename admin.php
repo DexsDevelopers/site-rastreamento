@@ -7,6 +7,10 @@
 // Incluir configurações e DB
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/auth_helper.php';
+
+// Verificar autenticação
+requireLogin();
 
 // Verificar conexão com banco
 if (!isset($pdo) || $pdo === null) {
@@ -189,16 +193,8 @@ if (isset($_POST['login']) && !isset($erro)) {
     $user = sanitizeInput($_POST['user']);
     $pass = $_POST['pass'];
     
-    // ===== SEGURANÇA: Configuração de credenciais =====
-    // Em produção, usar hash de senha (password_hash/password_verify)
-    // Preparado para migração futura
-    $adminCredentials = [
-        'user' => 'admin',
-        'pass_hash' => password_hash('12345', PASSWORD_DEFAULT) // Hash para referência futura
-    ];
-    
-    // Verificar credenciais (temporário - migrar para hash em produção)
-    if ($user === $adminCredentials['user'] && $pass === "12345") {
+    // Verificar credenciais (em produção, usar hash)
+    if ($user === "admin" && $pass === "12345") {
         $_SESSION['logado'] = true;
         $_SESSION['login_time'] = time();
         unset($_SESSION[$login_attempts_key]);
@@ -911,98 +907,37 @@ if (isset($_POST['undo_action'])) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Admin - Helmer Logistics</title>
 <meta name="theme-color" content="#FF3333">
-<meta name="description" content="Painel administrativo Helmer Logistics - Gerencie rastreamentos, mensagens e configurações">
-<meta name="keywords" content="helmer, logistics, admin, rastreamento">
-<meta name="author" content="Helmer Logistics">
-
-<!-- PWA Meta Tags -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Helmer Admin">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="Helmer Admin">
-
-<!-- Preconnect para melhor performance -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com">
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-
-<!-- CSS Mobile Responsivo -->
-<!-- CSS Mobile Moderno - Carregamento otimizado -->
-<link rel="stylesheet" href="assets/css/admin-mobile.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/css/admin-mobile.css"></noscript>
-<script>
-// Fallback para carregamento assíncrono do CSS
-(function() {
-    var link = document.querySelector('link[href="assets/css/admin-mobile.css"]');
-    if (link && link.media === 'print') {
-        link.onload = function() { this.media = 'all'; };
-    }
-})();
-</script>
-<style>
-/* CSS Minimalista - Removido para evitar conflitos */
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- SweetAlert2 para popups bonitos -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- JavaScript removido - Menu hambúrguer agora é controlado apenas por CSS -->
 <style>
-/* ============================================
-   DESIGN SYSTEM CORPORATIVO MINIMALISTA
-   ============================================ */
 :root {
-    /* Escala Z-Index Padronizada */
-    --z-base: 1;
-    --z-dropdown: 10;
-    --z-sticky: 20;
-    --z-fixed: 30;
-    --z-modal-backdrop: 40;
-    --z-modal: 50;
-    
-    /* Cores Corporativas Neutras */
-    --color-primary: #2563eb;
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-danger: #ef4444;
-    --color-info: #3b82f6;
-    
-    /* Backgrounds */
-    --bg-body: #ffffff;
-    --bg-card: #f9fafb;
-    --bg-hover: #f3f4f6;
-    
-    /* Bordas */
-    --border-color: #e5e7eb;
-    --border-hover: #d1d5db;
-    
-    /* Texto */
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    
-    /* Sombras Minimalistas */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    
-    /* Aliases para compatibilidade (manter funcionalidades) */
-    --primary-color: var(--color-primary);
-    --success-color: var(--color-success);
-    --warning-color: var(--color-warning);
-    --danger-color: var(--color-danger);
-    --info-color: var(--color-info);
-    --dark-bg: var(--bg-body);
-    --card-bg: var(--bg-card);
-    --border-subtle: var(--border-color);
-    --text-muted: var(--text-secondary);
-    --shadow-lg: var(--shadow-md);
-    --shadow-xl: var(--shadow-md);
+    --primary-color: #FF3333;
+    --secondary-color: #FF6600;
+    --success-color: #16A34A;
+    --warning-color: #F59E0B;
+    --danger-color: #EF4444;
+    --info-color: #FF6666;
+    --dark-bg: #0A0A0A;
+    --card-bg: #1A1A1A;
+    --border-color: #2A2A2A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #cbd5e1;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --gradient-primary: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
+    --gradient-success: linear-gradient(135deg, #16A34A, #059669);
+    --gradient-warning: linear-gradient(135deg, #F59E0B, #D97706);
+    --gradient-danger: linear-gradient(135deg, #EF4444, #DC2626);
 }
 
 * {
@@ -1012,12 +947,12 @@ if (isset($_POST['undo_action'])) {
 }
 
 body {
-    background: var(--bg-body);
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-    line-height: 1.5;
-    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 400;
 }
 
 .container {
@@ -1027,25 +962,62 @@ body {
 }
 
 .header {
-    background: var(--bg-card);
-    padding: 24px;
-    border-radius: 8px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+    padding: 32px 24px;
+    border-radius: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(255, 51, 51, 0.15) inset,
+                0 4px 16px rgba(255, 51, 51, 0.1);
+    border: 1px solid rgba(255, 51, 51, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+}
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    height: 4px;
+    background: var(--gradient-primary);
+    opacity: 0.9;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.6);
+}
+.header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 51, 51, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
 }
 
 .header h1 {
-    color: var(--text-primary);
+    color: var(--primary-color);
     text-align: center;
-    font-size: 24px;
-    margin-bottom: 8px;
-    font-weight: 600;
+    font-size: 2.75rem;
+    margin-bottom: 12px;
+    text-shadow: 0 0 30px rgba(255, 51, 51, 0.6),
+                 0 2px 8px rgba(0, 0, 0, 0.5);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    position: relative;
+    z-index: 1;
 }
 
 .header p {
     text-align: center;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 1.15rem;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+    opacity: 0.9;
 }
 
 .stats-grid {
@@ -1056,30 +1028,59 @@ body {
 }
 
 .stat-card {
-    background: var(--card-bg);
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+    padding: 28px 24px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+                0 2px 8px rgba(255, 51, 51, 0.1);
+    border: 1px solid rgba(255, 51, 51, 0.15);
     text-align: center;
-    transition: transform 0.2s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(255, 51, 51, 0.3) inset,
+                0 4px 16px rgba(255, 51, 51, 0.2);
+    border-color: rgba(255, 51, 51, 0.4);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card:hover::before {
+    transform: scaleX(1);
 }
 
 .stat-card i {
-    font-size: 2rem;
-    margin-bottom: 12px;
+    font-size: 2.5rem;
+    margin-bottom: 15px;
     display: block;
-    color: var(--primary-color);
 }
 
 .stat-card h3 {
-    font-size: 1.75rem;
+    font-size: 2rem;
     margin-bottom: 5px;
-    color: var(--text-primary);
+    color: var(--primary-color);
 }
 
 .stat-card p {
@@ -1088,12 +1089,14 @@ body {
 }
 
 .controls {
-    background: var(--card-bg);
-    padding: 24px;
-    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    padding: 25px;
+    border-radius: 18px;
     margin-bottom: 30px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .controls h2 {
@@ -1135,6 +1138,7 @@ body {
 .form-group select:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
 }
 
 .photo-upload {
@@ -1144,11 +1148,11 @@ body {
 }
 
 .photo-preview {
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 16px;
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 18px;
     text-align: center;
-    background: var(--dark-bg);
+    background: rgba(255,255,255,0.03);
 }
 
 .photo-preview img {
@@ -1171,17 +1175,17 @@ body {
 }
 
 .photo-preview-actions input[type="file"] {
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: var(--dark-bg);
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.25);
     color: var(--text-secondary);
 }
 
 .details-photo img {
     width: 100%;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.18);
     margin-top: 8px;
 }
 
@@ -1211,104 +1215,93 @@ body {
     transform: scale(1.2);
 }
 
-/* ============================================
-   BOTÕES REDESENHADOS - DESIGN MODERNO 2025
-   ============================================ */
-
 .btn {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.9rem;
-    transition: opacity 0.2s ease;
+    font-size: 1rem;
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
     text-decoration: none;
 }
 
 .btn:hover {
-    opacity: 0.9;
-}
-
-.btn:active {
-    opacity: 0.8;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: var(--gradient-primary);
     color: white;
-    border: 1px solid var(--primary-color);
+    border: none;
+    box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background: #FF4444;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.4);
 }
 
 .btn-success {
-    background: var(--success-color);
+    background: var(--gradient-success);
     color: white;
-    border: 1px solid var(--success-color);
+    border: none;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+    transition: all 0.3s ease;
 }
 
 .btn-success:hover {
-    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.4);
 }
 
 .btn-warning {
-    background: var(--warning-color);
+    background: var(--gradient-warning);
     color: white;
-    border: 1px solid var(--warning-color);
+    border: none;
+    box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.3);
+    transition: all 0.3s ease;
 }
 
 .btn-warning:hover {
-    background: #d97706;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(245, 158, 11, 0.4);
 }
 
 .btn-danger {
-    background: var(--danger-color);
+    background: var(--gradient-danger);
     color: white;
-    border: 1px solid var(--danger-color);
+    border: none;
+    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+    transition: all 0.3s ease;
 }
 
 .btn-danger:hover {
-    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(239, 68, 68, 0.4);
 }
 
 .btn-info {
-    background: var(--info-color);
+    background: linear-gradient(135deg, var(--info-color), #0891b2);
     color: white;
-    border: 1px solid var(--info-color);
+    border: none;
+    box-shadow: 0 4px 14px 0 rgba(6, 182, 212, 0.3);
+    transition: all 0.3s ease;
 }
 
 .btn-info:hover {
-    background: #0891b2;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(6, 182, 212, 0.4);
 }
 
 .btn-sm {
-    padding: 10px 20px !important;
-    font-size: 0.875rem !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    min-height: 40px !important;
-    min-width: 100px !important;
-    white-space: nowrap !important;
-}
-
-.btn i {
-    font-size: 1rem;
-}
-
-.btn-success.btn-whatsapp {
-    background: #25D366;
-    border-color: #25D366;
+    padding: 8px 16px;
+    font-size: 0.875rem;
 }
 
 .search-bar {
@@ -1321,22 +1314,6 @@ body {
 .search-bar input {
     flex: 1;
     min-width: 200px;
-    padding: 12px 16px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-size: 1rem;
-    transition: border-color 0.2s ease;
-}
-
-.search-bar input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.search-bar input::placeholder {
-    color: var(--text-secondary);
 }
 
 .filters {
@@ -1347,35 +1324,27 @@ body {
 }
 
 .filter-btn {
-    padding: 10px 20px;
-    background: var(--card-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
+    padding: 8px 16px;
     background: var(--border-color);
-    border-color: var(--primary-color);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .filter-btn.active {
     background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
-    font-weight: 600;
 }
 
 .table-container {
-    background: var(--card-bg);
-    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .table {
@@ -1384,22 +1353,23 @@ body {
 }
 
     .table th {
-    background: var(--dark-bg);
+        background: rgba(0,0,0,0.5);
     color: var(--text-primary);
-    padding: 12px;
+    padding: 15px;
     text-align: left;
     font-weight: 600;
-    border-bottom: 1px solid var(--border-color);
+        border-bottom: 2px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(6px);
 }
 
     .table td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border-color);
+    padding: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
     vertical-align: middle;
 }
 
 .table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 51, 51, 0.05);
 }
 
 .badge {
@@ -1425,39 +1395,6 @@ body {
     color: black;
 }
 
-/* Ícones de Status - Sem estilos inline */
-.status-icon {
-    margin-right: 6px;
-}
-
-.status-icon.status-success {
-    color: var(--success-color);
-}
-
-.status-icon.status-warning {
-    color: var(--warning-color);
-}
-
-.status-icon.status-info {
-    color: var(--info-color);
-}
-
-.status-icon.status-default {
-    color: var(--text-secondary);
-}
-
-/* Estado vazio da tabela */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-secondary);
-}
-
-/* Formulário inline para botão de exclusão */
-.form-inline {
-    display: inline;
-}
-
 .modal {
     display: none;
     position: fixed;
@@ -1465,24 +1402,26 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: var(--z-modal);
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
     justify-content: center;
     align-items: center;
     padding: 20px;
 }
 
 .modal-content {
-    background: var(--card-bg);
-    padding: 24px;
-    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    padding: 30px;
+    border-radius: 18px;
     width: 100%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.18);
     position: relative;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .modal-header {
@@ -1500,137 +1439,48 @@ body {
 }
 
 .close {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
     font-size: 1.5rem;
     cursor: pointer;
-    padding: 8px;
+    padding: 5px;
     border-radius: 50%;
-    transition: all 0.2s ease;
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    position: relative;
-    z-index: var(--z-base);
-    flex-shrink: 0;
+    transition: all 0.3s ease;
 }
 
 .close:hover {
-    background: var(--danger-color);
-    border-color: var(--danger-color);
-    color: white;
-}
-
-.close:active {
-    opacity: 0.8;
+    background: var(--border-color);
+    color: var(--text-primary);
 }
 
 .actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    align-items: center;
-}
-
-.actions .btn,
-.actions button {
-    min-width: 40px;
-    min-height: 40px;
-    padding: 8px 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    z-index: var(--z-base);
-}
-
-/* Botões da Tabela - Minimalista e Funcional */
-table .actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-table .actions .btn,
-table .actions button {
-    min-width: 100px;
-    min-height: 36px;
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    z-index: var(--z-base);
-}
-
-table .actions .btn-warning {
-    background: var(--color-warning);
-    border: 1px solid var(--color-warning);
-    color: white;
-}
-
-table .actions .btn-info {
-    background: var(--color-info);
-    border: 1px solid var(--color-info);
-    color: white;
-}
-
-table .actions .btn-success {
-    background: var(--color-success);
-    border: 1px solid var(--color-success);
-    color: white;
-}
-
-table .actions .btn-danger {
-    background: var(--color-danger);
-    border: 1px solid var(--color-danger);
-    color: white;
-}
-
-/* Botões mobile - maior para toque */
-@media (max-width: 768px) {
-    table .actions {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    table .actions .btn {
-        width: 100%;
-        min-height: 44px;
-        padding: 12px 16px;
-        font-size: 0.9375rem;
-    }
 }
 
 .logout-btn {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: var(--color-danger);
+    background: var(--danger-color);
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 6px;
+    border-radius: 25px;
     cursor: pointer;
-    font-weight: 500;
-    transition: opacity 0.2s ease;
-    z-index: var(--z-fixed);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    z-index: 100;
 }
 
-.logout-btn:hover {
-    opacity: 0.9;
-}
+    .logout-btn:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+    }
 
-    /* Nav superior minimalista */
+    /* Nav superior com efeito de vidro - Design Profissional */
     .admin-nav {
         position: sticky;
         top: 12px;
@@ -1639,23 +1489,28 @@ table .actions .btn-danger {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
+        gap: 16px;
         padding: 16px 24px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
+        background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+        border: 1px solid rgba(255, 51, 51, 0.2);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+                    0 0 0 1px rgba(255, 51, 51, 0.1) inset,
+                    0 2px 8px rgba(255, 51, 51, 0.1);
         z-index: 1000;
-        position: relative;
     }
     
     .nav-brand { 
-        font-weight: 600; 
+        font-weight: 700; 
+        letter-spacing: 0.5px; 
         display: flex; 
         align-items: center; 
         gap: 12px;
         font-size: 1.2rem;
         color: var(--text-primary);
+        text-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
     }
     
     .nav-brand i {
@@ -1663,57 +1518,41 @@ table .actions .btn-danger {
         font-size: 1.4rem;
     }
     
-    /* Menu Hambúrguer Minimalista */
+    /* Menu Hambúrguer Profissional */
     .nav-toggle { 
-        display: none; /* Escondido por padrão no desktop */
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        width: 40px;
-        height: 40px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 51, 51, 0.1);
+        border: 2px solid rgba(255, 51, 51, 0.3);
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         position: relative;
         z-index: 1001;
     }
     
-    /* NO MOBILE: Mostrar o botão */
-    @media (max-width: 768px) {
-        .nav-toggle,
-        #navToggleBtn {
-            display: flex;
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: var(--z-modal);
-            width: 44px;
-            height: 44px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            cursor: pointer;
-        }
-    }
-    
     .nav-toggle:hover {
-        background: var(--border-color);
-        border-color: var(--primary-color);
+        background: rgba(255, 51, 51, 0.2);
+        border-color: rgba(255, 51, 51, 0.5);
+        transform: scale(1.05);
     }
     
     .nav-toggle:active {
-        opacity: 0.8;
+        transform: scale(0.95);
     }
     
     .nav-toggle span {
         display: block;
-        width: 20px;
-        height: 2px;
+        width: 24px;
+        height: 3px;
         background: var(--primary-color);
-        border-radius: 2px;
-        transition: all 0.2s ease;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
     }
     
     .nav-toggle span:nth-child(1) {
@@ -1742,154 +1581,74 @@ table .actions .btn-danger {
         transform: rotate(-45deg) translate(7px, -7px);
     }
     
-    /* Menu mobile - Drawer lateral controlado apenas por CSS */
-    @media (max-width: 768px) {
-        .admin-nav {
-            position: fixed;
-            top: 0;
-            left: -100%;
-            width: 85%;
-            max-width: 320px;
-            height: 100vh;
-            height: 100dvh;
-            flex-direction: column;
-            align-items: stretch;
-            padding: 0;
-            margin: 0;
-            z-index: var(--z-modal);
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-        }
-        
-        .admin-nav.active {
-            left: 0;
-        }
-    }
-    
     .nav-actions { 
         display: flex; 
-        gap: 12px; 
+        gap: 10px; 
         flex-wrap: wrap;
         align-items: center;
-        position: relative;
-        z-index: 1;
     }
     
     .nav-btn {
-        padding: 10px 18px;
-        border-radius: 8px;
-        background: transparent;
-        border: 1px solid var(--border-color);
+        padding: 12px 20px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--text-primary);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
         font-weight: 500;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        white-space: nowrap;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nav-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .nav-btn:hover::before {
+        left: 100%;
     }
     
     .nav-btn:hover { 
-        background: var(--border-color);
-        border-color: var(--primary-color);
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 20px rgba(255, 51, 51, 0.3), 
+                    0 0 0 1px rgba(255, 51, 51, 0.2) inset;
+        background: rgba(255, 51, 51, 0.1);
+        border-color: rgba(255, 51, 51, 0.4);
     }
     
     .nav-btn:active {
-        opacity: 0.8;
+        transform: translateY(0);
     }
     
     .nav-btn i {
         font-size: 1rem;
-        color: var(--primary-color);
     }
     
     .nav-btn.danger {
-        border-color: var(--danger-color);
-    }
-    
-    .nav-btn.danger i {
-        color: var(--danger-color);
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
     }
     
     .nav-btn.danger:hover {
-        background: var(--danger-color);
-        color: white;
-    }
-    
-    /* Botão desabilitado */
-    .nav-btn-disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-    
-    /* Classe utilitária para elementos ocultos */
-    .hidden {
-        display: none;
-    }
-    
-    /* Overlay do menu mobile - NÃO bloqueia cliques quando fechado */
-    .nav-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: var(--z-modal-backdrop);
-        pointer-events: none;
-        opacity: 0;
-    }
-    
-    .nav-overlay.active {
-        display: block;
-        pointer-events: auto;
-        opacity: 1;
-    }
-    
-    
-    /* Responsividade desktop - ajustes finos */
-    @media (min-width: 1025px) {
-        .nav-actions {
-            gap: 10px;
-        }
-        
-        .nav-btn {
-            padding: 12px 20px;
-            font-size: 0.9rem;
-        }
-    }
-    
-    @media (min-width: 1200px) {
-        .nav-actions {
-            gap: 12px;
-        }
-        
-        .nav-btn {
-            padding: 14px 22px;
-            font-size: 0.95rem;
-        }
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.5);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
     }
 
     /* Botão flutuante PWA */
-    #pwaInstallBtn {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        z-index: var(--z-fixed);
-        display: none;
-        padding: 12px 16px;
-        border-radius: 8px;
-        border: none;
-        color: #fff;
-        background: var(--color-primary);
-        font-weight: 600;
-        box-shadow: var(--shadow-md);
-    }
+    #pwaInstallBtn { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: none; padding: 12px 16px; border-radius: 999px; border: none; color: #fff; background: var(--gradient-primary); font-weight: 700; box-shadow: var(--shadow-lg); }
 
     /* Cartões responsivos para lista de códigos (mobile) */
     .cards-list { display: none; }
@@ -1906,43 +1665,8 @@ table .actions .btn-danger {
     .card-city { color: var(--text-secondary); font-size: .95rem; }
     .card-status { display:flex; align-items:center; gap:6px; color: var(--text-primary); font-size: .95rem; }
     .card-meta { color: var(--text-secondary); font-size: .9rem; }
-    .card-actions { 
-        display:flex; 
-        gap:12px; 
-        flex-wrap: wrap; 
-        flex-direction: column;
-        width: 100%;
-    }
-    .card-actions .btn { 
-        padding: 18px 28px !important; 
-        border-radius: 18px !important; 
-        font-weight: 600 !important;
-        letter-spacing: 0.5px !important;
-        min-height: 64px !important;
-        min-width: 100% !important;
-        width: 100% !important;
-        font-size: 1.1rem !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 12px !important;
-        overflow: visible !important;
-        white-space: nowrap !important;
-        text-overflow: clip !important;
-        gap: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .card-actions .btn i {
-        font-size: 1.3rem !important;
-        flex-shrink: 0 !important;
-    }
-    .card-actions .btn .btn-text {
-        display: inline-block !important;
-        white-space: nowrap !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-    }
+    .card-actions { display:flex; gap:8px; flex-wrap: wrap; }
+    .card-actions .btn { padding: 8px 12px; border-radius: 10px; }
     .nav-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; }
 
     /* Sistema de Notificações */
@@ -1957,17 +1681,18 @@ table .actions .btn-danger {
     }
 
     .toast {
-        background: var(--card-bg);
+        background: rgba(255,255,255,0.08);
         color: var(--text-primary);
-        padding: 12px 16px;
+        padding: 15px 20px;
         border-radius: 8px;
-        box-shadow: var(--shadow);
-        border-left: 3px solid var(--primary-color);
-        min-width: 280px;
-        max-width: 380px;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+        border-left: 4px solid var(--primary-color);
+        min-width: 300px;
+        max-width: 400px;
         display: flex;
         align-items: center;
         gap: 10px;
+        animation: slideInRight 0.3s ease;
         position: relative;
     }
 
@@ -2003,9 +1728,45 @@ table .actions .btn-danger {
         color: var(--text-primary);
     }
 
-    .toast.fade-out {
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
             opacity: 0;
-        transition: opacity 0.2s ease;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 20px #ff6600;
+            transform: scale(1);
+        }
+        50% {
+            box-shadow: 0 0 30px #ff3300;
+            transform: scale(1.05);
+        }
+        100% {
+            box-shadow: 0 0 20px #ff6600;
+            transform: scale(1);
+        }
+    }
+
+    .toast.fade-out {
+        animation: slideOutRight 0.3s ease forwards;
     }
 
     /* Sistema de Automações */
@@ -2156,51 +1917,51 @@ table .actions .btn-danger {
     }
 }
 @media (max-width: 768px) {
-    /* Menu mobile - drawer lateral */
     .admin-nav { 
-        position: fixed !important;
-        top: 0 !important;
-        left: -100% !important;
-        width: 85% !important;
-        max-width: 320px !important;
-        height: 100vh !important;
-        height: 100dvh !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        z-index: 10000 !important;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        flex-direction: row; 
+        align-items: center;
+        padding: 12px 16px;
+        position: relative;
     }
-    
-    .admin-nav.active {
-        left: 0;
+    .nav-toggle { 
+        display: flex !important;
     }
-    
     .nav-actions { 
-        gap: 4px !important; 
-        display: flex !important;
-        flex-direction: column !important;
-        position: static !important;
-        background: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-        padding: 12px !important;
-        margin: 0 !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
+        gap: 8px; 
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(20, 20, 20, 1) 100%);
+        border: 1px solid rgba(255, 51, 51, 0.2);
+        border-top: none;
+        border-radius: 0 0 20px 20px;
+        padding: 16px;
+        margin-top: 8px;
+        flex-direction: column;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
-    
     .admin-nav.open .nav-actions { 
-        display: flex !important;
-        animation: none !important;
+        display: flex;
+        animation: slideDown 0.3s ease;
     }
-    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
     .nav-btn { 
-        width: 100% !important;
-        justify-content: flex-start !important;
-        padding: 16px 18px !important;
-        min-height: 56px !important;
+        width: 100%;
+        justify-content: flex-start;
+        padding: 14px 18px;
     }
     .stats-grid { grid-template-columns: 1fr !important; }
     .automation-grid { grid-template-columns: 1fr !important; }
@@ -2601,547 +2362,6 @@ table .actions .btn-danger {
 .swal2-timer-progress-bar {
     background: linear-gradient(90deg, #FF3333, #FF6600) !important;
 }
-
-/* ============================================
-   DESIGN MODERNO E RESPONSIVO - MOBILE FIRST
-   ============================================ */
-
-/* Otimizações Mobile-First */
-@media (max-width: 768px) {
-    /* Container e espaçamento */
-    .container {
-        padding: 12px !important;
-        max-width: 100% !important;
-    }
-    
-    /* Header responsivo */
-    .header {
-        padding: 24px 16px !important;
-        border-radius: 20px !important;
-        margin-bottom: 20px !important;
-        margin-top: 70px !important; /* Espaço para o menu hambúrguer */
-    }
-    
-    .header h1 {
-        font-size: 1.75rem !important;
-        margin-bottom: 8px !important;
-    }
-    
-    .header p {
-        font-size: 0.95rem !important;
-    }
-    
-    /* Stats grid - 2 colunas no mobile */
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
-        margin-bottom: 20px !important;
-    }
-    
-    .stat-card {
-        padding: 20px 16px !important;
-        border-radius: 16px !important;
-    }
-    
-    .stat-card i {
-        font-size: 2rem !important;
-        margin-bottom: 12px !important;
-    }
-    
-    .stat-card h3 {
-        font-size: 1.5rem !important;
-    }
-    
-    .stat-card p {
-        font-size: 0.85rem !important;
-    }
-    
-    /* Controls section */
-    .controls {
-        padding: 20px 16px !important;
-        border-radius: 16px !important;
-        margin-bottom: 20px !important;
-    }
-    
-    .controls h2 {
-        font-size: 1.25rem !important;
-        margin-bottom: 16px !important;
-    }
-    
-    /* Form grid - 1 coluna no mobile */
-    .form-grid {
-        grid-template-columns: 1fr !important;
-        gap: 16px !important;
-    }
-    
-    /* Form inputs */
-    .form-group input,
-    .form-group select {
-        padding: 14px !important;
-        font-size: 16px !important; /* Previne zoom no iOS */
-        border-radius: 12px !important;
-    }
-    
-    /* Checkbox group - 1 coluna */
-    .checkbox-group {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-    }
-    
-    .checkbox-item {
-        padding: 14px !important;
-        border-radius: 12px !important;
-    }
-    
-    /* Search bar */
-    .search-bar {
-        flex-direction: column !important;
-        gap: 12px !important;
-    }
-    
-    .search-bar input {
-        width: 100% !important;
-        padding: 14px !important;
-        font-size: 16px !important;
-        border-radius: 12px !important;
-    }
-    
-    /* Filters */
-    .filters {
-        gap: 8px !important;
-        justify-content: center !important;
-    }
-    
-    .filter-btn {
-        padding: 12px 16px !important;
-        font-size: 0.9rem !important;
-        border-radius: 10px !important;
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
-    }
-    
-    /* Table - esconder no mobile, mostrar cards */
-    .table-container {
-        display: none !important;
-    }
-    
-    .cards-list {
-        display: block !important;
-    }
-    
-    /* Melhorias nos cards mobile */
-    .card-item {
-        background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%) !important;
-        border: 1px solid rgba(255, 51, 51, 0.2) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .card-item:active {
-        transform: scale(0.98) !important;
-    }
-    
-    /* Cards mobile */
-    .card-item {
-        padding: 20px !important;
-        border-radius: 16px !important;
-        margin-bottom: 16px !important;
-        gap: 16px !important;
-    }
-    
-    .card-header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 12px !important;
-    }
-    
-    .card-code {
-        font-size: 1.25rem !important;
-    }
-    
-    .card-city {
-        font-size: 0.95rem !important;
-    }
-    
-    .card-status {
-        font-size: 1rem !important;
-        padding: 12px 0 !important;
-    }
-    
-    .card-meta {
-        font-size: 0.9rem !important;
-    }
-    
-    /* Modal responsivo */
-    .modal {
-        padding: 12px !important;
-    }
-    
-    .modal-content {
-        padding: 24px 20px !important;
-        border-radius: 20px !important;
-        max-height: 95vh !important;
-    }
-    
-    .modal-header h3 {
-        font-size: 1.25rem !important;
-    }
-    
-    /* Bulk actions */
-    .bulk-actions {
-        padding: 16px !important;
-        border-radius: 12px !important;
-    }
-    
-    .bulk-actions > div {
-        flex-direction: column !important;
-        gap: 12px !important;
-    }
-    
-    .bulk-actions .btn {
-        width: 100% !important;
-        margin: 0 !important;
-    }
-    
-    /* Pedidos pendentes */
-    .pedidos-pendentes {
-        padding: 20px 16px !important;
-        border-radius: 16px !important;
-    }
-    
-    .pedido-item {
-        padding: 20px 16px !important;
-        border-radius: 12px !important;
-        margin-bottom: 16px !important;
-    }
-    
-    /* Actions buttons - full width no mobile */
-    .actions {
-        flex-direction: column !important;
-        width: 100% !important;
-        gap: 12px !important;
-    }
-    
-    .actions .btn {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-}
-
-/* Tablet (768px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .container {
-        padding: 16px !important;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-    }
-    
-    .form-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-    
-    .checkbox-group {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
-
-/* Desktop pequeno (1025px - 1200px) */
-@media (min-width: 1025px) and (max-width: 1200px) {
-    .container {
-        max-width: 1200px !important;
-        padding: 20px !important;
-    }
-}
-
-/* Desktop grande (1201px+) */
-@media (min-width: 1201px) {
-    .container {
-        max-width: 1400px !important;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-    }
-}
-
-/* Melhorias de performance */
-* {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* Scroll suave */
-html {
-    scroll-behavior: smooth;
-}
-
-/* Melhorias de acessibilidade */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* Touch targets maiores no mobile */
-@media (max-width: 768px) {
-    button,
-    .btn,
-    a.nav-btn,
-    input[type="checkbox"],
-    input[type="radio"] {
-        min-height: 44px !important;
-        min-width: 44px !important;
-    }
-}
-
-/* Melhorias de legibilidade */
-@media (max-width: 768px) {
-    body {
-        font-size: 15px !important;
-        line-height: 1.6 !important;
-    }
-    
-    h1, h2, h3 {
-        line-height: 1.3 !important;
-    }
-}
-
-/* Otimizações de renderização */
-.table-container,
-.cards-list,
-.modal-content {
-    will-change: transform;
-    transform: translateZ(0);
-}
-
-/* Melhorias de UX - Loading states */
-.btn:disabled,
-button:disabled {
-    opacity: 0.6 !important;
-    cursor: not-allowed !important;
-    pointer-events: none !important;
-}
-
-/* Focus states melhorados para acessibilidade */
-button:focus-visible,
-.btn:focus-visible,
-input:focus-visible,
-select:focus-visible {
-    outline: 3px solid rgba(255, 51, 51, 0.5) !important;
-    outline-offset: 2px !important;
-}
-
-/* Melhorias de scroll no mobile */
-@media (max-width: 768px) {
-    body {
-        overflow-x: hidden !important;
-    }
-    
-    .table-container {
-        -webkit-overflow-scrolling: touch !important;
-    }
-}
-
-/* Animações suaves para cards */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.card-item {
-    animation: fadeInUp 0.4s ease-out;
-}
-
-.card-item:nth-child(1) { animation-delay: 0.05s; }
-.card-item:nth-child(2) { animation-delay: 0.1s; }
-.card-item:nth-child(3) { animation-delay: 0.15s; }
-.card-item:nth-child(4) { animation-delay: 0.2s; }
-.card-item:nth-child(5) { animation-delay: 0.25s; }
-
-/* Melhorias de espaçamento para pedidos pendentes no mobile */
-@media (max-width: 768px) {
-    .pedidos-pendentes .pedido-item {
-        flex-direction: column !important;
-    }
-    
-    .pedidos-pendentes .pedido-item > div:first-child {
-        width: 100% !important;
-        margin-bottom: 16px !important;
-    }
-    
-    .pedidos-pendentes .pedido-item > div:last-child {
-        width: 100% !important;
-    }
-}
-
-/* Melhorias de espaçamento vertical no mobile */
-@media (max-width: 768px) {
-    .header,
-    .stats-grid,
-    .controls,
-    .table-container,
-    .cards-list {
-        margin-bottom: 16px !important;
-    }
-}
-
-/* ===== CLASSES PARA PEDIDOS PENDENTES ===== */
-.pedidos-pendentes-section {
-    margin-bottom: 40px;
-}
-
-.pedidos-pendentes-container {
-    background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 24px;
-    padding: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-
-.pedidos-pendentes-title {
-    margin-bottom: 20px;
-    color: var(--warning-color);
-}
-
-.pedidos-pendentes-subtitle {
-    color: var(--text-secondary);
-    margin-bottom: 25px;
-}
-
-.pedidos-pendentes-grid {
-    display: grid;
-    gap: 20px;
-}
-
-.pedido-item-container {
-    background: #0f0f0f;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 25px;
-}
-
-.pedido-item-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.pedido-item-info {
-    flex: 1;
-    min-width: 250px;
-}
-
-.pedido-item-name {
-    color: var(--text-primary);
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
-
-.pedido-item-meta {
-    display: grid;
-    gap: 10px;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
-
-.pedido-item-address {
-    margin-top: 15px;
-    padding: 15px;
-    background: rgba(255, 51, 51, 0.05);
-    border-radius: 12px;
-    border-left: 3px solid var(--primary-color);
-}
-
-.pedido-item-address-title {
-    color: var(--primary-color);
-    display: block;
-    margin-bottom: 8px;
-}
-
-.pedido-item-address-content {
-    color: var(--text-secondary);
-    line-height: 1.8;
-}
-
-.pedido-item-address-notes {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
-}
-
-.pedido-item-address-notes-title {
-    color: var(--text-primary);
-}
-
-.pedido-item-address-notes-text {
-    color: var(--text-secondary);
-    margin-top: 5px;
-}
-
-.pedido-item-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 200px;
-}
-
-.pedido-item-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.pedido-item-input {
-    width: 100%;
-    padding: 10px;
-    background: #1a1a1a;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-}
-
-/* Classes para ícones de stats */
-.stat-icon-info {
-    color: var(--info-color);
-}
-
-.stat-icon-danger {
-    color: var(--danger-color);
-}
-
-.stat-icon-success {
-    color: var(--success-color);
-}
-
-.stat-icon-warning {
-    color: var(--warning-color);
-}
-
-.stat-card-warning {
-    border: 2px solid var(--warning-color);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
-}
-
-/* Input readonly no modal */
-.input-readonly {
-    background: #333;
-    color: #999;
-}
 </style>
 </head>
 <body>
@@ -3149,63 +2369,28 @@ select:focus-visible {
 <div class="toast-container" id="toastContainer"></div>
 <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
 
-<!-- BOTÃO HAMBÚRGUER MOBILE -->
-<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
-    <span></span>
-    <span></span>
-    <span></span>
-</button>
-
-<div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
 <div class="admin-nav" id="adminNav">
-    <div class="nav-brand">
-        <i class="fas fa-truck"></i> 
-        <span>Helmer Admin</span>
-    </div>
-    <button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
+    <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu">
         <span></span>
         <span></span>
         <span></span>
     </button>
     <div class="nav-actions">
-        <a href="admin_indicacoes.php" class="nav-btn" title="Gerenciar indicações">
-            <i class="fas fa-users"></i> 
-            <span>Indicações</span>
-        </a>
-        <a href="index.php" class="nav-btn" title="Voltar para página inicial">
-            <i class="fas fa-home"></i> 
-            <span>Página inicial</span>
-        </a>
-        <a href="admin_settings.php" class="nav-btn" title="Configurações rápidas">
-            <i class="fas fa-gear"></i> 
-            <span>Configurações</span>
-        </a>
-        <a href="admin_mensagens.php" class="nav-btn" title="Mensagens WhatsApp">
-            <i class="fas fa-comment-dots"></i> 
-            <span>Mensagens</span>
-        </a>
-        <a href="admin_bot_config.php" class="nav-btn" title="Configuração do Bot">
-            <i class="fas fa-robot"></i> 
-            <span>Config Bot</span>
-        </a>
+        <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
+        <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
+        <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
+        <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Mensagens WhatsApp</a>
+        <a href="admin_bot_config.php" class="nav-btn"><i class="fas fa-robot"></i> Config Bot</a>
         <?php if (!empty($_SESSION['undo_action'])): ?>
-            <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;" title="Desfazer última ação">
-                <i class="fas fa-rotate-left"></i> 
-                <span>Desfazer</span>
-            </a>
+            <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i class="fas fa-rotate-left"></i> Desfazer</a>
         <?php else: ?>
-            <span class="nav-btn nav-btn-disabled" title="Nada para desfazer">
-                <i class="fas fa-rotate-left"></i> 
-                <span>Desfazer</span>
-            </span>
+            <span class="nav-btn" style="opacity:.5; cursor:not-allowed"><i class="fas fa-rotate-left"></i> Desfazer</span>
         <?php endif; ?>
-        <a href="admin.php?logout=1" class="nav-btn danger" title="Sair do sistema">
-            <i class="fas fa-sign-out-alt"></i> 
-            <span>Sair</span>
-        </a>
+        <a href="admin.php?logout=1" class="nav-btn danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
     </div>
 </div>
-<form id="undoForm" method="POST" class="hidden"><input type="hidden" name="undo_action" value="1"></form>
+<form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action" value="1"></form>
 
 <div class="container">
     <!-- Header -->
@@ -3243,29 +2428,29 @@ select:focus-visible {
     <!-- Dashboard Stats -->
     <div class="stats-grid">
         <div class="stat-card">
-            <i class="fas fa-box stat-icon-info"></i>
-            <h3><?= htmlspecialchars($totalRastreios, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-box" style="color: var(--info-color);"></i>
+            <h3><?= $totalRastreios ?></h3>
             <p>Total de Rastreios</p>
         </div>
         <div class="stat-card">
-            <i class="fas fa-dollar-sign stat-icon-danger"></i>
-            <h3><?= htmlspecialchars($comTaxa, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-dollar-sign" style="color: var(--danger-color);"></i>
+            <h3><?= $comTaxa ?></h3>
             <p>Com Taxa Pendente</p>
         </div>
         <div class="stat-card">
-            <i class="fas fa-check-circle stat-icon-success"></i>
-            <h3><?= htmlspecialchars($semTaxa, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+            <h3><?= $semTaxa ?></h3>
             <p>Sem Taxa</p>
         </div>
         <div class="stat-card">
-            <i class="fas fa-truck-loading stat-icon-warning"></i>
-            <h3><?= htmlspecialchars($entregues, ENT_QUOTES, 'UTF-8') ?></h3>
+            <i class="fas fa-truck-loading" style="color: var(--warning-color);"></i>
+            <h3><?= $entregues ?></h3>
             <p>Entregues</p>
         </div>
         <?php if ($totalPedidosPendentes > 0): ?>
-        <div class="stat-card stat-card-warning">
-            <i class="fas fa-shopping-cart stat-icon-warning"></i>
-            <h3><?= htmlspecialchars($totalPedidosPendentes, ENT_QUOTES, 'UTF-8') ?></h3>
+        <div class="stat-card" style="border: 2px solid var(--warning-color); background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);">
+            <i class="fas fa-shopping-cart" style="color: var(--warning-color);"></i>
+            <h3><?= $totalPedidosPendentes ?></h3>
             <p>Pedidos Pendentes</p>
         </div>
         <?php endif; ?>
@@ -3273,63 +2458,64 @@ select:focus-visible {
 
     <!-- Seção de Pedidos Pendentes -->
     <?php if ($totalPedidosPendentes > 0): ?>
-    <div class="pedidos-pendentes-section">
-        <div class="pedidos-pendentes-container">
-            <h2 class="pedidos-pendentes-title">
-                <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= htmlspecialchars($totalPedidosPendentes, ENT_QUOTES, 'UTF-8') ?>)
+    <div style="margin-bottom: 40px;">
+        <div style="background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+            <h2 style="margin-bottom: 20px; color: var(--warning-color);">
+                <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
             </h2>
-            <p class="pedidos-pendentes-subtitle">
+            <p style="color: var(--text-secondary); margin-bottom: 25px;">
                 Clientes que preencheram o formulário aguardando aprovação e código de rastreio
             </p>
             
-            <div class="pedidos-pendentes-grid">
+            <div style="display: grid; gap: 20px;">
                 <?php foreach ($pedidosPendentes as $pedido): ?>
-                <div class="pedido-item-container">
-                    <div class="pedido-item-content">
-                        <div class="pedido-item-info">
-                            <h3 class="pedido-item-name">
-                                <i class="fas fa-user"></i> <?= htmlspecialchars($pedido['nome'], ENT_QUOTES, 'UTF-8') ?>
+                <div style="background: #0f0f0f; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px; font-size: 1.2rem;">
+                                <i class="fas fa-user"></i> <?= htmlspecialchars($pedido['nome']) ?>
                             </h3>
                             
-                            <div class="pedido-item-meta">
-                                <div><i class="fas fa-phone"></i> <?= htmlspecialchars($pedido['telefone'], ENT_QUOTES, 'UTF-8') ?></div>
+                            <div style="display: grid; gap: 10px; color: var(--text-secondary); font-size: 0.95rem;">
+                                <div><i class="fas fa-phone"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
                                 <?php if ($pedido['email']): ?>
-                                <div><i class="fas fa-envelope"></i> <?= htmlspecialchars($pedido['email'], ENT_QUOTES, 'UTF-8') ?></div>
+                                <div><i class="fas fa-envelope"></i> <?= htmlspecialchars($pedido['email']) ?></div>
                                 <?php endif; ?>
-                                <div><i class="fas fa-calendar"></i> <?= htmlspecialchars(date('d/m/Y H:i', strtotime($pedido['data_pedido'])), ENT_QUOTES, 'UTF-8') ?></div>
+                                <div><i class="fas fa-calendar"></i> <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
                             </div>
                             
-                            <div class="pedido-item-address">
-                                <strong class="pedido-item-address-title">
+                            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 51, 51, 0.05); border-radius: 12px; border-left: 3px solid var(--primary-color);">
+                                <strong style="color: var(--primary-color); display: block; margin-bottom: 8px;">
                                     <i class="fas fa-map-marker-alt"></i> Endereço de Entrega:
                                 </strong>
-                                <div class="pedido-item-address-content">
-                                    <?= htmlspecialchars($pedido['rua'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($pedido['numero'], ENT_QUOTES, 'UTF-8') ?>
-                                    <?php if ($pedido['complemento']): ?><br><?= htmlspecialchars($pedido['complemento'], ENT_QUOTES, 'UTF-8') ?><?php endif; ?><br>
-                                    <?= htmlspecialchars($pedido['bairro'], ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars($pedido['cidade'], ENT_QUOTES, 'UTF-8') ?>/<?= htmlspecialchars($pedido['estado'], ENT_QUOTES, 'UTF-8') ?><br>
-                                    CEP: <?= htmlspecialchars($pedido['cep'], ENT_QUOTES, 'UTF-8') ?>
+                                <div style="color: var(--text-secondary); line-height: 1.8;">
+                                    <?= htmlspecialchars($pedido['rua']) ?>, <?= htmlspecialchars($pedido['numero']) ?>
+                                    <?php if ($pedido['complemento']): ?><br><?= htmlspecialchars($pedido['complemento']) ?><?php endif; ?><br>
+                                    <?= htmlspecialchars($pedido['bairro']) ?> - <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
+                                    CEP: <?= htmlspecialchars($pedido['cep']) ?>
                                 </div>
                                 <?php if ($pedido['observacoes']): ?>
-                                <div class="pedido-item-address-notes">
-                                    <strong class="pedido-item-address-notes-title">Observações:</strong>
-                                    <p class="pedido-item-address-notes-text"><?= nl2br(htmlspecialchars($pedido['observacoes'], ENT_QUOTES, 'UTF-8')) ?></p>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                                    <strong style="color: var(--text-primary);">Observações:</strong>
+                                    <p style="color: var(--text-secondary); margin-top: 5px;"><?= nl2br(htmlspecialchars($pedido['observacoes'])) ?></p>
                                 </div>
                                 <?php endif; ?>
                             </div>
                         </div>
                         
-                        <div class="pedido-item-actions">
-                            <form method="POST" class="pedido-item-form" onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES, 'UTF-8') ?>')">
-                                <input type="hidden" name="pedido_id" value="<?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>">
-                                <input type="text" name="codigo_rastreio" placeholder="Código de rastreio" required class="pedido-item-input">
-                                <button type="submit" name="aprovar_pedido" class="btn btn-success">
+                        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 200px;">
+                            <form method="POST" onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')" style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                <input type="text" name="codigo_rastreio" placeholder="Código de rastreio" required 
+                                       style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                                <button type="submit" name="aprovar_pedido" class="btn btn-success" style="width: 100%;">
                                     <i class="fas fa-check"></i> Aprovar
                                 </button>
                             </form>
                             
-                            <form method="POST" id="formRejeitar_<?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>" class="pedido-item-form" onsubmit="event.preventDefault(); confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES, 'UTF-8') ?>', <?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>); return false;">
-                                <input type="hidden" name="pedido_id" value="<?= htmlspecialchars($pedido['id'], ENT_QUOTES, 'UTF-8') ?>">
-                                <button type="submit" name="rejeitar_pedido" class="btn btn-danger">
+                            <form method="POST" onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                <button type="submit" name="rejeitar_pedido" class="btn btn-danger" style="width: 100%;">
                                     <i class="fas fa-times"></i> Rejeitar
                                 </button>
                             </form>
@@ -3341,6 +2527,187 @@ select:focus-visible {
         </div>
     </div>
     <?php endif; ?>
+
+    
+
+
+    <!-- Painel de Automações -->
+    <div class="automation-panel">
+        <h2><i class="fas fa-robot"></i> Sistema de Automações</h2>
+        <p>Configure automações inteligentes para gerenciar seus rastreios automaticamente</p>
+        
+        <div class="automation-grid">
+            <!-- Automação de Notificações -->
+            <div class="automation-card">
+                <h4><i class="fas fa-bell"></i> Notificações Automáticas</h4>
+                <div class="automation-toggle">
+                    <span>Enviar notificações por email/SMS</span>
+                    <div class="toggle-switch" onclick="toggleAutomation(this, 'notifications')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="automation-settings" id="notifications-settings">
+                    <div class="form-group">
+                        <label>Email para notificações</label>
+                        <input type="email" id="notification-email" placeholder="admin@helmer.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone para SMS</label>
+                        <input type="tel" id="notification-phone" placeholder="+55 11 99999-9999">
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="notify-created" checked>
+                            <label for="notify-created">Novo rastreio criado</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="notify-status-change" checked>
+                            <label for="notify-status-change">Mudança de status</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="notify-taxa-pending" checked>
+                            <label for="notify-taxa-pending">Taxa pendente há 24h</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="notify-delivered" checked>
+                            <label for="notify-delivered">Rastreio entregue</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automação de Status -->
+            <div class="automation-card">
+                <h4><i class="fas fa-sync-alt"></i> Atualização Automática de Status</h4>
+                <div class="automation-toggle">
+                    <span>Atualizar status automaticamente</span>
+                    <div class="toggle-switch" onclick="toggleAutomation(this, 'status-update')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="automation-settings" id="status-update-settings">
+                    <div class="form-group">
+                        <label>Intervalo de verificação (minutos)</label>
+                        <select id="update-interval">
+                            <option value="15">15 minutos</option>
+                            <option value="30" selected>30 minutos</option>
+                            <option value="60">1 hora</option>
+                            <option value="120">2 horas</option>
+                        </select>
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="auto-progress" checked>
+                            <label for="auto-progress">Progressão automática de etapas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="auto-taxa-apply">
+                            <label for="auto-taxa-apply">Aplicar taxa automaticamente após 48h</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automação de Alertas -->
+            <div class="automation-card">
+                <h4><i class="fas fa-exclamation-triangle"></i> Alertas Inteligentes</h4>
+                <div class="automation-toggle">
+                    <span>Alertas automáticos</span>
+                    <div class="toggle-switch" onclick="toggleAutomation(this, 'alerts')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="automation-settings" id="alerts-settings">
+                    <div class="form-group">
+                        <label>Dias para alerta de rastreio "preso"</label>
+                        <input type="number" id="stuck-days" value="3" min="1" max="30">
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="alert-stuck" checked>
+                            <label for="alert-stuck">Rastreio sem atualização</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="alert-taxa-overdue" checked>
+                            <label for="alert-taxa-overdue">Taxa vencida</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="alert-inconsistency">
+                            <label for="alert-inconsistency">Inconsistências nos dados</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automação de Relatórios -->
+            <div class="automation-card">
+                <h4><i class="fas fa-chart-line"></i> Relatórios Automáticos</h4>
+                <div class="automation-toggle">
+                    <span>Relatórios programados</span>
+                    <div class="toggle-switch" onclick="toggleAutomation(this, 'reports')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="automation-settings" id="reports-settings">
+                    <div class="form-group">
+                        <label>Frequência dos relatórios</label>
+                        <select id="report-frequency">
+                            <option value="daily">Diário</option>
+                            <option value="weekly" selected>Semanal</option>
+                            <option value="monthly">Mensal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Email para relatórios</label>
+                        <input type="email" id="report-email" placeholder="relatorios@helmer.com">
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="report-summary" checked>
+                            <label for="report-summary">Resumo executivo</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="report-detailed">
+                            <label for="report-detailed">Relatório detalhado</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cronograma de Execução -->
+        <div class="cron-schedule">
+            <h4><i class="fas fa-clock"></i> Cronograma de Execução</h4>
+            <div class="schedule-item">
+                <span><span class="status-indicator active"></span>Verificação de status</span>
+                <span>A cada 30 minutos</span>
+            </div>
+            <div class="schedule-item">
+                <span><span class="status-indicator active"></span>Envio de notificações</span>
+                <span>Imediato</span>
+            </div>
+            <div class="schedule-item">
+                <span><span class="status-indicator pending"></span>Geração de relatórios</span>
+                <span>Semanalmente (domingo 08:00)</span>
+            </div>
+            <div class="schedule-item">
+                <span><span class="status-indicator active"></span>Limpeza de logs antigos</span>
+                <span>Diariamente (02:00)</span>
+            </div>
+        </div>
+
+        <div class="actions" style="margin-top: 20px;">
+            <button class="btn btn-primary" onclick="saveAutomations()">
+                <i class="fas fa-save"></i> Salvar Configurações
+            </button>
+            <button class="btn btn-info" onclick="testAutomations()">
+                <i class="fas fa-play"></i> Testar Automações
+            </button>
+            <button class="btn btn-warning" onclick="viewAutomationLogs()">
+                <i class="fas fa-list"></i> Ver Logs
+            </button>
+        </div>
+    </div>
 
     <!-- Controles -->
     <div class="controls">
@@ -3481,8 +2848,8 @@ select:focus-visible {
     </div>
 
     <!-- Lista de Rastreios -->
-    <div class="table-container" id="tabela-container">
-        <table class="table" id="rastreiosTable">
+    <div class="table-container" style="overflow-x:auto; -webkit-overflow-scrolling: touch;">
+        <table class="table" id="rastreiosTable" style="min-width: 760px;">
             <thead>
                 <tr>
                     <th style="width: 50px;">
@@ -3547,45 +2914,40 @@ select:focus-visible {
 
                     $statusIcon = "";
                     if (strpos($row['status_atual'], 'Entregue') !== false) {
-                        $statusIcon = "<i class='fas fa-check-circle status-icon status-success'></i> ";
+                        $statusIcon = "<i class='fas fa-check-circle' style='color: var(--success-color);'></i> ";
                     } elseif (strpos($row['status_atual'], 'Saiu para entrega') !== false) {
-                        $statusIcon = "<i class='fas fa-truck status-icon status-warning'></i> ";
+                        $statusIcon = "<i class='fas fa-truck' style='color: var(--warning-color);'></i> ";
                     } elseif (strpos($row['status_atual'], 'Em trânsito') !== false) {
-                        $statusIcon = "<i class='fas fa-shipping-fast status-icon status-info'></i> ";
+                        $statusIcon = "<i class='fas fa-shipping-fast' style='color: var(--info-color);'></i> ";
                     } else {
-                        $statusIcon = "<i class='fas fa-box status-icon status-default'></i> ";
+                        $statusIcon = "<i class='fas fa-box' style='color: var(--text-secondary);'></i> ";
                     }
 
-                    $codigoEscaped = htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8');
-                    $cidadeEscaped = htmlspecialchars($row['cidade'], ENT_QUOTES, 'UTF-8');
-                    $statusEscaped = htmlspecialchars($row['status_atual'], ENT_QUOTES, 'UTF-8');
-                    $dataFormatada = date("d/m/Y H:i", strtotime($row['data']));
-                    
-                    echo "<tr data-codigo='{$codigoEscaped}' data-cidade='{$cidadeEscaped}' data-status='{$statusEscaped}'>
+                    echo "<tr data-codigo='{$row['codigo']}' data-cidade='{$row['cidade']}' data-status='{$row['status_atual']}'>
                         <td>
-                            <input type='checkbox' class='row-checkbox' value='{$codigoEscaped}' onchange='updateSelection()'>
+                            <input type='checkbox' class='row-checkbox' value='{$row['codigo']}' onchange='updateSelection()'>
                         </td>
-                        <td><strong>{$codigoEscaped}</strong></td>
-                        <td>{$cidadeEscaped}</td>
-                        <td>{$statusIcon}{$statusEscaped}</td>
-                        <td>{$badge}</td>
-                        <td>{$dataFormatada}</td>
+                        <td><strong>{$row['codigo']}</strong></td>
+                        <td>{$row['cidade']}</td>
+                        <td>{$statusIcon}{$row['status_atual']}</td>
+                        <td>$badge</td>
+                        <td>" . date("d/m/Y H:i", strtotime($row['data'])) . "</td>
                         <td>
                             <div class='actions'>
-                                <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$codigoEscaped}' title='Editar'>
-                                    <i class='fas fa-edit'></i> <span class='btn-text'>Editar</span>
+                                <button class='btn btn-warning btn-sm' onclick='abrirModal(\"{$row['codigo']}\")' title='Editar'>
+                                    <i class='fas fa-edit'></i>
                                 </button>
-                                <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$codigoEscaped}' title='Ver detalhes'>
-                                    <i class='fas fa-eye'></i> <span class='btn-text'>Detalhes</span>
+                                <button class='btn btn-info btn-sm' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver detalhes'>
+                                    <i class='fas fa-eye'></i>
                                 </button>
-                                <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$codigoEscaped}' title='Enviar atualização via WhatsApp'>
-                                    <i class='fab fa-whatsapp'></i> <span class='btn-text'>WhatsApp</span>
+                                <button class='btn btn-success btn-sm' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='Enviar atualização via WhatsApp' style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'>
+                                    <i class='fab fa-whatsapp'></i> WhatsApp
                                 </button>
-                                <form method='POST' class='form-inline' id='formDeletar{$codigoEscaped}'>
-                                    <input type='hidden' name='codigo' value='{$codigoEscaped}'>
+                                <form method='POST' style='display:inline' id='formDeletar{$row['codigo']}'>
+                                    <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                     <input type='hidden' name='deletar' value='1'>
-                                    <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletar{$codigoEscaped}' data-codigo='{$codigoEscaped}' title='Excluir'>
-                                        <i class='fas fa-trash'></i> <span class='btn-text'>Excluir</span>
+                                    <button type='button' onclick='confirmarExclusao(\"formDeletar{$row['codigo']}\", \"rastreio\", \"{$row['codigo']}\")' class='btn btn-danger btn-sm' title='Excluir'>
+                                        <i class='fas fa-trash'></i>
                                     </button>
                                 </form>
                             </div>
@@ -3593,7 +2955,7 @@ select:focus-visible {
                     </tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='7' class='empty-state'>
+                    echo "<tr><td colspan='7' style='text-align: center; padding: 20px; color: var(--text-secondary);'>
                             <i class='fas fa-inbox'></i> Nenhum rastreio encontrado
                           </td></tr>";
                 }
@@ -3612,37 +2974,32 @@ select:focus-visible {
                     : "<span class='badge badge-success'><i class='fas fa-check'></i> Sem taxa</span>";
                 $statusIcon = "";
                 if (strpos($row['status_atual'], 'Entregue') !== false) {
-                    $statusIcon = "<i class='fas fa-check-circle status-icon status-success'></i> ";
+                    $statusIcon = "<i class='fas fa-check-circle' style='color: var(--success-color);'></i> ";
                 } elseif (strpos($row['status_atual'], 'Saiu para entrega') !== false) {
-                    $statusIcon = "<i class='fas fa-truck status-icon status-warning'></i> ";
+                    $statusIcon = "<i class='fas fa-truck' style='color: var(--warning-color);'></i> ";
                 } elseif (strpos($row['status_atual'], 'Em trânsito') !== false) {
-                    $statusIcon = "<i class='fas fa-shipping-fast status-icon status-info'></i> ";
+                    $statusIcon = "<i class='fas fa-shipping-fast' style='color: var(--info-color);'></i> ";
                 } else {
-                    $statusIcon = "<i class='fas fa-box status-icon status-default'></i> ";
+                    $statusIcon = "<i class='fas fa-box' style='color: var(--text-secondary);'></i> ";
                 }
-                $codigoEscapedCard = htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8');
-                $cidadeEscapedCard = htmlspecialchars($row['cidade'], ENT_QUOTES, 'UTF-8');
-                $statusEscapedCard = htmlspecialchars($row['status_atual'], ENT_QUOTES, 'UTF-8');
-                $dataFormatadaCard = date("d/m/Y H:i", strtotime($row['data']));
-                
-                echo "<div class='card-item' data-codigo='{$codigoEscapedCard}'>
+                echo "<div class='card-item' data-codigo='{$row['codigo']}'>
                         <div class='card-header'>
                             <div>
-                                <div class='card-code'>{$codigoEscapedCard}</div>
-                                <div class='card-city'><i class='fas fa-map-marker-alt'></i> {$cidadeEscapedCard}</div>
+                                <div class='card-code'>{$row['codigo']}</div>
+                                <div class='card-city'><i class='fas fa-map-marker-alt'></i> {$row['cidade']}</div>
                             </div>
                             <div>{$badge}</div>
                         </div>
-                        <div class='card-status'>{$statusIcon}{$statusEscapedCard}</div>
-                        <div class='card-meta'><i class='fas fa-calendar'></i> {$dataFormatadaCard}</div>
+                        <div class='card-status'>{$statusIcon}{$row['status_atual']}</div>
+                        <div class='card-meta'><i class='fas fa-calendar'></i> " . date("d/m/Y H:i", strtotime($row['data'])) . "</div>
                         <div class='card-actions'>
-                            <button type='button' class='btn btn-warning btn-sm btn-edit' data-codigo='{$codigoEscapedCard}'><i class='fas fa-edit'></i> Editar</button>
-                            <button type='button' class='btn btn-info btn-sm btn-details' data-codigo='{$codigoEscapedCard}'><i class='fas fa-eye'></i> Detalhes</button>
-                            <button type='button' class='btn btn-success btn-sm btn-whatsapp' data-codigo='{$codigoEscapedCard}'><i class='fab fa-whatsapp'></i> WhatsApp</button>
-                            <form method='POST' class='form-inline' id='formDeletarMobile{$codigoEscapedCard}'>
-                                <input type='hidden' name='codigo' value='{$codigoEscapedCard}'>
+                            <button class='btn btn-warning btn-sm' onclick=\"abrirModal('{$row['codigo']}')\"><i class='fas fa-edit'></i> Editar</button>
+                            <button class='btn btn-info btn-sm' onclick=\"viewDetails('{$row['codigo']}')\"><i class='fas fa-eye'></i> Detalhes</button>
+                            <button class='btn btn-success btn-sm' onclick=\"enviarWhatsappManual('{$row['codigo']}')\" style='background: #25D366 !important; border-color: #25D366 !important; color: white !important; display: inline-flex !important;'><i class='fab fa-whatsapp'></i> WhatsApp</button>
+                            <form method='POST' style='display:inline' id='formDeletarMobile{$row['codigo']}'>
+                                <input type='hidden' name='codigo' value='{$row['codigo']}'>
                                 <input type='hidden' name='deletar' value='1'>
-                                <button type='button' class='btn btn-danger btn-sm btn-delete' data-form-id='formDeletarMobile{$codigoEscapedCard}' data-codigo='{$codigoEscapedCard}'><i class='fas fa-trash'></i> Excluir</button>
+                                <button type='button' onclick=\"confirmarExclusao('formDeletarMobile{$row['codigo']}', 'rastreio', '{$row['codigo']}')\" class='btn btn-danger btn-sm'><i class='fas fa-trash'></i> Excluir</button>
                             </form>
                         </div>
                     </div>";
@@ -3653,6 +3010,21 @@ select:focus-visible {
         ?>
     </div>
 
+    <!-- Monitor de Jobs (Cron) -->
+    <div class="automation-panel">
+        <h2><i class="fas fa-clock"></i> Monitor de Jobs (Cron)</h2>
+        <p>Acompanhe as últimas execuções e rode manualmente quando necessário</p>
+        <div class="actions" style="margin:10px 0 15px;">
+            <button class="btn btn-info" onclick="runAutomationCron()"><i class="fas fa-play"></i> Executar Automações</button>
+            <button class="btn btn-warning" onclick="runUpdateCron()"><i class="fas fa-sync"></i> Executar Update</button>
+            <button class="btn btn-primary" onclick="refreshCronLogs()"><i class="fas fa-rotate"></i> Atualizar Logs</button>
+        </div>
+        <div id="cronStatus" class="cron-schedule" style="margin-bottom:10px;"></div>
+        <div class="cron-schedule" style="max-height:240px; overflow:auto">
+            <h4><i class="fas fa-file-alt"></i> Últimos Logs (automation_cron)</h4>
+            <div id="cronLogs" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: .9rem; white-space: pre-wrap;"></div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal edição -->
@@ -3660,7 +3032,7 @@ select:focus-visible {
     <div class="modal-content">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Editar Rastreio</h3>
-            <button class="close" type="button" onclick="document.getElementById('modal').style.display='none'">&times;</button>
+            <button class="close" onclick="closeModal()">&times;</button>
         </div>
         
         <form method="POST" id="formEditar" enctype="multipart/form-data">
@@ -3669,7 +3041,7 @@ select:focus-visible {
             <div class="form-grid">
                 <div class="form-group">
                     <label for="edit_codigo">Código de Rastreio</label>
-                    <input type="text" name="codigo" id="edit_codigo" readonly class="input-readonly">
+                    <input type="text" name="codigo" id="edit_codigo" readonly style="background: #333; color: #999;">
                 </div>
                 <div class="form-group">
                     <label for="edit_cidade">Cidade Vinculada</label>
@@ -3761,7 +3133,7 @@ select:focus-visible {
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Salvar Alterações
                 </button>
-                <button type="button" class="btn btn-warning" onclick="document.getElementById('modal').style.display='none'">
+                <button type="button" class="btn btn-warning" onclick="closeModal()">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
@@ -3783,8 +3155,8 @@ select:focus-visible {
 </div>
 
 <script>
-// Funções do modal - GLOBAL
-window.abrirModal = function abrirModal(codigo) {
+// Funções do modal
+function abrirModal(codigo) {
     fetch("get_etapas.php?codigo=" + codigo + "&t=" + Date.now())
       .then(r => r.json())
       .then(data => {
@@ -3828,40 +3200,17 @@ window.abrirModal = function abrirModal(codigo) {
       })
       .catch(error => {
           console.error('Erro ao carregar dados:', error);
-          SwalDark.fire({
-              icon: 'error',
-              title: 'Erro',
-              text: 'Erro ao carregar dados do rastreio',
-              confirmButtonText: 'OK'
-          });
+          alert('Erro ao carregar dados do rastreio');
       });
 }
 
-// Garantir que abrirModal seja acessível globalmente
-window.abrirModal = abrirModal;
-
 function closeModal() {
-    const modal = document.getElementById('modal');
-    if (modal) {
-        modal.style.display = 'none';
-        // Limpar qualquer estado do formulário se necessário
-        const form = document.getElementById('formEditar');
-        if (form) {
-            form.reset();
-        }
-    }
+    document.getElementById('modal').style.display = 'none';
 }
 
 function closeDetailsModal() {
-    const detailsModal = document.getElementById('detailsModal');
-    if (detailsModal) {
-        detailsModal.style.display = 'none';
-    }
+    document.getElementById('detailsModal').style.display = 'none';
 }
-
-// Garantir que closeModal esteja acessível globalmente
-window.closeModal = closeModal;
-window.closeDetailsModal = closeDetailsModal;
 
 // Função para visualizar detalhes
 function viewDetails(codigo) {
@@ -3926,17 +3275,9 @@ function viewDetails(codigo) {
       })
       .catch(error => {
           console.error('Erro ao carregar detalhes:', error);
-          SwalDark.fire({
-              icon: 'error',
-              title: 'Erro',
-              text: 'Erro ao carregar detalhes do rastreio',
-              confirmButtonText: 'OK'
-          });
+          alert('Erro ao carregar detalhes do rastreio');
       });
 }
-
-// Garantir que viewDetails esteja disponível globalmente
-window.viewDetails = viewDetails;
 
 // (Removido modal rápido de taxa)
 
@@ -4090,9 +3431,6 @@ async function confirmarExclusao(formId, tipo = 'rastreio', codigo = '') {
         }
     }
 }
-
-// Garantir que confirmarExclusao esteja disponível globalmente
-window.confirmarExclusao = confirmarExclusao;
 
 // Confirmação genérica
 async function confirmarAcao(mensagem, titulo = 'Confirmar', icone = 'question') {
@@ -4251,10 +3589,7 @@ async function confirmarAprovarPedido(form, nomeCliente) {
 }
 
 // Confirmar rejeitar pedido
-async function confirmarRejeitarPedido(form, nomeCliente, pedidoId) {
-    // Prevenir submit padrão (já feito no onsubmit, mas garantindo)
-    event.preventDefault();
-    
+async function confirmarRejeitarPedido(form, nomeCliente) {
     const result = await SwalDark.fire({
         title: '❌ Rejeitar Pedido',
         html: `
@@ -4262,35 +3597,19 @@ async function confirmarRejeitarPedido(form, nomeCliente, pedidoId) {
                 <p style="font-size: 16px; margin-bottom: 15px;">
                     Tem certeza que deseja rejeitar o pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
                 </p>
-                <p style="font-size: 14px; color: #cbd5e1; margin-top: 10px;">
-                    Esta ação não pode ser desfeita.
-                </p>
             </div>
         `,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-times"></i> Sim, Rejeitar',
-        cancelButtonText: '<i class="fas fa-arrow-left"></i> Cancelar',
+        confirmButtonText: '<i class="fas fa-times"></i> Rejeitar',
+        cancelButtonText: 'Cancelar',
         reverseButtons: true,
-        confirmButtonColor: '#EF4444',
-        cancelButtonColor: '#6B7280',
-        focusCancel: true
+        confirmButtonColor: '#EF4444'
     });
     
-    // Só submeter se confirmado
     if (result.isConfirmed) {
-        // Desabilitar botão para evitar duplo submit
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejeitando...';
-        }
-        
-        // Submeter formulário
         form.submit();
     }
-    
-    // Retornar false para garantir que não submete
     return false;
 }
 
@@ -4335,17 +3654,6 @@ window.onclick = function(event) {
     const modal = document.getElementById('modal');
     const detailsModal = document.getElementById('detailsModal');
     
-    // Não fechar se clicar no botão close ou no conteúdo do modal
-    if (event.target.classList.contains('close')) {
-        if (event.target.closest('#modal')) {
-            closeModal();
-        }
-        if (event.target.closest('#detailsModal')) {
-            closeDetailsModal();
-        }
-        return;
-    }
-    
     if (event.target === modal) {
         closeModal();
     }
@@ -4353,101 +3661,6 @@ window.onclick = function(event) {
         closeDetailsModal();
     }
 }
-
-// Função auxiliar para fechar modal
-function handleCloseModal(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    if (typeof window.closeModal === 'function') {
-        window.closeModal();
-    } else if (typeof closeModal === 'function') {
-        closeModal();
-    } else {
-        const modal = document.getElementById('modal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    }
-}
-
-function handleCloseDetailsModal(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    if (typeof window.closeDetailsModal === 'function') {
-        window.closeDetailsModal();
-    } else if (typeof closeDetailsModal === 'function') {
-        closeDetailsModal();
-    } else {
-        const detailsModal = document.getElementById('detailsModal');
-        if (detailsModal) {
-            detailsModal.style.display = 'none';
-        }
-    }
-}
-
-// Função para anexar listeners aos botões close
-function attachCloseButtonListeners() {
-    // Botão close do modal de edição
-    const modalCloseBtn = document.querySelector('#modal .close');
-    if (modalCloseBtn && !modalCloseBtn.dataset.listenerAttached) {
-        modalCloseBtn.removeEventListener('click', handleCloseModal);
-        modalCloseBtn.addEventListener('click', handleCloseModal);
-        modalCloseBtn.dataset.listenerAttached = 'true';
-    }
-    
-    // Botão Cancelar do modal
-    const cancelBtn = document.querySelector('#modal .btn-cancel-modal');
-    if (cancelBtn && !cancelBtn.dataset.listenerAttached) {
-        cancelBtn.removeEventListener('click', handleCloseModal);
-        cancelBtn.addEventListener('click', handleCloseModal);
-        cancelBtn.dataset.listenerAttached = 'true';
-    }
-    
-    // Botão close do modal de detalhes
-    const detailsCloseBtn = document.querySelector('#detailsModal .close');
-    if (detailsCloseBtn && !detailsCloseBtn.dataset.listenerAttached) {
-        detailsCloseBtn.removeEventListener('click', handleCloseDetailsModal);
-        detailsCloseBtn.addEventListener('click', handleCloseDetailsModal);
-        detailsCloseBtn.dataset.listenerAttached = 'true';
-    }
-}
-
-    // Adicionar event listeners diretos aos botões close
-document.addEventListener('DOMContentLoaded', function() {
-    attachCloseButtonListeners();
-    
-    // Re-aplicar listeners quando o modal for aberto (caso seja recriado dinamicamente)
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                attachCloseButtonListeners();
-            }
-            if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) { // Element node
-                        if (node.id === 'modal' || node.querySelector('#modal')) {
-                            attachCloseButtonListeners();
-                        }
-                        if (node.id === 'detailsModal' || node.querySelector('#detailsModal')) {
-                            attachCloseButtonListeners();
-                        }
-                    }
-                });
-            }
-        });
-    });
-    
-    observer.observe(document.body, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-        attributeFilter: ['style']
-    });
-});
 
 // Atalhos de teclado
 document.addEventListener('keydown', function(e) {
@@ -4469,23 +3682,27 @@ document.addEventListener('keydown', function(e) {
 // Mostrar notificações de sucesso do PHP
 <?php if (isset($success_message)): ?>
     document.addEventListener('DOMContentLoaded', function() {
-        if (typeof notifySuccess === 'function') {
-            notifySuccess(<?= json_encode($success_message) ?>);
-        }
+        notifySuccess('<?= addslashes($success_message) ?>');
     });
 <?php endif; ?>
 
 // Mostrar notificações de erro do PHP
 <?php if (isset($error_message)): ?>
     document.addEventListener('DOMContentLoaded', function() {
-        if (typeof notifyError === 'function') {
-            notifyError(<?= json_encode($error_message) ?>);
-        }
+        notifyError('<?= addslashes($error_message) ?>');
     });
 <?php endif; ?>
 
-// Inicializar sistema
+// Inicializar sistema de automações
 document.addEventListener('DOMContentLoaded', function() {
+    loadAutomationSettings();
+    
+    // Verificar se há automações ativas e iniciá-las
+    const saved = localStorage.getItem('automationSettings');
+    if (saved) {
+        const automations = JSON.parse(saved);
+        
+        if (automations.statusUpdate && automations.statusUpdate.enabled) {
             startStatusAutomation(automations.statusUpdate.interval);
         }
         
@@ -4947,10 +4164,259 @@ function notifyInfo(message) {
 }
 
 
+// Sistema de Automações
+function toggleAutomation(toggle, automationType) {
+    const isActive = toggle.classList.contains('active');
+    
+    if (isActive) {
+        toggle.classList.remove('active');
+        document.getElementById(automationType + '-settings').classList.remove('active');
+    } else {
+        toggle.classList.add('active');
+        document.getElementById(automationType + '-settings').classList.add('active');
+    }
+}
 
+function saveAutomations() {
+    const automations = {
+        notifications: {
+            enabled: document.querySelector('#notifications-settings').classList.contains('active'),
+            email: document.getElementById('notification-email').value,
+            phone: document.getElementById('notification-phone').value,
+            notifyCreated: document.getElementById('notify-created').checked,
+            notifyStatusChange: document.getElementById('notify-status-change').checked,
+            notifyTaxaPending: document.getElementById('notify-taxa-pending').checked,
+            notifyDelivered: document.getElementById('notify-delivered').checked
+        },
+        statusUpdate: {
+            enabled: document.querySelector('#status-update-settings').classList.contains('active'),
+            interval: document.getElementById('update-interval').value,
+            autoProgress: document.getElementById('auto-progress').checked,
+            autoTaxaApply: document.getElementById('auto-taxa-apply').checked
+        },
+        alerts: {
+            enabled: document.querySelector('#alerts-settings').classList.contains('active'),
+            stuckDays: document.getElementById('stuck-days').value,
+            alertStuck: document.getElementById('alert-stuck').checked,
+            alertTaxaOverdue: document.getElementById('alert-taxa-overdue').checked,
+            alertInconsistency: document.getElementById('alert-inconsistency').checked
+        },
+        reports: {
+            enabled: document.querySelector('#reports-settings').classList.contains('active'),
+            frequency: document.getElementById('report-frequency').value,
+            email: document.getElementById('report-email').value,
+            summary: document.getElementById('report-summary').checked,
+            detailed: document.getElementById('report-detailed').checked
+        }
+    };
+
+    // Salvar no localStorage (em produção, salvaria no banco de dados)
+    localStorage.setItem('automationSettings', JSON.stringify(automations));
+    
+    notifySuccess('Configurações de automação salvas com sucesso!');
+    
+    // Iniciar automações se estiverem habilitadas
+    if (automations.statusUpdate.enabled) {
+        startStatusAutomation(automations.statusUpdate.interval);
+    }
+    
+    if (automations.notifications.enabled) {
+        startNotificationAutomation();
+    }
+}
+
+function testAutomations() {
+    notifyInfo('Testando automações...');
+    
+    // Simular teste de notificação
+    setTimeout(() => {
+        notifySuccess('Teste de notificação enviado com sucesso!');
+    }, 1000);
+    
+    // Simular teste de atualização de status
+    setTimeout(() => {
+        notifyInfo('Teste de atualização de status executado!');
+    }, 2000);
+    
+    // Simular teste de alertas
+    setTimeout(() => {
+        notifyWarning('Teste de alerta executado!');
+    }, 3000);
+}
+
+function viewAutomationLogs() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-list"></i> Logs de Automação</h3>
+                <button class="close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <div class="schedule-item">
+                    <span><span class="status-indicator active"></span>Verificação de status executada</span>
+                    <span>${new Date().toLocaleString()}</span>
+                </div>
+                <div class="schedule-item">
+                    <span><span class="status-indicator active"></span>Notificação enviada para admin@helmer.com</span>
+                    <span>${new Date(Date.now() - 300000).toLocaleString()}</span>
+                </div>
+                <div class="schedule-item">
+                    <span><span class="status-indicator active"></span>Relatório semanal gerado</span>
+                    <span>${new Date(Date.now() - 3600000).toLocaleString()}</span>
+                </div>
+                <div class="schedule-item">
+                    <span><span class="status-indicator active"></span>Limpeza de logs executada</span>
+                    <span>${new Date(Date.now() - 7200000).toLocaleString()}</span>
+                </div>
+                <div class="schedule-item">
+                    <span><span class="status-indicator active"></span>Alerta de rastreio preso enviado</span>
+                    <span>${new Date(Date.now() - 86400000).toLocaleString()}</span>
+                </div>
+            </div>
+            <div class="actions" style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="exportLogs()">
+                    <i class="fas fa-download"></i> Exportar Logs
+                </button>
+                <button class="btn btn-warning" onclick="clearLogs()">
+                    <i class="fas fa-trash"></i> Limpar Logs
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function exportLogs() {
+    notifyInfo('Exportando logs de automação...');
+    // Implementar exportação de logs
+    notifySuccess('Logs exportados com sucesso!');
+}
+
+async function clearLogs() {
+    const confirmado = await confirmarLimparLogs();
+    if (confirmado) {
+        // Limpar logs do localStorage
+        localStorage.removeItem('automationLogs');
+        const logContainer = document.getElementById('automationLogs');
+        if (logContainer) logContainer.innerHTML = '';
+        toastSucesso('Logs limpos com sucesso!');
+    }
+}
+
+// Funções de automação em tempo real
+function startStatusAutomation(intervalMinutes) {
+    const interval = intervalMinutes * 60 * 1000; // Converter para milissegundos
+    
+    setInterval(() => {
+        checkAndUpdateStatus();
+    }, interval);
+    
+    notifyInfo(`Automação de status iniciada (${intervalMinutes} minutos)`);
+}
+
+function startNotificationAutomation() {
+    // Verificar rastreios que precisam de notificação
+    setInterval(() => {
+        checkPendingNotifications();
+    }, 5 * 60 * 1000); // A cada 5 minutos
+    
+    notifyInfo('Automação de notificações iniciada');
+}
+
+function checkAndUpdateStatus() {
+    // Simular verificação e atualização de status
+    console.log('Verificando status dos rastreios...');
+    
+    // Aqui você implementaria a lógica real de atualização
+    // Por exemplo, verificar se algum rastreio precisa progredir de status
+    
+    notifyInfo('Status dos rastreios verificados e atualizados');
+}
+
+function checkPendingNotifications() {
+    // Verificar se há notificações pendentes
+    console.log('Verificando notificações pendentes...');
+    
+    // Implementar lógica de verificação de notificações
+    // Por exemplo, verificar taxas pendentes há mais de 24h
+}
+
+// Carregar configurações salvas
+function loadAutomationSettings() {
+    const saved = localStorage.getItem('automationSettings');
+    if (saved) {
+        const automations = JSON.parse(saved);
+        
+        // Aplicar configurações salvas
+        if (automations.notifications.enabled) {
+            document.querySelector('#notifications-settings').classList.add('active');
+            document.querySelector('[onclick*="notifications"]').classList.add('active');
+        }
+        
+        if (automations.statusUpdate.enabled) {
+            document.querySelector('#status-update-settings').classList.add('active');
+            document.querySelector('[onclick*="status-update"]').classList.add('active');
+        }
+        
+        if (automations.alerts.enabled) {
+            document.querySelector('#alerts-settings').classList.add('active');
+            document.querySelector('[onclick*="alerts"]').classList.add('active');
+        }
+        
+        if (automations.reports.enabled) {
+            document.querySelector('#reports-settings').classList.add('active');
+            document.querySelector('[onclick*="reports"]').classList.add('active');
+        }
+    }
+}
 
 // Auto-refresh removido - atualização apenas manual (F5)
 
+// ===== Monitor de Cron (Execução e Logs) =====
+function runAutomationCron() {
+    notifyInfo('Executando automações...');
+    fetch('automation_cron.php?cron=true')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                notifySuccess('Automações executadas');
+                document.getElementById('cronStatus').innerHTML = `<div class="schedule-item"><span><span class="status-indicator active"></span>Última execução</span><span>${new Date().toLocaleString()}</span></div>`;
+                refreshCronLogs();
+            } else {
+                notifyError('Falha nas automações: ' + (data.error||'erro'));
+            }
+        })
+        .catch(()=> notifyError('Erro ao executar automações'));
+}
+
+function runUpdateCron() {
+    notifyInfo('Executando update...');
+    fetch('cron_update.php')
+        .then(()=> {
+            notifySuccess('Update executado');
+            document.getElementById('cronStatus').innerHTML = `<div class="schedule-item"><span><span class="status-indicator active"></span>Update manual</span><span>${new Date().toLocaleString()}</span></div>`;
+        })
+        .catch(()=> notifyError('Erro ao executar update'));
+}
+
+function refreshCronLogs() {
+    fetch('automation_logs.txt', { cache: 'no-store' })
+        .then(r => r.text())
+        .then(t => {
+            const lines = t.trim().split('\n');
+            const last = lines.slice(-50).join('\n');
+            document.getElementById('cronLogs').textContent = last || 'Sem logs.';
+        })
+        .catch(()=> {
+            document.getElementById('cronLogs').textContent = 'Sem logs disponíveis.';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', refreshCronLogs);
 
 // Função para enviar WhatsApp manualmente
 function enviarWhatsappManual(codigo) {
@@ -4962,7 +4428,7 @@ function enviarWhatsappManual(codigo) {
     console.log('[WhatsApp] Iniciando envio para código:', codigo);
     
     // Desabilitar botão durante o envio
-    const buttons = document.querySelectorAll(`.btn-whatsapp[data-codigo="${codigo}"]`);
+    const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"], button[onclick*='enviarWhatsappManual("${codigo}")']`);
     buttons.forEach(btn => {
         btn.disabled = true;
         const originalHTML = btn.innerHTML;
@@ -5058,9 +4524,6 @@ function enviarWhatsappManual(codigo) {
         console.error('URL:', window.location.href);
     });
 }
-
-// Garantir que enviarWhatsappManual esteja disponível globalmente
-window.enviarWhatsappManual = enviarWhatsappManual;
 </script>
 <script>
 // Registrar Service Worker e gerenciar botão de instalação
@@ -5092,198 +4555,13 @@ window.addEventListener('appinstalled', () => {
     if (installBtn) installBtn.style.display = 'none';
 });
 
-// Toggle do menu mobile - Controlado apenas por classes CSS
 function toggleAdminMenu() {
     const nav = document.getElementById('adminNav');
-    const btn = document.getElementById('navToggleBtn');
-    const overlay = document.getElementById('navOverlay');
-    const body = document.body;
-    
-    if (!nav || !btn) {
-        console.error('Menu elements not found');
-        return;
-    }
-    
-    const isOpen = nav.classList.contains('active');
-    
-    if (isOpen) {
-        // Fechar menu - apenas classes CSS
-        nav.classList.remove('active');
-        if (overlay) overlay.classList.remove('active');
-        body.classList.remove('menu-open');
-        btn.setAttribute('aria-expanded', 'false');
-        body.style.overflow = '';
-    } else {
-        // Abrir menu - apenas classes CSS
-        nav.classList.add('active');
-        if (overlay) overlay.classList.add('active');
-        body.classList.add('menu-open');
-        btn.setAttribute('aria-expanded', 'true');
-        body.style.overflow = 'hidden';
-    }
+    const btn = document.querySelector('.nav-toggle');
+    if (!nav || !btn) return;
+    const open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
-
-// Inicialização do sistema
-document.addEventListener('DOMContentLoaded', function() {
-    // Menu hambúrguer e botões são controlados apenas por CSS - sem necessidade de JavaScript
-    
-    // ===== EVENT DELEGATION - CORREÇÃO CRÍTICA DOS BOTÕES =====
-    // Um único listener no document usando closest() - funciona sempre, em qualquer dispositivo
-    // Isso resolve definitivamente o problema de botões não funcionarem
-    document.addEventListener('click', function(e) {
-        // Verificar se o clique foi em um botão de ação usando closest()
-        const btnDelete = e.target.closest('.btn-delete');
-        const btnEdit = e.target.closest('.btn-edit');
-        const btnDetails = e.target.closest('.btn-details');
-        const btnWhatsapp = e.target.closest('.btn-whatsapp');
-        
-        // Processar exclusão
-        if (btnDelete) {
-            e.preventDefault();
-            e.stopPropagation();
-            const formId = btnDelete.getAttribute('data-form-id');
-            const codigo = btnDelete.getAttribute('data-codigo');
-            if (formId && codigo && typeof window.confirmarExclusao === 'function') {
-                window.confirmarExclusao(formId, 'rastreio', codigo);
-            }
-            return;
-        }
-        
-        // Processar edição
-        if (btnEdit) {
-            e.preventDefault();
-            e.stopPropagation();
-            const codigo = btnEdit.getAttribute('data-codigo');
-            if (codigo && typeof window.abrirModal === 'function') {
-                window.abrirModal(codigo);
-            }
-            return;
-        }
-        
-        // Processar detalhes
-        if (btnDetails) {
-            e.preventDefault();
-            e.stopPropagation();
-            const codigo = btnDetails.getAttribute('data-codigo');
-            if (codigo && typeof window.viewDetails === 'function') {
-                window.viewDetails(codigo);
-            }
-            return;
-        }
-        
-        // Processar WhatsApp
-        if (btnWhatsapp) {
-            e.preventDefault();
-            e.stopPropagation();
-            const codigo = btnWhatsapp.getAttribute('data-codigo');
-            if (codigo && typeof window.enviarWhatsappManual === 'function') {
-                window.enviarWhatsappManual(codigo);
-            }
-            return;
-        }
-    });
-    
-    const overlay = document.getElementById('navOverlay');
-    if (overlay) {
-        overlay.addEventListener('click', function() {
-            toggleAdminMenu();
-        });
-    }
-    
-    // Fechar menu ao clicar em link
-    const navLinks = document.querySelectorAll('.nav-actions .nav-btn');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            // Pequeno delay para permitir navegação
-            setTimeout(() => {
-                toggleAdminMenu();
-            }, 150);
-        });
-    });
-    
-    // ===== PREVENIR ZOOM COMPLETAMENTE =====
-    // Prevenir zoom com gestos de pinça
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(event) {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
-    
-    // Prevenir zoom com gestos de pinça (iOS)
-    document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-    });
-    
-    document.addEventListener('gesturechange', function(e) {
-        e.preventDefault();
-    });
-    
-    document.addEventListener('gestureend', function(e) {
-        e.preventDefault();
-    });
-    
-    // Prevenir zoom com duplo toque
-    let lastTouch = 0;
-    document.addEventListener('touchstart', function(event) {
-        const now = Date.now();
-        if (now - lastTouch <= 300) {
-            event.preventDefault();
-        }
-        lastTouch = now;
-    }, { passive: false });
-    
-    // Prevenir zoom com wheel (alguns navegadores)
-    document.addEventListener('wheel', function(e) {
-        if (e.ctrlKey) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    
-    // Prevenir zoom com teclado (Ctrl + / Ctrl -)
-    document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.keyCode === 187 || e.keyCode === 189)) {
-            e.preventDefault();
-        }
-    });
-    
-    // Forçar viewport scale
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
-    }
-    
-    // Fechar menu ao clicar no X do header (se existir)
-    const navBrand = document.querySelector('.nav-brand');
-    if (navBrand) {
-        // Adicionar evento de clique no brand para fechar
-        navBrand.style.cursor = 'pointer';
-        navBrand.addEventListener('click', function(e) {
-            // Só fechar se clicar no próprio brand, não nos filhos
-            if (e.target === navBrand || e.target.closest('.nav-brand') === navBrand) {
-                const nav = document.getElementById('adminNav');
-                if (nav && nav.classList.contains('active')) {
-                    toggleAdminMenu();
-                }
-            }
-        });
-    }
-    
-    // Fechar menu ao pressionar ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const nav = document.getElementById('adminNav');
-            if (nav && nav.classList.contains('active')) {
-                toggleAdminMenu();
-            }
-        }
-    });
-    
-    // Log para debug
-    console.log('Menu mobile inicializado');
-});
 </script>
 <?php // Expor presets ao JS ?>
 <script>

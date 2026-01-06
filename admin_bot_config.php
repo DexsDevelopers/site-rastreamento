@@ -7,14 +7,15 @@
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/whatsapp_helper.php';
+require_once 'includes/auth_helper.php';
+
+// Verificar autenticação
+requireLogin();
 
 // Verificar conexão com banco
 if (!isset($pdo) || $pdo === null) {
     die("❌ Erro: Não foi possível conectar ao banco de dados.");
 }
-
-// Sistema de autenticação (simplificado - em produção use sessão do admin.php)
-session_start();
 
 // Verificar se tabelas existem
 try {

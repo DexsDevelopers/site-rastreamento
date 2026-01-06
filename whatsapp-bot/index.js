@@ -1220,6 +1220,36 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'remove');
           log.success(`[GROUP] Usuário ${targetNumber} banido do grupo ${groupMetadata.subject}`);
+          
+          // Deletar a mensagem marcada se existir
+          if (contextInfo && contextInfo.stanzaId) {
+            try {
+              log.info(`[GROUP] Tentando deletar mensagem: ${contextInfo.stanzaId}, participant: ${contextInfo.participant}`);
+              
+              // Para mensagens em grupo, precisamos do participant
+              const deleteKey = {
+                remoteJid: remoteJid,
+                fromMe: false,
+                id: contextInfo.stanzaId,
+                participant: contextInfo.participant || targetJid
+              };
+              
+              log.info(`[GROUP] Delete key: ${JSON.stringify(deleteKey)}`);
+              
+              await sock.sendMessage(remoteJid, {
+                delete: deleteKey
+              });
+              
+              log.success(`[GROUP] Mensagem deletada com sucesso: ${contextInfo.stanzaId}`);
+            } catch (deleteError) {
+              // Não falhar o ban se a deleção falhar, apenas logar
+              log.error(`[GROUP] Erro ao deletar mensagem: ${deleteError.message}`);
+              log.error(`[GROUP] Stack: ${deleteError.stack}`);
+            }
+          } else {
+            log.info(`[GROUP] Mensagem não será deletada - contextInfo: ${!!contextInfo}, stanzaId: ${contextInfo?.stanzaId}`);
+          }
+          
           return { 
             success: true, 
             message: `✅ Usuário @${targetNumber} foi removido do grupo.`,
