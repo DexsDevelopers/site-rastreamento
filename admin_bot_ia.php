@@ -95,6 +95,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 break;
                 
+            case 'clear_all_knowledge':
+                $count = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_ia_knowledge");
+                $total = $count['total'] ?? 0;
+                
+                if ($total > 0) {
+                    $pdo->exec("DELETE FROM bot_ia_knowledge");
+                    $deleted = $pdo->rowCount();
+                    $response = ['success' => true, 'message' => "{$deleted} conhecimentos removidos! Base limpa e pronta para adicionar manualmente."];
+                } else {
+                    $response = ['success' => true, 'message' => 'Base de conhecimento já está vazia.'];
+                }
+                break;
+                
             case 'get_feedback':
                 $status = $_POST['status'] ?? 'all';
                 
@@ -749,7 +762,12 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
             </div>
             
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-database"></i> Base de Conhecimento</h2>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h2 class="card-title" style="margin:0;"><i class="fas fa-database"></i> Base de Conhecimento</h2>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllKnowledge()">
+                        <i class="fas fa-trash"></i> Limpar Tudo
+                    </button>
+                </div>
                 <div class="form-row" style="margin-bottom:1rem;">
                     <input type="text" id="searchKnowledge" placeholder="Buscar...">
                     <select id="filterCategory">
@@ -1073,6 +1091,24 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
             const data = await res.json();
             showToast(data.message, data.success ? 'success' : 'error');
             if (data.success) loadKnowledge();
+        }
+        
+        async function clearAllKnowledge() {
+            if (!confirm('⚠️ ATENÇÃO: Tem certeza que deseja apagar TODOS os conhecimentos?\n\nEsta ação não pode ser desfeita e você precisará adicionar tudo manualmente novamente.')) return;
+            
+            if (!confirm('⚠️ Última confirmação: Apagar TODOS os conhecimentos?')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'clear_all_knowledge');
+            
+            const res = await fetch('', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) {
+                loadKnowledge();
+                loadStats();
+            }
         }
         
         function resetKnowledgeForm() {
