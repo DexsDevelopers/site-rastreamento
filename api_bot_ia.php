@@ -52,60 +52,64 @@ function searchKnowledge($pdo, $query) {
     $queryWords = explode(' ', $queryLower);
     $queryWords = array_filter($queryWords, function($w) { return strlen($w) >= 2; });
     
-    // 1. Busca exata na pergunta (mais precisa)
-    $stmt = $pdo->prepare("
-        SELECT pergunta, resposta, categoria, prioridade 
-        FROM bot_ia_knowledge 
-        WHERE ativo = 1 
-        AND LOWER(pergunta) LIKE ?
-        ORDER BY prioridade DESC, uso_count DESC
-        LIMIT 1
-    ");
-    $stmt->execute(["%{$queryLower}%"]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($result) {
-        // Verificar similaridade - se a pergunta do conhecimento contém palavras-chave da query
-        $knowledgeWords = explode(' ', mb_strtolower($result['pergunta']));
-        $matchCount = 0;
-        foreach ($queryWords as $qw) {
-            foreach ($knowledgeWords as $kw) {
-                if (strpos($kw, $qw) !== false || strpos($qw, $kw) !== false) {
-                    $matchCount++;
-                    break;
+        // 1. Busca exata na pergunta (mais precisa)
+        $stmt = $pdo->prepare("
+            SELECT pergunta, resposta, categoria, prioridade, palavras_chave
+            FROM bot_ia_knowledge 
+            WHERE ativo = 1 
+            AND (LOWER(pergunta) LIKE ? OR LOWER(palavras_chave) LIKE ?)
+            ORDER BY prioridade DESC, uso_count DESC
+            LIMIT 5
+        ");
+        $stmt->execute(["%{$queryLower}%", "%{$queryLower}%"]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if ($results) {
+            // Verificar similaridade para cada resultado
+            foreach ($results as $result) {
+                $knowledgeText = mb_strtolower($result['pergunta'] . ' ' . ($result['palavras_chave'] ?? ''));
+                $knowledgeWords = explode(' ', $knowledgeText);
+                $matchCount = 0;
+                foreach ($queryWords as $qw) {
+                    if (strlen($qw) < 2) continue;
+                    foreach ($knowledgeWords as $kw) {
+                        if (strpos($kw, $qw) !== false || strpos($qw, $kw) !== false) {
+                            $matchCount++;
+                            break;
+                        }
+                    }
+                }
+                $similarity = count($queryWords) > 0 ? ($matchCount / count($queryWords)) : 0;
+                
+                // Retornar se similaridade for alta (>= 50%) ou prioridade alta (>= 85)
+                if ($similarity >= 0.5 || $result['prioridade'] >= 85) {
+                    $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
+                    return $result;
                 }
             }
         }
-        $similarity = count($queryWords) > 0 ? ($matchCount / count($queryWords)) : 0;
-        
-        // Só retornar se similaridade for alta (>= 60%) ou prioridade muito alta (>= 90)
-        if ($similarity >= 0.6 || $result['prioridade'] >= 90) {
-            $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
-            return $result;
-        }
-    }
     
-    // 2. Busca por palavras-chave (mais específica)
-    foreach ($queryWords as $word) {
-        if (strlen($word) < 3) continue; // Ignorar palavras muito curtas
-        
-        $stmt = $pdo->prepare("
-            SELECT pergunta, resposta, categoria, prioridade 
-            FROM bot_ia_knowledge 
-            WHERE ativo = 1 
-            AND LOWER(palavras_chave) LIKE ?
-            AND prioridade >= 85
-            ORDER BY prioridade DESC, uso_count DESC
-            LIMIT 1
-        ");
-        $stmt->execute(["%{$word}%"]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($result) {
-            $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
-            return $result;
+        // 2. Busca por palavras-chave (mais específica) - reduzir limite de prioridade
+        foreach ($queryWords as $word) {
+            if (strlen($word) < 2) continue; // Aceitar palavras de 2+ caracteres
+            
+            $stmt = $pdo->prepare("
+                SELECT pergunta, resposta, categoria, prioridade 
+                FROM bot_ia_knowledge 
+                WHERE ativo = 1 
+                AND (LOWER(palavras_chave) LIKE ? OR LOWER(pergunta) LIKE ?)
+                AND prioridade >= 80
+                ORDER BY prioridade DESC, uso_count DESC
+                LIMIT 1
+            ");
+            $stmt->execute(["%{$word}%", "%{$word}%"]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result) {
+                $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
+                return $result;
+            }
         }
-    }
     
     // 3. Busca FULLTEXT (apenas se score muito alto)
     try {
@@ -264,15 +268,13 @@ switch ($action) {
             saveConversation($pdo, $phone, 'user', $message);
         }
         
-        // Base de conhecimento desabilitada - usar apenas IA
-        // (Comentado para usar apenas IA do Gemini)
-        /*
+        // 1. SEMPRE tentar base de conhecimento primeiro (para usar correções)
         // Verificar se é pergunta sobre data/hora (sempre usar IA para essas)
         $messageLower = mb_strtolower(trim($message));
         $isDateTimeQuestion = preg_match('/\b(hoje|agora|que\s+dia|que\s+hora|data|horário|dia\s+é|hora\s+é|quando)\b/i', $messageLower);
         
-        // 1. Tentar base de conhecimento primeiro (exceto perguntas sobre data/hora)
-        if (getIASetting($pdo, 'ia_use_knowledge', '1') === '1' && !$isDateTimeQuestion) {
+        // Buscar na base de conhecimento (exceto perguntas sobre data/hora que são dinâmicas)
+        if (!$isDateTimeQuestion) {
             $knowledge = searchKnowledge($pdo, $message);
             if ($knowledge) {
                 $response = $knowledge['resposta'];
@@ -280,6 +282,8 @@ switch ($action) {
                 if ($phone) {
                     saveConversation($pdo, $phone, 'assistant', $response);
                 }
+                
+                error_log("[BOT_IA] Resposta da base de conhecimento: " . substr($response, 0, 50));
                 
                 echo json_encode([
                     'success' => true,
@@ -290,7 +294,6 @@ switch ($action) {
                 exit;
             }
         }
-        */
         
         // 2. Usar Gemini
         $apiKey = getIASetting($pdo, 'gemini_api_key', '');
