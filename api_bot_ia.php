@@ -231,12 +231,18 @@ switch ($action) {
         // 2. Usar Gemini
         $apiKey = getIASetting($pdo, 'gemini_api_key', '');
         if (empty($apiKey)) {
-            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, não consigo responder agora.');
+            // Mensagem mais útil quando API key não está configurada
+            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, não consigo responder agora. A IA ainda não está configurada completamente.');
+            
+            // Log para debug
+            error_log("[BOT_IA] API Key não configurada. Mensagem: " . substr($message, 0, 50));
+            
             echo json_encode([
                 'success' => true,
                 'response' => $fallback,
                 'source' => 'fallback',
-                'error' => 'API Key não configurada'
+                'error' => 'API Key não configurada',
+                'needs_config' => true
             ]);
             exit;
         }
@@ -286,7 +292,20 @@ switch ($action) {
         }
         
         if (!$result['success']) {
-            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, não consigo responder agora.');
+            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, não consigo responder agora. Tente novamente em alguns instantes.');
+            
+            // Log detalhado do erro
+            $errorMsg = $result['error'] ?? 'Erro desconhecido';
+            $httpCode = $result['httpCode'] ?? null;
+            error_log("[BOT_IA] Erro ao chamar Gemini: {$errorMsg}" . ($httpCode ? " (HTTP {$httpCode})" : ""));
+            error_log("[BOT_IA] Mensagem original: " . substr($message, 0, 100));
+            
+            // Se for rate limit, mensagem específica
+            if ($httpCode === 429) {
+                $fallback = '⏳ Estou recebendo muitas mensagens agora. Aguarde alguns minutos e tente novamente.';
+            } elseif (strpos(strtolower($errorMsg), 'api key') !== false || strpos(strtolower($errorMsg), 'invalid') !== false) {
+                $fallback = '⚠️ A configuração da IA precisa ser atualizada. Entre em contato com o administrador.';
+            }
             
             // Salvar para feedback/aprendizado
             if ($phone) {
@@ -297,7 +316,8 @@ switch ($action) {
                 'success' => true,
                 'response' => $fallback,
                 'source' => 'fallback',
-                'error' => $result['error'] ?? 'Erro desconhecido'
+                'error' => $errorMsg,
+                'httpCode' => $httpCode
             ]);
             exit;
         }

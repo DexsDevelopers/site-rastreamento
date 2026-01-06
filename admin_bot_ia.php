@@ -564,8 +564,22 @@ $apiKeyConfigured = !empty(getIASetting($pdo, 'gemini_api_key', ''));
         </div>
         
         <?php if (!$apiKeyConfigured): ?>
-        <div class="alert alert-warning">
-            <strong>⚠️ Atenção:</strong> A API Key do Gemini não está configurada. Vá em <strong>Configurações</strong> e insira sua chave.
+        <div class="alert alert-warning" style="margin-bottom: 2rem; padding: 1.5rem; border-left: 4px solid var(--warning);">
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <strong style="font-size: 1.1rem;">⚠️ API Key do Gemini não configurada</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.8);">
+                        A IA está usando respostas de fallback porque a chave da API não foi configurada.<br>
+                        <strong>Obtenha sua chave gratuita em:</strong> 
+                        <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--secondary); text-decoration: underline;">
+                            aistudio.google.com/apikey
+                        </a>
+                    </p>
+                </div>
+                <button onclick="document.querySelector('[data-tab=settings]').click()" class="btn btn-warning">
+                    <i class="fas fa-cog"></i> Configurar Agora
+                </button>
+            </div>
         </div>
         <?php endif; ?>
         

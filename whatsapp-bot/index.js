@@ -352,11 +352,26 @@ async function processIAChat(remoteJid, text, senderNumber) {
     });
     
     if (response.data && response.data.success && response.data.response) {
-      log.success(`[IA] Resposta obtida (fonte: ${response.data.source || 'unknown'})`);
+      const source = response.data.source || 'unknown';
+      const error = response.data.error;
+      
+      if (source === 'fallback') {
+        if (response.data.needs_config) {
+          log.warn(`[IA] API Key não configurada - usando fallback`);
+        } else if (error) {
+          log.warn(`[IA] Erro na IA (${error}) - usando fallback`);
+        } else {
+          log.warn(`[IA] Usando resposta de fallback`);
+        }
+      } else {
+        log.success(`[IA] Resposta obtida (fonte: ${source})`);
+      }
+      
       return {
         success: true,
         response: response.data.response,
-        source: response.data.source
+        source: source,
+        error: error
       };
     }
     
@@ -364,6 +379,9 @@ async function processIAChat(remoteJid, text, senderNumber) {
     return null;
   } catch (error) {
     log.error(`[IA] Erro ao processar: ${error.message}`);
+    if (error.response) {
+      log.error(`[IA] Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}`);
+    }
     return null;
   }
 }

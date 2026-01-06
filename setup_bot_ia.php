@@ -87,7 +87,7 @@ try {
         ['ia_context_messages', '10', 'Quantidade de mensagens anteriores para contexto'],
         ['ia_use_knowledge', '1', 'Usar base de conhecimento personalizada'],
         ['ia_learn_from_corrections', '1', 'Aprender com correções do admin'],
-        ['ia_fallback_response', 'Desculpe, não consegui processar sua mensagem. Tente novamente ou fale com um atendente.', 'Resposta quando a IA falha']
+        ['ia_fallback_response', 'Desculpe, não consegui processar sua mensagem no momento. Por favor, tente novamente em alguns instantes ou entre em contato com um atendente.', 'Resposta quando a IA falha']
     ];
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO bot_ia_settings (setting_key, setting_value, description) VALUES (?, ?, ?)");
