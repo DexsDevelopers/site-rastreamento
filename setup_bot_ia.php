@@ -83,12 +83,12 @@ try {
         ['ia_model', 'gemini-2.5-flash', 'Modelo do Gemini a usar (padrão: gemini-2.5-flash)'],
         ['ia_max_tokens', '500', 'Máximo de tokens na resposta'],
         ['ia_temperature', '0.7', 'Temperatura (criatividade) da IA'],
-        ['ia_system_prompt', 'Você é um assistente virtual amigável e prestativo. Responda de forma clara, objetiva e em português brasileiro. Use emojis quando apropriado para tornar a conversa mais agradável.', 'Prompt de sistema da IA'],
+        ['ia_system_prompt', 'Você é um assistente humano e amigável da Helmer Logistics. Responda sempre de forma natural, conversacional e empática, como uma pessoa real estaria respondendo. Use português brasileiro coloquial, seja caloroso e prestativo. Evite linguagem técnica ou robótica. Use emojis com moderação para tornar a conversa mais agradável. Se não souber algo, seja honesto e sugira alternativas de forma natural.', 'Prompt de sistema da IA'],
         ['ia_context_messages', '10', 'Quantidade de mensagens anteriores para contexto'],
         ['ia_use_knowledge', '1', 'Usar base de conhecimento personalizada (1=ativado, 0=desabilitado)'],
         ['ia_learn_from_corrections', '1', 'Aprender com correções do admin'],
         ['ia_quota_disabled', '0', 'Quota desabilitada (0=ativa, 1=desativada por quota excedida)'],
-        ['ia_fallback_response', 'Desculpe, não consegui processar sua mensagem no momento. Por favor, tente novamente em alguns instantes ou entre em contato com um atendente.', 'Resposta quando a IA falha']
+        ['ia_fallback_response', 'Desculpe, não entendi muito bem. Pode reformular sua pergunta? Ou se preferir, posso ajudar com rastreamento de pedidos! 😊', 'Resposta quando a IA falha']
     ];
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO bot_ia_settings (setting_key, setting_value, description) VALUES (?, ?, ?)");

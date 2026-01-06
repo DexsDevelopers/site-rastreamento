@@ -298,8 +298,26 @@ switch ($action) {
         // 2. Usar Gemini
         $apiKey = getIASetting($pdo, 'gemini_api_key', '');
         if (empty($apiKey)) {
-            // Mensagem mais útil quando API key não está configurada
-            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, não consigo responder agora. A IA ainda não está configurada completamente.');
+            // Tentar base de conhecimento primeiro quando API key não está configurada
+            $fallbackKnowledge = searchKnowledge($pdo, $message);
+            if ($fallbackKnowledge) {
+                $response = $fallbackKnowledge['resposta'];
+                
+                if ($phone) {
+                    saveConversation($pdo, $phone, 'assistant', $response);
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'response' => $response,
+                    'source' => 'knowledge',
+                    'category' => $fallbackKnowledge['categoria']
+                ]);
+                exit;
+            }
+            
+            // Se não encontrou, resposta natural
+            $fallback = 'Desculpe, não consegui processar isso agora. Pode reformular sua pergunta ou perguntar sobre rastreamento de pedidos?';
             
             // Log para debug
             error_log("[BOT_IA] API Key não configurada. Mensagem: " . substr($message, 0, 50));
@@ -318,7 +336,25 @@ switch ($action) {
         $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
         if ($quotaDisabled) {
             // Se quota está desabilitada, usar apenas base de conhecimento
-            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, a IA está temporariamente indisponível. Tente novamente mais tarde.');
+            $fallbackKnowledge = searchKnowledge($pdo, $message);
+            if ($fallbackKnowledge) {
+                $response = $fallbackKnowledge['resposta'];
+                
+                if ($phone) {
+                    saveConversation($pdo, $phone, 'assistant', $response);
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'response' => $response,
+                    'source' => 'knowledge',
+                    'category' => $fallbackKnowledge['categoria']
+                ]);
+                exit;
+            }
+            
+            // Se não encontrou, resposta natural
+            $fallback = 'Desculpe, não tenho essa informação no momento. Posso ajudar com rastreamento de pedidos ou outras dúvidas!';
             error_log("[BOT_IA] Quota desabilitada - usando apenas base de conhecimento");
             
             echo json_encode([
@@ -398,9 +434,7 @@ switch ($action) {
         }
         
         if (!$result['success']) {
-            $fallback = getIASetting($pdo, 'ia_fallback_response', 'Desculpe, não consigo responder agora. Tente novamente em alguns instantes.');
-            
-            // Log detalhado do erro
+            // Log detalhado do erro (apenas para debug, não mostrar ao usuário)
             $errorMsg = $result['error'] ?? 'Erro desconhecido';
             $httpCode = $result['httpCode'] ?? null;
             $quotaExceeded = $result['quotaExceeded'] ?? false;
@@ -408,20 +442,41 @@ switch ($action) {
             error_log("[BOT_IA] Erro ao chamar Gemini: {$errorMsg}" . ($httpCode ? " (HTTP {$httpCode})" : ""));
             error_log("[BOT_IA] Mensagem original: " . substr($message, 0, 100));
             
-            // Se quota foi excedida, avisar mas não desativar automaticamente (pode ser temporário)
-            if ($quotaExceeded || ($httpCode === 429 && strpos(strtolower($errorMsg), 'quota') !== false)) {
-                // Não desativar automaticamente - pode ser temporário ou modelo específico
-                // Apenas logar o erro
-                error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA ou RATE LIMIT - Tentando outros modelos ou aguardando.");
+            // Tentar buscar na base de conhecimento como fallback antes de mostrar erro
+            $fallbackKnowledge = searchKnowledge($pdo, $message);
+            if ($fallbackKnowledge) {
+                $response = $fallbackKnowledge['resposta'];
                 
-                // Tentar outros modelos antes de desistir
-                $fallback = '⏳ Estou recebendo muitas requisições agora. Aguarde alguns instantes e tente novamente.';
-            } elseif ($httpCode === 429) {
-                // Rate limit temporário
-                $fallback = '⏳ Estou recebendo muitas mensagens agora. Aguarde alguns minutos e tente novamente.';
-            } elseif (strpos(strtolower($errorMsg), 'api key') !== false || strpos(strtolower($errorMsg), 'invalid') !== false) {
-                $fallback = '⚠️ A configuração da IA precisa ser atualizada. Entre em contato com o administrador.';
+                if ($phone) {
+                    saveConversation($pdo, $phone, 'assistant', $response);
+                }
+                
+                error_log("[BOT_IA] Usando base de conhecimento como fallback devido a erro da IA");
+                
+                echo json_encode([
+                    'success' => true,
+                    'response' => $response,
+                    'source' => 'knowledge_fallback',
+                    'category' => $fallbackKnowledge['categoria']
+                ]);
+                exit;
             }
+            
+            // Se não encontrou na base, usar resposta natural e humana
+            // Gerar resposta baseada no contexto da pergunta
+            $respostasNaturais = [
+                'Desculpe, não entendi muito bem. Pode reformular sua pergunta? 😊',
+                'Hmm, preciso pensar melhor sobre isso. Pode me explicar de outra forma?',
+                'Não tenho certeza sobre isso no momento. Tem alguma outra dúvida sobre rastreamento?',
+                'Deixa eu ver... Não consegui processar isso direito. Você pode perguntar de outra maneira?',
+                'Ops, não consegui entender completamente. Sobre o que você gostaria de saber?',
+                'Preciso de um pouco mais de contexto. Pode me dar mais detalhes?',
+                'Não tenho essa informação agora. Posso ajudar com rastreamento de pedidos ou outras dúvidas!',
+                'Desculpe, não consegui processar isso. Você tem alguma dúvida sobre seu pedido ou rastreamento?'
+            ];
+            
+            // Escolher resposta baseada no hash da mensagem para variar
+            $fallback = $respostasNaturais[abs(crc32($message)) % count($respostasNaturais)];
             
             // Salvar para feedback/aprendizado
             if ($phone) {
