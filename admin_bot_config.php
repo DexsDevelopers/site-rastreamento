@@ -826,6 +826,11 @@ foreach ($settings as $s) {
                 <span>Licenças de Grupos</span>
             </a>
             
+            <a href="admin_bot_ia.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
+                <i class="fas fa-brain w-5" style="color: #8B5CF6;"></i>
+                <span>IA do Bot</span>
+            </a>
+            
             <div class="px-4 mt-6 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Links</div>
             
             <a href="dashboard.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">

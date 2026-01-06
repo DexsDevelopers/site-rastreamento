@@ -94,10 +94,15 @@ const LICENSE_CHECK_ENABLED = String(process.env.LICENSE_CHECK_ENABLED || 'true'
 const LICENSE_CACHE_TTL = 300000; // 5 minutos de cache
 const groupLicenseCache = new Map(); // key: groupJid, value: { valid: boolean, expires: timestamp, data: object }
 
+// ===== SISTEMA DE IA PARA CHAT PRIVADO =====
+const IA_ENABLED = String(process.env.IA_ENABLED || 'true').toLowerCase() === 'true';
+const IA_ONLY_PRIVATE = String(process.env.IA_ONLY_PRIVATE || 'true').toLowerCase() === 'true'; // Só responde no privado
+
 console.log('📡 APIs configuradas:');
 console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0,4) + '***)');
 console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0,4) + '***)');
 console.log('   Verificação de licença:', LICENSE_CHECK_ENABLED ? 'ATIVADA' : 'DESATIVADA');
+console.log('   IA Chat:', IA_ENABLED ? 'ATIVADA' : 'DESATIVADA', IA_ONLY_PRIVATE ? '(só privado)' : '(todos)');
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
@@ -315,6 +320,51 @@ async function getLicenseInfo() {
       success: true, 
       message: '🔑 *SISTEMA DE LICENÇAS*\n\nPara usar o bot neste grupo, é necessário uma licença.\n\nUse: `$licenca SUA-CHAVE` para ativar.' 
     };
+  }
+}
+
+// ===== SISTEMA DE IA - CHAT INTELIGENTE =====
+async function processIAChat(remoteJid, text, senderNumber) {
+  if (!IA_ENABLED) {
+    return null;
+  }
+  
+  const isGroup = remoteJid.includes('@g.us');
+  
+  // Se configurado para só privado e for grupo, ignorar
+  if (IA_ONLY_PRIVATE && isGroup) {
+    return null;
+  }
+  
+  try {
+    log.info(`[IA] Processando mensagem de ${senderNumber}: "${text.substring(0, 50)}..."`);
+    
+    const response = await axios.post(`${RASTREAMENTO_API_URL}/api_bot_ia.php`, {
+      action: 'chat',
+      message: text,
+      phone: senderNumber
+    }, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    
+    if (response.data && response.data.success && response.data.response) {
+      log.success(`[IA] Resposta obtida (fonte: ${response.data.source || 'unknown'})`);
+      return {
+        success: true,
+        response: response.data.response,
+        source: response.data.source
+      };
+    }
+    
+    log.warn(`[IA] Resposta inválida: ${JSON.stringify(response.data)}`);
+    return null;
+  } catch (error) {
+    log.error(`[IA] Erro ao processar: ${error.message}`);
+    return null;
   }
 }
 
@@ -2720,6 +2770,24 @@ async function start() {
           const automationProcessed = await processAutomations(remoteJid, text, msg);
           if (automationProcessed) {
             return; // Automação respondeu, não continuar
+          }
+          
+          // ===== PROCESSAR IA (Chat Inteligente) =====
+          // Se nenhuma automação respondeu, tentar IA (principalmente para chats privados)
+          const isPrivateChat = !remoteJid.includes('@g.us');
+          if (IA_ENABLED && (isPrivateChat || !IA_ONLY_PRIVATE)) {
+            // Não processar comandos especiais ou mensagens muito curtas
+            const lowerText = text.toLowerCase().trim();
+            if (!lowerText.startsWith('/') && !lowerText.startsWith('$') && !lowerText.startsWith('!') && text.length >= 2) {
+              const senderNumber = msg.key.participant ? msg.key.participant.split('@')[0] : remoteJid.split('@')[0];
+              const iaResult = await processIAChat(remoteJid, text, senderNumber);
+              
+              if (iaResult && iaResult.success && iaResult.response) {
+                await sock.sendMessage(remoteJid, { text: iaResult.response });
+                log.success(`[IA] Respondeu para ${senderNumber}`);
+                return; // IA respondeu
+              }
+            }
           }
         }
 
