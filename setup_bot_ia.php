@@ -80,7 +80,7 @@ try {
     $settings = [
         ['gemini_api_key', '', 'Chave da API do Google Gemini'],
         ['ia_enabled', '1', 'Ativar/desativar IA no chat privado'],
-        ['ia_model', 'gemini-2.0-flash', 'Modelo do Gemini a usar'],
+        ['ia_model', 'gemini-2.5-flash', 'Modelo do Gemini a usar (padrão: gemini-2.5-flash)'],
         ['ia_max_tokens', '500', 'Máximo de tokens na resposta'],
         ['ia_temperature', '0.7', 'Temperatura (criatividade) da IA'],
         ['ia_system_prompt', 'Você é um assistente virtual amigável e prestativo. Responda de forma clara, objetiva e em português brasileiro. Use emojis quando apropriado para tornar a conversa mais agradável.', 'Prompt de sistema da IA'],

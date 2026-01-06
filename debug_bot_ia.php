@@ -135,10 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 
                 $models = [
-                    'gemini-2.0-flash',
+                    'gemini-2.5-flash',
                     'gemini-1.5-flash',
-                    'gemini-1.5-pro',
-                    'gemini-1.5-flash-001'
+                    'gemini-1.5-flash-001',
+                    'gemini-1.5-pro'
                 ];
                 
                 $results = [];
@@ -222,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $isValidFormat = (strlen($apiKey) > 20 && preg_match('/^[A-Za-z0-9_-]+$/', $apiKey));
                 
                 // Testar com chamada simples
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
+                $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
                 $data = ['contents' => [['parts' => [['text' => 'test']]]]];
                 
                 $ch = curl_init($url);
@@ -588,8 +588,9 @@ $iaEnabled = getIASetting($pdo, 'ia_enabled', '1') === '1';
             <div class="form-group">
                 <label>Modelo</label>
                 <select id="testModel">
-                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recomendado)</option>
                     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-1.5-flash-001">Gemini 1.5 Flash 001</option>
                     <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                 </select>
             </div>

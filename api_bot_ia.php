@@ -278,7 +278,7 @@ switch ($action) {
             exit;
         }
         
-        $model = getIASetting($pdo, 'ia_model', 'gemini-2.0-flash');
+        $model = getIASetting($pdo, 'ia_model', 'gemini-2.5-flash');
         $systemPrompt = getIASetting($pdo, 'ia_system_prompt', 'Você é um assistente virtual amigável.');
         $temperature = getIASetting($pdo, 'ia_temperature', '0.7');
         $maxTokens = getIASetting($pdo, 'ia_max_tokens', '500');
@@ -307,8 +307,18 @@ switch ($action) {
             $context = [['role' => 'user', 'message' => $message]];
         }
         
-        // Tentar modelos em cascata
-        $models = [$model, 'gemini-1.5-flash', 'gemini-1.5-pro'];
+        // Tentar modelos em cascata (mesma ordem do financeiro que está funcionando)
+        $models = [
+            'gemini-2.5-flash',      // Primary - modelo mais recente
+            'gemini-1.5-flash',      // Standard fallback
+            'gemini-1.5-flash-001',  // Legacy stable
+            'gemini-1.5-pro'         // High capacity fallback
+        ];
+        
+        // Se o modelo configurado não estiver na lista, adicionar no início
+        if (!in_array($model, $models)) {
+            array_unshift($models, $model);
+        }
         $result = null;
         
         foreach ($models as $tryModel) {
@@ -333,13 +343,14 @@ switch ($action) {
             error_log("[BOT_IA] Erro ao chamar Gemini: {$errorMsg}" . ($httpCode ? " (HTTP {$httpCode})" : ""));
             error_log("[BOT_IA] Mensagem original: " . substr($message, 0, 100));
             
-            // Se quota foi excedida, desativar automaticamente e usar apenas base de conhecimento
+            // Se quota foi excedida, avisar mas não desativar automaticamente (pode ser temporário)
             if ($quotaExceeded || ($httpCode === 429 && strpos(strtolower($errorMsg), 'quota') !== false)) {
-                // Marcar quota como desabilitada
-                setIASetting($pdo, 'ia_quota_disabled', '1');
-                error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA - Desativando IA automaticamente. Use apenas base de conhecimento.");
+                // Não desativar automaticamente - pode ser temporário ou modelo específico
+                // Apenas logar o erro
+                error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA ou RATE LIMIT - Tentando outros modelos ou aguardando.");
                 
-                $fallback = '⚠️ A cota gratuita da IA foi excedida. Estou usando apenas respostas da base de conhecimento. Entre em contato com o administrador para mais informações.';
+                // Tentar outros modelos antes de desistir
+                $fallback = '⏳ Estou recebendo muitas requisições agora. Aguarde alguns instantes e tente novamente.';
             } elseif ($httpCode === 429) {
                 // Rate limit temporário
                 $fallback = '⏳ Estou recebendo muitas mensagens agora. Aguarde alguns minutos e tente novamente.';
