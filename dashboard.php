@@ -323,16 +323,12 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                 </div>
                 <h2 class="panel-title">Painel de Rastreamento</h2>
                 <p class="panel-description">
-                    Gerencie todos os rastreamentos, pedidos, indicações e notificações de clientes
+                    Gerencie rastreamentos, pedidos, indicações e mídias dos clientes
                 </p>
                 <div class="panel-features">
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Gerenciar rastreamentos</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Contatos WhatsApp</span>
+                        <span>Criar e gerenciar rastreamentos</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
@@ -340,7 +336,11 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Mídias e fotos</span>
+                        <span>Upload de fotos de pedidos</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Relatórios e estatísticas</span>
                     </div>
                 </div>
                 <button class="btn-access">
@@ -355,12 +355,12 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                 </div>
                 <h2 class="panel-title">Painel do Bot WhatsApp</h2>
                 <p class="panel-description">
-                    Configure o bot WhatsApp, automações, mensagens e monitore seu status
+                    Configure bot WhatsApp, automações, contatos e envio de notificações
                 </p>
                 <div class="panel-features">
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Configurações da API</span>
+                        <span>Gerenciar contatos WhatsApp</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
@@ -368,11 +368,11 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Templates de mensagens</span>
+                        <span>Envio de notificações</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Status e monitoramento</span>
+                        <span>Templates e configurações</span>
                     </div>
                 </div>
                 <button class="btn-access">
