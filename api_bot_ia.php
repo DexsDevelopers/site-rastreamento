@@ -98,10 +98,12 @@ function searchKnowledge($pdo, $query) {
 }
 
 function getConversationContext($pdo, $phone, $limit = 10) {
+    // Pegar apenas mensagens recentes (últimas 30 minutos) para evitar contexto antigo
     $stmt = $pdo->prepare("
-        SELECT role, message 
+        SELECT role, message, created_at
         FROM bot_ia_conversations 
         WHERE phone_number = ? 
+        AND created_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
         ORDER BY created_at DESC 
         LIMIT ?
     ");
@@ -216,6 +218,9 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'IA desabilitada']);
             exit;
         }
+        
+        // Log da mensagem recebida
+        error_log("[BOT_IA] Mensagem recebida: " . substr($message, 0, 100) . " | Phone: {$phone} | Timestamp: " . date('Y-m-d H:i:s'));
         
         // Salvar mensagem do usuário
         if ($phone) {

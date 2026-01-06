@@ -337,7 +337,8 @@ async function processIAChat(remoteJid, text, senderNumber) {
   }
   
   try {
-    log.info(`[IA] Processando mensagem de ${senderNumber}: "${text.substring(0, 50)}..."`);
+    const messageTimestamp = Date.now();
+    log.info(`[IA] Processando mensagem de ${senderNumber}: "${text.substring(0, 50)}..." | Timestamp: ${new Date(messageTimestamp).toISOString()}`);
     
     const response = await axios.post(`${RASTREAMENTO_API_URL}/api_bot_ia.php`, {
       action: 'chat',
@@ -2625,6 +2626,17 @@ async function start() {
       try {
         const msg = m.messages?.[0];
         if (!msg?.message) return;
+        
+        // Verificar se é mensagem antiga (mais de 2 minutos) - ignorar para evitar processar mensagens antigas
+        const messageTimestamp = msg.messageTimestamp ? msg.messageTimestamp * 1000 : Date.now();
+        const now = Date.now();
+        const messageAge = now - messageTimestamp;
+        const MAX_MESSAGE_AGE = 120000; // 2 minutos em milissegundos
+        
+        if (messageAge > MAX_MESSAGE_AGE && !msg.key.fromMe) {
+          log.info(`[MESSAGE] Ignorando mensagem antiga (${Math.round(messageAge / 1000)}s atrás) de ${msg.key.remoteJid?.split('@')[0]}`);
+          return; // Ignorar mensagens antigas
+        }
         
         const remoteJid = msg.key.remoteJid;
         // Extrair texto de várias formas (mensagem normal, respondida, etc)
