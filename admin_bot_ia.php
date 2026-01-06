@@ -115,23 +115,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 
             case 'approve_feedback':
                 $id = (int)($_POST['id'] ?? 0);
-                $correcao = $_POST['correcao'] ?? '';
+                $correcao = trim($_POST['correcao'] ?? '');
                 $salvarConhecimento = isset($_POST['salvar_conhecimento']);
                 
-                if ($id > 0) {
+                if ($id > 0 && !empty($correcao)) {
+                    // Atualizar feedback
                     executeQuery($pdo, "UPDATE bot_ia_feedback SET correcao = ?, aprovado = 1, processado = 1 WHERE id = ?", [$correcao, $id]);
                     
-                    if ($salvarConhecimento && !empty($correcao)) {
+                    // Sempre salvar na base de conhecimento se marcado (mesmo que desabilitada, pode ser reativada depois)
+                    if ($salvarConhecimento) {
                         $feedback = fetchOne($pdo, "SELECT pergunta_original FROM bot_ia_feedback WHERE id = ?", [$id]);
-                        if ($feedback) {
-                            executeQuery($pdo,
-                                "INSERT INTO bot_ia_knowledge (pergunta, resposta, categoria, prioridade, criado_por) VALUES (?, ?, 'aprendizado', 60, 'feedback')",
-                                [$feedback['pergunta_original'], $correcao]
+                        if ($feedback && !empty($feedback['pergunta_original'])) {
+                            // Extrair palavras-chave da pergunta automaticamente
+                            $palavrasChave = [];
+                            $perguntaLower = mb_strtolower($feedback['pergunta_original']);
+                            $palavras = explode(' ', $perguntaLower);
+                            foreach ($palavras as $palavra) {
+                                $palavra = trim($palavra);
+                                // Ignorar palavras muito curtas ou comuns
+                                if (strlen($palavra) >= 3 && !in_array($palavra, ['que', 'qual', 'como', 'quando', 'onde', 'para', 'com', 'por', 'uma', 'uns', 'uma', 'uns', 'o', 'a', 'os', 'as', 'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na', 'nos', 'nas'])) {
+                                    $palavrasChave[] = $palavra;
+                                }
+                            }
+                            $palavrasChaveStr = implode(',', array_slice($palavrasChave, 0, 10)); // Máximo 10 palavras
+                            
+                            // Verificar se já existe conhecimento similar
+                            $existing = fetchOne($pdo, 
+                                "SELECT id FROM bot_ia_knowledge WHERE LOWER(pergunta) LIKE ? LIMIT 1",
+                                ['%' . mb_strtolower($feedback['pergunta_original']) . '%']
                             );
+                            
+                            if ($existing) {
+                                // Atualizar existente
+                                executeQuery($pdo,
+                                    "UPDATE bot_ia_knowledge SET resposta = ?, palavras_chave = ?, prioridade = 70, atualizado_em = NOW() WHERE id = ?",
+                                    [$correcao, $palavrasChaveStr, $existing['id']]
+                                );
+                                $response = ['success' => true, 'message' => 'Correção salva e conhecimento atualizado!'];
+                            } else {
+                                // Inserir novo
+                                executeQuery($pdo,
+                                    "INSERT INTO bot_ia_knowledge (pergunta, resposta, categoria, palavras_chave, prioridade, criado_por, ativo) VALUES (?, ?, 'aprendizado', ?, 70, 'feedback', 1)",
+                                    [$feedback['pergunta_original'], $correcao, $palavrasChaveStr]
+                                );
+                                $response = ['success' => true, 'message' => 'Correção salva e adicionada à base de conhecimento!'];
+                            }
+                        } else {
+                            $response = ['success' => true, 'message' => 'Correção salva!'];
                         }
+                    } else {
+                        $response = ['success' => true, 'message' => 'Correção salva! (não adicionada à base de conhecimento)'];
                     }
-                    
-                    $response = ['success' => true, 'message' => 'Feedback processado!'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Correção não pode estar vazia'];
                 }
                 break;
                 
@@ -542,6 +578,40 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
         .toast-success { background: var(--success); }
         .toast-error { background: var(--danger); }
         
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -712,7 +782,7 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
             <div class="card">
                 <h2 class="card-title"><i class="fas fa-comments"></i> Feedbacks e Correções</h2>
                 <p style="color:rgba(255,255,255,0.7);margin-bottom:1rem;">
-                    Aqui você vê as perguntas que a IA recebeu e pode corrigir as respostas. Correções podem ser salvas na base de conhecimento para a IA aprender.
+                    Aqui você vê as perguntas que a IA recebeu e pode <strong>editar e corrigir as respostas</strong>. As correções são salvas automaticamente para a IA aprender.
                 </p>
                 <div style="margin-bottom:1rem;">
                     <button class="btn btn-sm" onclick="loadFeedback('pending')">Pendentes</button>
@@ -726,7 +796,7 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
                                 <th>Pergunta</th>
                                 <th>Resposta IA</th>
                                 <th>Correção</th>
-                                <th>Status</th>
+                                <th>Data</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -737,6 +807,39 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
                 </div>
             </div>
         </section>
+        
+        <!-- Modal de Edição de Feedback -->
+        <div class="modal" id="feedbackModal">
+            <div class="modal-content" style="max-width:700px;">
+                <h3 class="modal-title"><i class="fas fa-edit"></i> Editar Resposta da IA</h3>
+                <form id="feedbackEditForm">
+                    <input type="hidden" id="feedback_edit_id">
+                    <div class="form-group">
+                        <label>Pergunta do Usuário</label>
+                        <input type="text" id="feedback_edit_pergunta" readonly style="background:rgba(0,0,0,0.3);">
+                    </div>
+                    <div class="form-group">
+                        <label>Resposta Atual da IA</label>
+                        <textarea id="feedback_edit_resposta_ia" readonly style="background:rgba(0,0,0,0.3);min-height:80px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Resposta Corrigida *</label>
+                        <textarea id="feedback_edit_correcao" required style="min-height:120px;" placeholder="Digite a resposta correta que a IA deveria ter dado..."></textarea>
+                        <small style="color:rgba(255,255,255,0.6);">Esta resposta será usada para a IA aprender.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="feedback_edit_salvar_conhecimento" checked>
+                            Salvar na base de conhecimento para a IA usar no futuro
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Correção</button>
+                        <button type="button" class="btn btn-danger" onclick="closeFeedbackModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         
         <!-- Seção: Configurações -->
         <section id="section-settings" class="section">
@@ -990,42 +1093,111 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
             const tbody = document.getElementById('feedbackTable');
             if (!data.success || data.data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.5)">Nenhum feedback encontrado</td></tr>';
+                feedbacksCache = [];
                 return;
             }
             
-            tbody.innerHTML = data.data.map(f => `
+            // Salvar no cache
+            feedbacksCache = data.data;
+            
+            tbody.innerHTML = data.data.map(f => {
+                const perguntaFull = escapeHtml(f.pergunta_original || '');
+                const respostaFull = escapeHtml(f.resposta_ia || '');
+                const correcaoFull = escapeHtml(f.correcao || '');
+                const dataFormatada = f.criado_em ? new Date(f.criado_em).toLocaleString('pt-BR') : '-';
+                
+                return `
                 <tr>
-                    <td>${escapeHtml(f.pergunta_original?.substring(0, 40) || '')}...</td>
-                    <td>${escapeHtml(f.resposta_ia?.substring(0, 40) || '-')}...</td>
-                    <td>${f.correcao ? escapeHtml(f.correcao.substring(0, 40)) + '...' : '-'}</td>
-                    <td>${f.aprovado == 1 ? '<span style="color:#22c55e">✓ Aprovado</span>' : '<span style="color:#f59e0b">Pendente</span>'}</td>
+                    <td style="max-width:200px;word-wrap:break-word;">${perguntaFull.length > 50 ? perguntaFull.substring(0, 50) + '...' : perguntaFull}</td>
+                    <td style="max-width:200px;word-wrap:break-word;">${respostaFull.length > 50 ? respostaFull.substring(0, 50) + '...' : (respostaFull || '-')}</td>
+                    <td style="max-width:200px;word-wrap:break-word;">${correcaoFull.length > 50 ? correcaoFull.substring(0, 50) + '...' : (correcaoFull || '<span style="color:rgba(255,255,255,0.4)">Sem correção</span>')}</td>
+                    <td style="font-size:0.85rem;color:rgba(255,255,255,0.6);">${dataFormatada}</td>
                     <td>
-                        ${f.aprovado == 0 ? `<button class="btn btn-sm btn-success" onclick="approveFeedback(${f.id}, '${escapeHtml(f.pergunta_original || '')}')"><i class="fas fa-check"></i></button>` : ''}
-                        <button class="btn btn-sm btn-danger" onclick="deleteFeedback(${f.id})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-primary" onclick="editFeedbackById(${f.id})" title="Editar correção">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${f.aprovado == 0 ? `<button class="btn btn-sm btn-success" onclick="approveFeedback(${f.id})" title="Aprovar"><i class="fas fa-check"></i></button>` : ''}
+                        <button class="btn btn-sm btn-danger" onclick="deleteFeedback(${f.id})" title="Excluir"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         }
         
-        function approveFeedback(id, pergunta) {
-            const correcao = prompt('Digite a resposta correta para:\n\n"' + pergunta + '"');
-            if (correcao === null) return;
-            
-            const salvar = confirm('Salvar na base de conhecimento para a IA aprender?');
-            
+        // Armazenar feedbacks em memória para acesso rápido
+        let feedbacksCache = [];
+        
+        async function editFeedbackById(id) {
+            // Buscar feedback específico
+            const feedback = feedbacksCache.find(f => f.id == id);
+            if (feedback) {
+                editFeedback(feedback.id, feedback.pergunta_original || '', feedback.resposta_ia || '', feedback.correcao || '');
+            } else {
+                // Buscar do servidor
+                const fd = new FormData();
+                fd.append('action', 'get_feedback');
+                fd.append('status', 'all');
+                const res = await fetch('', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    feedbacksCache = data.data;
+                    const f = data.data.find(x => x.id == id);
+                    if (f) {
+                        editFeedback(f.id, f.pergunta_original || '', f.resposta_ia || '', f.correcao || '');
+                    }
+                }
+            }
+        }
+        
+        function editFeedback(id, pergunta, respostaIA, correcao) {
+            document.getElementById('feedback_edit_id').value = id;
+            document.getElementById('feedback_edit_pergunta').value = pergunta;
+            document.getElementById('feedback_edit_resposta_ia').value = respostaIA;
+            document.getElementById('feedback_edit_correcao').value = correcao || '';
+            document.getElementById('feedback_edit_salvar_conhecimento').checked = true;
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+        
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('active');
+            document.getElementById('feedbackEditForm').reset();
+        }
+        
+        document.getElementById('feedbackEditForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             const fd = new FormData();
             fd.append('action', 'approve_feedback');
-            fd.append('id', id);
-            fd.append('correcao', correcao);
-            if (salvar) fd.append('salvar_conhecimento', '1');
+            fd.append('id', document.getElementById('feedback_edit_id').value);
+            fd.append('correcao', document.getElementById('feedback_edit_correcao').value);
+            if (document.getElementById('feedback_edit_salvar_conhecimento').checked) {
+                fd.append('salvar_conhecimento', '1');
+            }
             
-            fetch('', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    showToast(data.message, data.success ? 'success' : 'error');
-                    loadFeedback('pending');
-                    loadStats();
-                });
+            const res = await fetch('', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) {
+                closeFeedbackModal();
+                loadFeedback();
+                loadStats();
+            }
+        });
+        
+        // Fechar modal ao clicar fora
+        document.getElementById('feedbackModal').addEventListener('click', function(e) {
+            if (e.target === this) closeFeedbackModal();
+        });
+        
+        function approveFeedback(id) {
+            // Usar cache se disponível
+            const feedback = feedbacksCache.find(f => f.id == id);
+            if (feedback) {
+                editFeedback(feedback.id, feedback.pergunta_original || '', feedback.resposta_ia || '', feedback.correcao || '');
+            } else {
+                // Buscar do servidor se não estiver no cache
+                editFeedbackById(id);
+            }
         }
         
         async function deleteFeedback(id) {
