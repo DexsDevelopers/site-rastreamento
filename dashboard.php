@@ -360,7 +360,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                 <div class="panel-features">
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Gerenciar contatos WhatsApp</span>
+                        <span>Licenças de grupos</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>

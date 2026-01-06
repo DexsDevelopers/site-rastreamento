@@ -89,9 +89,15 @@ const FINANCEIRO_TOKEN = process.env.FINANCEIRO_TOKEN || 'site-financeiro-token-
 const ADMIN_API_URL = RASTREAMENTO_API_URL; // Compatibilidade
 const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
 
+// ===== SISTEMA DE LICENÇAS DE GRUPOS =====
+const LICENSE_CHECK_ENABLED = String(process.env.LICENSE_CHECK_ENABLED || 'true').toLowerCase() === 'true';
+const LICENSE_CACHE_TTL = 300000; // 5 minutos de cache
+const groupLicenseCache = new Map(); // key: groupJid, value: { valid: boolean, expires: timestamp, data: object }
+
 console.log('📡 APIs configuradas:');
 console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0,4) + '***)');
 console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0,4) + '***)');
+console.log('   Verificação de licença:', LICENSE_CHECK_ENABLED ? 'ATIVADA' : 'DESATIVADA');
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
@@ -204,6 +210,112 @@ function normalizeJidHelper(jid) {
   if (!user || !domain) return jid;
   const userWithoutDevice = user.split(':')[0];
   return `${userWithoutDevice}@${domain}`;
+}
+
+// ===== SISTEMA DE VERIFICAÇÃO DE LICENÇA DE GRUPOS =====
+async function checkGroupLicense(groupJid) {
+  if (!LICENSE_CHECK_ENABLED) {
+    return { valid: true, unlimited: true };
+  }
+  
+  // Verificar cache
+  const cached = groupLicenseCache.get(groupJid);
+  if (cached && Date.now() < cached.expires) {
+    return cached.data;
+  }
+  
+  try {
+    const response = await axios.post(`${RASTREAMENTO_API_URL}/api_check_license.php`, {
+      action: 'check',
+      group_jid: groupJid
+    }, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 5000
+    });
+    
+    const result = response.data;
+    
+    // Cachear resultado
+    groupLicenseCache.set(groupJid, {
+      expires: Date.now() + LICENSE_CACHE_TTL,
+      data: result
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('[LICENSE] Erro ao verificar licença:', error.message);
+    // Em caso de erro de conexão, permitir uso (fail-open)
+    return { valid: true, error: true, message: 'Erro ao verificar licença' };
+  }
+}
+
+async function activateGroupLicense(groupJid, groupName, licenseKey) {
+  try {
+    const response = await axios.post(`${RASTREAMENTO_API_URL}/api_check_license.php`, {
+      action: 'activate',
+      group_jid: groupJid,
+      group_name: groupName,
+      license_key: licenseKey
+    }, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    
+    // Limpar cache do grupo para forçar nova verificação
+    groupLicenseCache.delete(groupJid);
+    
+    return response.data;
+  } catch (error) {
+    console.error('[LICENSE] Erro ao ativar licença:', error.message);
+    return { success: false, message: 'Erro ao conectar com servidor de licenças' };
+  }
+}
+
+async function getLicenseStatus(groupJid) {
+  try {
+    const response = await axios.post(`${RASTREAMENTO_API_URL}/api_check_license.php`, {
+      action: 'status',
+      group_jid: groupJid
+    }, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 5000
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('[LICENSE] Erro ao obter status:', error.message);
+    return { success: false, message: 'Erro ao conectar com servidor' };
+  }
+}
+
+async function getLicenseInfo() {
+  try {
+    const response = await axios.post(`${RASTREAMENTO_API_URL}/api_check_license.php`, {
+      action: 'info'
+    }, {
+      headers: {
+        'x-api-token': RASTREAMENTO_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 5000
+    });
+    
+    return response.data;
+  } catch (error) {
+    return { 
+      success: true, 
+      message: '🔑 *SISTEMA DE LICENÇAS*\n\nPara usar o bot neste grupo, é necessário uma licença.\n\nUse: `$licenca SUA-CHAVE` para ativar.' 
+    };
+  }
 }
 
 // ===== LOGS COLORIDOS =====
@@ -964,6 +1076,16 @@ async function processAutomations(remoteJid, text, msg) {
     
     const isGroup = remoteJid.includes('@g.us');
     const grupoId = isGroup ? remoteJid : null;
+    
+    // Verificar licença do grupo (se for grupo)
+    if (isGroup && LICENSE_CHECK_ENABLED) {
+      const license = await checkGroupLicense(remoteJid);
+      if (!license.valid && !license.unlimited && !license.error) {
+        log.warn(`[LICENSE] Grupo sem licença válida: ${remoteJid}`);
+        // Não responder automações em grupos sem licença
+        return false;
+      }
+    }
     let grupoNome = null;
     
     // Tentar obter nome do grupo
@@ -1316,6 +1438,46 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
       
+      case '$licenca':
+      case '$license':
+      case '$key': {
+        // Sistema de licenças de grupos
+        const args = text.split(' ').slice(1);
+        const subCommand = args[0]?.toLowerCase() || 'status';
+        
+        if (subCommand === 'info' || subCommand === 'ajuda' || subCommand === 'help') {
+          const info = await getLicenseInfo();
+          return { success: true, message: info.message };
+        }
+        
+        if (subCommand === 'status') {
+          const status = await getLicenseStatus(remoteJid);
+          return { success: true, message: status.message };
+        }
+        
+        // Tentar ativar licença com a chave fornecida
+        const licenseKey = subCommand.toUpperCase();
+        if (licenseKey && licenseKey.length >= 10) {
+          let groupName = '';
+          try {
+            const metadata = await sock.groupMetadata(remoteJid);
+            groupName = metadata?.subject || '';
+          } catch (e) {}
+          
+          const result = await activateGroupLicense(remoteJid, groupName, licenseKey);
+          return { success: result.success, message: result.message };
+        }
+        
+        return { 
+          success: false, 
+          message: '🔑 *COMANDOS DE LICENÇA*\n\n' +
+                   '`$licenca` - Ver status atual\n' +
+                   '`$licenca SUA-CHAVE` - Ativar licença\n' +
+                   '`$licenca info` - Mais informações\n\n' +
+                   '_Adquira sua licença com o administrador._'
+        };
+      }
+      
       case '$todos':
       case '$all':
       case '$marcar': {
@@ -1539,7 +1701,7 @@ async function processAdminCommand(from, text, msg = null) {
     const isRastreamento = prefix === '/';
     
     // Verificar se é comando de admin de grupo primeiro (prefixo $)
-    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes', '$menu', '$help', '$ajuda'];
+    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes', '$menu', '$help', '$ajuda', '$licenca', '$license', '$key'];
     const commandLower = text.split(' ')[0].toLowerCase();
     
     if (msg && groupAdminCommands.includes(commandLower)) {

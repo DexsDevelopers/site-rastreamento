@@ -821,11 +821,21 @@ foreach ($settings as $s) {
                 <span>Logs</span>
             </a>
             
+            <a href="admin_bot_licenses.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
+                <i class="fas fa-key w-5" style="color: #FF3333;"></i>
+                <span>Licenças de Grupos</span>
+            </a>
+            
             <div class="px-4 mt-6 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Links</div>
+            
+            <a href="dashboard.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
+                <i class="fas fa-home w-5"></i>
+                <span>Dashboard</span>
+            </a>
             
             <a href="admin.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-arrow-left w-5"></i>
-                <span>Voltar ao Painel</span>
+                <span>Painel Rastreamento</span>
             </a>
         </nav>
         
