@@ -48,31 +48,66 @@ function setIASetting($pdo, $key, $value) {
 }
 
 function searchKnowledge($pdo, $query) {
-    // Primeiro: busca exata por palavras-chave
-    $words = explode(' ', mb_strtolower(trim($query)));
+    $queryLower = mb_strtolower(trim($query));
+    $queryWords = explode(' ', $queryLower);
+    $queryWords = array_filter($queryWords, function($w) { return strlen($w) >= 2; });
     
-    foreach ($words as $word) {
-        if (strlen($word) < 2) continue;
+    // 1. Busca exata na pergunta (mais precisa)
+    $stmt = $pdo->prepare("
+        SELECT pergunta, resposta, categoria, prioridade 
+        FROM bot_ia_knowledge 
+        WHERE ativo = 1 
+        AND LOWER(pergunta) LIKE ?
+        ORDER BY prioridade DESC, uso_count DESC
+        LIMIT 1
+    ");
+    $stmt->execute(["%{$queryLower}%"]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($result) {
+        // Verificar similaridade - se a pergunta do conhecimento contém palavras-chave da query
+        $knowledgeWords = explode(' ', mb_strtolower($result['pergunta']));
+        $matchCount = 0;
+        foreach ($queryWords as $qw) {
+            foreach ($knowledgeWords as $kw) {
+                if (strpos($kw, $qw) !== false || strpos($qw, $kw) !== false) {
+                    $matchCount++;
+                    break;
+                }
+            }
+        }
+        $similarity = count($queryWords) > 0 ? ($matchCount / count($queryWords)) : 0;
         
-        $stmt = $pdo->prepare("
-            SELECT pergunta, resposta, categoria, prioridade 
-            FROM bot_ia_knowledge 
-            WHERE ativo = 1 
-            AND (LOWER(palavras_chave) LIKE ? OR LOWER(pergunta) LIKE ?)
-            ORDER BY prioridade DESC, uso_count DESC
-            LIMIT 1
-        ");
-        $stmt->execute(["%{$word}%", "%{$word}%"]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($result && $result['prioridade'] >= 80) {
-            // Incrementar contador de uso
+        // Só retornar se similaridade for alta (>= 60%) ou prioridade muito alta (>= 90)
+        if ($similarity >= 0.6 || $result['prioridade'] >= 90) {
             $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
             return $result;
         }
     }
     
-    // Segundo: busca FULLTEXT
+    // 2. Busca por palavras-chave (mais específica)
+    foreach ($queryWords as $word) {
+        if (strlen($word) < 3) continue; // Ignorar palavras muito curtas
+        
+        $stmt = $pdo->prepare("
+            SELECT pergunta, resposta, categoria, prioridade 
+            FROM bot_ia_knowledge 
+            WHERE ativo = 1 
+            AND LOWER(palavras_chave) LIKE ?
+            AND prioridade >= 85
+            ORDER BY prioridade DESC, uso_count DESC
+            LIMIT 1
+        ");
+        $stmt->execute(["%{$word}%"]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
+            return $result;
+        }
+    }
+    
+    // 3. Busca FULLTEXT (apenas se score muito alto)
     try {
         $stmt = $pdo->prepare("
             SELECT pergunta, resposta, categoria, prioridade,
@@ -83,10 +118,11 @@ function searchKnowledge($pdo, $query) {
             ORDER BY score DESC, prioridade DESC
             LIMIT 1
         ");
-        $stmt->execute([$query, $query]);
+        $stmt->execute([$queryLower, $queryLower]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($result && $result['score'] > 0.5) {
+        // Score mais alto necessário (0.7 ao invés de 0.5)
+        if ($result && $result['score'] > 0.7 && $result['prioridade'] >= 80) {
             $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
             return $result;
         }
@@ -94,6 +130,7 @@ function searchKnowledge($pdo, $query) {
         // FULLTEXT pode falhar, ignorar
     }
     
+    // Se não encontrou correspondência forte, retornar null para usar IA
     return null;
 }
 
@@ -227,8 +264,12 @@ switch ($action) {
             saveConversation($pdo, $phone, 'user', $message);
         }
         
-        // 1. Tentar base de conhecimento primeiro
-        if (getIASetting($pdo, 'ia_use_knowledge', '1') === '1') {
+        // Verificar se é pergunta sobre data/hora (sempre usar IA para essas)
+        $messageLower = mb_strtolower(trim($message));
+        $isDateTimeQuestion = preg_match('/\b(hoje|agora|que\s+dia|que\s+hora|data|horário|dia\s+é|hora\s+é|quando)\b/i', $messageLower);
+        
+        // 1. Tentar base de conhecimento primeiro (exceto perguntas sobre data/hora)
+        if (getIASetting($pdo, 'ia_use_knowledge', '1') === '1' && !$isDateTimeQuestion) {
             $knowledge = searchKnowledge($pdo, $message);
             if ($knowledge) {
                 $response = $knowledge['resposta'];
@@ -289,6 +330,27 @@ switch ($action) {
         $maxTokens = getIASetting($pdo, 'ia_max_tokens', '500');
         $contextLimit = (int)getIASetting($pdo, 'ia_context_messages', '10');
         
+        // Adicionar data/hora atual ao prompt
+        date_default_timezone_set('America/Sao_Paulo');
+        $currentDate = date('d/m/Y');
+        $currentTime = date('H:i');
+        $currentDay = date('l'); // Nome do dia em inglês
+        $dayNames = [
+            'Monday' => 'Segunda-feira',
+            'Tuesday' => 'Terça-feira',
+            'Wednesday' => 'Quarta-feira',
+            'Thursday' => 'Quinta-feira',
+            'Friday' => 'Sexta-feira',
+            'Saturday' => 'Sábado',
+            'Sunday' => 'Domingo'
+        ];
+        $currentDayPT = $dayNames[$currentDay] ?? $currentDay;
+        
+        $dateTimeInfo = "\n\nINFORMAÇÕES ATUAIS:\n";
+        $dateTimeInfo .= "- Data atual: {$currentDayPT}, {$currentDate}\n";
+        $dateTimeInfo .= "- Hora atual: {$currentTime} (horário de Brasília)\n";
+        $dateTimeInfo .= "- Quando o usuário perguntar sobre data, hora, dia da semana, etc., use essas informações.\n";
+        
         // Adicionar conhecimento ao prompt do sistema
         $knowledgeContext = "";
         $allKnowledge = fetchData($pdo, "SELECT pergunta, resposta FROM bot_ia_knowledge WHERE ativo = 1 ORDER BY prioridade DESC LIMIT 20");
@@ -299,7 +361,7 @@ switch ($action) {
             }
         }
         
-        $fullSystemPrompt = $systemPrompt . $knowledgeContext;
+        $fullSystemPrompt = $systemPrompt . $dateTimeInfo . $knowledgeContext;
         
         // Obter contexto da conversa
         $context = [];
