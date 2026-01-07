@@ -78,7 +78,7 @@ try {
     
     // Inserir configurações padrão
     $settings = [
-        ['gemini_api_key', 'AIzaSyCSi6prQM7XctTSIej59qhDED8EPkdSTzU', 'Chave da API do Google Gemini'],
+        ['gemini_api_key', '', 'Chave da API do Google Gemini'],
         ['ia_enabled', '1', 'Ativar/desativar IA no chat privado'],
         ['ia_model', 'gemini-2.5-flash', 'Modelo do Gemini a usar (padrão: gemini-2.5-flash)'],
         ['ia_max_tokens', '500', 'Máximo de tokens na resposta'],
