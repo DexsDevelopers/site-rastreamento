@@ -5,7 +5,10 @@
   "description": "Bot de WhatsApp local via Baileys + Express com integração HTTP.",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "start": "node --max-old-space-size=4096 index.js",
+    "start:watch": "node --max-old-space-size=4096 --watch index.js",
+    "start:gc": "node --max-old-space-size=4096 --expose-gc index.js"
   },
   "engines": {
     "node": ">=18.0.0"
