@@ -249,17 +249,38 @@ async function checkContactExists(sock, jid) {
       return true;
     }
     
+    // Números com @lid são válidos (device ID) - aceitar diretamente
+    if (jid.includes('@lid')) {
+      return true;
+    }
+    
+    // Normalizar JID para verificação (remover device ID se houver)
+    let normalizedJid = jid;
+    if (jid.includes(':')) {
+      // Remover device ID (parte após :)
+      normalizedJid = jid.split(':')[0] + '@' + jid.split('@')[1];
+    }
+    
+    // Garantir que tem @s.whatsapp.net
+    if (!normalizedJid.includes('@s.whatsapp.net')) {
+      normalizedJid = normalizedJid.replace(/@.*$/, '') + '@s.whatsapp.net';
+    }
+    
     // Para chats privados, verificar se o número existe no WhatsApp
-    const onWhatsApp = await sock.onWhatsApp(jid);
+    const onWhatsApp = await sock.onWhatsApp(normalizedJid);
     if (!onWhatsApp || onWhatsApp.length === 0) {
-      log.warn(`[SAFETY] Número ${jid} não está no WhatsApp`);
+      log.warn(`[SAFETY] Número ${normalizedJid} não está no WhatsApp`);
       return false;
     }
     
-    return onWhatsApp[0].exists;
+    return onWhatsApp[0].exists || onWhatsApp[0].isBusiness || onWhatsApp[0].isEnterprise;
   } catch (error) {
     log.error(`[SAFETY] Erro ao verificar contato: ${error.message}`);
     // Em caso de erro, permitir (fail-open para não bloquear tudo)
+    // Números com @lid são válidos mesmo se a verificação falhar
+    if (jid.includes('@lid')) {
+      return true;
+    }
     return true;
   }
 }

@@ -422,13 +422,26 @@ switch ($action) {
         }
         $result = null;
         
+        $quotaExceeded = false;
         foreach ($models as $tryModel) {
             $result = callGeminiAPI($apiKey, $tryModel, $context, $fullSystemPrompt, $temperature, $maxTokens);
             if ($result['success']) {
                 break;
             }
-            // Se for rate limit, para
-            if (isset($result['httpCode']) && $result['httpCode'] === 429) {
+            
+            // Verificar se quota foi excedida
+            $errorMsg = $result['error'] ?? '';
+            $httpCode = $result['httpCode'] ?? null;
+            if ($httpCode === 429 || $result['quotaExceeded'] || 
+                strpos(strtolower($errorMsg), 'quota') !== false || 
+                strpos(strtolower($errorMsg), 'exceeded') !== false) {
+                $quotaExceeded = true;
+                error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA detectada - desabilitando IA temporariamente");
+                
+                // Desabilitar IA automaticamente quando quota excedida
+                setIASetting($pdo, 'ia_quota_disabled', '1');
+                
+                // Não tentar outros modelos se quota excedida
                 break;
             }
         }
@@ -437,10 +450,43 @@ switch ($action) {
             // Log detalhado do erro (apenas para debug, não mostrar ao usuário)
             $errorMsg = $result['error'] ?? 'Erro desconhecido';
             $httpCode = $result['httpCode'] ?? null;
-            $quotaExceeded = $result['quotaExceeded'] ?? false;
             
             error_log("[BOT_IA] Erro ao chamar Gemini: {$errorMsg}" . ($httpCode ? " (HTTP {$httpCode})" : ""));
             error_log("[BOT_IA] Mensagem original: " . substr($message, 0, 100));
+            
+            // Se quota excedida, usar apenas base de conhecimento
+            if ($quotaExceeded) {
+                $fallbackKnowledge = searchKnowledge($pdo, $message);
+                if ($fallbackKnowledge) {
+                    $response = $fallbackKnowledge['resposta'];
+                    
+                    if ($phone) {
+                        saveConversation($pdo, $phone, 'assistant', $response);
+                    }
+                    
+                    error_log("[BOT_IA] Usando apenas base de conhecimento (quota excedida)");
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'response' => $response,
+                        'source' => 'knowledge',
+                        'category' => $fallbackKnowledge['categoria'],
+                        'quota_exceeded' => true
+                    ]);
+                    exit;
+                }
+                
+                // Se não encontrou na base, resposta natural
+                $fallback = 'Desculpe, a IA está temporariamente indisponível devido ao limite de uso. Tente novamente mais tarde ou pergunte sobre rastreamento de pedidos!';
+                
+                echo json_encode([
+                    'success' => true,
+                    'response' => $fallback,
+                    'source' => 'fallback',
+                    'quota_exceeded' => true
+                ]);
+                exit;
+            }
             
             // Tentar buscar na base de conhecimento como fallback antes de mostrar erro
             $fallbackKnowledge = searchKnowledge($pdo, $message);
