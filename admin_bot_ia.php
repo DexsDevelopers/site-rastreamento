@@ -199,13 +199,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 
             case 'save_settings':
                 $settings = $_POST['settings'] ?? [];
+                $oldApiKey = fetchOne($pdo, "SELECT setting_value FROM bot_ia_settings WHERE setting_key = 'gemini_api_key'")['setting_value'] ?? '';
+                $newApiKey = $settings['gemini_api_key'] ?? '';
+                
                 foreach ($settings as $key => $value) {
                     executeQuery($pdo, 
                         "INSERT INTO bot_ia_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?",
                         [$key, $value, $value]
                     );
                 }
-                $response = ['success' => true, 'message' => 'Configurações salvas!'];
+                
+                // Se uma nova API key foi configurada, reativar a IA
+                if (!empty($newApiKey) && $newApiKey !== $oldApiKey) {
+                    executeQuery($pdo, 
+                        "INSERT INTO bot_ia_settings (setting_key, setting_value) VALUES ('ia_quota_disabled', '0') ON DUPLICATE KEY UPDATE setting_value = '0'"
+                    );
+                    $response = ['success' => true, 'message' => 'Configurações salvas! IA reativada automaticamente.'];
+                } else {
+                    $response = ['success' => true, 'message' => 'Configurações salvas!'];
+                }
+                break;
+                
+            case 'reactivate_ia':
+                // Reativar IA manualmente
+                executeQuery($pdo, 
+                    "INSERT INTO bot_ia_settings (setting_key, setting_value) VALUES ('ia_quota_disabled', '0') ON DUPLICATE KEY UPDATE setting_value = '0'"
+                );
+                $response = ['success' => true, 'message' => 'IA reativada! A IA voltará a funcionar normalmente.'];
                 break;
                 
             case 'get_stats':
@@ -675,12 +695,17 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
                     <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.8);">
                         A cota gratuita da API do Gemini foi excedida. A IA está usando <strong>apenas a base de conhecimento</strong>.<br>
                         <strong>Opções:</strong> Aguarde a renovação da quota (geralmente mensal) ou atualize para um plano pago.
-                        <br><small style="color:rgba(255,255,255,0.6);">Você pode reativar em <strong>Configurações</strong> quando a quota for renovada.</small>
+                        <br><small style="color:rgba(255,255,255,0.6);">Se você configurou uma nova API key ou a quota foi renovada, clique em <strong>Reativar IA</strong>.</small>
                     </p>
                 </div>
-                <button onclick="document.querySelector('[data-tab=settings]').click()" class="btn btn-danger">
-                    <i class="fas fa-cog"></i> Ver Configurações
-                </button>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button onclick="reactivateIA()" class="btn btn-success">
+                        <i class="fas fa-power-off"></i> Reativar IA
+                    </button>
+                    <button onclick="document.querySelector('[data-tab=settings]').click()" class="btn btn-secondary">
+                        <i class="fas fa-cog"></i> Configurações
+                    </button>
+                </div>
             </div>
         </div>
         <?php endif; ?>
@@ -1265,6 +1290,27 @@ $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
                         }
                     }
                 });
+            }
+        }
+        
+        async function reactivateIA() {
+            if (!confirm('Deseja reativar a IA? Certifique-se de que:\n\n• A quota foi renovada OU\n• Uma nova API key foi configurada\n\nContinuar?')) {
+                return;
+            }
+            
+            const fd = new FormData();
+            fd.append('action', 'reactivate_ia');
+            
+            const res = await fetch('', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            showToast(data.message, data.success ? 'success' : 'error');
+            
+            if (data.success) {
+                // Recarregar página após 1 segundo para atualizar status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         }
         

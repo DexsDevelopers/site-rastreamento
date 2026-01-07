@@ -438,8 +438,12 @@ switch ($action) {
                 $quotaExceeded = true;
                 error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA detectada - desabilitando IA temporariamente");
                 
-                // Desabilitar IA automaticamente quando quota excedida
-                setIASetting($pdo, 'ia_quota_disabled', '1');
+                // Desabilitar IA automaticamente quando quota excedida (apenas se ainda não estiver desabilitada)
+                $currentQuotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0');
+                if ($currentQuotaDisabled !== '1') {
+                    setIASetting($pdo, 'ia_quota_disabled', '1');
+                    error_log("[BOT_IA] IA desabilitada automaticamente devido a quota excedida");
+                }
                 
                 // Não tentar outros modelos se quota excedida
                 break;
