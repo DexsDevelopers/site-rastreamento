@@ -54,23 +54,24 @@ O bot agora inclui limpeza automática agressiva:
 
 ## 📊 Limites de Cache Implementados
 
-Todos os caches agora têm limites máximos:
+Todos os caches agora têm limites máximos (reduzidos para evitar OOM):
 
-| Cache | Limite Normal | Limite Agressivo |
-|-------|--------------|------------------|
-| Mensagens por chat | 50 | 30 |
-| Total de chats | 100 | 20 |
-| Contadores de segurança | 500 | 100 |
-| Cooldowns | 500 | 100 |
-| Polls context | 100 | 50 |
-| Automações | 500 | 100 |
+| Cache | Limite Normal | Limite Preventivo | Limite Crítico |
+|-------|--------------|-------------------|----------------|
+| Mensagens por chat | 20 | 15 | 10 |
+| Total de chats | 50 | 30 | 10 |
+| Contadores de segurança | 100 | 50 | 0 (limpar tudo) |
+| Cooldowns | 100 | 50 | 0 (limpar tudo) |
+| Polls context | 50 | 30 | 50 |
+| Automações | 100 | 50 | 50 |
 
 ## 🔍 Monitoramento
 
 O bot monitora memória automaticamente e registra:
 
-- **⚠️ Memória moderada** (>400MB): Limpeza automática de caches
-- **🚨 Memória crítica** (>600MB): Limpeza agressiva + GC forçado
+- **⚠️ Memória moderada** (>300MB): Limpeza preventiva de caches
+- **⚠️ Memória alta** (>400MB): Limpeza agressiva de caches
+- **🚨 Memória crítica** (>500MB): Limpeza de emergência + GC forçado (limpa quase tudo)
 
 ## 🛠️ Troubleshooting
 
@@ -135,22 +136,25 @@ node --max-old-space-size=6144 --expose-gc index.js  # 6GB + GC
 
 ## 🔄 Melhorias Implementadas
 
-✅ Limites máximos em todos os caches  
-✅ Limpeza automática a cada 30 segundos  
-✅ Limpeza agressiva quando memória alta  
-✅ Limite de mensagens no store (50 por chat)  
-✅ Limite de chats no store (100 total)  
-✅ Limpeza de caches expirados  
-✅ Monitoramento contínuo de memória  
-✅ Garbage collection forçado quando necessário  
+✅ Limites máximos reduzidos em todos os caches (200 entradas)  
+✅ Limpeza automática a cada 15 segundos (muito frequente)  
+✅ Limpeza preventiva quando memória > 300MB  
+✅ Limpeza agressiva quando memória > 400MB  
+✅ Limpeza de emergência quando memória > 500MB (limpa quase tudo)  
+✅ Limite de mensagens no store (20 por chat, reduzido de 50)  
+✅ Limite de chats no store (50 total, reduzido de 100)  
+✅ Limpeza de caches expirados a cada 15 segundos  
+✅ Monitoramento contínuo de memória a cada 30 segundos  
+✅ Garbage collection forçado quando memória crítica  
 
 ## ⚡ Performance
 
 Com as melhorias implementadas:
-- **Uso normal de memória**: 100-300MB
-- **Uso moderado**: 300-500MB (limpeza automática)
-- **Uso alto**: 500-700MB (limpeza agressiva)
-- **Uso crítico**: >700MB (GC forçado + limpeza total)
+- **Uso normal de memória**: 100-250MB
+- **Uso moderado**: 250-300MB (limpeza preventiva)
+- **Uso alto**: 300-400MB (limpeza agressiva)
+- **Uso crítico**: 400-500MB (limpeza muito agressiva)
+- **Emergência**: >500MB (limpeza total + GC forçado)
 
 ## 📞 Suporte
 

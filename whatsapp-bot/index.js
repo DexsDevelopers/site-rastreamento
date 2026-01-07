@@ -320,9 +320,10 @@ async function safeSendMessage(sock, jid, message, options = {}) {
   }
 }
 
-// Limites máximos para evitar crescimento indefinido
-const MAX_CACHE_SIZE = 1000; // Máximo de 1000 entradas por cache
-const MAX_STORE_MESSAGES = 50; // Máximo de 50 mensagens por chat no store
+// Limites máximos para evitar crescimento indefinido (reduzidos para evitar OOM)
+const MAX_CACHE_SIZE = 200; // Máximo de 200 entradas por cache (reduzido de 1000)
+const MAX_STORE_MESSAGES = 20; // Máximo de 20 mensagens por chat no store (reduzido de 50)
+const MAX_STORE_CHATS = 50; // Máximo de 50 chats no store (reduzido de 100)
 
 // Função para limpar cache quando exceder limite
 function enforceCacheLimit(map, maxSize = MAX_CACHE_SIZE) {
@@ -386,11 +387,11 @@ setInterval(() => {
   // Limpar blacklist antiga
   // (blacklist já tem timeout automático, mas garantir limpeza)
   
-  // Enforçar limites de tamanho
-  enforceCacheLimit(messageCounts, 500);
-  enforceCacheLimit(lastMessageTime, 500);
-  enforceCacheLimit(chatMessageCounts, 500);
-  enforceCacheLimit(commandCooldowns, 500);
+  // Enforçar limites de tamanho (mais agressivos)
+  enforceCacheLimit(messageCounts, 100);
+  enforceCacheLimit(lastMessageTime, 100);
+  enforceCacheLimit(chatMessageCounts, 100);
+  enforceCacheLimit(commandCooldowns, 100);
   
   // Limpar cache de licenças expiradas
   for (const [key, value] of groupLicenseCache.entries()) {
@@ -398,9 +399,45 @@ setInterval(() => {
       groupLicenseCache.delete(key);
     }
   }
-  enforceCacheLimit(groupLicenseCache, 200);
+  enforceCacheLimit(groupLicenseCache, 50);
   
-}, 30000); // Limpar a cada 30 segundos (mais frequente)
+  // Limpar store de mensagens preventivamente
+  const allJids = Object.keys(store.messages);
+  if (allJids.length > MAX_STORE_CHATS) {
+    const jidsWithTime = allJids.map(jid => {
+      const msgs = store.messages[jid];
+      const lastMsg = Object.values(msgs).reduce((latest, msg) => {
+        const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
+        return msgTime > latest ? msgTime : latest;
+      }, 0);
+      return { jid, lastMsg };
+    });
+    jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
+    
+    // Manter apenas os mais recentes
+    for (let i = MAX_STORE_CHATS; i < jidsWithTime.length; i++) {
+      delete store.messages[jidsWithTime[i].jid];
+    }
+  }
+  
+  // Limpar mensagens antigas dentro de cada chat
+  for (const jid of Object.keys(store.messages)) {
+    const keys = Object.keys(store.messages[jid]);
+    if (keys.length > MAX_STORE_MESSAGES) {
+      const sortedKeys = keys.sort((a, b) => {
+        const aMsg = store.messages[jid][a];
+        const bMsg = store.messages[jid][b];
+        const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
+        const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
+        return aTime - bTime;
+      });
+      for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES; i++) {
+        delete store.messages[jid][sortedKeys[i]];
+      }
+    }
+  }
+  
+}, 15000); // Limpar a cada 15 segundos (muito mais frequente)
 
 console.log('📡 APIs configuradas:');
 console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0,4) + '***)');
@@ -422,7 +459,7 @@ const RECONNECT_DELAY_MAX = 120000;     // 2 minutos máximo
 const HEARTBEAT_INTERVAL = 20000;       // 20 segundos (mais frequente)
 const CONNECTION_TIMEOUT = 180000;      // 3 minutos timeout (mais tolerante)
 const MAX_RECONNECT_ATTEMPTS = 10;      // Máximo antes de parar e pedir QR
-const MEMORY_CHECK_INTERVAL = 60000;   // 1 minuto (mais frequente para evitar vazamentos)
+const MEMORY_CHECK_INTERVAL = 30000;   // 30 segundos (muito frequente para evitar vazamentos)
 const LOOP_DETECTION_WINDOW = 60000;    // 1 minuto para detectar loop
 const MAX_DISCONNECTS_IN_WINDOW = 5;    // 5 desconexões em 1 min = loop
 const PING_INTERVAL = 60000;            // 1 minuto - ping para manter conexão
@@ -471,9 +508,9 @@ const simpleStore = {
                     }
                 }
                 
-                // Limitar número total de chats (manter apenas os 100 mais recentes)
+                // Limitar número total de chats (manter apenas os MAX_STORE_CHATS mais recentes)
                 const allJids = Object.keys(this.messages);
-                if (allJids.length > 100) {
+                if (allJids.length > MAX_STORE_CHATS) {
                     // Ordenar por última mensagem
                     const jidsWithTime = allJids.map(jid => {
                         const msgs = this.messages[jid];
@@ -486,7 +523,7 @@ const simpleStore = {
                     jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
                     
                     // Remover os chats mais antigos
-                    for (let i = 100; i < jidsWithTime.length; i++) {
+                    for (let i = MAX_STORE_CHATS; i < jidsWithTime.length; i++) {
                         delete this.messages[jidsWithTime[i].jid];
                     }
                 }
@@ -1244,13 +1281,54 @@ function checkMemory() {
   enforceCacheLimit(automationCooldowns, 500);
   enforceCacheLimit(antilinkGroups, 200);
   
+  // Limpeza preventiva quando memória > 300MB
+  if (heapUsedMB > 300) {
+    log.warn(`⚠️ Memória moderada: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpeza preventiva...`);
+    
+    // Limpar store de mensagens preventivamente
+    const allJids = Object.keys(store.messages);
+    if (allJids.length > 30) {
+      const jidsWithTime = allJids.map(jid => {
+        const msgs = store.messages[jid];
+        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
+          const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
+          return msgTime > latest ? msgTime : latest;
+        }, 0);
+        return { jid, lastMsg };
+      });
+      jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
+      
+      // Manter apenas os 30 mais recentes
+      for (let i = 30; i < jidsWithTime.length; i++) {
+        delete store.messages[jidsWithTime[i].jid];
+      }
+    }
+    
+    // Limpar mensagens antigas dentro de cada chat (manter apenas 15)
+    for (const jid of Object.keys(store.messages)) {
+      const keys = Object.keys(store.messages[jid]);
+      if (keys.length > 15) {
+        const sortedKeys = keys.sort((a, b) => {
+          const aMsg = store.messages[jid][a];
+          const bMsg = store.messages[jid][b];
+          const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
+          const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
+          return aTime - bTime;
+        });
+        for (let i = 0; i < sortedKeys.length - 15; i++) {
+          delete store.messages[jid][sortedKeys[i]];
+        }
+      }
+    }
+  }
+  
   // Limpar store de mensagens se memória alta
   if (heapUsedMB > 400) {
-    log.warn(`⚠️ Memória moderada: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpando caches...`);
+    log.warn(`⚠️ Memória alta: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpando caches agressivamente...`);
     
     // Limpar store de mensagens mais agressivamente
     const allJids = Object.keys(store.messages);
-    if (allJids.length > 50) {
+    if (allJids.length > 20) {
       const jidsWithTime = allJids.map(jid => {
         const msgs = store.messages[jid];
         const lastMsg = Object.values(msgs).reduce((latest, msg) => {
@@ -1285,27 +1363,30 @@ function checkMemory() {
     }
   }
   
-  if (heapUsedMB > 600) {
-    log.error(`🚨 MEMÓRIA CRÍTICA: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpeza agressiva!`);
+  if (heapUsedMB > 500) {
+    log.error(`🚨 MEMÓRIA CRÍTICA: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpeza de emergência!`);
     
-    // Limpeza agressiva de todos os caches
-    const aggressiveLimit = 100;
-    enforceCacheLimit(messageCounts, aggressiveLimit);
-    enforceCacheLimit(lastMessageTime, aggressiveLimit);
-    enforceCacheLimit(chatMessageCounts, aggressiveLimit);
-    enforceCacheLimit(commandCooldowns, aggressiveLimit);
-    enforceCacheLimit(groupLicenseCache, 50);
-    enforceCacheLimit(lastReplyAt, 50);
-    enforceCacheLimit(waitingPhoto, 50);
-    enforceCacheLimit(pollContext, 50);
-    enforceCacheLimit(processedVotes, 100);
-    enforceCacheLimit(pendingPollVotes, 50);
-    enforceCacheLimit(automationCooldowns, 100);
-    enforceCacheLimit(antilinkGroups, 50);
+    // Limpeza de emergência - limpar quase tudo
+    const emergencyLimit = 50;
     
-    // Limpar store completamente de chats antigos
+    // Limpar todos os caches drasticamente
+    messageCounts.clear();
+    lastMessageTime.clear();
+    chatMessageCounts.clear();
+    commandCooldowns.clear();
+    groupLicenseCache.clear();
+    
+    enforceCacheLimit(lastReplyAt, emergencyLimit);
+    enforceCacheLimit(waitingPhoto, emergencyLimit);
+    enforceCacheLimit(pollContext, emergencyLimit);
+    enforceCacheLimit(processedVotes, emergencyLimit);
+    enforceCacheLimit(pendingPollVotes, emergencyLimit);
+    enforceCacheLimit(automationCooldowns, emergencyLimit);
+    enforceCacheLimit(antilinkGroups, emergencyLimit);
+    
+    // Limpar store completamente - manter apenas 10 chats mais recentes
     const allJids = Object.keys(store.messages);
-    if (allJids.length > 20) {
+    if (allJids.length > 10) {
       const jidsWithTime = allJids.map(jid => {
         const msgs = store.messages[jid];
         const lastMsg = Object.values(msgs).reduce((latest, msg) => {
@@ -1316,15 +1397,36 @@ function checkMemory() {
       });
       jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
       
-      for (let i = 20; i < jidsWithTime.length; i++) {
+      // Manter apenas os 10 mais recentes
+      for (let i = 10; i < jidsWithTime.length; i++) {
         delete store.messages[jidsWithTime[i].jid];
+      }
+    }
+    
+    // Limpar mensagens antigas - manter apenas 10 por chat
+    for (const jid of Object.keys(store.messages)) {
+      const keys = Object.keys(store.messages[jid]);
+      if (keys.length > 10) {
+        const sortedKeys = keys.sort((a, b) => {
+          const aMsg = store.messages[jid][a];
+          const bMsg = store.messages[jid][b];
+          const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
+          const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
+          return bTime - aTime; // Mais recentes primeiro
+        });
+        // Manter apenas as 10 mais recentes
+        for (let i = 10; i < sortedKeys.length; i++) {
+          delete store.messages[jid][sortedKeys[i]];
+        }
       }
     }
     
     // Forçar garbage collection se disponível
     if (global.gc) {
-      log.info('🗑️ Forçando garbage collection...');
+      log.info('🗑️ Forçando garbage collection de emergência...');
       global.gc();
+    } else {
+      log.warn('⚠️ GC não disponível. Execute com --expose-gc para habilitar.');
     }
   }
 }
@@ -3640,11 +3742,29 @@ setInterval(() => {
     }
   }
   
-  // Enforçar limites
-  enforceCacheLimit(lastReplyAt, 200);
-  enforceCacheLimit(waitingPhoto, 100);
-  enforceCacheLimit(pendingPollVotes, 100);
-}, 30000);
+  // Enforçar limites (mais agressivos)
+  enforceCacheLimit(lastReplyAt, 50);
+  enforceCacheLimit(waitingPhoto, 30);
+  enforceCacheLimit(pendingPollVotes, 30);
+  
+  // Limpar store preventivamente
+  const allJids = Object.keys(store.messages);
+  if (allJids.length > MAX_STORE_CHATS) {
+    const jidsWithTime = allJids.map(jid => {
+      const msgs = store.messages[jid];
+      const lastMsg = Object.values(msgs).reduce((latest, msg) => {
+        const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
+        return msgTime > latest ? msgTime : latest;
+      }, 0);
+      return { jid, lastMsg };
+    });
+    jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
+    
+    for (let i = MAX_STORE_CHATS; i < jidsWithTime.length; i++) {
+      delete store.messages[jidsWithTime[i].jid];
+    }
+  }
+}, 15000); // A cada 15 segundos
 
 // Tratamento de erros não capturados
 process.on('uncaughtException', (err) => {
