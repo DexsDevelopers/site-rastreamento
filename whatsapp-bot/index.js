@@ -443,11 +443,11 @@ let disconnectTimestamps = [];  // Para detectar loop de desconexão
 let isInLoopState = false;      // Flag de loop detectado
 let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 
-// ===== CUSTOM SIMPLE STORE (Minimal - Sem armazenamento em memória) =====
-// Store mínimo que não armazena mensagens em memória para economizar RAM
-const ENABLE_STORE = String(process.env.ENABLE_STORE || 'false').toLowerCase() === 'true';
-const MAX_STORE_MESSAGES_MEMORY = 5; // Máximo 5 mensagens por chat se store habilitado
-const MAX_STORE_CHATS_MEMORY = 10; // Máximo 10 chats se store habilitado
+// ===== CUSTOM SIMPLE STORE =====
+// Store de mensagens para o Baileys
+const ENABLE_STORE = String(process.env.ENABLE_STORE || 'true').toLowerCase() === 'true'; // Habilitado por padrão
+const MAX_STORE_MESSAGES_MEMORY = 50; // Máximo 50 mensagens por chat
+const MAX_STORE_CHATS_MEMORY = 100; // Máximo 100 chats
 
 const simpleStore = {
     messages: {},
@@ -513,31 +513,41 @@ const simpleStore = {
     },
     
     writeToFile(path) {
-        // Não salvar em arquivo para economizar I/O
-        return;
+        try {
+            fs.writeFileSync(path, JSON.stringify(this.messages));
+        } catch (e) { 
+            console.error('Erro ao salvar store:', e.message); 
+        }
     },
     
     readFromFile(path) {
-        // Não carregar do arquivo para economizar memória
-        return;
+        try {
+            if (fs.existsSync(path)) {
+                this.messages = JSON.parse(fs.readFileSync(path, 'utf-8'));
+                console.log('📦 Store carregado do arquivo');
+            }
+        } catch (e) { 
+            console.log('📦 Novo store iniciado'); 
+        }
     }
 };
 
-// Inicializar Store (minimal - desabilitado por padrão)
+// Inicializar Store
 const store = simpleStore;
+store.readFromFile('./baileys_store.json');
+
 if (ENABLE_STORE) {
-    store.readFromFile('./baileys_store.json');
-    console.log('📦 Store habilitado (limitado a 5 msgs/chat, 10 chats)');
+    console.log(`📦 Store habilitado (${MAX_STORE_MESSAGES_MEMORY} msgs/chat, ${MAX_STORE_CHATS_MEMORY} chats)`);
 } else {
-    console.log('📦 Store desabilitado para economizar memória');
+    console.log('📦 Store desabilitado');
 }
 
-// Não salvar periodicamente se store desabilitado
-if (ENABLE_STORE) {
-    setInterval(() => {
+// Salvar periodicamente
+setInterval(() => {
+    if (ENABLE_STORE) {
         store.writeToFile('./baileys_store.json');
-    }, 10_000);
-}
+    }
+}, 10_000);
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
@@ -2494,8 +2504,10 @@ async function start() {
       syncFullHistory: false,
       printQRInTerminal: false, // Desativa QR duplicado
       getMessage: async (key) => {
-        // Store desabilitado por padrão para economizar memória
-        // Retornar undefined faz o Baileys não tentar carregar mensagens antigas
+        if (store && ENABLE_STORE) {
+          const msg = await store.loadMessage(key.remoteJid, key.id);
+          return msg?.message || undefined;
+        }
         return undefined;
       },
       shouldReconnectMessage: () => true,  // Sempre tentar reconectar
