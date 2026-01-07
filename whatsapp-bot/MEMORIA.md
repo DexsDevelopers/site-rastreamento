@@ -10,38 +10,45 @@ Se você receber o erro `FATAL ERROR: Reached heap limit Allocation failed - Jav
 
 ### 1. **Aumentar Limite de Memória do Node.js**
 
-#### Opção A: Usar scripts do package.json (Recomendado)
+#### ⭐ Opção A: Usar scripts do package.json (RECOMENDADO)
 ```bash
-npm run start        # 4GB de memória
-npm run start:watch  # 4GB com watch mode
-npm run start:gc     # 4GB com garbage collection exposto
+npm run start        # 4GB de memória + GC exposto (PADRÃO)
+npm run start:watch  # 4GB com watch mode + GC
+npm run start:8gb    # 8GB de memória (para muito alto tráfego)
 ```
 
-#### Opção B: Executar manualmente
+#### ⭐ Opção B: Usar scripts de inicialização (MAIS FÁCIL)
+**Windows:**
 ```bash
-node --max-old-space-size=4096 index.js
+start.bat
 ```
 
-#### Opção C: Windows (PowerShell)
-```powershell
-$env:NODE_OPTIONS="--max-old-space-size=4096"
-node index.js
-```
-
-#### Opção D: Linux/Mac
+**Linux/Mac:**
 ```bash
-NODE_OPTIONS="--max-old-space-size=4096" node index.js
+chmod +x start.sh
+./start.sh
 ```
 
-### 2. **Habilitar Garbage Collection Manual**
-
-Para habilitar GC manual (recomendado para produção):
-
+#### Opção C: Executar manualmente
 ```bash
 node --max-old-space-size=4096 --expose-gc index.js
 ```
 
-O bot automaticamente forçará GC quando a memória estiver alta.
+### 2. **Store de Mensagens Desabilitado por Padrão**
+
+O bot agora **desabilita o store de mensagens por padrão** para economizar memória. Isso significa:
+- ✅ **Economia de memória**: Não armazena mensagens antigas
+- ✅ **Menos vazamentos**: Menos dados em memória
+- ✅ **Mais estável**: Menos chance de OOM
+
+Para habilitar o store (não recomendado):
+```env
+ENABLE_STORE=true
+```
+
+Se habilitado, o store mantém apenas:
+- 5 mensagens por chat
+- 10 chats no total
 
 ### 3. **Verificar Configurações de Limpeza**
 

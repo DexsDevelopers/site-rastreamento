@@ -401,38 +401,40 @@ setInterval(() => {
   }
   enforceCacheLimit(groupLicenseCache, 50);
   
-  // Limpar store de mensagens preventivamente
-  const allJids = Object.keys(store.messages);
-  if (allJids.length > MAX_STORE_CHATS) {
-    const jidsWithTime = allJids.map(jid => {
-      const msgs = store.messages[jid];
-      const lastMsg = Object.values(msgs).reduce((latest, msg) => {
-        const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
-        return msgTime > latest ? msgTime : latest;
-      }, 0);
-      return { jid, lastMsg };
-    });
-    jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-    
-    // Manter apenas os mais recentes
-    for (let i = MAX_STORE_CHATS; i < jidsWithTime.length; i++) {
-      delete store.messages[jidsWithTime[i].jid];
-    }
-  }
-  
-  // Limpar mensagens antigas dentro de cada chat
-  for (const jid of Object.keys(store.messages)) {
-    const keys = Object.keys(store.messages[jid]);
-    if (keys.length > MAX_STORE_MESSAGES) {
-      const sortedKeys = keys.sort((a, b) => {
-        const aMsg = store.messages[jid][a];
-        const bMsg = store.messages[jid][b];
-        const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
-        const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
-        return aTime - bTime;
+  // Limpar store de mensagens apenas se habilitado
+  if (ENABLE_STORE) {
+    const allJids = Object.keys(store.messages);
+    if (allJids.length > MAX_STORE_CHATS_MEMORY) {
+      const jidsWithTime = allJids.map(jid => {
+        const msgs = store.messages[jid];
+        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
+          const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
+          return msgTime > latest ? msgTime : latest;
+        }, 0);
+        return { jid, lastMsg };
       });
-      for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES; i++) {
-        delete store.messages[jid][sortedKeys[i]];
+      jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
+      
+      // Manter apenas os mais recentes
+      for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
+        delete store.messages[jidsWithTime[i].jid];
+      }
+    }
+    
+    // Limpar mensagens antigas dentro de cada chat
+    for (const jid of Object.keys(store.messages)) {
+      const keys = Object.keys(store.messages[jid]);
+      if (keys.length > MAX_STORE_MESSAGES_MEMORY) {
+        const sortedKeys = keys.sort((a, b) => {
+          const aMsg = store.messages[jid][a];
+          const bMsg = store.messages[jid][b];
+          const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
+          const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
+          return aTime - bTime;
+        });
+        for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES_MEMORY; i++) {
+          delete store.messages[jid][sortedKeys[i]];
+        }
       }
     }
   }
@@ -477,11 +479,21 @@ let disconnectTimestamps = [];  // Para detectar loop de desconexão
 let isInLoopState = false;      // Flag de loop detectado
 let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 
-// ===== CUSTOM SIMPLE STORE (Correção para Node 22) =====
+// ===== CUSTOM SIMPLE STORE (Minimal - Sem armazenamento em memória) =====
+// Store mínimo que não armazena mensagens em memória para economizar RAM
+const ENABLE_STORE = String(process.env.ENABLE_STORE || 'false').toLowerCase() === 'true';
+const MAX_STORE_MESSAGES_MEMORY = 5; // Máximo 5 mensagens por chat se store habilitado
+const MAX_STORE_CHATS_MEMORY = 10; // Máximo 10 chats se store habilitado
+
 const simpleStore = {
     messages: {},
     
     bind(ev) {
+        if (!ENABLE_STORE) {
+            // Store desabilitado - não armazenar nada
+            return;
+        }
+        
         ev.on('messages.upsert', ({ messages: newMessages }) => {
             for (const msg of newMessages) {
                 if (!msg.message) continue;
@@ -491,9 +503,9 @@ const simpleStore = {
                 if (!this.messages[jid]) this.messages[jid] = {};
                 this.messages[jid][id] = msg;
                 
-                // Limitar memória: manter apenas últimas 50 mensagens por chat
+                // Limitar memória drasticamente: manter apenas últimas 5 mensagens por chat
                 const keys = Object.keys(this.messages[jid]);
-                if (keys.length > MAX_STORE_MESSAGES) {
+                if (keys.length > MAX_STORE_MESSAGES_MEMORY) {
                     // Remover as mais antigas
                     const sortedKeys = keys.sort((a, b) => {
                         const aMsg = this.messages[jid][a];
@@ -503,14 +515,14 @@ const simpleStore = {
                         return aTime - bTime;
                     });
                     // Remover as mais antigas até ficar com o limite
-                    for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES; i++) {
+                    for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES_MEMORY; i++) {
                         delete this.messages[jid][sortedKeys[i]];
                     }
                 }
                 
-                // Limitar número total de chats (manter apenas os MAX_STORE_CHATS mais recentes)
+                // Limitar número total de chats (manter apenas os 10 mais recentes)
                 const allJids = Object.keys(this.messages);
-                if (allJids.length > MAX_STORE_CHATS) {
+                if (allJids.length > MAX_STORE_CHATS_MEMORY) {
                     // Ordenar por última mensagem
                     const jidsWithTime = allJids.map(jid => {
                         const msgs = this.messages[jid];
@@ -523,7 +535,7 @@ const simpleStore = {
                     jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
                     
                     // Remover os chats mais antigos
-                    for (let i = MAX_STORE_CHATS; i < jidsWithTime.length; i++) {
+                    for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
                         delete this.messages[jidsWithTime[i].jid];
                     }
                 }
@@ -532,37 +544,36 @@ const simpleStore = {
     },
     
     async loadMessage(jid, id) {
+        if (!ENABLE_STORE) return undefined;
         return this.messages[jid]?.[id];
     },
     
     writeToFile(path) {
-        try {
-            fs.writeFileSync(path, JSON.stringify(this.messages));
-        } catch (e) { 
-            console.error('Erro ao salvar store:', e.message); 
-        }
+        // Não salvar em arquivo para economizar I/O
+        return;
     },
     
     readFromFile(path) {
-        try {
-            if (fs.existsSync(path)) {
-                this.messages = JSON.parse(fs.readFileSync(path, 'utf-8'));
-                console.log('📦 Store carregado do arquivo');
-            }
-        } catch (e) { 
-            console.log('📦 Novo store iniciado'); 
-        }
+        // Não carregar do arquivo para economizar memória
+        return;
     }
 };
 
-// Inicializar Store
+// Inicializar Store (minimal - desabilitado por padrão)
 const store = simpleStore;
-store.readFromFile('./baileys_store.json');
+if (ENABLE_STORE) {
+    store.readFromFile('./baileys_store.json');
+    console.log('📦 Store habilitado (limitado a 5 msgs/chat, 10 chats)');
+} else {
+    console.log('📦 Store desabilitado para economizar memória');
+}
 
-// Salvar periodicamente
-setInterval(() => {
-    store.writeToFile('./baileys_store.json');
-}, 10_000);
+// Não salvar periodicamente se store desabilitado
+if (ENABLE_STORE) {
+    setInterval(() => {
+        store.writeToFile('./baileys_store.json');
+    }, 10_000);
+}
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
@@ -1284,83 +1295,14 @@ function checkMemory() {
   // Limpeza preventiva quando memória > 300MB
   if (heapUsedMB > 300) {
     log.warn(`⚠️ Memória moderada: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpeza preventiva...`);
-    
-    // Limpar store de mensagens preventivamente
-    const allJids = Object.keys(store.messages);
-    if (allJids.length > 30) {
-      const jidsWithTime = allJids.map(jid => {
-        const msgs = store.messages[jid];
-        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
-          const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
-          return msgTime > latest ? msgTime : latest;
-        }, 0);
-        return { jid, lastMsg };
-      });
-      jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-      
-      // Manter apenas os 30 mais recentes
-      for (let i = 30; i < jidsWithTime.length; i++) {
-        delete store.messages[jidsWithTime[i].jid];
-      }
-    }
-    
-    // Limpar mensagens antigas dentro de cada chat (manter apenas 15)
-    for (const jid of Object.keys(store.messages)) {
-      const keys = Object.keys(store.messages[jid]);
-      if (keys.length > 15) {
-        const sortedKeys = keys.sort((a, b) => {
-          const aMsg = store.messages[jid][a];
-          const bMsg = store.messages[jid][b];
-          const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
-          const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
-          return aTime - bTime;
-        });
-        for (let i = 0; i < sortedKeys.length - 15; i++) {
-          delete store.messages[jid][sortedKeys[i]];
-        }
-      }
-    }
   }
   
-  // Limpar store de mensagens se memória alta
-  if (heapUsedMB > 400) {
-    log.warn(`⚠️ Memória alta: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpando caches agressivamente...`);
+  // Limpar store de mensagens se memória alta (apenas se habilitado)
+  if (heapUsedMB > 400 && ENABLE_STORE) {
+    log.warn(`⚠️ Memória alta: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpando store...`);
     
-    // Limpar store de mensagens mais agressivamente
-    const allJids = Object.keys(store.messages);
-    if (allJids.length > 20) {
-      const jidsWithTime = allJids.map(jid => {
-        const msgs = store.messages[jid];
-        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
-          const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
-          return msgTime > latest ? msgTime : latest;
-        }, 0);
-        return { jid, lastMsg };
-      });
-      jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-      
-      // Manter apenas os 50 mais recentes
-      for (let i = 50; i < jidsWithTime.length; i++) {
-        delete store.messages[jidsWithTime[i].jid];
-      }
-    }
-    
-    // Limpar mensagens antigas dentro de cada chat
-    for (const jid of Object.keys(store.messages)) {
-      const keys = Object.keys(store.messages[jid]);
-      if (keys.length > 30) {
-        const sortedKeys = keys.sort((a, b) => {
-          const aMsg = store.messages[jid][a];
-          const bMsg = store.messages[jid][b];
-          const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
-          const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
-          return aTime - bTime;
-        });
-        for (let i = 0; i < sortedKeys.length - 30; i++) {
-          delete store.messages[jid][sortedKeys[i]];
-        }
-      }
-    }
+    // Limpar store completamente se memória alta
+    store.messages = {};
   }
   
   if (heapUsedMB > 500) {
@@ -1384,41 +1326,9 @@ function checkMemory() {
     enforceCacheLimit(automationCooldowns, emergencyLimit);
     enforceCacheLimit(antilinkGroups, emergencyLimit);
     
-    // Limpar store completamente - manter apenas 10 chats mais recentes
-    const allJids = Object.keys(store.messages);
-    if (allJids.length > 10) {
-      const jidsWithTime = allJids.map(jid => {
-        const msgs = store.messages[jid];
-        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
-          const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
-          return msgTime > latest ? msgTime : latest;
-        }, 0);
-        return { jid, lastMsg };
-      });
-      jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-      
-      // Manter apenas os 10 mais recentes
-      for (let i = 10; i < jidsWithTime.length; i++) {
-        delete store.messages[jidsWithTime[i].jid];
-      }
-    }
-    
-    // Limpar mensagens antigas - manter apenas 10 por chat
-    for (const jid of Object.keys(store.messages)) {
-      const keys = Object.keys(store.messages[jid]);
-      if (keys.length > 10) {
-        const sortedKeys = keys.sort((a, b) => {
-          const aMsg = store.messages[jid][a];
-          const bMsg = store.messages[jid][b];
-          const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
-          const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
-          return bTime - aTime; // Mais recentes primeiro
-        });
-        // Manter apenas as 10 mais recentes
-        for (let i = 10; i < sortedKeys.length; i++) {
-          delete store.messages[jid][sortedKeys[i]];
-        }
-      }
+    // Limpar store completamente se habilitado
+    if (ENABLE_STORE) {
+      store.messages = {};
     }
     
     // Forçar garbage collection se disponível
@@ -2648,11 +2558,9 @@ async function start() {
       syncFullHistory: false,
       printQRInTerminal: false, // Desativa QR duplicado
       getMessage: async (key) => {
-        if (store) {
-          const msg = await store.loadMessage(key.remoteJid, key.id);
-          return msg?.message || undefined;
-        }
-        return { conversation: 'hello' };
+        // Store desabilitado por padrão para economizar memória
+        // Retornar undefined faz o Baileys não tentar carregar mensagens antigas
+        return undefined;
       },
       shouldReconnectMessage: () => true,  // Sempre tentar reconectar
       shouldIgnoreJid: () => false
@@ -3747,21 +3655,23 @@ setInterval(() => {
   enforceCacheLimit(waitingPhoto, 30);
   enforceCacheLimit(pendingPollVotes, 30);
   
-  // Limpar store preventivamente
-  const allJids = Object.keys(store.messages);
-  if (allJids.length > MAX_STORE_CHATS) {
-    const jidsWithTime = allJids.map(jid => {
-      const msgs = store.messages[jid];
-      const lastMsg = Object.values(msgs).reduce((latest, msg) => {
-        const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
-        return msgTime > latest ? msgTime : latest;
-      }, 0);
-      return { jid, lastMsg };
-    });
-    jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-    
-    for (let i = MAX_STORE_CHATS; i < jidsWithTime.length; i++) {
-      delete store.messages[jidsWithTime[i].jid];
+  // Limpar store preventivamente (apenas se habilitado)
+  if (ENABLE_STORE) {
+    const allJids = Object.keys(store.messages);
+    if (allJids.length > MAX_STORE_CHATS_MEMORY) {
+      const jidsWithTime = allJids.map(jid => {
+        const msgs = store.messages[jid];
+        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
+          const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
+          return msgTime > latest ? msgTime : latest;
+        }, 0);
+        return { jid, lastMsg };
+      });
+      jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
+      
+      for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
+        delete store.messages[jidsWithTime[i].jid];
+      }
     }
   }
 }, 15000); // A cada 15 segundos

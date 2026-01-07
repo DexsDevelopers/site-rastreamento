@@ -6,9 +6,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --watch index.js",
-    "start": "node --max-old-space-size=4096 index.js",
-    "start:watch": "node --max-old-space-size=4096 --watch index.js",
-    "start:gc": "node --max-old-space-size=4096 --expose-gc index.js"
+    "start": "node --max-old-space-size=4096 --expose-gc index.js",
+    "start:watch": "node --max-old-space-size=4096 --expose-gc --watch index.js",
+    "start:gc": "node --max-old-space-size=4096 --expose-gc index.js",
+    "start:8gb": "node --max-old-space-size=8192 --expose-gc index.js"
   },
   "engines": {
     "node": ">=18.0.0"
