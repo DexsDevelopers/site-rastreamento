@@ -99,7 +99,7 @@ const IA_ENABLED = String(process.env.IA_ENABLED || 'true').toLowerCase() === 't
 const IA_ONLY_PRIVATE = String(process.env.IA_ONLY_PRIVATE || 'true').toLowerCase() === 'true'; // Só responde no privado
 
 // ===== SISTEMA DE SEGURANÇA ANTI-BAN =====
-const SAFETY_ENABLED = String(process.env.SAFETY_ENABLED || 'true').toLowerCase() === 'true';
+const SAFETY_ENABLED = String(process.env.SAFETY_ENABLED || 'false').toLowerCase() === 'true'; // DESABILITADO por padrão
 const MAX_MESSAGES_PER_MINUTE = Number(process.env.MAX_MESSAGES_PER_MINUTE || 20); // Máximo 20 mensagens/minuto
 const MAX_MESSAGES_PER_HOUR = Number(process.env.MAX_MESSAGES_PER_HOUR || 200); // Máximo 200 mensagens/hora
 const MIN_DELAY_BETWEEN_MESSAGES = Number(process.env.MIN_DELAY_BETWEEN_MESSAGES || 1000); // 1 segundo mínimo entre mensagens
@@ -285,60 +285,10 @@ async function checkContactExists(sock, jid) {
   }
 }
 
-// Função wrapper segura para sendMessage
+// Função wrapper segura para sendMessage (desabilitada - usa sendMessage direto)
 async function safeSendMessage(sock, jid, message, options = {}) {
-  if (!SAFETY_ENABLED) {
-    return await sock.sendMessage(jid, message, options);
-  }
-  
-  // Verificar rate limit
-  const rateLimit = checkRateLimit(jid);
-  if (!rateLimit.allowed) {
-    const waitSeconds = Math.ceil(rateLimit.retryAfter / 1000);
-    log.warn(`[SAFETY] Rate limit atingido para ${jid}: ${rateLimit.reason}. Aguardar ${waitSeconds}s`);
-    throw new Error(`Rate limit: ${rateLimit.reason}. Aguarde ${waitSeconds} segundos.`);
-  }
-  
-  // Verificar se contato existe
-  const contactExists = await checkContactExists(sock, jid);
-  if (!contactExists) {
-    log.warn(`[SAFETY] Contato ${jid} não existe no WhatsApp - não enviando`);
-    throw new Error('Número não está no WhatsApp');
-  }
-  
-  // Aplicar delay se necessário
-  if (ENABLE_DELAYS) {
-    const lastTime = lastMessageTime.get(jid);
-    if (lastTime) {
-      const timeSinceLastMessage = Date.now() - lastTime;
-      if (timeSinceLastMessage < MIN_DELAY_BETWEEN_MESSAGES) {
-        const delay = MIN_DELAY_BETWEEN_MESSAGES - timeSinceLastMessage;
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }
-  
-  try {
-    // Enviar mensagem
-    const result = await safeSendMessage(sock, jid, message, options);
-    
-    // Registrar envio bem-sucedido
-    registerMessageSent(jid);
-    
-    return result;
-  } catch (error) {
-    // Se erro for relacionado a número inválido, adicionar à blacklist temporariamente
-    if (error.message?.includes('not a WhatsApp user') || 
-        error.message?.includes('not registered') ||
-        error.message?.includes('401') ||
-        error.message?.includes('403')) {
-      log.warn(`[SAFETY] Adicionando ${jid} à blacklist temporária`);
-      blacklist.add(jid);
-      // Remover da blacklist após 1 hora
-      setTimeout(() => blacklist.delete(jid), 3600000);
-    }
-    throw error;
-  }
+  // Sistema de segurança desabilitado - enviar diretamente sem limitações
+  return await sock.sendMessage(jid, message, options);
 }
 
 // Limites máximos para evitar crescimento indefinido (reduzidos para evitar OOM)
@@ -467,14 +417,7 @@ console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TO
 console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0,4) + '***)');
 console.log('   Verificação de licença:', LICENSE_CHECK_ENABLED ? 'ATIVADA' : 'DESATIVADA');
 console.log('   IA Chat:', IA_ENABLED ? 'ATIVADA' : 'DESATIVADA', IA_ONLY_PRIVATE ? '(só privado)' : '(todos)');
-console.log('🛡️  Sistema de Segurança:', SAFETY_ENABLED ? 'ATIVADO' : 'DESATIVADO');
-if (SAFETY_ENABLED) {
-  console.log('   - Máx. mensagens/minuto:', MAX_MESSAGES_PER_MINUTE);
-  console.log('   - Máx. mensagens/hora:', MAX_MESSAGES_PER_HOUR);
-  console.log('   - Máx. por chat/minuto:', MAX_MESSAGES_PER_CHAT_PER_MINUTE);
-  console.log('   - Delay mínimo:', MIN_DELAY_BETWEEN_MESSAGES + 'ms');
-  console.log('   - Verificar contato:', CHECK_CONTACT_BEFORE_SEND ? 'SIM' : 'NÃO');
-}
+console.log('🛡️  Sistema de Segurança: DESATIVADO (sem limitações)');
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
@@ -1739,19 +1682,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
-    // Verificar cooldown de comando
-    const cooldownCheck = checkCommandCooldown(senderJid, command);
-    if (!cooldownCheck.allowed) {
-      const waitSeconds = Math.ceil(cooldownCheck.waitTime / 1000);
-      log.warn(`[SAFETY] Comando ${command} em cooldown para ${senderJid}. Aguardar ${waitSeconds}s`);
-      return { 
-        success: false, 
-        message: `⏳ Aguarde ${waitSeconds} segundo(s) antes de usar este comando novamente.` 
-      };
-    }
-    
-    // Registrar uso do comando
-    registerCommandUse(senderJid, command);
+    // Sistema de segurança desabilitado - sem cooldown
     
     log.info(`[GROUP ADMIN] Comando extraído: "${command}" | Texto completo: "${text}"`);
     log.info(`[GROUP ADMIN] RemoteJid: ${remoteJid}`);
@@ -2256,23 +2187,7 @@ async function processAdminCommand(from, text, msg = null) {
     const isFinanceiro = prefix === '!';
     const isRastreamento = prefix === '/';
     
-    // Extrair comando para verificar cooldown
-    const command = text.split(' ')[0].toLowerCase();
-    
-    // Verificar cooldown de comando (exceto para comandos de menu/help que são seguros)
-    if (!command.includes('menu') && !command.includes('help') && !command.includes('ajuda')) {
-      const cooldownCheck = checkCommandCooldown(from, command);
-      if (!cooldownCheck.allowed) {
-        const waitSeconds = Math.ceil(cooldownCheck.waitTime / 1000);
-        log.warn(`[SAFETY] Comando ${command} em cooldown para ${from}. Aguardar ${waitSeconds}s`);
-        return { 
-          success: false, 
-          message: `⏳ Aguarde ${waitSeconds} segundo(s) antes de usar este comando novamente.` 
-        };
-      }
-      // Registrar uso do comando
-      registerCommandUse(from, command);
-    }
+    // Sistema de segurança desabilitado - sem cooldown
     
     // Verificar se é comando de admin de grupo primeiro (prefixo $)
     const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes', '$menu', '$help', '$ajuda', '$licenca', '$license', '$key'];
