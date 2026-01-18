@@ -1572,15 +1572,9 @@ async function processAutomations(remoteJid, text, msg) {
     const isGroup = remoteJid.includes('@g.us');
     const grupoId = isGroup ? remoteJid : null;
     
-    // Verificar licença do grupo (se for grupo)
-    if (isGroup && LICENSE_CHECK_ENABLED) {
-      const license = await checkGroupLicense(remoteJid);
-      if (!license.valid && !license.unlimited && !license.error) {
-        log.warn(`[LICENSE] Grupo sem licença válida: ${remoteJid}`);
-        // Não responder automações em grupos sem licença
-        return false;
-      }
-    }
+    // Automações agora funcionam em todos os grupos, mesmo sem licença
+    // (A verificação de licença foi removida conforme solicitado)
+    
     let grupoNome = null;
     
     // Tentar obter nome do grupo
