@@ -3,6 +3,20 @@
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
+
+require_once 'includes/config.php';
+require_once 'includes/db_connect.php';
+require_once 'includes/rastreio_media.php';
+
+// Função para obter configuração da homepage
+function getHomepageConfig($pdo, $chave, $default = '') {
+    try {
+        $result = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chave]);
+        return $result ? $result['valor'] : $default;
+    } catch (Exception $e) {
+        return $default;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -673,42 +687,32 @@ body {
     </p>
     
     <div class="gallery-grid">
+        <?php for ($i = 1; $i <= 6; $i++): 
+            $imgKey = 'referencia_imagem_' . $i;
+            $nomeKey = 'referencia_nome_' . $i;
+            $descKey = 'referencia_desc_' . $i;
+            
+            $imgPath = getHomepageConfig($pdo, $imgKey, 'assets/images/whatsapp-' . $i . '.jpg');
+            $nome = getHomepageConfig($pdo, $nomeKey, '');
+            $desc = getHomepageConfig($pdo, $descKey, '');
+            
+            // Só exibir se tiver nome ou descrição
+            if (empty($nome) && empty($desc)) continue;
+        ?>
         <div class="gallery-item">
             <div class="gallery-image">
-                <img src="assets/images/whatsapp-1.jpg?v=<?php echo time(); ?>" alt="Luiz Gabriel">
+                <img src="<?= htmlspecialchars($imgPath) ?>?v=<?php echo time(); ?>" alt="<?= htmlspecialchars($nome) ?>">
             </div>
             <div class="gallery-info">
-                <h4>📍 Luiz Gabriel - Petrópolis</h4>
-                <p>Sistema de rastreamento básico funcionando perfeitamente</p>
+                <?php if (!empty($nome)): ?>
+                <h4>📍 <?= htmlspecialchars($nome) ?></h4>
+                <?php endif; ?>
+                <?php if (!empty($desc)): ?>
+                <p><?= htmlspecialchars($desc) ?></p>
+                <?php endif; ?>
             </div>
         </div>
-        <div class="gallery-item">
-            <div class="gallery-image">
-                <img src="assets/images/whatsapp-2.jpg?v=<?php echo time(); ?>" alt="juuh santts">
-            </div>
-            <div class="gallery-info">
-                <h4>📍 juuh santts - Ubá</h4>
-                <p>Monitoramento oficial com status detalhado</p>
-            </div>
-        </div>
-        <div class="gallery-item">
-            <div class="gallery-image">
-                <img src="assets/images/whatsapp-3.jpg?v=<?php echo time(); ?>" alt="RKZIN">
-            </div>
-            <div class="gallery-info">
-                <h4>📍 RKZIN - Jardim Camburi</h4>
-                <p>Sistema oficial de monitoramento em tempo real</p>
-            </div>
-        </div>
-        <div class="gallery-item">
-            <div class="gallery-image">
-                <img src="assets/images/whatsapp-4.jpg?v=<?php echo time(); ?>" alt="Vitor João">
-            </div>
-            <div class="gallery-info">
-                <h4>📍 Vitor João - AdolfoSP</h4>
-                <p>Monitoramento com interface integrada ao WhatsApp</p>
-            </div>
-        </div>
+        <?php endfor; ?>
         <div class="gallery-item">
             <div class="gallery-image">
                 <img src="assets/images/whatsapp-5.jpg?v=<?php echo time(); ?>" alt="2L CLIENTE">

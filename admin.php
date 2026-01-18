@@ -2379,6 +2379,7 @@ body {
     <div class="nav-actions">
         <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
         <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
+        <a href="admin_homepage.php" class="nav-btn"><i class="fas fa-edit"></i> Editar Homepage</a>
         <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
         <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Mensagens WhatsApp</a>
         <a href="admin_bot_config.php" class="nav-btn"><i class="fas fa-robot"></i> Config Bot</a>

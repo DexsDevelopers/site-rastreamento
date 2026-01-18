@@ -14,6 +14,24 @@ require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/rastreio_media.php';
 
+// Função para obter configuração da homepage
+function getHomepageConfig($pdo, $chave, $default = '') {
+    try {
+        $result = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chave]);
+        return $result ? $result['valor'] : $default;
+    } catch (Exception $e) {
+        return $default;
+    }
+}
+
+// Carregar configurações da homepage
+$nomeEmpresa = getHomepageConfig($pdo, 'nome_empresa', 'Helmer Logistics');
+$tituloHero = getHomepageConfig($pdo, 'titulo_hero', 'Acompanhe seus Recebimentos em Tempo Real');
+$descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real');
+$badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', '98.7% de Satisfação');
+$badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', '5.247 Entregas');
+$badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
+
 $codigo = $cidade = "";
 $statusList = [];
 $erroCidade = "";
@@ -738,7 +756,7 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 <body>
 <header class="header">
     <div class="nav-container">
-        <a href="index.php" class="logo">Helmer Logistics</a>
+        <a href="index.php" class="logo"><?= htmlspecialchars($nomeEmpresa) ?></a>
         <nav class="nav-links">
             <a href="index.php">Início</a>
             <a href="sobre.php">Sobre</a>
@@ -832,18 +850,18 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
         
         <div class="hero-content">
             <div class="hero-title-card">
-                <h1 class="hero-title"><span class="title-accent">Acompanhe</span> seus <span class="title-gradient">Recebimentos</span> em Tempo Real</h1>
+                <h1 class="hero-title"><?= htmlspecialchars($tituloHero) ?></h1>
             </div>
-            <p>Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real</p>
+            <p><?= htmlspecialchars($descricaoHero) ?></p>
             
             <div class="hero-actions" style="justify-content: flex-start;">
                 <a href="sobre.php" class="btn-hero secondary"><i class="fas fa-info-circle"></i> Sobre nós</a>
                 <a href="indicacao.php" class="btn-hero"><i class="fas fa-users"></i> Indicar Amigo</a>
             </div>
             <div class="badges">
-                <span class="badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
-                <span class="badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
-                <span class="badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
+                <span class="badge"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($badgeSatisfacao) ?></span>
+                <span class="badge"><i class="fas fa-truck"></i> <?= htmlspecialchars($badgeEntregas) ?></span>
+                <span class="badge"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($badgeCidades) ?></span>
             </div>
             
             <div class="referral-box" style="margin-top: 2rem;">
