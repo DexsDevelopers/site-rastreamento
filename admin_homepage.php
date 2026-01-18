@@ -165,10 +165,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $messageType = 'success';
             }
         }
+        
+        // Redirecionar após qualquer ação bem-sucedida para evitar reenvio do formulário
+        if (isset($messageType) && $messageType === 'success') {
+            header("Location: admin_homepage.php?success=" . urlencode($message ?? 'Ação realizada com sucesso!'));
+            exit;
+        }
     } catch (Exception $e) {
         $message = $e->getMessage();
         $messageType = 'error';
     }
+}
+
+// Verificar se há mensagem de sucesso na URL (após redirecionamento)
+if (!isset($message) && isset($_GET['success'])) {
+    $message = urldecode($_GET['success']);
+    $messageType = 'success';
 }
 
 // Carregar todas as configurações
@@ -364,6 +376,81 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
                 
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Salvar Badges
+                </button>
+            </form>
+        </div>
+
+        <!-- Seção "Como funciona" -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-6">
+                <i class="fas fa-cogs"></i> Seção "Como funciona"
+            </h2>
+            
+            <form method="POST" class="space-y-4" id="formComoFunciona">
+                <input type="hidden" name="action" value="save_config_multiple">
+                
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Título da Seção</label>
+                    <input type="text" name="how_it_works_title" value="<?= htmlspecialchars($configArray['how_it_works_title'] ?? 'Como funciona') ?>" class="input-field">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Feature 1 - Título</label>
+                        <input type="text" name="feature1_title" value="<?= htmlspecialchars($configArray['feature1_title'] ?? '1) Rastreie') ?>" class="input-field mb-2">
+                        <textarea name="feature1_description" class="input-field" rows="2" placeholder="Descrição"><?= htmlspecialchars($configArray['feature1_description'] ?? 'Digite o código e a cidade para validar e ver o status do envio.') ?></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Feature 2 - Título</label>
+                        <input type="text" name="feature2_title" value="<?= htmlspecialchars($configArray['feature2_title'] ?? '2) Acompanhe') ?>" class="input-field mb-2">
+                        <textarea name="feature2_description" class="input-field" rows="2" placeholder="Descrição"><?= htmlspecialchars($configArray['feature2_description'] ?? 'Veja a linha do tempo com todas as etapas do seu recebimento.') ?></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Feature 3 - Título</label>
+                        <input type="text" name="feature3_title" value="<?= htmlspecialchars($configArray['feature3_title'] ?? '3) Entrega Expressa') ?>" class="input-field mb-2">
+                        <textarea name="feature3_description" class="input-field" rows="2" placeholder="Descrição"><?= htmlspecialchars($configArray['feature3_description'] ?? 'Antecipe em 3 dias com confirmação rápida por PIX, quando disponível.') ?></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar "Como funciona"
+                </button>
+            </form>
+        </div>
+
+        <!-- Seção "Prova Social" -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-6">
+                <i class="fas fa-star"></i> Seção "Prova Social"
+            </h2>
+            
+            <form method="POST" class="space-y-4" id="formProvaSocial">
+                <input type="hidden" name="action" value="save_config_multiple">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Prova Social 1 - Título</label>
+                        <input type="text" name="social_proof1_title" value="<?= htmlspecialchars($configArray['social_proof1_title'] ?? 'Satisfação 98,7%') ?>" class="input-field mb-2">
+                        <input type="text" name="social_proof1_link_text" value="<?= htmlspecialchars($configArray['social_proof1_link_text'] ?? 'Ver metodologia') ?>" class="input-field" placeholder="Texto do link">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Prova Social 2 - Título</label>
+                        <input type="text" name="social_proof2_title" value="<?= htmlspecialchars($configArray['social_proof2_title'] ?? '+5.247 Entregas') ?>" class="input-field mb-2">
+                        <input type="text" name="social_proof2_link_text" value="<?= htmlspecialchars($configArray['social_proof2_link_text'] ?? 'Ver histórico') ?>" class="input-field" placeholder="Texto do link">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Prova Social 3 - Título</label>
+                        <input type="text" name="social_proof3_title" value="<?= htmlspecialchars($configArray['social_proof3_title'] ?? 'Confiabilidade') ?>" class="input-field mb-2">
+                        <input type="text" name="social_proof3_link_text" value="<?= htmlspecialchars($configArray['social_proof3_link_text'] ?? 'Política e garantias') ?>" class="input-field" placeholder="Texto do link">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar "Prova Social"
                 </button>
             </form>
         </div>

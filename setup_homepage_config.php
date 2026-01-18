@@ -52,6 +52,21 @@ try {
         ['referencia_imagem_6', 'assets/images/whatsapp-6.jpg', 'image', 'Imagem de referência 6'],
         ['referencia_nome_6', '', 'text', 'Nome da referência 6'],
         ['referencia_desc_6', '', 'text', 'Descrição da referência 6'],
+        // Seção "Como funciona"
+        ['how_it_works_title', 'Como funciona', 'text', 'Título da seção Como funciona'],
+        ['feature1_title', '1) Rastreie', 'text', 'Título do Feature 1'],
+        ['feature1_description', 'Digite o código e a cidade para validar e ver o status do envio.', 'text', 'Descrição do Feature 1'],
+        ['feature2_title', '2) Acompanhe', 'text', 'Título do Feature 2'],
+        ['feature2_description', 'Veja a linha do tempo com todas as etapas do seu recebimento.', 'text', 'Descrição do Feature 2'],
+        ['feature3_title', '3) Entrega Expressa', 'text', 'Título do Feature 3'],
+        ['feature3_description', 'Antecipe em 3 dias com confirmação rápida por PIX, quando disponível.', 'text', 'Descrição do Feature 3'],
+        // Prova social
+        ['social_proof1_title', 'Satisfação 98,7%', 'text', 'Título da Prova Social 1'],
+        ['social_proof1_link_text', 'Ver metodologia', 'text', 'Texto do link da Prova Social 1'],
+        ['social_proof2_title', '+5.247 Entregas', 'text', 'Título da Prova Social 2'],
+        ['social_proof2_link_text', 'Ver histórico', 'text', 'Texto do link da Prova Social 2'],
+        ['social_proof3_title', 'Confiabilidade', 'text', 'Título da Prova Social 3'],
+        ['social_proof3_link_text', 'Política e garantias', 'text', 'Texto do link da Prova Social 3'],
     ];
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO homepage_config (chave, valor, tipo, descricao) VALUES (?, ?, ?, ?)");

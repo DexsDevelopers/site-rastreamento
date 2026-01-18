@@ -44,6 +44,23 @@ $badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', '98.7% de Satisfa
 $badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', '5.247 Entregas');
 $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
 
+// Seção "Como funciona"
+$howItWorksTitle = getHomepageConfig($pdo, 'how_it_works_title', 'Como funciona');
+$feature1Title = getHomepageConfig($pdo, 'feature1_title', '1) Rastreie');
+$feature1Description = getHomepageConfig($pdo, 'feature1_description', 'Digite o código e a cidade para validar e ver o status do envio.');
+$feature2Title = getHomepageConfig($pdo, 'feature2_title', '2) Acompanhe');
+$feature2Description = getHomepageConfig($pdo, 'feature2_description', 'Veja a linha do tempo com todas as etapas do seu recebimento.');
+$feature3Title = getHomepageConfig($pdo, 'feature3_title', '3) Entrega Expressa');
+$feature3Description = getHomepageConfig($pdo, 'feature3_description', 'Antecipe em 3 dias com confirmação rápida por PIX, quando disponível.');
+
+// Prova social
+$socialProof1Title = getHomepageConfig($pdo, 'social_proof1_title', 'Satisfação 98,7%');
+$socialProof1LinkText = getHomepageConfig($pdo, 'social_proof1_link_text', 'Ver metodologia');
+$socialProof2Title = getHomepageConfig($pdo, 'social_proof2_title', '+5.247 Entregas');
+$socialProof2LinkText = getHomepageConfig($pdo, 'social_proof2_link_text', 'Ver histórico');
+$socialProof3Title = getHomepageConfig($pdo, 'social_proof3_title', 'Confiabilidade');
+$socialProof3LinkText = getHomepageConfig($pdo, 'social_proof3_link_text', 'Política e garantias');
+
 $codigo = $cidade = "";
 $statusList = [];
 $erroCidade = "";
@@ -890,40 +907,40 @@ body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0A
 
 <!-- Como funciona -->
 <section class="features" style="margin-top: 3rem;">
-    <h2>Como funciona</h2>
+    <h2><?= htmlspecialchars($howItWorksTitle) ?></h2>
     <div class="features-grid">
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-barcode" style="font-size: 1.5rem;"></i></div>
-            <h3>1) Rastreie</h3>
-            <p>Digite o código e a cidade para validar e ver o status do envio.</p>
+            <h3><?= htmlspecialchars($feature1Title) ?></h3>
+            <p><?= htmlspecialchars($feature1Description) ?></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-stream" style="font-size: 1.5rem;"></i></div>
-            <h3>2) Acompanhe</h3>
-            <p>Veja a linha do tempo com todas as etapas do seu recebimento.</p>
+            <h3><?= htmlspecialchars($feature2Title) ?></h3>
+            <p><?= htmlspecialchars($feature2Description) ?></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-bolt" style="font-size: 1.5rem;"></i></div>
-            <h3>3) Entrega Expressa</h3>
-            <p>Antecipe em 3 dias com confirmação rápida por PIX, quando disponível.</p>
+            <h3><?= htmlspecialchars($feature3Title) ?></h3>
+            <p><?= htmlspecialchars($feature3Description) ?></p>
         </div>
     </div>
     <!-- Prova social -->
     <div class="features-grid" style="margin-top:2rem;">
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
-            <h3>Satisfação 98,7%</h3>
-            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">Ver metodologia</a></p>
+            <h3><?= htmlspecialchars($socialProof1Title) ?></h3>
+            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;"><?= htmlspecialchars($socialProof1LinkText) ?></a></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
-            <h3>+5.247 Entregas</h3>
-            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">Ver histórico</a></p>
+            <h3><?= htmlspecialchars($socialProof2Title) ?></h3>
+            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;"><?= htmlspecialchars($socialProof2LinkText) ?></a></p>
         </div>
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
-            <h3>Confiabilidade</h3>
-            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">Política e garantias</a></p>
+            <h3><?= htmlspecialchars($socialProof3Title) ?></h3>
+            <p><a href="sobre.php" style="color:#fff; text-decoration:underline;"><?= htmlspecialchars($socialProof3LinkText) ?></a></p>
         </div>
     </div>
 </section>
