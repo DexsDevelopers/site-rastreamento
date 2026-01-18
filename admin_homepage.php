@@ -106,6 +106,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     throw new Exception('Erro no upload do arquivo');
                 }
             }
+        } elseif ($_POST['action'] === 'remove_referencia') {
+            $referenciaNum = (int)($_POST['referencia_num'] ?? 0);
+            if ($referenciaNum >= 1 && $referenciaNum <= 6) {
+                // Buscar dados da referência
+                $chaveImagem = 'referencia_imagem_' . $referenciaNum;
+                $chaveTipo = 'referencia_tipo_' . $referenciaNum;
+                $chaveNome = 'referencia_nome_' . $referenciaNum;
+                $chaveDesc = 'referencia_desc_' . $referenciaNum;
+                
+                // Buscar caminho do arquivo
+                $imagemConfig = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chaveImagem]);
+                if ($imagemConfig && !empty($imagemConfig['valor'])) {
+                    $filepath = $imagemConfig['valor'];
+                    // Deletar arquivo se existir
+                    if (file_exists($filepath)) {
+                        @unlink($filepath);
+                    }
+                }
+                
+                // Deletar todas as configurações da referência
+                $chavesParaRemover = [$chaveImagem, $chaveTipo, $chaveNome, $chaveDesc];
+                foreach ($chavesParaRemover as $chave) {
+                    executeQuery($pdo, "DELETE FROM homepage_config WHERE chave = ?", [$chave]);
+                }
+                
+                $message = 'Referência removida com sucesso!';
+                $messageType = 'success';
+            }
         }
     } catch (Exception $e) {
         $message = $e->getMessage();
@@ -389,6 +417,17 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
                             <i class="fas fa-save"></i> Salvar
                         </button>
                     </form>
+                    
+                    <!-- Remover Referência -->
+                    <?php if (file_exists($mediaPath) || !empty($nome) || !empty($desc)): ?>
+                    <form method="POST" class="mt-3" onsubmit="return confirm('Tem certeza que deseja remover esta referência? Esta ação não pode ser desfeita.');">
+                        <input type="hidden" name="action" value="remove_referencia">
+                        <input type="hidden" name="referencia_num" value="<?= $i ?>">
+                        <button type="submit" class="btn w-full" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5;">
+                            <i class="fas fa-trash"></i> Remover Referência
+                        </button>
+                    </form>
+                    <?php endif; ?>
                 </div>
                 <?php endfor; ?>
             </div>
