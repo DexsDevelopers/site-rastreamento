@@ -35,44 +35,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $message = 'Configuração salva com sucesso!';
                 $messageType = 'success';
             }
-        } elseif ($_POST['action'] === 'upload_image') {
+        } elseif ($_POST['action'] === 'upload_image' || $_POST['action'] === 'upload_video') {
             $referenciaNum = (int)($_POST['referencia_num'] ?? 0);
+            $isVideo = $_POST['action'] === 'upload_video';
+            
             if ($referenciaNum >= 1 && $referenciaNum <= 6) {
-                if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
-                    $file = $_FILES['imagem'];
-                    $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                $fileKey = $isVideo ? 'video' : 'imagem';
+                
+                if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
+                    $file = $_FILES[$fileKey];
                     
-                    if (!in_array($file['type'], $allowedTypes)) {
-                        throw new Exception('Tipo de arquivo não permitido. Use JPG, PNG, GIF ou WebP.');
+                    if ($isVideo) {
+                        $allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+                        $maxSize = 50 * 1024 * 1024; // 50MB para vídeos
+                        $uploadDir = 'assets/videos/';
+                        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                        $filename = 'whatsapp-' . $referenciaNum . '.' . $ext;
+                        $tipoMedia = 'video';
+                    } else {
+                        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                        $maxSize = 5 * 1024 * 1024; // 5MB para imagens
+                        $uploadDir = 'assets/images/';
+                        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                        $filename = 'whatsapp-' . $referenciaNum . '.' . $ext;
+                        $tipoMedia = 'image';
                     }
                     
-                    if ($file['size'] > 5 * 1024 * 1024) {
-                        throw new Exception('Arquivo muito grande (máx 5MB)');
+                    if (!in_array($file['type'], $allowedTypes)) {
+                        throw new Exception($isVideo ? 'Tipo de arquivo não permitido. Use MP4, WebM ou OGG.' : 'Tipo de arquivo não permitido. Use JPG, PNG, GIF ou WebP.');
+                    }
+                    
+                    if ($file['size'] > $maxSize) {
+                        throw new Exception($isVideo ? 'Arquivo muito grande (máx 50MB)' : 'Arquivo muito grande (máx 5MB)');
                     }
                     
                     // Criar diretório se não existir
-                    $uploadDir = 'assets/images/';
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0755, true);
                     }
                     
-                    // Gerar nome do arquivo
-                    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                    $filename = 'whatsapp-' . $referenciaNum . '.' . $ext;
                     $filepath = $uploadDir . $filename;
                     
                     if (move_uploaded_file($file['tmp_name'], $filepath)) {
                         // Salvar no banco
                         $chave = 'referencia_imagem_' . $referenciaNum;
+                        $chaveTipo = 'referencia_tipo_' . $referenciaNum;
+                        
                         $exists = fetchOne($pdo, "SELECT id FROM homepage_config WHERE chave = ?", [$chave]);
                         
                         if ($exists) {
                             executeQuery($pdo, "UPDATE homepage_config SET valor = ? WHERE chave = ?", [$filepath, $chave]);
                         } else {
-                            executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, 'image')", [$chave, $filepath]);
+                            executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, ?)", [$chave, $filepath, $tipoMedia]);
                         }
                         
-                        $message = 'Imagem enviada com sucesso!';
+                        // Salvar tipo (imagem ou vídeo)
+                        $existsTipo = fetchOne($pdo, "SELECT id FROM homepage_config WHERE chave = ?", [$chaveTipo]);
+                        if ($existsTipo) {
+                            executeQuery($pdo, "UPDATE homepage_config SET valor = ? WHERE chave = ?", [$tipoMedia, $chaveTipo]);
+                        } else {
+                            executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, 'text')", [$chaveTipo, $tipoMedia]);
+                        }
+                        
+                        $message = ($isVideo ? 'Vídeo' : 'Imagem') . ' enviado com sucesso!';
                         $messageType = 'success';
                     } else {
                         throw new Exception('Erro ao salvar arquivo');
@@ -177,12 +202,16 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
             border: 1px solid #ef4444;
             color: #fca5a5;
         }
-        .image-preview {
-            max-width: 200px;
-            max-height: 200px;
+        .image-preview, .video-preview {
+            max-width: 100%;
+            max-height: 300px;
             border-radius: 8px;
             margin-top: 12px;
             border: 2px solid var(--border);
+        }
+        .video-preview {
+            width: 100%;
+            background: #000;
         }
     </style>
 </head>
@@ -280,19 +309,21 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
             </form>
         </div>
 
-        <!-- Fotos de Referência -->
+        <!-- Fotos e Vídeos de Referência -->
         <div class="card">
             <h2 class="text-xl font-semibold mb-6">
-                <i class="fas fa-images"></i> Fotos de Referência (WhatsApp)
+                <i class="fas fa-images"></i> Fotos e Vídeos de Referência (WhatsApp)
             </h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <?php for ($i = 1; $i <= 6; $i++): 
                     $imgKey = 'referencia_imagem_' . $i;
+                    $tipoKey = 'referencia_tipo_' . $i;
                     $nomeKey = 'referencia_nome_' . $i;
                     $descKey = 'referencia_desc_' . $i;
                     
-                    $imgPath = $configArray[$imgKey] ?? 'assets/images/whatsapp-' . $i . '.jpg';
+                    $mediaPath = $configArray[$imgKey] ?? 'assets/images/whatsapp-' . $i . '.jpg';
+                    $tipoMedia = $configArray[$tipoKey] ?? 'image';
                     $nome = $configArray[$nomeKey] ?? '';
                     $desc = $configArray[$descKey] ?? '';
                 ?>
@@ -300,19 +331,40 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
                     <h3 class="text-lg font-semibold mb-4">Referência <?= $i ?></h3>
                     
                     <!-- Upload de Imagem -->
-                    <form method="POST" enctype="multipart/form-data" class="mb-4">
+                    <form method="POST" enctype="multipart/form-data" class="mb-3">
                         <input type="hidden" name="action" value="upload_image">
                         <input type="hidden" name="referencia_num" value="<?= $i ?>">
                         
-                        <label class="block text-sm text-gray-400 mb-2">Imagem</label>
-                        <input type="file" name="imagem" accept="image/*" class="input-field mb-2" required>
+                        <label class="block text-sm text-gray-400 mb-2">Imagem (JPG, PNG, GIF, WebP - máx 5MB)</label>
+                        <input type="file" name="imagem" accept="image/*" class="input-field mb-2">
                         <button type="submit" class="btn btn-primary w-full">
-                            <i class="fas fa-upload"></i> Enviar Imagem
+                            <i class="fas fa-image"></i> Enviar Imagem
                         </button>
                     </form>
                     
-                    <?php if (file_exists($imgPath)): ?>
-                    <img src="<?= htmlspecialchars($imgPath) ?>?v=<?= time() ?>" alt="Referência <?= $i ?>" class="image-preview">
+                    <!-- Upload de Vídeo -->
+                    <form method="POST" enctype="multipart/form-data" class="mb-4">
+                        <input type="hidden" name="action" value="upload_video">
+                        <input type="hidden" name="referencia_num" value="<?= $i ?>">
+                        
+                        <label class="block text-sm text-gray-400 mb-2">Vídeo (MP4, WebM, OGG - máx 50MB)</label>
+                        <input type="file" name="video" accept="video/*" class="input-field mb-2">
+                        <button type="submit" class="btn btn-primary w-full" style="background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);">
+                            <i class="fas fa-video"></i> Enviar Vídeo
+                        </button>
+                    </form>
+                    
+                    <?php if (file_exists($mediaPath)): ?>
+                        <?php if ($tipoMedia === 'video'): ?>
+                        <video src="<?= htmlspecialchars($mediaPath) ?>?v=<?= time() ?>" controls class="image-preview" style="max-height: 300px;">
+                            Seu navegador não suporta vídeo.
+                        </video>
+                        <?php else: ?>
+                        <img src="<?= htmlspecialchars($mediaPath) ?>?v=<?= time() ?>" alt="Referência <?= $i ?>" class="image-preview">
+                        <?php endif; ?>
+                        <div class="mt-2 text-sm text-gray-400">
+                            Tipo: <strong><?= $tipoMedia === 'video' ? 'Vídeo' : 'Imagem' ?></strong>
+                        </div>
                     <?php endif; ?>
                     
                     <!-- Nome e Descrição -->

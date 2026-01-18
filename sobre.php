@@ -689,10 +689,12 @@ body {
     <div class="gallery-grid">
         <?php for ($i = 1; $i <= 6; $i++): 
             $imgKey = 'referencia_imagem_' . $i;
+            $tipoKey = 'referencia_tipo_' . $i;
             $nomeKey = 'referencia_nome_' . $i;
             $descKey = 'referencia_desc_' . $i;
             
-            $imgPath = getHomepageConfig($pdo, $imgKey, 'assets/images/whatsapp-' . $i . '.jpg');
+            $mediaPath = getHomepageConfig($pdo, $imgKey, 'assets/images/whatsapp-' . $i . '.jpg');
+            $tipoMedia = getHomepageConfig($pdo, $tipoKey, 'image');
             $nome = getHomepageConfig($pdo, $nomeKey, '');
             $desc = getHomepageConfig($pdo, $descKey, '');
             
@@ -701,7 +703,13 @@ body {
         ?>
         <div class="gallery-item">
             <div class="gallery-image">
-                <img src="<?= htmlspecialchars($imgPath) ?>?v=<?php echo time(); ?>" alt="<?= htmlspecialchars($nome) ?>">
+                <?php if ($tipoMedia === 'video'): ?>
+                <video src="<?= htmlspecialchars($mediaPath) ?>?v=<?php echo time(); ?>" controls style="width: 100%; border-radius: 8px;">
+                    Seu navegador não suporta vídeo.
+                </video>
+                <?php else: ?>
+                <img src="<?= htmlspecialchars($mediaPath) ?>?v=<?php echo time(); ?>" alt="<?= htmlspecialchars($nome) ?>">
+                <?php endif; ?>
             </div>
             <div class="gallery-info">
                 <?php if (!empty($nome)): ?>
