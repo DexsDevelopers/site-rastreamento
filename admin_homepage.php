@@ -17,7 +17,38 @@ $messageType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
-        if ($_POST['action'] === 'save_config') {
+        if ($_POST['action'] === 'save_config_multiple') {
+            // Salvar múltiplas configurações de uma vez
+            $fieldsToSave = [
+                'how_it_works_title', 'feature1_title', 'feature1_description', 
+                'feature2_title', 'feature2_description', 'feature3_title', 'feature3_description',
+                'social_proof1_title', 'social_proof1_link_text',
+                'social_proof2_title', 'social_proof2_link_text',
+                'social_proof3_title', 'social_proof3_link_text'
+            ];
+            
+            foreach ($fieldsToSave as $chave) {
+                if (isset($_POST[$chave])) {
+                    $valor = $_POST[$chave];
+                    $exists = fetchOne($pdo, "SELECT id FROM homepage_config WHERE chave = ?", [$chave]);
+                    
+                    if ($exists) {
+                        executeQuery($pdo, "UPDATE homepage_config SET valor = ? WHERE chave = ?", [$valor, $chave]);
+                    } else {
+                        executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, 'text')", [$chave, $valor]);
+                    }
+                }
+            }
+            
+            $message = 'Configurações salvas com sucesso!';
+            $messageType = 'success';
+            
+            // Redirecionar após salvar
+            if ($messageType === 'success') {
+                header("Location: admin_homepage.php?success=" . urlencode($message));
+                exit;
+            }
+        } elseif ($_POST['action'] === 'save_config') {
             // Suporte para salvar múltiplos badges de uma vez
             if (isset($_POST['badge_satisfacao']) || isset($_POST['badge_entregas']) || isset($_POST['badge_cidades'])) {
                 // Salvar todos os badges
