@@ -1472,15 +1472,26 @@ function matchAutomation(text, automation) {
 
 // Verificar cooldown
 function checkCooldown(automationId, jid, cooldownSeconds) {
-  if (!cooldownSeconds || cooldownSeconds <= 0) return false;
+  if (!cooldownSeconds || cooldownSeconds <= 0) {
+    return false; // Sem cooldown configurado
+  }
   
   const key = `${automationId}-${jid}`;
   const lastUse = automationCooldowns.get(key);
   
-  if (!lastUse) return false;
+  if (!lastUse) {
+    return false; // Nunca foi usado, pode executar
+  }
   
-  const elapsed = (Date.now() - lastUse) / 1000;
-  return elapsed < cooldownSeconds;
+  const elapsed = (Date.now() - lastUse) / 1000; // Tempo decorrido em segundos
+  const isInCooldown = elapsed < cooldownSeconds;
+  
+  if (isInCooldown) {
+    const remaining = Math.ceil(cooldownSeconds - elapsed);
+    log.info(`[AUTOMATIONS] Cooldown ativo: ${remaining}s restantes (total: ${cooldownSeconds}s)`);
+  }
+  
+  return isInCooldown;
 }
 
 // Registrar uso de automação
@@ -1488,10 +1499,10 @@ function registerAutomationUse(automationId, jid) {
   const key = `${automationId}-${jid}`;
   automationCooldowns.set(key, Date.now());
   
-  // Limpar cooldowns antigos (mais de 1 hora)
-  const oneHourAgo = Date.now() - 3600000;
+  // Limpar cooldowns antigos (mais de 7 dias para suportar cooldowns longos)
+  const sevenDaysAgo = Date.now() - (7 * 24 * 3600 * 1000);
   for (const [k, v] of automationCooldowns.entries()) {
-    if (v < oneHourAgo) automationCooldowns.delete(k);
+    if (v < sevenDaysAgo) automationCooldowns.delete(k);
   }
 }
 
