@@ -14,12 +14,24 @@ require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/rastreio_media.php';
 
+// Verificar conexão com banco PRIMEIRO
+if (!isset($pdo) || $pdo === null) {
+    die("❌ Erro: Não foi possível conectar ao banco de dados. Verifique as configurações em includes/db_connect.php");
+}
+
 // Função para obter configuração da homepage
 function getHomepageConfig($pdo, $chave, $default = '') {
     try {
+        // Verificar se a tabela existe
+        $stmt = $pdo->query("SHOW TABLES LIKE 'homepage_config'");
+        if ($stmt->rowCount() === 0) {
+            return $default; // Tabela não existe ainda
+        }
+        
         $result = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chave]);
-        return $result ? $result['valor'] : $default;
+        return $result && isset($result['valor']) ? $result['valor'] : $default;
     } catch (Exception $e) {
+        // Em caso de erro, retornar valor padrão
         return $default;
     }
 }
@@ -43,11 +55,6 @@ $fotoPedidoSrc = null;
 $expressValor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
 $isExpress = false;
 $autoLoadFromUrl = false;
-
-// Verificar conexão com banco
-if (!isset($pdo) || $pdo === null) {
-    die("❌ Erro: Não foi possível conectar ao banco de dados. Verifique as configurações em includes/db_connect.php");
-}
 
 // Verificar se há código na URL (GET) e buscar cidade automaticamente
 if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
