@@ -51,32 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $grupoNome = sanitizeInput($_POST['grupo_nome'] ?? '') ?: null;
                 $apenasPrivado = isset($_POST['apenas_privado']) ? 1 : 0;
                 $apenasGrupo = isset($_POST['apenas_grupo']) ? 1 : 0;
+                // Delay - já vem em milissegundos do select
                 $delayMs = (int)($_POST['delay_ms'] ?? 0);
                 
-                // Converter cooldown para segundos baseado na unidade
-                $cooldownValue = (float)($_POST['cooldown_valor'] ?? 0);
-                $cooldownUnidade = sanitizeInput($_POST['cooldown_unidade'] ?? 'segundos');
-                
-                // Converter para segundos
-                $cooldown = 0;
-                if ($cooldownValue > 0) {
-                    switch ($cooldownUnidade) {
-                        case 'segundos':
-                            $cooldown = (int)$cooldownValue;
-                            break;
-                        case 'minutos':
-                            $cooldown = (int)($cooldownValue * 60);
-                            break;
-                        case 'horas':
-                            $cooldown = (int)($cooldownValue * 3600);
-                            break;
-                        case 'dias':
-                            $cooldown = (int)($cooldownValue * 86400);
-                            break;
-                        default:
-                            $cooldown = (int)$cooldownValue;
-                    }
-                }
+                // Cooldown - já vem em segundos do select
+                $cooldown = (int)($_POST['cooldown_segundos'] ?? 0);
                 
                 $prioridade = (int)($_POST['prioridade'] ?? 0);
                 $ativo = isset($_POST['ativo']) ? 1 : 0;
@@ -1168,23 +1147,38 @@ foreach ($settings as $s) {
                 
                 <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm text-zinc-400 mb-2">Delay (ms)</label>
-                        <input type="number" name="delay_ms" id="autoDelay" class="input-field w-full"
-                            value="0" min="0" max="30000">
+                        <label class="block text-sm text-zinc-400 mb-2">Delay antes de responder</label>
+                        <select name="delay_ms" id="autoDelay" class="input-field w-full">
+                            <option value="0">Sem delay (instantâneo)</option>
+                            <option value="1000">1 segundo</option>
+                            <option value="2000">2 segundos</option>
+                            <option value="3000">3 segundos</option>
+                            <option value="5000">5 segundos</option>
+                            <option value="7000">7 segundos</option>
+                            <option value="10000">10 segundos</option>
+                            <option value="15000">15 segundos</option>
+                            <option value="30000">30 segundos</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm text-zinc-400 mb-2">Cooldown</label>
-                        <div class="flex gap-2 items-stretch">
-                            <input type="number" name="cooldown_valor" id="autoCooldownValor" class="input-field flex-1"
-                                value="0" min="0" step="0.1" placeholder="0" style="min-width: 0;" lang="en" inputmode="decimal">
-                            <select name="cooldown_unidade" id="autoCooldownUnidade" class="input-field" style="width: 90px; flex-shrink: 0;">
-                                <option value="segundos">Seg</option>
-                                <option value="minutos">Min</option>
-                                <option value="horas">Hora</option>
-                                <option value="dias">Dia</option>
-                            </select>
-                        </div>
-                        <input type="hidden" name="cooldown_segundos" id="autoCooldownSegundos" value="0">
+                        <label class="block text-sm text-zinc-400 mb-2">Cooldown (tempo entre usos)</label>
+                        <select name="cooldown_segundos" id="autoCooldown" class="input-field w-full">
+                            <option value="0">Sem cooldown</option>
+                            <option value="10">10 segundos</option>
+                            <option value="30">30 segundos</option>
+                            <option value="60">1 minuto</option>
+                            <option value="120">2 minutos</option>
+                            <option value="300">5 minutos</option>
+                            <option value="600">10 minutos</option>
+                            <option value="1800">30 minutos</option>
+                            <option value="3600">1 hora</option>
+                            <option value="7200">2 horas</option>
+                            <option value="21600">6 horas</option>
+                            <option value="43200">12 horas</option>
+                            <option value="86400">1 dia</option>
+                            <option value="172800">2 dias</option>
+                            <option value="604800">7 dias (1 semana)</option>
+                        </select>
                     </div>
                     <div class="flex items-end gap-4 pb-1">
                         <label class="flex items-center gap-2 cursor-pointer">
@@ -1229,54 +1223,12 @@ foreach ($settings as $s) {
         let grupos = [];
         
         // ===== INICIALIZAÇÃO =====
-        // Função para calcular cooldown em segundos
-        function calculateCooldownSeconds() {
-            const valorEl = document.getElementById('autoCooldownValor');
-            const unidadeEl = document.getElementById('autoCooldownUnidade');
-            const segundosEl = document.getElementById('autoCooldownSegundos');
-            
-            if (!valorEl || !unidadeEl || !segundosEl) return;
-            
-            // Remover vírgulas e converter para ponto decimal
-            let valorStr = valorEl.value.toString().replace(',', '.');
-            const valor = parseFloat(valorStr) || 0;
-            const unidade = unidadeEl.value;
-            let segundos = 0;
-            
-            switch (unidade) {
-                case 'segundos':
-                    segundos = Math.round(valor);
-                    break;
-                case 'minutos':
-                    segundos = Math.round(valor * 60);
-                    break;
-                case 'horas':
-                    segundos = Math.round(valor * 3600);
-                    break;
-                case 'dias':
-                    segundos = Math.round(valor * 86400);
-                    break;
-            }
-            
-            segundosEl.value = segundos;
-        }
-        
         document.addEventListener('DOMContentLoaded', () => {
             loadStats();
             loadSettings();
             loadGrupos();
             renderAutomations();
             checkBotStatus();
-            
-            // Event listeners para calcular cooldown automaticamente
-            const cooldownValor = document.getElementById('autoCooldownValor');
-            const cooldownUnidade = document.getElementById('autoCooldownUnidade');
-            
-            if (cooldownValor && cooldownUnidade) {
-                cooldownValor.addEventListener('input', calculateCooldownSeconds);
-                cooldownValor.addEventListener('change', calculateCooldownSeconds);
-                cooldownUnidade.addEventListener('change', calculateCooldownSeconds);
-            }
             
             // Auto-refresh status a cada 30s
             setInterval(checkBotStatus, 30000);
@@ -1338,47 +1290,39 @@ foreach ($settings as $s) {
                 document.getElementById('autoGrupoId').value = automation.grupo_id || '';
                 document.getElementById('autoGrupoNome').value = automation.grupo_nome || '';
                 document.getElementById('autoPrioridade').value = automation.prioridade || 0;
-                document.getElementById('autoDelay').value = automation.delay_ms || 0;
                 
-                // Converter cooldown de segundos para unidade apropriada
+                // Delay - selecionar a opção mais próxima
+                const delayMs = parseInt(automation.delay_ms || 0);
+                const delaySelect = document.getElementById('autoDelay');
+                if (delaySelect) {
+                    // Encontrar opção exata ou mais próxima
+                    let selectedDelay = '0';
+                    const delayOptions = [0, 1000, 2000, 3000, 5000, 7000, 10000, 15000, 30000];
+                    for (const opt of delayOptions) {
+                        if (delayMs >= opt) {
+                            selectedDelay = opt.toString();
+                        } else {
+                            break;
+                        }
+                    }
+                    delaySelect.value = selectedDelay;
+                }
+                
+                // Cooldown - selecionar a opção exata ou mais próxima
                 const cooldownSegundos = parseInt(automation.cooldown_segundos || 0);
-                let cooldownValor = cooldownSegundos;
-                let cooldownUnidade = 'segundos';
-                
-                if (cooldownSegundos >= 86400) {
-                    // Dias
-                    cooldownValor = (cooldownSegundos / 86400).toFixed(1);
-                    cooldownUnidade = 'dias';
-                } else if (cooldownSegundos >= 3600) {
-                    // Horas
-                    cooldownValor = (cooldownSegundos / 3600).toFixed(1);
-                    cooldownUnidade = 'horas';
-                } else if (cooldownSegundos >= 60) {
-                    // Minutos
-                    cooldownValor = (cooldownSegundos / 60).toFixed(1);
-                    cooldownUnidade = 'minutos';
-                } else {
-                    // Segundos
-                    cooldownValor = cooldownSegundos;
-                    cooldownUnidade = 'segundos';
-                }
-                
-                // Garantir que os campos existam antes de preencher
-                const cooldownValorEl = document.getElementById('autoCooldownValor');
-                const cooldownUnidadeEl = document.getElementById('autoCooldownUnidade');
-                const cooldownSegundosEl = document.getElementById('autoCooldownSegundos');
-                
-                if (cooldownValorEl) {
-                    // Garantir que o valor use ponto decimal, não vírgula
-                    const valorFormatado = cooldownValor.toString().replace(',', '.');
-                    cooldownValorEl.value = valorFormatado;
-                }
-                if (cooldownUnidadeEl) cooldownUnidadeEl.value = cooldownUnidade;
-                if (cooldownSegundosEl) cooldownSegundosEl.value = cooldownSegundos;
-                
-                // Calcular novamente para garantir consistência
-                if (cooldownValorEl && cooldownUnidadeEl && cooldownSegundosEl) {
-                    setTimeout(() => calculateCooldownSeconds(), 50);
+                const cooldownSelect = document.getElementById('autoCooldown');
+                if (cooldownSelect) {
+                    // Encontrar opção exata ou mais próxima
+                    let selectedCooldown = '0';
+                    const cooldownOptions = [0, 10, 30, 60, 120, 300, 600, 1800, 3600, 7200, 21600, 43200, 86400, 172800, 604800];
+                    for (const opt of cooldownOptions) {
+                        if (cooldownSegundos >= opt) {
+                            selectedCooldown = opt.toString();
+                        } else {
+                            break;
+                        }
+                    }
+                    cooldownSelect.value = selectedCooldown;
                 }
                 
                 document.getElementById('autoApenasPrivado').checked = automation.apenas_privado == 1;
@@ -1398,11 +1342,9 @@ foreach ($settings as $s) {
                 document.getElementById('autoAtivo').checked = true;
                 document.getElementById('imagePreview').classList.add('hidden');
                 
-                // Resetar campos de cooldown
-                document.getElementById('autoCooldownValor').value = '0';
-                document.getElementById('autoCooldownUnidade').value = 'segundos';
-                document.getElementById('autoCooldownSegundos').value = '0';
+                // Resetar campos
                 document.getElementById('autoDelay').value = '0';
+                document.getElementById('autoCooldown').value = '0';
                 document.getElementById('autoPrioridade').value = '0';
             }
             
