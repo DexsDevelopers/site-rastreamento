@@ -18,22 +18,52 @@ $messageType = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
         if ($_POST['action'] === 'save_config') {
-            $chave = sanitizeInput($_POST['chave'] ?? '');
-            $valor = $_POST['valor'] ?? '';
-            $tipo = sanitizeInput($_POST['tipo'] ?? 'text');
-            
-            if ($chave) {
-                // Verificar se já existe
-                $exists = fetchOne($pdo, "SELECT id FROM homepage_config WHERE chave = ?", [$chave]);
+            // Suporte para salvar múltiplos badges de uma vez
+            if (isset($_POST['badge_satisfacao']) || isset($_POST['badge_entregas']) || isset($_POST['badge_cidades'])) {
+                // Salvar todos os badges
+                $badges = [
+                    'badge_satisfacao' => $_POST['badge_satisfacao'] ?? '',
+                    'badge_entregas' => $_POST['badge_entregas'] ?? '',
+                    'badge_cidades' => $_POST['badge_cidades'] ?? ''
+                ];
                 
-                if ($exists) {
-                    executeQuery($pdo, "UPDATE homepage_config SET valor = ?, tipo = ? WHERE chave = ?", [$valor, $tipo, $chave]);
-                } else {
-                    executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, ?)", [$chave, $valor, $tipo]);
+                foreach ($badges as $chave => $valor) {
+                    $exists = fetchOne($pdo, "SELECT id FROM homepage_config WHERE chave = ?", [$chave]);
+                    
+                    if ($exists) {
+                        executeQuery($pdo, "UPDATE homepage_config SET valor = ? WHERE chave = ?", [$valor, $chave]);
+                    } else {
+                        executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, 'text')", [$chave, $valor]);
+                    }
                 }
                 
+                $message = 'Badges salvos com sucesso!';
+                $messageType = 'success';
+            } else {
+                // Salvar configuração individual
+                $chave = sanitizeInput($_POST['chave'] ?? '');
+                $valor = $_POST['valor'] ?? '';
+                $tipo = sanitizeInput($_POST['tipo'] ?? 'text');
+                
+                if ($chave) {
+                    // Verificar se já existe
+                    $exists = fetchOne($pdo, "SELECT id FROM homepage_config WHERE chave = ?", [$chave]);
+                    
+                    if ($exists) {
+                        executeQuery($pdo, "UPDATE homepage_config SET valor = ?, tipo = ? WHERE chave = ?", [$valor, $tipo, $chave]);
+                    } else {
+                        executeQuery($pdo, "INSERT INTO homepage_config (chave, valor, tipo) VALUES (?, ?, ?)", [$chave, $valor, $tipo]);
+                    }
+                    
                 $message = 'Configuração salva com sucesso!';
                 $messageType = 'success';
+                }
+            }
+            
+            // Redirecionar após salvar para evitar reenvio do formulário (POST-Redirect-GET)
+            if ($messageType === 'success') {
+                header("Location: admin_homepage.php?success=" . urlencode($message));
+                exit;
             }
         } elseif ($_POST['action'] === 'upload_image' || $_POST['action'] === 'upload_video') {
             $referenciaNum = (int)($_POST['referencia_num'] ?? 0);
@@ -139,6 +169,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $message = $e->getMessage();
         $messageType = 'error';
     }
+}
+
+// Carregar todas as configurações
+// Verificar se há mensagem de sucesso na URL (após redirecionamento)
+if (isset($_GET['success'])) {
+    $message = urldecode($_GET['success']);
+    $messageType = 'success';
 }
 
 // Carregar todas as configurações
@@ -311,23 +348,17 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm text-gray-400 mb-2">Badge Satisfação</label>
-                        <input type="text" name="valor" value="<?= htmlspecialchars($badgeSatisfacao) ?>" class="input-field">
-                        <input type="hidden" name="chave" value="badge_satisfacao">
-                        <input type="hidden" name="tipo" value="text">
+                        <input type="text" name="badge_satisfacao" value="<?= htmlspecialchars($badgeSatisfacao) ?>" class="input-field">
                     </div>
                     
                     <div>
                         <label class="block text-sm text-gray-400 mb-2">Badge Entregas</label>
-                        <input type="text" name="valor" value="<?= htmlspecialchars($badgeEntregas) ?>" class="input-field">
-                        <input type="hidden" name="chave" value="badge_entregas">
-                        <input type="hidden" name="tipo" value="text">
+                        <input type="text" name="badge_entregas" value="<?= htmlspecialchars($badgeEntregas) ?>" class="input-field">
                     </div>
                     
                     <div>
                         <label class="block text-sm text-gray-400 mb-2">Badge Cidades</label>
-                        <input type="text" name="valor" value="<?= htmlspecialchars($badgeCidades) ?>" class="input-field">
-                        <input type="hidden" name="chave" value="badge_cidades">
-                        <input type="hidden" name="tipo" value="text">
+                        <input type="text" name="badge_cidades" value="<?= htmlspecialchars($badgeCidades) ?>" class="input-field">
                     </div>
                 </div>
                 
