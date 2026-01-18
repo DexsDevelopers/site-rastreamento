@@ -1174,10 +1174,10 @@ foreach ($settings as $s) {
                     </div>
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Cooldown</label>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 items-stretch">
                             <input type="number" name="cooldown_valor" id="autoCooldownValor" class="input-field flex-1"
-                                value="0" min="0" step="0.1" placeholder="0">
-                            <select name="cooldown_unidade" id="autoCooldownUnidade" class="input-field" style="width: 100px;">
+                                value="0" min="0" step="0.1" placeholder="0" style="min-width: 0;" lang="en" inputmode="decimal">
+                            <select name="cooldown_unidade" id="autoCooldownUnidade" class="input-field" style="width: 90px; flex-shrink: 0;">
                                 <option value="segundos">Seg</option>
                                 <option value="minutos">Min</option>
                                 <option value="horas">Hora</option>
@@ -1231,8 +1231,16 @@ foreach ($settings as $s) {
         // ===== INICIALIZAÇÃO =====
         // Função para calcular cooldown em segundos
         function calculateCooldownSeconds() {
-            const valor = parseFloat(document.getElementById('autoCooldownValor').value) || 0;
-            const unidade = document.getElementById('autoCooldownUnidade').value;
+            const valorEl = document.getElementById('autoCooldownValor');
+            const unidadeEl = document.getElementById('autoCooldownUnidade');
+            const segundosEl = document.getElementById('autoCooldownSegundos');
+            
+            if (!valorEl || !unidadeEl || !segundosEl) return;
+            
+            // Remover vírgulas e converter para ponto decimal
+            let valorStr = valorEl.value.toString().replace(',', '.');
+            const valor = parseFloat(valorStr) || 0;
+            const unidade = unidadeEl.value;
             let segundos = 0;
             
             switch (unidade) {
@@ -1250,7 +1258,7 @@ foreach ($settings as $s) {
                     break;
             }
             
-            document.getElementById('autoCooldownSegundos').value = segundos;
+            segundosEl.value = segundos;
         }
         
         document.addEventListener('DOMContentLoaded', () => {
@@ -1355,9 +1363,23 @@ foreach ($settings as $s) {
                     cooldownUnidade = 'segundos';
                 }
                 
-                document.getElementById('autoCooldownValor').value = cooldownValor;
-                document.getElementById('autoCooldownUnidade').value = cooldownUnidade;
-                document.getElementById('autoCooldownSegundos').value = cooldownSegundos;
+                // Garantir que os campos existam antes de preencher
+                const cooldownValorEl = document.getElementById('autoCooldownValor');
+                const cooldownUnidadeEl = document.getElementById('autoCooldownUnidade');
+                const cooldownSegundosEl = document.getElementById('autoCooldownSegundos');
+                
+                if (cooldownValorEl) {
+                    // Garantir que o valor use ponto decimal, não vírgula
+                    const valorFormatado = cooldownValor.toString().replace(',', '.');
+                    cooldownValorEl.value = valorFormatado;
+                }
+                if (cooldownUnidadeEl) cooldownUnidadeEl.value = cooldownUnidade;
+                if (cooldownSegundosEl) cooldownSegundosEl.value = cooldownSegundos;
+                
+                // Calcular novamente para garantir consistência
+                if (cooldownValorEl && cooldownUnidadeEl && cooldownSegundosEl) {
+                    setTimeout(() => calculateCooldownSeconds(), 50);
+                }
                 
                 document.getElementById('autoApenasPrivado').checked = automation.apenas_privado == 1;
                 document.getElementById('autoApenasGrupo').checked = automation.apenas_grupo == 1;
@@ -1375,6 +1397,13 @@ foreach ($settings as $s) {
                 document.getElementById('automationId').value = '';
                 document.getElementById('autoAtivo').checked = true;
                 document.getElementById('imagePreview').classList.add('hidden');
+                
+                // Resetar campos de cooldown
+                document.getElementById('autoCooldownValor').value = '0';
+                document.getElementById('autoCooldownUnidade').value = 'segundos';
+                document.getElementById('autoCooldownSegundos').value = '0';
+                document.getElementById('autoDelay').value = '0';
+                document.getElementById('autoPrioridade').value = '0';
             }
             
             modal.classList.add('active');
