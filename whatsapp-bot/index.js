@@ -1461,8 +1461,13 @@ function matchAutomation(text, automation) {
       
     case 'palavra_chave':
       // Match com palavras-chave separadas por |
-      const keywords = gatilho.split('|').map(k => k.trim());
+      const keywords = gatilho.split('|').map(k => k.trim()).filter(k => k.length > 0); // Remover vazias
       log.info(`[AUTOMATIONS-MATCH] Palavras-chave: ${keywords.length} palavras`);
+      
+      if (keywords.length === 0) {
+        log.warn(`[AUTOMATIONS-MATCH] Nenhuma palavra-chave válida encontrada!`);
+        return false;
+      }
       
       matched = keywords.some(keyword => {
         const hasMatch = lowerText.includes(keyword) || lowerText === keyword;
