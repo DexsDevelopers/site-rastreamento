@@ -72,7 +72,7 @@ try {
         $sql = "SELECT l.*, a.nome as automacao_nome 
                 FROM bot_automation_logs l
                 LEFT JOIN bot_automations a ON l.automation_id = a.id
-                ORDER BY l.created_at DESC
+                ORDER BY l.criado_em DESC
                 LIMIT 20";
         $stmt = $pdo->query($sql);
         $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -94,7 +94,7 @@ try {
             $lastExecutions = []; // Rastrear última execução por automação+jid
             
             foreach ($logs as $log) {
-                $hora = date('d/m H:i:s', strtotime($log['created_at']));
+                $hora = date('d/m H:i:s', strtotime($log['criado_em']));
                 $numero = substr($log['numero_origem'], 0, 13);
                 $mensagem = htmlspecialchars(substr($log['mensagem_recebida'], 0, 30));
                 $grupoNome = htmlspecialchars(substr($log['grupo_nome'] ?: 'Privado', 0, 20));
@@ -104,14 +104,14 @@ try {
                 $tempoDecorrido = '';
                 
                 if (isset($lastExecutions[$key])) {
-                    $diff = strtotime($lastExecutions[$key]) - strtotime($log['created_at']);
+                    $diff = strtotime($lastExecutions[$key]) - strtotime($log['criado_em']);
                     if ($diff > 0) {
                         $horas = floor($diff / 3600);
                         $minutos = floor(($diff % 3600) / 60);
                         $tempoDecorrido = " <span class='info'>({$horas}h {$minutos}min antes)</span>";
                     }
                 }
-                $lastExecutions[$key] = $log['created_at'];
+                $lastExecutions[$key] = $log['criado_em'];
                 
                 echo "<tr>
                         <td>{$hora}</td>
@@ -144,18 +144,18 @@ try {
     if ($stmt->rowCount() > 0) {
         // Buscar execuções agrupadas
         $sql = "SELECT 
-                    automation_id,
-                    jid_origem,
-                    grupo_nome,
+                    l.automation_id,
+                    l.jid_origem,
+                    l.grupo_nome,
                     COUNT(*) as total_execucoes,
-                    MIN(created_at) as primeira_exec,
-                    MAX(created_at) as ultima_exec,
+                    MIN(l.criado_em) as primeira_exec,
+                    MAX(l.criado_em) as ultima_exec,
                     a.nome as automacao_nome,
                     a.cooldown_segundos
                 FROM bot_automation_logs l
                 LEFT JOIN bot_automations a ON l.automation_id = a.id
-                WHERE l.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-                GROUP BY automation_id, jid_origem
+                WHERE l.criado_em >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                GROUP BY l.automation_id, l.jid_origem, l.grupo_nome
                 HAVING total_execucoes > 1
                 ORDER BY ultima_exec DESC";
         
