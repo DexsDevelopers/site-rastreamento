@@ -1500,12 +1500,15 @@ function matchAutomation(text, automation) {
 
 // Verificar cooldown (usando banco de dados para persistência)
 async function checkCooldown(automationId, jid, cooldownSeconds) {
+  log.info(`[AUTOMATIONS-COOLDOWN] 🔍 Verificando cooldown para automação ${automationId}, grupo ${jid.split('@')[0]}, cooldown: ${cooldownSeconds}s`);
+  
   if (!cooldownSeconds || cooldownSeconds <= 0) {
     log.info(`[AUTOMATIONS-COOLDOWN] Sem cooldown configurado (automationId: ${automationId})`);
     return false; // Sem cooldown configurado
   }
   
   try {
+    log.info(`[AUTOMATIONS-COOLDOWN] 📡 Consultando API para verificar cooldown...`);
     // Verificar no banco de dados (persistente, sobrevive a reinicializações)
     const response = await axios.post(
       `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=check_cooldown`,
@@ -1555,8 +1558,10 @@ async function checkCooldown(automationId, jid, cooldownSeconds) {
     return elapsed < cooldownSeconds;
     
   } catch (error) {
-    log.error(`[AUTOMATIONS-COOLDOWN] Erro ao verificar cooldown: ${error.message}`);
+    log.error(`[AUTOMATIONS-COOLDOWN] ❌ Erro ao verificar cooldown: ${error.message}`);
+    log.error(`[AUTOMATIONS-COOLDOWN] Stack: ${error.stack}`);
     // Em caso de erro, permitir execução (fail-open)
+    log.warn(`[AUTOMATIONS-COOLDOWN] ⚠️  Fallback: permitindo execução devido a erro na API`);
     return false;
   }
 }
