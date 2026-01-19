@@ -98,6 +98,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 break;
                 
+            case 'clone_automation':
+                $id = (int)($_POST['id'] ?? 0);
+                if ($id > 0) {
+                    // Buscar automação original
+                    $original = fetchOne($pdo, "SELECT * FROM bot_automations WHERE id = ?", [$id]);
+                    
+                    if ($original) {
+                        // Criar cópia com nome modificado
+                        $novoNome = $original['nome'] . ' (Cópia)';
+                        
+                        $sql = "INSERT INTO bot_automations 
+                                (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
+                                 apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        
+                        executeQuery($pdo, $sql, [
+                            $novoNome,
+                            $original['descricao'],
+                            $original['tipo'],
+                            $original['gatilho'],
+                            $original['resposta'],
+                            $original['imagem_url'],
+                            $original['grupo_id'],
+                            $original['grupo_nome'],
+                            $original['apenas_privado'],
+                            $original['apenas_grupo'],
+                            $original['delay_ms'],
+                            $original['cooldown_segundos'],
+                            $original['prioridade'],
+                            0  // Deixar inativa por padrão
+                        ]);
+                        
+                        $newId = $pdo->lastInsertId();
+                        $response = ['success' => true, 'message' => 'Automação clonada com sucesso!', 'id' => $newId];
+                    } else {
+                        $response = ['success' => false, 'message' => 'Automação não encontrada'];
+                    }
+                }
+                break;
+                
             case 'toggle_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 $ativo = (int)($_POST['ativo'] ?? 0);
@@ -1433,6 +1473,9 @@ foreach ($settings as $s) {
                             <button onclick='openModal(${JSON.stringify(a)})' class="p-2 hover:bg-zinc-800 rounded-lg transition" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button onclick="cloneAutomation(${a.id}, '${escapeHtml(a.nome)}')" class="p-2 hover:bg-blue-900/50 rounded-lg transition text-blue-400" title="Clonar">
+                                <i class="fas fa-clone"></i>
+                            </button>
                             <button onclick="deleteAutomation(${a.id}, '${escapeHtml(a.nome)}')" class="p-2 hover:bg-red-900/50 rounded-lg transition text-red-400" title="Excluir">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -1500,6 +1543,40 @@ foreach ($settings as $s) {
             }
         }
         
+        async function cloneAutomation(id, nome) {
+            if (!confirm(`Clonar a automação "${nome}"?\n\nUma cópia será criada com o nome "${nome} (Cópia)" e ficará INATIVA por padrão.`)) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'clone_automation');
+            formData.append('id', id);
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast(data.message + ' Edite para personalizar.', 'success');
+                    await loadAutomations();
+                    
+                    // Abrir modal de edição da nova automação clonada
+                    if (data.id) {
+                        // Aguardar lista carregar e então abrir o modal
+                        setTimeout(async () => {
+                            const automations = await fetchAutomations();
+                            const cloned = automations.find(a => a.id == data.id);
+                            if (cloned) {
+                                openModal(cloned);
+                            }
+                        }, 500);
+                    }
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao clonar: ' + err.message, 'error');
+            }
+        }
+        
         async function deleteAutomation(id, nome) {
             if (!confirm(`Excluir a automação "${nome}"?`)) return;
             
@@ -1514,25 +1591,32 @@ foreach ($settings as $s) {
                 if (data.success) {
                     showToast(data.message, 'success');
                     await loadAutomations();
+                } else {
+                    showToast(data.message, 'error');
                 }
             } catch (err) {
                 showToast('Erro: ' + err.message, 'error');
             }
         }
         
-        async function loadAutomations() {
+        async function fetchAutomations() {
             const formData = new FormData();
             formData.append('action', 'get_automations');
             
+            const res = await fetch('', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (data.success) {
+                return data.data;
+            }
+            return [];
+        }
+        
+        async function loadAutomations() {
             try {
-                const res = await fetch('', { method: 'POST', body: formData });
-                const data = await res.json();
-                
-                if (data.success) {
-                    automations = data.data;
-                    renderAutomations();
-                    loadStats();
-                }
+                automations = await fetchAutomations();
+                renderAutomations();
+                loadStats();
             } catch (err) {
                 console.error('Erro ao carregar automações:', err);
             }
