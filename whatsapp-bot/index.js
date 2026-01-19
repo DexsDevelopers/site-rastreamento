@@ -34,6 +34,12 @@ function formatBrazilNumber(raw) {
   return digits;
 }
 
+// Verifica se o JID é um grupo (incluindo comunidades/newsletters)
+function isGroupJid(jid) {
+  if (!jid || typeof jid !== 'string') return false;
+  return jid.includes('@g.us') || jid.includes('@newsletter');
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -244,8 +250,8 @@ async function checkContactExists(sock, jid) {
   if (!CHECK_CONTACT_BEFORE_SEND || !SAFETY_ENABLED) return true;
   
   try {
-    // Verificar se é grupo (grupos sempre existem se o bot está no grupo)
-    if (jid.includes('@g.us')) {
+    // Verificar se é grupo ou comunidade (sempre existem se o bot está neles)
+    if (isGroupJid(jid)) {
       return true;
     }
     
@@ -694,7 +700,7 @@ async function processIAChat(remoteJid, text, senderNumber) {
     return null;
   }
   
-  const isGroup = remoteJid.includes('@g.us');
+  const isGroup = isGroupJid(remoteJid);
   
   // Se configurado para só privado e for grupo, ignorar
   if (IA_ONLY_PRIVATE && isGroup) {
@@ -1655,7 +1661,7 @@ async function processAutomations(remoteJid, text, msg) {
     
     log.info(`[AUTOMATIONS] ${automations.length} automações disponíveis`);
     
-    const isGroup = remoteJid.includes('@g.us');
+    const isGroup = isGroupJid(remoteJid);
     const grupoId = isGroup ? remoteJid : null;
     
     // Automações agora funcionam em todos os grupos, mesmo sem licença
@@ -1833,7 +1839,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
       return { success: true, message: menuText };
     }
     
-    const isGroup = remoteJid.includes('@g.us');
+    const isGroup = isGroupJid(remoteJid);
     if (!isGroup) {
       return { success: false, message: '❌ Este comando só funciona em grupos.' };
     }
@@ -2653,12 +2659,12 @@ async function start() {
             const pollJid = pollMessage.remoteJid || msg.key?.remoteJid; // JID do destino da poll
             const voterJid = msg.key?.remoteJid; // JID de quem votou (quem enviou o voto)
             
-            if (!pollJid || typeof pollJid !== 'string' || pollJid.includes('@g.us')) {
-              continue; // Ignorar grupos
+            if (!pollJid || typeof pollJid !== 'string' || isGroupJid(pollJid)) {
+              continue; // Ignorar grupos e comunidades
             }
             
-            if (!voterJid || typeof voterJid !== 'string' || voterJid.includes('@g.us')) {
-              continue; // Ignorar grupos
+            if (!voterJid || typeof voterJid !== 'string' || isGroupJid(voterJid)) {
+              continue; // Ignorar grupos e comunidades
             }
             
             const phoneNumber = voterJid.split('@')[0];
@@ -2895,9 +2901,9 @@ async function start() {
           
           log.info(`[POLL] messageId: ${messageId}, jid: ${jid}`);
           
-          if (!jid || typeof jid !== 'string' || jid.includes('@g.us')) {
-            log.warn(`[POLL] JID inválido ou grupo: ${jid}`);
-            continue; // Ignorar grupos e JIDs inválidos
+          if (!jid || typeof jid !== 'string' || isGroupJid(jid)) {
+            log.warn(`[POLL] JID inválido, grupo ou comunidade: ${jid}`);
+            continue; // Ignorar grupos, comunidades e JIDs inválidos
           }
           
           const phoneNumber = jid.split('@')[0];
@@ -3238,7 +3244,7 @@ async function start() {
         }
         
         // ===== VERIFICAR ANTI-LINK =====
-        const isGroup = remoteJid.includes('@g.us');
+        const isGroup = isGroupJid(remoteJid);
         if (isGroup && text) {
           const antilinkConfig = antilinkGroups.get(remoteJid);
           
@@ -3339,7 +3345,7 @@ async function start() {
           
           // ===== PROCESSAR IA (Chat Inteligente) =====
           // Se nenhuma automação respondeu, tentar IA (principalmente para chats privados)
-          const isPrivateChat = !remoteJid.includes('@g.us');
+          const isPrivateChat = !isGroupJid(remoteJid);
           if (IA_ENABLED && (isPrivateChat || !IA_ONLY_PRIVATE)) {
             // Não processar comandos especiais ou mensagens muito curtas
             const lowerText = text.toLowerCase().trim();
