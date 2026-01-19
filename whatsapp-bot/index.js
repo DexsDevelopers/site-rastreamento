@@ -1437,35 +1437,58 @@ async function loadBotSettings() {
 
 // Verificar se mensagem corresponde a uma automação
 function matchAutomation(text, automation) {
-  if (!text || !automation.gatilho) return false;
+  if (!text || !automation.gatilho) {
+    log.warn(`[AUTOMATIONS-MATCH] Texto ou gatilho vazio`);
+    return false;
+  }
   
   const lowerText = text.toLowerCase().trim();
   const gatilho = automation.gatilho.toLowerCase();
   
+  log.info(`[AUTOMATIONS-MATCH] Testando automação "${automation.nome}" (ID: ${automation.id})`);
+  log.info(`[AUTOMATIONS-MATCH] Tipo: ${automation.tipo}`);
+  log.info(`[AUTOMATIONS-MATCH] Texto recebido: "${lowerText}"`);
+  log.info(`[AUTOMATIONS-MATCH] Gatilho: "${gatilho.substring(0, 100)}..."`);
+  
+  let matched = false;
+  
   switch (automation.tipo) {
     case 'mensagem_especifica':
       // Match exato
-      return lowerText === gatilho;
+      matched = lowerText === gatilho;
+      log.info(`[AUTOMATIONS-MATCH] Mensagem específica: ${matched ? 'MATCH ✅' : 'NO MATCH ❌'}`);
+      return matched;
       
     case 'palavra_chave':
       // Match com palavras-chave separadas por |
       const keywords = gatilho.split('|').map(k => k.trim());
-      return keywords.some(keyword => {
-        // Verifica se a palavra-chave está presente na mensagem
-        return lowerText.includes(keyword) || lowerText === keyword;
+      log.info(`[AUTOMATIONS-MATCH] Palavras-chave: ${keywords.length} palavras`);
+      
+      matched = keywords.some(keyword => {
+        const hasMatch = lowerText.includes(keyword) || lowerText === keyword;
+        if (hasMatch) {
+          log.info(`[AUTOMATIONS-MATCH] ✅ MATCH com palavra: "${keyword}"`);
+        }
+        return hasMatch;
       });
+      
+      log.info(`[AUTOMATIONS-MATCH] Resultado: ${matched ? 'MATCH ✅' : 'NO MATCH ❌'}`);
+      return matched;
       
     case 'regex':
       // Match com expressão regular
       try {
         const regex = new RegExp(automation.gatilho, 'i');
-        return regex.test(text);
+        matched = regex.test(text);
+        log.info(`[AUTOMATIONS-MATCH] Regex: ${matched ? 'MATCH ✅' : 'NO MATCH ❌'}`);
+        return matched;
       } catch (e) {
         log.warn(`[AUTOMATIONS] Regex inválido: ${automation.gatilho}`);
         return false;
       }
       
     default:
+      log.warn(`[AUTOMATIONS-MATCH] Tipo desconhecido: ${automation.tipo}`);
       return false;
   }
 }
@@ -1612,17 +1635,37 @@ async function processAutomations(remoteJid, text, msg) {
     
     // Verificar cada automação por ordem de prioridade
     for (const automation of automations) {
+      log.info(`[AUTOMATIONS] ━━━ Verificando automação: "${automation.nome}" (ID: ${automation.id}) ━━━`);
+      log.info(`[AUTOMATIONS] Configuração: apenas_privado=${automation.apenas_privado}, apenas_grupo=${automation.apenas_grupo}, grupo_id=${automation.grupo_id || 'TODOS'}`);
+      log.info(`[AUTOMATIONS] Contexto: isGroup=${isGroup}, remoteJid=${remoteJid}`);
+      
       // Verificar se é para grupo/privado
-      if (automation.apenas_privado == 1 && isGroup) continue;
-      if (automation.apenas_grupo == 1 && !isGroup) continue;
+      if (automation.apenas_privado == 1 && isGroup) {
+        log.warn(`[AUTOMATIONS] ❌ Pulando: automação é apenas para PRIVADO e mensagem veio de GRUPO`);
+        continue;
+      }
+      if (automation.apenas_grupo == 1 && !isGroup) {
+        log.warn(`[AUTOMATIONS] ❌ Pulando: automação é apenas para GRUPO e mensagem veio de PRIVADO`);
+        continue;
+      }
+      
+      log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo/privado`);
       
       // Verificar se é para grupo específico
-      if (automation.grupo_id && automation.grupo_id !== remoteJid) continue;
+      if (automation.grupo_id && automation.grupo_id !== remoteJid) {
+        log.warn(`[AUTOMATIONS] ❌ Pulando: automação é para grupo específico diferente`);
+        continue;
+      }
+      
+      log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo específico`);
       
       // Verificar match
-      if (!matchAutomation(text, automation)) continue;
+      if (!matchAutomation(text, automation)) {
+        log.warn(`[AUTOMATIONS] ❌ Pulando: texto não deu match com gatilho`);
+        continue;
+      }
       
-      log.info(`[AUTOMATIONS] Match encontrado: "${automation.nome}" (ID: ${automation.id}, Cooldown: ${automation.cooldown_segundos}s)`);
+      log.success(`[AUTOMATIONS] ✅✅✅ Match encontrado: "${automation.nome}" (ID: ${automation.id}, Cooldown: ${automation.cooldown_segundos}s)`);
       
       // Verificar cooldown
       if (checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
