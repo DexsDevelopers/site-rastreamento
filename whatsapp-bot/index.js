@@ -1498,37 +1498,67 @@ function matchAutomation(text, automation) {
   }
 }
 
-// Verificar cooldown
-function checkCooldown(automationId, jid, cooldownSeconds) {
+// Verificar cooldown (usando banco de dados para persistência)
+async function checkCooldown(automationId, jid, cooldownSeconds) {
   if (!cooldownSeconds || cooldownSeconds <= 0) {
     log.info(`[AUTOMATIONS-COOLDOWN] Sem cooldown configurado (automationId: ${automationId})`);
     return false; // Sem cooldown configurado
   }
   
-  const key = `${automationId}-${jid}`;
-  const lastUse = automationCooldowns.get(key);
-  
-  if (!lastUse) {
-    log.info(`[AUTOMATIONS-COOLDOWN] Primeira execução da automação ${automationId} para ${jid.split('@')[0]}`);
-    return false; // Nunca foi usado, pode executar
+  try {
+    // Verificar no banco de dados (persistente, sobrevive a reinicializações)
+    const response = await axios.post(
+      `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=check_cooldown`,
+      {
+        automation_id: automationId,
+        jid_origem: jid,
+        cooldown_segundos: cooldownSeconds
+      },
+      {
+        headers: {
+          'x-api-token': RASTREAMENTO_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      }
+    );
+    
+    if (response.data && response.data.success) {
+      const data = response.data;
+      const isInCooldown = data.in_cooldown;
+      
+      log.info(`[AUTOMATIONS-COOLDOWN] Automação ${automationId} para ${jid.split('@')[0]}:`);
+      log.info(`  - Cooldown configurado: ${cooldownSeconds}s`);
+      log.info(`  - Tempo decorrido: ${data.elapsed_seconds}s`);
+      log.info(`  - Em cooldown: ${isInCooldown ? 'SIM' : 'NÃO'}`);
+      
+      if (isInCooldown) {
+        const remaining = data.remaining_seconds;
+        log.warn(`[AUTOMATIONS-COOLDOWN] ⏳ Cooldown ativo: ${remaining}s restantes (total: ${cooldownSeconds}s)`);
+      } else {
+        log.success(`[AUTOMATIONS-COOLDOWN] ✅ Cooldown OK, pode executar`);
+      }
+      
+      return isInCooldown;
+    }
+    
+    // Fallback para memória local se API falhar
+    log.warn(`[AUTOMATIONS-COOLDOWN] API falhou, usando fallback em memória`);
+    const key = `${automationId}-${jid}`;
+    const lastUse = automationCooldowns.get(key);
+    
+    if (!lastUse) {
+      return false;
+    }
+    
+    const elapsed = (Date.now() - lastUse) / 1000;
+    return elapsed < cooldownSeconds;
+    
+  } catch (error) {
+    log.error(`[AUTOMATIONS-COOLDOWN] Erro ao verificar cooldown: ${error.message}`);
+    // Em caso de erro, permitir execução (fail-open)
+    return false;
   }
-  
-  const elapsed = (Date.now() - lastUse) / 1000; // Tempo decorrido em segundos
-  const isInCooldown = elapsed < cooldownSeconds;
-  
-  log.info(`[AUTOMATIONS-COOLDOWN] Automação ${automationId}:`);
-  log.info(`  - Cooldown configurado: ${cooldownSeconds}s`);
-  log.info(`  - Tempo decorrido: ${Math.floor(elapsed)}s`);
-  log.info(`  - Em cooldown: ${isInCooldown ? 'SIM' : 'NÃO'}`);
-  
-  if (isInCooldown) {
-    const remaining = Math.ceil(cooldownSeconds - elapsed);
-    log.warn(`[AUTOMATIONS-COOLDOWN] ⏳ Cooldown ativo: ${remaining}s restantes (total: ${cooldownSeconds}s)`);
-  } else {
-    log.success(`[AUTOMATIONS-COOLDOWN] ✅ Cooldown expirado, pode executar novamente`);
-  }
-  
-  return isInCooldown;
 }
 
 // Registrar uso de automação
@@ -1673,7 +1703,7 @@ async function processAutomations(remoteJid, text, msg) {
       log.success(`[AUTOMATIONS] ✅✅✅ Match encontrado: "${automation.nome}" (ID: ${automation.id}, Cooldown: ${automation.cooldown_segundos}s)`);
       
       // Verificar cooldown
-      if (checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
+      if (await checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
         log.info(`[AUTOMATIONS] Cooldown ativo para automação ${automation.id} e JID ${remoteJid}`);
         continue;
       }

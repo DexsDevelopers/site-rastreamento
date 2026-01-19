@@ -157,13 +157,16 @@ try {
             $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
             $automationId = (int) ($input['automation_id'] ?? 0);
             $jidOrigem = sanitizeInput($input['jid_origem'] ?? '');
+            $cooldownSegundos = (int)($input['cooldown_segundos'] ?? 0);
             
             if ($automationId && $jidOrigem) {
-                // Buscar cooldown da automação
-                $automation = fetchOne($pdo, "SELECT cooldown_segundos FROM bot_automations WHERE id = ?", [$automationId]);
-                $cooldown = (int) ($automation['cooldown_segundos'] ?? 0);
+                // Usar cooldown passado como parâmetro ou buscar do banco
+                if ($cooldownSegundos <= 0) {
+                    $automation = fetchOne($pdo, "SELECT cooldown_segundos FROM bot_automations WHERE id = ?", [$automationId]);
+                    $cooldownSegundos = (int) ($automation['cooldown_segundos'] ?? 0);
+                }
                 
-                if ($cooldown > 0) {
+                if ($cooldownSegundos > 0) {
                     // Verificar último uso deste usuário para esta automação
                     $lastUse = fetchOne($pdo, 
                         "SELECT criado_em FROM bot_automation_logs 
@@ -174,19 +177,40 @@ try {
                     if ($lastUse) {
                         $lastTime = strtotime($lastUse['criado_em']);
                         $elapsed = time() - $lastTime;
+                        $remaining = max(0, $cooldownSegundos - $elapsed);
                         
-                        if ($elapsed < $cooldown) {
+                        if ($elapsed < $cooldownSegundos) {
                             $response = [
                                 'success' => true, 
                                 'in_cooldown' => true,
-                                'remaining' => $cooldown - $elapsed
+                                'elapsed_seconds' => $elapsed,
+                                'remaining_seconds' => $remaining,
+                                'last_use' => $lastUse['criado_em']
                             ];
                             break;
                         }
+                        
+                        $response = [
+                            'success' => true, 
+                            'in_cooldown' => false,
+                            'elapsed_seconds' => $elapsed,
+                            'remaining_seconds' => 0,
+                            'last_use' => $lastUse['criado_em']
+                        ];
+                        break;
                     }
                 }
                 
-                $response = ['success' => true, 'in_cooldown' => false];
+                // Primeira execução ou sem cooldown
+                $response = [
+                    'success' => true, 
+                    'in_cooldown' => false,
+                    'elapsed_seconds' => 0,
+                    'remaining_seconds' => 0,
+                    'last_use' => null
+                ];
+            } else {
+                $response = ['success' => false, 'error' => 'Dados incompletos'];
             }
             break;
             
