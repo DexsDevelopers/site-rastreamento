@@ -572,6 +572,7 @@ let automationsSettings = {}; // Configurações do bot
 let lastAutomationsLoad = 0; // Timestamp do último carregamento
 const AUTOMATIONS_CACHE_TTL = 60000; // 1 minuto de cache
 const automationCooldowns = new Map(); // key: `${automationId}-${jid}`, value: timestamp
+const automationLocks = new Map(); // key: `${automationId}-${jid}`, value: timestamp da trava (previne execução simultânea)
 // State management: amarrar messageId da poll com contexto
 const pollContext = new Map(); // key: messageId, value: { type: string, jid: string, options: array, commandMap: object, timestamp: number }
 // Anti-loop: evitar processar o mesmo voto duas vezes
@@ -1713,9 +1714,24 @@ async function processAutomations(remoteJid, text, msg) {
       
       log.success(`[AUTOMATIONS] ✅✅✅ Match encontrado: "${automation.nome}" (ID: ${automation.id}, Cooldown: ${automation.cooldown_segundos}s)`);
       
+      // TRAVA DE SEGURANÇA: Verificar se já está executando
+      const lockKey = `${automation.id}-${remoteJid}`;
+      const now = Date.now();
+      const existingLock = automationLocks.get(lockKey);
+      
+      if (existingLock && (now - existingLock) < 30000) { // 30 segundos de trava
+        log.warn(`[AUTOMATIONS] 🔒 TRAVA ATIVA: Automação ${automation.id} já está executando para este grupo (trava há ${Math.floor((now - existingLock)/1000)}s)`);
+        continue;
+      }
+      
+      // Criar trava
+      automationLocks.set(lockKey, now);
+      log.info(`[AUTOMATIONS] 🔐 Trava criada para prevenir execução simultânea`);
+      
       // Verificar cooldown
       if (await checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
         log.info(`[AUTOMATIONS] Cooldown ativo para automação ${automation.id} e JID ${remoteJid}`);
+        automationLocks.delete(lockKey); // Remover trava antes de continuar
         continue;
       }
       
@@ -1752,9 +1768,17 @@ async function processAutomations(remoteJid, text, msg) {
         // Log na API
         logAutomationExecution(automation, remoteJid, text, automation.resposta, grupoId, grupoNome);
         
+        // Remover trava após sucesso
+        automationLocks.delete(lockKey);
+        log.info(`[AUTOMATIONS] 🔓 Trava removida após envio bem-sucedido`);
+        
         return true; // Automação executada
       } catch (sendError) {
         log.error(`[AUTOMATIONS] Erro ao enviar resposta: ${sendError.message}`);
+        
+        // Remover trava em caso de erro
+        automationLocks.delete(lockKey);
+        log.warn(`[AUTOMATIONS] 🔓 Trava removida após erro`);
         
         // Se falhar com imagem, tentar só texto
         if (automation.imagem_url) {
@@ -1762,9 +1786,11 @@ async function processAutomations(remoteJid, text, msg) {
             log.warn(`[AUTOMATIONS] Tentando enviar apenas texto após falha de imagem`);
             await safeSendMessage(sock,remoteJid, { text: automation.resposta });
             registerAutomationUse(automation.id, remoteJid);
+            automationLocks.delete(lockKey); // Garantir remoção
             return true;
           } catch (textError) {
             log.error(`[AUTOMATIONS] Também falhou só texto: ${textError.message}`);
+            automationLocks.delete(lockKey); // Garantir remoção
           }
         }
       }
