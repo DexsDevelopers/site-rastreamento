@@ -8,15 +8,33 @@ require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 require_once 'includes/rastreio_media.php';
 
+// Verificar conexão com banco PRIMEIRO
+if (!isset($pdo) || $pdo === null) {
+    die("❌ Erro: Não foi possível conectar ao banco de dados. Verifique as configurações em includes/db_connect.php");
+}
+
 // Função para obter configuração da homepage
 function getHomepageConfig($pdo, $chave, $default = '') {
     try {
+        // Verificar se a tabela existe
+        $stmt = $pdo->query("SHOW TABLES LIKE 'homepage_config'");
+        if ($stmt->rowCount() === 0) {
+            return $default; // Tabela não existe ainda
+        }
+        
         $result = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chave]);
-        return $result ? $result['valor'] : $default;
+        return $result && isset($result['valor']) ? $result['valor'] : $default;
     } catch (Exception $e) {
+        // Em caso de erro, retornar valor padrão
         return $default;
     }
 }
+
+// Carregar configurações da homepage
+$nomeEmpresa = getHomepageConfig($pdo, 'nome_empresa', 'Helmer Logistics');
+$badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', '98.7% de Satisfação');
+$badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', '5.247 Entregas');
+$badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -541,7 +559,7 @@ body {
 
 <header class="header">
     <div class="nav-container">
-        <a href="index.php" class="logo">Helmer Logistics</a>
+        <a href="index.php" class="logo"><?= htmlspecialchars($nomeEmpresa) ?></a>
         <nav class="nav-links">
             <a href="index.php">Início</a>
             <a href="sobre.php">Sobre</a>
@@ -557,7 +575,7 @@ body {
 </header>
 
 <section class="hero">
-    <h1>Helmer Logistics S/A</h1>
+    <h1><?= htmlspecialchars($nomeEmpresa) ?> S/A</h1>
     <p class="tagline">Especialistas em entregas discretas. Mais de 5.000 entregas realizadas com 98% de satisfação. Nossos clientes acompanham cada etapa do recebimento com tecnologia avançada.</p>
     <div class="hero-actions">
         <a href="index.php" class="btn-hero">
@@ -568,9 +586,9 @@ body {
         </a>
     </div>
     <div class="badges">
-        <span class="badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
-        <span class="badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
-        <span class="badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
+        <span class="badge"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($badgeSatisfacao) ?></span>
+        <span class="badge"><i class="fas fa-truck"></i> <?= htmlspecialchars($badgeEntregas) ?></span>
+        <span class="badge"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($badgeCidades) ?></span>
     </div>
 </section>
 
@@ -600,17 +618,17 @@ body {
         <div class="stats-grid">
             <div class="stat-card">
             <div class="stat-icon">📦</div>
-            <div class="stat-number">5.247</div>
+            <div class="stat-number"><?= htmlspecialchars(str_replace(['Entregas', ' '], '', $badgeEntregas)) ?></div>
                 <div class="stat-label">Entregas Realizadas</div>
             </div>
             <div class="stat-card">
             <div class="stat-icon">🌍</div>
-            <div class="stat-number">247</div>
+            <div class="stat-number"><?= htmlspecialchars(str_replace(['Cidades', ' '], '', $badgeCidades)) ?></div>
                 <div class="stat-label">Cidades Atendidas</div>
             </div>
             <div class="stat-card">
             <div class="stat-icon">⭐</div>
-            <div class="stat-number">98.7%</div>
+            <div class="stat-number"><?= htmlspecialchars(str_replace(['de Satisfação', ' '], '', $badgeSatisfacao)) ?></div>
             <div class="stat-label">Taxa de Satisfação</div>
         </div>
     </div>

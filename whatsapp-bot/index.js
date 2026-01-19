@@ -1473,6 +1473,7 @@ function matchAutomation(text, automation) {
 // Verificar cooldown
 function checkCooldown(automationId, jid, cooldownSeconds) {
   if (!cooldownSeconds || cooldownSeconds <= 0) {
+    log.info(`[AUTOMATIONS-COOLDOWN] Sem cooldown configurado (automationId: ${automationId})`);
     return false; // Sem cooldown configurado
   }
   
@@ -1480,15 +1481,23 @@ function checkCooldown(automationId, jid, cooldownSeconds) {
   const lastUse = automationCooldowns.get(key);
   
   if (!lastUse) {
+    log.info(`[AUTOMATIONS-COOLDOWN] Primeira execução da automação ${automationId} para ${jid.split('@')[0]}`);
     return false; // Nunca foi usado, pode executar
   }
   
   const elapsed = (Date.now() - lastUse) / 1000; // Tempo decorrido em segundos
   const isInCooldown = elapsed < cooldownSeconds;
   
+  log.info(`[AUTOMATIONS-COOLDOWN] Automação ${automationId}:`);
+  log.info(`  - Cooldown configurado: ${cooldownSeconds}s`);
+  log.info(`  - Tempo decorrido: ${Math.floor(elapsed)}s`);
+  log.info(`  - Em cooldown: ${isInCooldown ? 'SIM' : 'NÃO'}`);
+  
   if (isInCooldown) {
     const remaining = Math.ceil(cooldownSeconds - elapsed);
-    log.info(`[AUTOMATIONS] Cooldown ativo: ${remaining}s restantes (total: ${cooldownSeconds}s)`);
+    log.warn(`[AUTOMATIONS-COOLDOWN] ⏳ Cooldown ativo: ${remaining}s restantes (total: ${cooldownSeconds}s)`);
+  } else {
+    log.success(`[AUTOMATIONS-COOLDOWN] ✅ Cooldown expirado, pode executar novamente`);
   }
   
   return isInCooldown;
@@ -1497,7 +1506,10 @@ function checkCooldown(automationId, jid, cooldownSeconds) {
 // Registrar uso de automação
 function registerAutomationUse(automationId, jid) {
   const key = `${automationId}-${jid}`;
-  automationCooldowns.set(key, Date.now());
+  const now = Date.now();
+  automationCooldowns.set(key, now);
+  
+  log.info(`[AUTOMATIONS-COOLDOWN] 📝 Registrado uso da automação ${automationId} em ${new Date(now).toLocaleString('pt-BR')}`);
   
   // Limpar cooldowns antigos (mais de 7 dias para suportar cooldowns longos)
   const sevenDaysAgo = Date.now() - (7 * 24 * 3600 * 1000);
@@ -1609,6 +1621,8 @@ async function processAutomations(remoteJid, text, msg) {
       
       // Verificar match
       if (!matchAutomation(text, automation)) continue;
+      
+      log.info(`[AUTOMATIONS] Match encontrado: "${automation.nome}" (ID: ${automation.id}, Cooldown: ${automation.cooldown_segundos}s)`);
       
       // Verificar cooldown
       if (checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
