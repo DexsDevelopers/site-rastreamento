@@ -1702,8 +1702,11 @@ async function processAutomations(remoteJid, text, msg) {
           await safeSendMessage(sock,remoteJid, { text: automation.resposta });
         }
         
+        log.success(`[AUTOMATIONS] 📤 Mensagem enviada com sucesso!`);
+        
         // Registrar uso
         registerAutomationUse(automation.id, remoteJid);
+        log.success(`[AUTOMATIONS] 🔒 Cooldown registrado para ${automation.cooldown_segundos}s (${Math.floor(automation.cooldown_segundos/3600)}h ${Math.floor((automation.cooldown_segundos%3600)/60)}min)`);
         
         // Log na API
         logAutomationExecution(automation, remoteJid, text, automation.resposta, grupoId, grupoNome);
