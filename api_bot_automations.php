@@ -304,6 +304,12 @@ try {
                 $response = ['success' => false, 'error' => 'grupo_jid não informado'];
             }
             break;
+
+        case 'get_grupos':
+            // Buscar grupos cadastrados pelo bot
+            $grupos = fetchData($pdo, "SELECT * FROM bot_grupos ORDER BY nome");
+            $response = ['success' => true, 'data' => $grupos];
+            break;
             
         default:
             $response = ['success' => false, 'error' => 'Ação não reconhecida: ' . $action];

@@ -3143,6 +3143,21 @@ async function start() {
         }).catch(err => {
           log.warn(`[AUTOMATIONS] Erro ao carregar automações: ${err.message}`);
         });
+
+        // Atualizar lista de grupos conhecidos no banco
+        try {
+          log.info('[GROUPS] Buscando grupos participados...');
+          const groups = await sock.groupFetchAllParticipating();
+          const groupsList = Object.values(groups);
+          log.info(`[GROUPS] ${groupsList.length} grupos encontrados.`);
+          
+          for (const g of groupsList) {
+            await saveGroupInfo(g.id, g.subject, g.desc || '', g.participants?.length || 0);
+          }
+          log.success('[GROUPS] Lista de grupos atualizada no banco.');
+        } catch (err) {
+          log.warn(`[GROUPS] Erro ao atualizar grupos: ${err.message}`);
+        }
       }
 
       if (connection === 'close') {
@@ -3208,6 +3223,17 @@ async function start() {
         } else {
           log.error(`🔒 Desconectado permanentemente: ${reason}`);
           log.error('Ação necessária: Apague a pasta ./auth e reinicie o bot.');
+        }
+      }
+    });
+
+    // Handler para novos grupos ou atualizações de grupos
+    sock.ev.on('groups.upsert', async (groups) => {
+      log.info(`[GROUPS] Upsert de ${groups.length} grupos detectado`);
+      for (const g of groups) {
+        // Só salvar se tiver nome (subject)
+        if (g.subject) {
+          await saveGroupInfo(g.id, g.subject, g.desc || '', g.participants?.length || 0);
         }
       }
     });
