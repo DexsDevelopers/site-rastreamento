@@ -1390,8 +1390,25 @@ async function saveGroupSettings(grupoJid, grupoNome, config) {
 
 // ===== SISTEMA DE AUTOMAÇÕES - FUNÇÕES =====
 
+let migrationChecked = false;
+
 // Carregar automações do servidor
 async function loadAutomations() {
+  // Tentar migração de schema na primeira execução
+  if (!migrationChecked) {
+    try {
+      log.info(`[MIGRATION] Verificando schema do banco de dados...`);
+      const migrationUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=migrate_schema`;
+      await axios.get(migrationUrl, {
+        headers: { 'x-api-token': RASTREAMENTO_TOKEN },
+        timeout: 5000
+      });
+      migrationChecked = true;
+    } catch (e) {
+      log.warn(`[MIGRATION] Erro ao verificar schema (não fatal): ${e.message}`);
+    }
+  }
+
   try {
     // Verificar cache
     if (Date.now() - lastAutomationsLoad < AUTOMATIONS_CACHE_TTL && automationsCache.length > 0) {
@@ -1554,15 +1571,15 @@ async function checkCooldown(automationId, jid, cooldownSeconds) {
     
     // Fallback para memória local se API falhar
     log.warn(`[AUTOMATIONS-COOLDOWN] API falhou, usando fallback em memória`);
-    const key = `${automationId}-${jid}`;
-    const lastUse = automationCooldowns.get(key);
-    
+  const key = `${automationId}-${jid}`;
+  const lastUse = automationCooldowns.get(key);
+  
     if (!lastUse) {
       return false;
     }
-    
-    const elapsed = (Date.now() - lastUse) / 1000;
-    return elapsed < cooldownSeconds;
+  
+  const elapsed = (Date.now() - lastUse) / 1000;
+  return elapsed < cooldownSeconds;
     
   } catch (error) {
     log.error(`[AUTOMATIONS-COOLDOWN] ❌ Erro ao verificar cooldown: ${error.message}`);
@@ -1698,8 +1715,14 @@ async function processAutomations(remoteJid, text, msg) {
       
       log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo/privado`);
       
-      // Verificar se é para grupo específico
-      if (automation.grupo_id && automation.grupo_id !== remoteJid) {
+      // Verificar se é para grupos específicos (Suporte a múltiplos grupos)
+      if (Array.isArray(automation.grupos_permitidos) && automation.grupos_permitidos.length > 0) {
+        if (!automation.grupos_permitidos.includes(remoteJid)) {
+          log.warn(`[AUTOMATIONS] ❌ Pulando: automação restrita a grupos específicos e este (${remoteJid}) não está na lista`);
+          continue;
+        }
+      } else if (automation.grupo_id && automation.grupo_id !== remoteJid) {
+        // Fallback legado caso a API não tenha enviado grupos_permitidos corretamente
         log.warn(`[AUTOMATIONS] ❌ Pulando: automação é para grupo específico diferente`);
         continue;
       }

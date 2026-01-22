@@ -36,6 +36,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         switch ($action) {
             case 'get_automations':
                 $automations = fetchData($pdo, "SELECT * FROM bot_automations ORDER BY prioridade DESC, criado_em DESC");
+                
+                // Decodificar JSON de grupos_permitidos
+                foreach ($automations as &$auto) {
+                    if (!empty($auto['grupos_permitidos'])) {
+                        $decoded = json_decode($auto['grupos_permitidos'], true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $auto['grupos_permitidos'] = $decoded;
+                        } else {
+                            // Tentar split por vírgula se não for JSON
+                            $auto['grupos_permitidos'] = array_filter(array_map('trim', explode(',', $auto['grupos_permitidos'])));
+                        }
+                    } else {
+                        $auto['grupos_permitidos'] = [];
+                        // Fallback para legado
+                        if (!empty($auto['grupo_id'])) {
+                            $auto['grupos_permitidos'][] = $auto['grupo_id'];
+                        }
+                    }
+                }
+                
                 $response = ['success' => true, 'data' => $automations];
                 break;
                 
@@ -47,8 +67,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $gatilho = sanitizeInput($_POST['gatilho'] ?? '');
                 $resposta = $_POST['resposta'] ?? ''; // Não sanitizar para manter formatação
                 $imagemUrl = sanitizeInput($_POST['imagem_url'] ?? '') ?: null;
-                $grupoId = sanitizeInput($_POST['grupo_id'] ?? '') ?: null;
-                $grupoNome = sanitizeInput($_POST['grupo_nome'] ?? '') ?: null;
+                
+                // Grupos permitidos (multi-select)
+                $gruposPermitidos = $_POST['grupos_permitidos'] ?? [];
+                if (!is_array($gruposPermitidos)) $gruposPermitidos = [];
+                // Remover entradas vazias
+                $gruposPermitidos = array_filter($gruposPermitidos);
+                $gruposPermitidosJson = !empty($gruposPermitidos) ? json_encode(array_values($gruposPermitidos)) : null;
+                
+                // Manter compatibilidade com código legado (pegar o primeiro grupo ou null)
+                $grupoId = !empty($gruposPermitidos) ? $gruposPermitidos[0] : null;
+                
+                // Tentar buscar nome do primeiro grupo para manter compatibilidade
+                $grupoNome = null;
+                if ($grupoId) {
+                    $grp = fetchOne($pdo, "SELECT nome FROM bot_grupos WHERE jid = ?", [$grupoId]);
+                    if ($grp) $grupoNome = $grp['nome'];
+                }
+
                 $apenasPrivado = isset($_POST['apenas_privado']) ? 1 : 0;
                 $apenasGrupo = isset($_POST['apenas_grupo']) ? 1 : 0;
                 // Delay - já vem em milissegundos do select
@@ -69,21 +105,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     // Atualizar
                     $sql = "UPDATE bot_automations SET 
                             nome = ?, descricao = ?, tipo = ?, gatilho = ?, resposta = ?, imagem_url = ?,
-                            grupo_id = ?, grupo_nome = ?, apenas_privado = ?, apenas_grupo = ?,
+                            grupo_id = ?, grupos_permitidos = ?, grupo_nome = ?, apenas_privado = ?, apenas_grupo = ?,
                             delay_ms = ?, cooldown_segundos = ?, prioridade = ?, ativo = ?
                             WHERE id = ?";
                     executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
-                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
+                        $grupoId, $gruposPermitidosJson, $grupoNome, $apenasPrivado, $apenasGrupo, 
                         $delayMs, $cooldown, $prioridade, $ativo, $id]);
                     $response = ['success' => true, 'message' => 'Automação atualizada!', 'id' => $id];
                 } else {
                     // Inserir
                     $sql = "INSERT INTO bot_automations 
-                            (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
+                            (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupos_permitidos, grupo_nome, 
                              apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
-                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
+                        $grupoId, $gruposPermitidosJson, $grupoNome, $apenasPrivado, $apenasGrupo, 
                         $delayMs, $cooldown, $prioridade, $ativo]);
                     $newId = $pdo->lastInsertId();
                     $response = ['success' => true, 'message' => 'Automação criada!', 'id' => $newId];
@@ -109,9 +145,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $novoNome = $original['nome'] . ' (Cópia)';
                         
                         $sql = "INSERT INTO bot_automations 
-                                (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
+                                (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupos_permitidos, grupo_nome, 
                                  apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                         
                         executeQuery($pdo, $sql, [
                             $novoNome,
@@ -121,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $original['resposta'],
                             $original['imagem_url'],
                             $original['grupo_id'],
+                            $original['grupos_permitidos'],
                             $original['grupo_nome'],
                             $original['apenas_privado'],
                             $original['apenas_grupo'],
@@ -1171,12 +1208,13 @@ foreach ($settings as $s) {
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm text-zinc-400 mb-2">Grupo Específico (opcional)</label>
-                        <select name="grupo_id" id="autoGrupoId" class="input-field w-full" onchange="updateGrupoNome()">
-                            <option value="">Todos os chats</option>
-                        </select>
+                <div class="col-span-2">
+                    <label class="block text-sm text-zinc-400 mb-2">Grupos Permitidos (opcional)</label>
+                    <div class="w-full h-48 overflow-y-auto p-2 border border-zinc-700 rounded bg-zinc-900/50" id="gruposContainer">
+                        <p class="text-zinc-500 text-sm p-2">Carregando grupos...</p>
                     </div>
+                    <p class="text-xs text-zinc-500 mt-1">Selecione os grupos onde esta automação funcionará. Se nenhum for selecionado, funcionará em todos.</p>
+                </div>
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Prioridade</label>
                         <input type="number" name="prioridade" id="autoPrioridade" class="input-field w-full"
@@ -1327,8 +1365,21 @@ foreach ($settings as $s) {
                 document.getElementById('autoGatilho').value = automation.gatilho;
                 document.getElementById('autoResposta').value = automation.resposta;
                 document.getElementById('autoImagemUrl').value = automation.imagem_url || '';
-                document.getElementById('autoGrupoId').value = automation.grupo_id || '';
-                document.getElementById('autoGrupoNome').value = automation.grupo_nome || '';
+                // Grupos - checkboxes
+                const checkboxes = document.querySelectorAll('input[name="grupos_permitidos[]"]');
+                checkboxes.forEach(cb => cb.checked = false);
+                
+                if (automation.grupos_permitidos && Array.isArray(automation.grupos_permitidos)) {
+                    automation.grupos_permitidos.forEach(jid => {
+                        const cb = document.querySelector(`input[name="grupos_permitidos[]"][value="${jid}"]`);
+                        if (cb) cb.checked = true;
+                    });
+                } else if (automation.grupo_id) {
+                    // Fallback
+                    const cb = document.querySelector(`input[name="grupos_permitidos[]"][value="${automation.grupo_id}"]`);
+                    if (cb) cb.checked = true;
+                }
+                
                 document.getElementById('autoPrioridade').value = automation.prioridade || 0;
                 
                 // Delay - selecionar a opção mais próxima
@@ -1431,6 +1482,19 @@ foreach ($settings as $s) {
             };
             const tipo = tipoLabels[a.tipo] || { text: a.tipo, class: 'badge-blue' };
             
+            let gruposText = 'Todos os chats';
+            if (a.grupos_permitidos && a.grupos_permitidos.length > 0) {
+                if (a.grupos_permitidos.length === 1) {
+                    // Tentar achar nome do grupo
+                    const grp = grupos.find(g => g.jid === a.grupos_permitidos[0]);
+                    gruposText = grp ? escapeHtml(grp.nome) : '1 grupo';
+                } else {
+                    gruposText = `${a.grupos_permitidos.length} grupos`;
+                }
+            } else if (a.grupo_nome) {
+                gruposText = escapeHtml(a.grupo_nome);
+            }
+
             return `
                 <div class="automation-card ${a.ativo == 0 ? 'inactive' : ''}" id="auto-${a.id}">
                     <div class="flex items-start justify-between mb-3">
@@ -1464,7 +1528,7 @@ foreach ($settings as $s) {
                     
                     <div class="flex items-center justify-between text-xs text-zinc-500">
                         <div class="flex items-center gap-4">
-                            ${a.grupo_nome ? `<span><i class="fas fa-users mr-1"></i>${escapeHtml(a.grupo_nome)}</span>` : '<span><i class="fas fa-globe mr-1"></i>Todos os chats</span>'}
+                            <span><i class="fas fa-users mr-1"></i>${gruposText}</span>
                             <span><i class="fas fa-chart-bar mr-1"></i>${a.contador_uso || 0} usos</span>
                             ${a.imagem_url ? '<span style="color: #FF3333;"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
                             ${a.delay_ms > 0 ? `<span><i class="fas fa-clock mr-1"></i>${a.delay_ms}ms</span>` : ''}
@@ -1751,25 +1815,45 @@ foreach ($settings as $s) {
                 
                 if (data.success) {
                     grupos = data.data;
-                    const select = document.getElementById('autoGrupoId');
+                    const container = document.getElementById('gruposContainer');
                     
-                    // Manter primeira opção (todos os chats)
-                    select.innerHTML = '<option value="">Todos os chats</option>';
+                    if (grupos.length === 0) {
+                        container.innerHTML = '<p class="text-zinc-500 text-sm p-2">Nenhum grupo encontrado.</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
                     
                     grupos.forEach(g => {
-                        select.innerHTML += `<option value="${escapeHtml(g.jid)}">${escapeHtml(g.nome || g.jid)}</option>`;
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center gap-3 p-2 hover:bg-zinc-800/50 rounded transition mb-1 cursor-pointer';
+                        div.onclick = (e) => {
+                            if (e.target.type !== 'checkbox') {
+                                const cb = div.querySelector('input[type="checkbox"]');
+                                cb.checked = !cb.checked;
+                            }
+                        };
+                        
+                        div.innerHTML = `
+                            <input type="checkbox" name="grupos_permitidos[]" value="${escapeHtml(g.jid)}" 
+                                class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-zinc-900">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium truncate">${escapeHtml(g.nome || 'Sem nome')}</div>
+                                <div class="text-xs text-zinc-500 truncate mono">${escapeHtml(g.jid.split('@')[0])}</div>
+                            </div>
+                        `;
+                        
+                        container.appendChild(div);
                     });
                 }
             } catch (err) {
                 console.error('Erro ao carregar grupos:', err);
+                document.getElementById('gruposContainer').innerHTML = '<p class="text-red-500 text-sm p-2">Erro ao carregar grupos.</p>';
             }
         }
         
         function updateGrupoNome() {
-            const select = document.getElementById('autoGrupoId');
-            const nomeInput = document.getElementById('autoGrupoNome');
-            const selectedOption = select.options[select.selectedIndex];
-            nomeInput.value = selectedOption.text !== 'Todos os chats' ? selectedOption.text : '';
+            // Deprecated: logic moved to PHP
         }
         
         // ===== FUNÇÕES DE IMAGEM =====
