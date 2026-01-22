@@ -2479,6 +2479,9 @@ async function processAdminCommand(from, text, msg = null) {
       }
     );
     
+    log.info(`[${projectName}] Resposta API Status: ${response.status}`);
+    log.info(`[${projectName}] Resposta API Data: ${JSON.stringify(response.data).substring(0, 200)}`);
+    
     const result = response.data;
     
     // Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
