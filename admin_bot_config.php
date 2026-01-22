@@ -202,6 +202,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 break;
                 
+            case 'get_grupos':
+                // Buscar grupos cadastrados pelo bot
+                $grupos = fetchData($pdo, "SELECT * FROM bot_grupos ORDER BY nome");
+                $response = ['success' => true, 'data' => $grupos];
+                break;
+
             case 'get_logs':
                 $limit = (int)($_POST['limit'] ?? 50);
                 $logs = fetchData($pdo, 
