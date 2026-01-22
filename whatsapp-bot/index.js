@@ -3242,10 +3242,27 @@ async function start() {
     });
 
     sock.ev.on('messages.upsert', async (m) => {
+      // LOG GERAL PARA DEBUG
+      log.info(`[DEBUG] messages.upsert disparado. Qtd mensagens: ${m.messages?.length}`);
+
       try {
         const msg = m.messages?.[0];
         if (!msg?.message) return;
         
+        const remoteJid = msg.key.remoteJid;
+        let text = msg.message.conversation || 
+                   msg.message.extendedTextMessage?.text || 
+                   msg.message.imageMessage?.caption ||
+                   msg.message.videoMessage?.caption ||
+                   '';
+                   
+        // COMANDO DE TESTE DIRETO NO SOCKET (IGNORA API)
+        if (text === '/ping') {
+           log.info(`[PING] Recebido de ${remoteJid}`);
+           await safeSendMessage(sock, remoteJid, { text: '🏓 Pong! O bot está ouvindo.' });
+           return;
+        }
+
         // Verificar se é mensagem antiga (mais de 2 minutos) - ignorar para evitar processar mensagens antigas
         const messageTimestamp = msg.messageTimestamp ? msg.messageTimestamp * 1000 : Date.now();
         const now = Date.now();
@@ -3256,14 +3273,6 @@ async function start() {
           log.info(`[MESSAGE] Ignorando mensagem antiga (${Math.round(messageAge / 1000)}s atrás) de ${msg.key.remoteJid?.split('@')[0]}`);
           return; // Ignorar mensagens antigas
         }
-        
-        const remoteJid = msg.key.remoteJid;
-        // Extrair texto de várias formas (mensagem normal, respondida, etc)
-        let text = msg.message.conversation || 
-                   msg.message.extendedTextMessage?.text || 
-                   msg.message.imageMessage?.caption ||
-                   msg.message.videoMessage?.caption ||
-                   '';
         
         // Se for mensagem respondida, pegar o texto da mensagem original também
         // MAS: se o texto atual for um comando ($, /, !), manter o comando e não sobrescrever
