@@ -1849,7 +1849,7 @@ async function saveGroupInfo(jid, nome, descricao, participantes) {
 // Comandos como /ban, /kick, /promote, /demote
 async function processGroupAdminCommand(remoteJid, text, msg) {
   try {
-    const command = text.split(' ')[0].toLowerCase();
+    const command = text.trim().split(/\s+/)[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
     // Sistema de segurança desabilitado - sem cooldown
