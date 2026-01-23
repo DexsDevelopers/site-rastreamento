@@ -2350,7 +2350,17 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
 // Aceita comandos com / (rastreamento) ou ! (financeiro)
 async function processAdminCommand(from, text, msg = null) {
   try {
-    const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
+    // Identificar quem enviou a mensagem (Sender)
+    // Se for grupo, o sender está em msg.key.participant
+    // Se for privado, o sender é o próprio from (remoteJid)
+    let senderJid = from;
+    if (msg && msg.key && msg.key.participant) {
+      senderJid = msg.key.participant;
+    }
+    
+    const fromNumber = senderJid.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
+    
+    log.info(`[COMMAND] Processando comando para ${fromNumber} (Origem: ${from === senderJid ? 'Privado' : 'Grupo'})`);
     
     // Detectar qual projeto pelo prefixo
     const prefix = text.charAt(0);
