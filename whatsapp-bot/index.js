@@ -2404,6 +2404,11 @@ async function processAdminCommand(from, text, msg = null) {
           log.warn(`[${projectName}] Bot não está pronto para enviar poll, usando fallback`);
           // Fallback: enviar para API normalmente
         } else {
+          // Poll logic...
+          // IMPORTANTE: Enviar para o GRUPO (remoteJid/from), não para o sender
+          // Mas se for poll, o Baileys exige que o usuário possa votar
+          // Polls em grupos funcionam normalmente
+          
           const pollQuestion = '👋 Olá! Como posso ajudar você hoje?';
           const pollOptions = [
             '📊 Ver saldo',
@@ -2425,6 +2430,8 @@ async function processAdminCommand(from, text, msg = null) {
           log.info(`[${projectName}] Tentando enviar poll para ${from}`);
           
           try {
+            // sendPoll usa safeSendMessage, que usa sock.sendMessage
+            // from aqui deve ser o JID do grupo ou chat privado
             const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions, {
               type: 'menu_principal',
               commandMap: commandMap
@@ -2447,7 +2454,9 @@ async function processAdminCommand(from, text, msg = null) {
     // Se for comando !comprovante do financeiro, aguardar foto
     if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
       const transactionId = params[0];
-      waitingPhoto.set(from, {
+      // Para aguardar foto, precisamos usar o senderJid (quem enviou) e não o from (grupo)
+      // Senão qualquer um no grupo poderia enviar a foto
+      waitingPhoto.set(senderJid, {
         transactionId,
         isFinanceiro: true,
         timestamp: Date.now()
@@ -2498,14 +2507,14 @@ async function processAdminCommand(from, text, msg = null) {
     if (result.waiting_photo) {
       if (result.photo_codigo) {
         // Rastreamento
-        waitingPhoto.set(from, {
+        waitingPhoto.set(senderJid, {
           codigo: result.photo_codigo,
           isFinanceiro: false,
           timestamp: Date.now()
         });
       } else if (result.photo_transaction_id || result.transaction_id) {
         // Financeiro
-        waitingPhoto.set(from, {
+        waitingPhoto.set(senderJid, {
           transactionId: result.photo_transaction_id || result.transaction_id,
           isFinanceiro: true,
           timestamp: Date.now()
@@ -2513,7 +2522,7 @@ async function processAdminCommand(from, text, msg = null) {
       }
       
       setTimeout(() => {
-        waitingPhoto.delete(from);
+        waitingPhoto.delete(senderJid);
       }, 5 * 60 * 1000);
     }
     
