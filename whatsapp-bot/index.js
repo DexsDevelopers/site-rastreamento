@@ -3621,6 +3621,11 @@ app.get('/status', (req, res) => {
   res.json({ 
     ok: !isInLoopState, 
     ready: isReady,
+    sock: {
+      exists: !!sock,
+      userId: sock?.user?.id || null,
+      name: sock?.user?.name || null
+    },
     loopState: isInLoopState,
     uptime: uptime,
     uptimeFormatted: `${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m ${uptime%60}s`,
@@ -3642,6 +3647,17 @@ app.get('/status', (req, res) => {
       error: lastCommand.error
     },
     message: isInLoopState ? 'LOOP DETECTADO - Delete ./auth e reinicie' : 'OK'
+  });
+});
+
+app.get('/whoami', (req, res) => {
+  const userId = sock?.user?.id || null;
+  const number = userId ? String(userId).split(':')[0].split('@')[0] : null;
+  res.json({
+    ready: isReady,
+    userId,
+    number,
+    name: sock?.user?.name || null
   });
 });
 
