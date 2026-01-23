@@ -59,6 +59,14 @@ function unwrapMessageContent(message) {
       current = current.documentWithCaptionMessage.message;
       continue;
     }
+    if (current.protocolMessage?.editedMessage?.message) {
+      current = current.protocolMessage.editedMessage.message;
+      continue;
+    }
+    if (current.protocolMessage?.editedMessage?.message?.message) {
+      current = current.protocolMessage.editedMessage.message.message;
+      continue;
+    }
     if (current.editedMessage?.message) {
       current = current.editedMessage.message;
       continue;
@@ -3323,9 +3331,11 @@ async function start() {
         
         const remoteJid = msg.key.remoteJid;
         const replyJid = normalizeReplyJid(remoteJid);
+        const unwrapped = unwrapMessageContent(msg.message);
+        const msgTypes = Object.keys(unwrapped || {}).join(', ') || 'vazio';
         let text = String(getTextFromMessage(msg.message) || '');
         const textTrimmed = text.trim();
-        lastInbound = { at: Date.now(), jid: remoteJid, text: textTrimmed.substring(0, 200), fromMe: !!msg.key.fromMe };
+        lastInbound = { at: Date.now(), jid: remoteJid, text: `${textTrimmed.substring(0, 160)}${textTrimmed ? '' : ` [tipos: ${msgTypes}]`}`, fromMe: !!msg.key.fromMe };
                    
         // COMANDO DE TESTE DIRETO NO SOCKET (IGNORA API)
         if (textTrimmed === '/ping') {
