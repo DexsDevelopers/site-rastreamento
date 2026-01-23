@@ -40,6 +40,46 @@ function isGroupJid(jid) {
   return jid.includes('@g.us') || jid.includes('@newsletter');
 }
 
+function unwrapMessageContent(message) {
+  let current = message;
+  while (current && typeof current === 'object') {
+    if (current.ephemeralMessage?.message) {
+      current = current.ephemeralMessage.message;
+      continue;
+    }
+    if (current.viewOnceMessageV2?.message) {
+      current = current.viewOnceMessageV2.message;
+      continue;
+    }
+    if (current.viewOnceMessage?.message) {
+      current = current.viewOnceMessage.message;
+      continue;
+    }
+    if (current.documentWithCaptionMessage?.message) {
+      current = current.documentWithCaptionMessage.message;
+      continue;
+    }
+    if (current.editedMessage?.message) {
+      current = current.editedMessage.message;
+      continue;
+    }
+    break;
+  }
+  return current || message;
+}
+
+function getTextFromMessage(message) {
+  const m = unwrapMessageContent(message);
+  return (
+    m?.conversation ||
+    m?.extendedTextMessage?.text ||
+    m?.imageMessage?.caption ||
+    m?.videoMessage?.caption ||
+    m?.documentMessage?.caption ||
+    ''
+  );
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -3269,14 +3309,11 @@ async function start() {
         if (!msg?.message) return;
         
         const remoteJid = msg.key.remoteJid;
-        let text = msg.message.conversation || 
-                   msg.message.extendedTextMessage?.text || 
-                   msg.message.imageMessage?.caption ||
-                   msg.message.videoMessage?.caption ||
-                   '';
+        let text = String(getTextFromMessage(msg.message) || '');
+        const textTrimmed = text.trim();
                    
         // COMANDO DE TESTE DIRETO NO SOCKET (IGNORA API)
-        if (text === '/ping') {
+        if (textTrimmed === '/ping') {
            log.info(`[PING] Recebido de ${remoteJid}`);
            await safeSendMessage(sock, remoteJid, { text: '🏓 Pong! O bot está ouvindo.' });
            return;
@@ -3295,16 +3332,12 @@ async function start() {
         
         // Se for mensagem respondida, pegar o texto da mensagem original também
         // MAS: se o texto atual for um comando ($, /, !), manter o comando e não sobrescrever
-        const isCommand = text.trim().startsWith('$') || text.trim().startsWith('/') || text.trim().startsWith('!');
+        const isCommand = textTrimmed.startsWith('$') || textTrimmed.startsWith('/') || textTrimmed.startsWith('!');
         let quotedText = '';
         
         if (msg.message.extendedTextMessage?.contextInfo?.quotedMessage) {
           const quoted = msg.message.extendedTextMessage.contextInfo.quotedMessage;
-          quotedText = quoted.conversation || 
-                       quoted.extendedTextMessage?.text ||
-                       quoted.imageMessage?.caption ||
-                       quoted.videoMessage?.caption ||
-                       '';
+          quotedText = String(getTextFromMessage(quoted) || '');
         }
         
         // Se não for comando, usar o texto da mensagem original quando respondida (para anti-link)
@@ -3315,20 +3348,21 @@ async function start() {
           // Se for comando, manter o texto do comando atual
           log.info(`[COMMAND] Comando detectado em resposta, mantendo comando: "${text.substring(0, 50)}"`);
         }
+        const commandText = String(text || '').trim();
         
         const isFromMe = msg.key.fromMe;
         
         // DEBUG: Log de todas as mensagens recebidas
-        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${text.substring(0, 50)}" | fromMe=${isFromMe}`);
+        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${commandText.substring(0, 50)}" | fromMe=${isFromMe}`);
         
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
         
         // Aceitar comandos com / (rastreamento), ! (financeiro) ou $ (comandos de grupo)
         // Para comandos, aceitar também mensagens próprias (para testes)
-        if (text.startsWith('/') || text.startsWith('!') || text.startsWith('$')) {
-          log.info(`🎯 Comando detectado: "${text}" de ${remoteJid.split('@')[0]}`);
-          const result = await processAdminCommand(remoteJid, text, msg);
+        if (commandText.startsWith('/') || commandText.startsWith('!') || commandText.startsWith('$')) {
+          log.info(`🎯 Comando detectado: "${commandText}" de ${remoteJid.split('@')[0]}`);
+          const result = await processAdminCommand(remoteJid, commandText, msg);
           // Se poll foi enviada, não enviar mensagem de texto adicional
           if (result && !result.pollSent && result.message) {
             // Verificar se precisa enviar com mentions
