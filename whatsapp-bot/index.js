@@ -80,6 +80,19 @@ function getTextFromMessage(message) {
   );
 }
 
+function normalizeReplyJid(jid) {
+  try {
+    if (!jid || typeof jid !== 'string') return jid;
+    if (jid.includes('@g.us') || jid.includes('@newsletter')) return jid;
+    return jidNormalizedUser(jid);
+  } catch (e) {
+    return jid;
+  }
+}
+
+let lastInbound = { at: 0, jid: null, text: null, fromMe: null };
+let lastCommand = { at: 0, jid: null, text: null, result: null, error: null };
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -3309,13 +3322,26 @@ async function start() {
         if (!msg?.message) return;
         
         const remoteJid = msg.key.remoteJid;
+        const replyJid = normalizeReplyJid(remoteJid);
         let text = String(getTextFromMessage(msg.message) || '');
         const textTrimmed = text.trim();
+        lastInbound = { at: Date.now(), jid: remoteJid, text: textTrimmed.substring(0, 200), fromMe: !!msg.key.fromMe };
                    
         // COMANDO DE TESTE DIRETO NO SOCKET (IGNORA API)
         if (textTrimmed === '/ping') {
            log.info(`[PING] Recebido de ${remoteJid}`);
-           await safeSendMessage(sock, remoteJid, { text: '🏓 Pong! O bot está ouvindo.' });
+           try {
+             await safeSendMessage(sock, replyJid, { text: '🏓 Pong! O bot está ouvindo.' });
+           } catch (e) {
+             const alt = remoteJid && typeof remoteJid === 'string' && remoteJid.includes('@lid')
+               ? `${remoteJid.split('@')[0].split(':')[0]}@s.whatsapp.net`
+               : null;
+             if (alt) {
+               await safeSendMessage(sock, alt, { text: '🏓 Pong! O bot está ouvindo.' });
+             } else {
+               throw e;
+             }
+           }
            return;
         }
 
@@ -3362,7 +3388,15 @@ async function start() {
         // Para comandos, aceitar também mensagens próprias (para testes)
         if (commandText.startsWith('/') || commandText.startsWith('!') || commandText.startsWith('$')) {
           log.info(`🎯 Comando detectado: "${commandText}" de ${remoteJid.split('@')[0]}`);
-          const result = await processAdminCommand(remoteJid, commandText, msg);
+          lastCommand = { at: Date.now(), jid: remoteJid, text: commandText.substring(0, 200), result: null, error: null };
+          let result;
+          try {
+            result = await processAdminCommand(remoteJid, commandText, msg);
+            lastCommand.result = result ? (result.success === undefined ? 'ok' : result.success) : 'null';
+          } catch (e) {
+            lastCommand.error = e?.message || String(e);
+            result = { success: false, message: '❌ Erro interno ao processar comando.' };
+          }
           // Se poll foi enviada, não enviar mensagem de texto adicional
           if (result && !result.pollSent && result.message) {
             // Verificar se precisa enviar com mentions
@@ -3593,7 +3627,20 @@ app.get('/status', (req, res) => {
     reconnectAttempts: reconnectAttempts,
     recentDisconnects: disconnectTimestamps.length,
     memoryMB: memUsed,
-    lastHeartbeat: new Date(lastHeartbeat).toISOString(),
+    lastHeartbeat: lastHeartbeat ? new Date(lastHeartbeat).toISOString() : null,
+    lastInbound: {
+      secondsAgo: lastInbound.at ? Math.round((Date.now() - lastInbound.at) / 1000) : null,
+      jid: lastInbound.jid,
+      text: lastInbound.text,
+      fromMe: lastInbound.fromMe
+    },
+    lastCommand: {
+      secondsAgo: lastCommand.at ? Math.round((Date.now() - lastCommand.at) / 1000) : null,
+      jid: lastCommand.jid,
+      text: lastCommand.text,
+      result: lastCommand.result,
+      error: lastCommand.error
+    },
     message: isInLoopState ? 'LOOP DETECTADO - Delete ./auth e reinicie' : 'OK'
   });
 });
