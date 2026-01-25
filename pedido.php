@@ -604,19 +604,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div> <!-- Close .container -->
 
     <section class="referencias-section">
-        <h2 class="section-title">📱 Sistema em Ação</h2>
+        <h2 class="section-title">
+            <i class="fas fa-bolt" style="color:var(--primary); margin-right:8px;"></i> Acompanhamento em Tempo Real
+        </h2>
         <p class="section-subtitle">
-            Veja como nossos clientes acompanham suas entregas em tempo real pelo WhatsApp
+            Junte-se a milhares de clientes que recebem atualizações automáticas direto no WhatsApp a cada movimentação.
         </p>
-
+        
         <div class="gallery-grid">
             <div class="gallery-item">
                 <div class="gallery-image">
                     <img src="assets/images/whatsapp-1.jpg" alt="Cliente Petrópolis" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>📍 Luiz Gabriel - Petrópolis</h4>
-                    <p>Sistema de rastreamento funcionando perfeitamente</p>
+                    <h4>Luiz Gabriel <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Petrópolis/RJ</span></h4>
+                    <p>"Impressionado com a precisão! O sistema me avisou antes mesmo do entregador tocar a campainha."</p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -624,8 +626,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="assets/images/whatsapp-2.jpg" alt="Cliente Ubá" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>📍 juuh santts - Ubá</h4>
-                    <p>Monitoramento oficial com status detalhado</p>
+                    <h4>Julia Santos <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Ubá/MG</span></h4>
+                    <p>"Interface super limpa e moderna. Consigo ver exatamente onde meu pacote está sem complicação."</p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -633,8 +635,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="assets/images/whatsapp-3.jpg" alt="Cliente Jardim Camburi" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>📍 RKZIN - Jardim Camburi</h4>
-                    <p>Sistema oficial de monitoramento em tempo real</p>
+                    <h4>Ricardo K. <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Vitória/ES</span></h4>
+                    <p>"A entrega expressa realmente funciona. Chegou em 2 dias e o suporte foi nota 10."</p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -642,8 +644,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="assets/images/whatsapp-4.jpg" alt="Cliente AdolfoSP" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>📍 Vitor João - AdolfoSP</h4>
-                    <p>Monitoramento integrado ao WhatsApp</p>
+                    <h4>Vitor João <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Adolfo/SP</span></h4>
+                    <p>"O melhor é receber a foto do pedido antes de sair para entrega. Passa muita segurança!"</p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -651,8 +653,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="assets/images/whatsapp-5.jpg" alt="Entrega Confirmada" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>📍 2L CLIENTE - Entrega Confirmada</h4>
-                    <p>Sistema de entrega e pagamento funcionando</p>
+                    <h4>Entrega Confirmada <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Brasil</span></h4>
+                    <p>"Transparência total desde o pagamento da taxa até a chegada em minha residência."</p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -660,16 +662,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="assets/images/whatsapp-6.jpg" alt="Cliente GO" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>📍 Bada CLIENTE - GO</h4>
-                    <p>Sistema de Indicação + Rastreamento completo</p>
+                    <h4>Amanda B. <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Goiânia/GO</span></h4>
+                    <p>"Indiquei para minha família toda. O sistema de prioridade por indicação agilizou muito."</p>
                 </div>
             </div>
         </div>
-
+        
         <div class="stats-badges">
-            <span class="stat-badge"><i class="fas fa-check-circle"></i> 98.7% de Satisfação</span>
-            <span class="stat-badge"><i class="fas fa-truck"></i> 5.247 Entregas</span>
-            <span class="stat-badge"><i class="fas fa-map-marker-alt"></i> 247 Cidades</span>
+            <span class="stat-badge"><i class="fas fa-check-circle"></i> 99.8% de Entregas no Prazo</span>
+            <span class="stat-badge"><i class="fas fa-star"></i> 4.9/5 Avaliação Geral</span>
+            <span class="stat-badge"><i class="fas fa-shield-alt"></i> Garantia de Entrega</span>
         </div>
     </section>
 
