@@ -837,6 +837,41 @@ if (isset($_POST['undo_action'])) {
 // Endpoint AJAX movido para o topo do arquivo (linha ~12) para garantir processamento antes de qualquer HTML
 
 // (Sem configurações de site persistidas)
+
+// ===================== ESTATÍSTICAS DO DASHBOARD =====================
+// Contar Pedidos Pendentes
+$sqlPedidos = "SELECT COUNT(*) as total FROM pedidos_pendentes WHERE status = 'pendente'";
+$totalPedidosPendentes = fetchOne($pdo, $sqlPedidos)['total'] ?? 0;
+if ($totalPedidosPendentes > 0) {
+    $pedidosPendentes = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pendente' ORDER BY data_pedido DESC");
+} else {
+    $pedidosPendentes = [];
+}
+
+// Contar Rastreios (Agrupados por código)
+$sqlTotal = "SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status";
+$totalRastreios = fetchOne($pdo, $sqlTotal)['total'] ?? 0;
+
+// Entregues (Status atual contém 'Entregue')
+// Precisamos subquery para pegar o status ATUAL de cada código
+$sqlEntregues = "SELECT COUNT(*) as total FROM (
+    SELECT status_atual FROM rastreios_status t1
+    WHERE data = (SELECT MAX(data) FROM rastreios_status t2 WHERE t2.codigo = t1.codigo)
+    GROUP BY codigo
+    HAVING status_atual LIKE '%Entregue%'
+) as sub";
+$entregues = fetchOne($pdo, $sqlEntregues)['total'] ?? 0;
+
+// Com Taxa / Sem Taxa (Baseado no último status)
+$sqlComTaxa = "SELECT COUNT(*) as total FROM (
+    SELECT taxa_valor FROM rastreios_status t1
+    WHERE data = (SELECT MAX(data) FROM rastreios_status t2 WHERE t2.codigo = t1.codigo)
+    GROUP BY codigo
+    HAVING taxa_valor IS NOT NULL AND taxa_valor > 0
+) as sub";
+$comTaxa = fetchOne($pdo, $sqlComTaxa)['total'] ?? 0;
+
+$semTaxa = $totalRastreios - $comTaxa;
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -865,30 +900,33 @@ if (isset($_POST['undo_action'])) {
             <div class="sidebar-brand">
                 <i class="fas fa-cube"></i> Helmer
             </div>
-            
+
             <nav class="sidebar-menu">
                 <div class="menu-label">Principal</div>
                 <a href="index.php" class="nav-item"><i class="fas fa-home"></i> Página Inicial</a>
                 <a href="admin.php" class="nav-item active"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 <a href="admin_indicacoes.php" class="nav-item"><i class="fas fa-users"></i> Indicações</a>
-                
+
                 <div class="menu-label">Gestão</div>
                 <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
                 <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Configuração Bot</a>
                 <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-message"></i> Mensagens WPP</a>
-                
+
                 <div class="menu-label">Configuração</div>
                 <a href="admin_settings.php" class="nav-item"><i class="fas fa-gear"></i> Ajustes Expressa</a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <?php if (!empty($_SESSION['undo_action'])): ?>
-                        <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action" value="1"></form>
-                        <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;" style="color: var(--warning);">
+                        <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action"
+                                value="1"></form>
+                        <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;"
+                            style="color: var(--warning);">
                             <i class="fas fa-rotate-left"></i> Desfazer
                         </a>
                 <?php endif; ?>
-                <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i class="fas fa-power-off"></i> Sair</a>
+                <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i
+                        class="fas fa-power-off"></i> Sair</a>
             </div>
         </aside>
 
@@ -907,238 +945,248 @@ if (isset($_POST['undo_action'])) {
                         <h2>Painel Administrativo</h2>
                     </div>
                 </div>
-                
+
                 <div class="header-actions">
                     <button class="btn btn-icon"><i class="fas fa-bell"></i></button>
-                    <div style="width:32px; height:32px; background:var(--gradient-brand); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:white;">A</div>
+                    <div
+                        style="width:32px; height:32px; background:var(--gradient-brand); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:white;">
+                        A</div>
                 </div>
             </header>
 
             <div class="content-body">
 
-    <!-- Dashboard Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card featured">
-            <div class="stat-icon"><i class="fas fa-box"></i></div>
-            <div class="stat-value"><?= $totalRastreios ?></div>
-            <div class="stat-label">Total de Rastreios</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-clock"></i></div>
-            <div class="stat-value"><?= $comTaxa ?></div>
-            <div class="stat-label">Taxa Pendente</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="color: var(--success);"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-value"><?= $semTaxa ?></div>
-            <div class="stat-label">Sem Taxa</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="color: var(--info);"><i class="fas fa-truck"></i></div>
-            <div class="stat-value"><?= $entregues ?></div>
-            <div class="stat-label">Entregues</div>
-        </div>
-        <?php if ($totalPedidosPendentes > 0): ?>
-                <div class="stat-card" style="border-color: var(--warning);">
-                    <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
-                    <div class="stat-value"><?= $totalPedidosPendentes ?></div>
-                    <div class="stat-label">Pedidos Pendentes</div>
+                <!-- Dashboard Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card featured">
+                        <div class="stat-icon"><i class="fas fa-box"></i></div>
+                        <div class="stat-value"><?= $totalRastreios ?></div>
+                        <div class="stat-label">Total de Rastreios</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value"><?= $comTaxa ?></div>
+                        <div class="stat-label">Taxa Pendente</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--success);"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-value"><?= $semTaxa ?></div>
+                        <div class="stat-label">Sem Taxa</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--info);"><i class="fas fa-truck"></i></div>
+                        <div class="stat-value"><?= $entregues ?></div>
+                        <div class="stat-label">Entregues</div>
+                    </div>
+                    <?php if ($totalPedidosPendentes > 0): ?>
+                                <div class="stat-card" style="border-color: var(--warning);">
+                                    <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
+                                    <div class="stat-value"><?= $totalPedidosPendentes ?></div>
+                                    <div class="stat-label">Pedidos Pendentes</div>
+                                </div>
+                    <?php endif; ?>
                 </div>
-        <?php endif; ?>
-    </div>
 
-    <!-- Seção de Pedidos Pendentes -->
-    <?php if ($totalPedidosPendentes > 0): ?>
-            <div class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem;">
-                <h2 style="margin-bottom: 1.5rem; color: var(--warning); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
-                </h2>
+                <!-- Seção de Pedidos Pendentes -->
+                <?php if ($totalPedidosPendentes > 0): ?>
+                            <div class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem;">
+                                <h2
+                                    style="margin-bottom: 1.5rem; color: var(--warning); display:flex; align-items:center; gap:0.5rem;">
+                                    <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
+                                </h2>
 
-                <div style="display: grid; gap: 1.5rem;">
-                    <?php foreach ($pedidosPendentes as $pedido): ?>
-                            <div
-                                style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem;">
-                                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
-                                    <div style="flex: 1; min-width: 280px;">
-                                        <h3
-                                            style="color: var(--text-main); margin-bottom: 1rem; font-size: 1.1rem; display:flex; align-items:center; gap:0.5rem;">
-                                            <i class="fas fa-user-circle"></i> <?= htmlspecialchars($pedido['nome']) ?>
-                                        </h3>
+                                <div style="display: grid; gap: 1.5rem;">
+                                    <?php foreach ($pedidosPendentes as $pedido): ?>
+                                                <div
+                                                    style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem;">
+                                                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+                                                        <div style="flex: 1; min-width: 280px;">
+                                                            <h3
+                                                                style="color: var(--text-main); margin-bottom: 1rem; font-size: 1.1rem; display:flex; align-items:center; gap:0.5rem;">
+                                                                <i class="fas fa-user-circle"></i> <?= htmlspecialchars($pedido['nome']) ?>
+                                                            </h3>
 
-                                        <div style="display: grid; gap: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
-                                            <div><i class="fas fa-phone fa-fw"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
-                                            <?php if ($pedido['email']): ?>
-                                                    <div><i class="fas fa-envelope fa-fw"></i> <?= htmlspecialchars($pedido['email']) ?></div>
-                                            <?php endif; ?>
-                                            <div><i class="fas fa-calendar fa-fw"></i>
-                                                <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
-                                        </div>
+                                                            <div
+                                                                style="display: grid; gap: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                                                                <div><i class="fas fa-phone fa-fw"></i>
+                                                                    <?= htmlspecialchars($pedido['telefone']) ?></div>
+                                                                <?php if ($pedido['email']): ?>
+                                                                            <div><i class="fas fa-envelope fa-fw"></i>
+                                                                                <?= htmlspecialchars($pedido['email']) ?></div>
+                                                                <?php endif; ?>
+                                                                <div><i class="fas fa-calendar fa-fw"></i>
+                                                                    <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
+                                                            </div>
 
-                                        <div
-                                            style="margin-top: 1rem; padding: 1rem; background: rgba(255, 51, 51, 0.05); border-radius: 8px; border-left: 2px solid var(--primary);">
-                                            <div style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
-                                                <strong>Endereço:</strong><br>
-                                                <?= htmlspecialchars($pedido['rua']) ?>, <?= htmlspecialchars($pedido['numero']) ?>
-                                                <?= $pedido['complemento'] ? ' - ' . htmlspecialchars($pedido['complemento']) : '' ?><br>
-                                                <?= htmlspecialchars($pedido['bairro']) ?> -
-                                                <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
-                                                CEP: <?= htmlspecialchars($pedido['cep']) ?>
-                                            </div>
-                                            <?php if ($pedido['observacoes']): ?>
-                                                    <div
-                                                        style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
-                                                        <span style="color: var(--text-muted); font-size:0.85rem;">Obs:</span>
-                                                        <p style="color: var(--text-main); margin-top: 0.25rem;">
-                                                            <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?>
-                                                        </p>
+                                                            <div
+                                                                style="margin-top: 1rem; padding: 1rem; background: rgba(255, 51, 51, 0.05); border-radius: 8px; border-left: 2px solid var(--primary);">
+                                                                <div style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
+                                                                    <strong>Endereço:</strong><br>
+                                                                    <?= htmlspecialchars($pedido['rua']) ?>,
+                                                                    <?= htmlspecialchars($pedido['numero']) ?>
+                                                                    <?= $pedido['complemento'] ? ' - ' . htmlspecialchars($pedido['complemento']) : '' ?><br>
+                                                                    <?= htmlspecialchars($pedido['bairro']) ?> -
+                                                                    <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
+                                                                    CEP: <?= htmlspecialchars($pedido['cep']) ?>
+                                                                </div>
+                                                                <?php if ($pedido['observacoes']): ?>
+                                                                            <div
+                                                                                style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
+                                                                                <span style="color: var(--text-muted); font-size:0.85rem;">Obs:</span>
+                                                                                <p style="color: var(--text-main); margin-top: 0.25rem;">
+                                                                                    <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?>
+                                                                                </p>
+                                                                            </div>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 200px;">
+                                                            <form method="POST"
+                                                                onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                                                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                                                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                                                                    <input type="text" name="codigo_rastreio" class="form-control"
+                                                                        placeholder="Código de Rastreio" required>
+                                                                </div>
+                                                                <button type="submit" name="aprovar_pedido" class="btn btn-primary"
+                                                                    style="width: 100%;">
+                                                                    <i class="fas fa-check"></i> Aprovar Pedido
+                                                                </button>
+                                                            </form>
+
+                                                            <form method="POST"
+                                                                onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                                                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                                                <button type="submit" name="rejeitar_pedido" class="btn"
+                                                                    style="width: 100%; border: 1px solid var(--border-subtle); color: var(--danger);">
+                                                                    <i class="fas fa-times"></i> Rejeitar
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-
-                                    <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 200px;">
-                                        <form method="POST"
-                                            onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
-                                            <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-                                                <input type="text" name="codigo_rastreio" class="form-control"
-                                                    placeholder="Código de Rastreio" required>
-                                            </div>
-                                            <button type="submit" name="aprovar_pedido" class="btn btn-primary" style="width: 100%;">
-                                                <i class="fas fa-check"></i> Aprovar Pedido
-                                            </button>
-                                        </form>
-
-                                        <form method="POST"
-                                            onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
-                                            <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                            <button type="submit" name="rejeitar_pedido" class="btn"
-                                                style="width: 100%; border: 1px solid var(--border-subtle); color: var(--danger);">
-                                                <i class="fas fa-times"></i> Rejeitar
-                                            </button>
-                                        </form>
-                                    </div>
+                                                </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-    <?php endif; ?>
+                <?php endif; ?>
 
-    <!-- Table Section -->
-    <div class="table-card">
-        <div class="table-header">
-            <div style="display:flex; gap:1rem; flex:1;">
-                <input type="text" id="searchInput" class="form-control" placeholder="🔍 Buscar rastreio..."
-                    onkeyup="filterTable()" style="max-width:300px;">
-                <div class="desktop-only" style="display:flex; gap:0.5rem;">
-                    <button class="btn btn-icon filter-btn active" onclick="filterBy('all')" title="Todos"><i
-                            class="fas fa-list"></i></button>
-                    <button class="btn btn-icon filter-btn" onclick="filterBy('com_taxa')" title="Com Taxa"><i
-                            class="fas fa-dollar-sign"></i></button>
-                    <button class="btn btn-icon filter-btn" onclick="filterBy('entregues')" title="Entregues"><i
-                            class="fas fa-check"></i></button>
-                </div>
-            </div>
-            <div style="display:flex; gap:0.75rem;">
-                <button class="btn" style="background:var(--bg-surface); border:1px solid var(--border-subtle);"
-                    onclick="exportData()">
-                    <i class="fas fa-download"></i> <span class="desktop-only">Exportar</span>
-                </button>
-                <button class="btn btn-primary" onclick="document.getElementById('modalAdd').style.display='flex'">
-                    <i class="fas fa-plus"></i> <span class="desktop-only">Novo Rastreio</span>
-                </button>
-            </div>
-        </div>
+                <!-- Table Section -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div style="display:flex; gap:1rem; flex:1;">
+                            <input type="text" id="searchInput" class="form-control" placeholder="🔍 Buscar rastreio..."
+                                onkeyup="filterTable()" style="max-width:300px;">
+                            <div class="desktop-only" style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-icon filter-btn active" onclick="filterBy('all')"
+                                    title="Todos"><i class="fas fa-list"></i></button>
+                                <button class="btn btn-icon filter-btn" onclick="filterBy('com_taxa')"
+                                    title="Com Taxa"><i class="fas fa-dollar-sign"></i></button>
+                                <button class="btn btn-icon filter-btn" onclick="filterBy('entregues')"
+                                    title="Entregues"><i class="fas fa-check"></i></button>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:0.75rem;">
+                            <button class="btn"
+                                style="background:var(--bg-surface); border:1px solid var(--border-subtle);"
+                                onclick="exportData()">
+                                <i class="fas fa-download"></i> <span class="desktop-only">Exportar</span>
+                            </button>
+                            <button class="btn btn-primary"
+                                onclick="document.getElementById('modalAdd').style.display='flex'">
+                                <i class="fas fa-plus"></i> <span class="desktop-only">Novo Rastreio</span>
+                            </button>
+                        </div>
+                    </div>
 
-        <!-- Operações em lote -->
-        <div id="bulkActions"
-            style="display: none; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-bottom: 1px solid var(--border-subtle); align-items:center; gap:1rem;">
-            <span style="font-weight:600; color:var(--info);"><i class="fas fa-check-square"></i> <span
-                    id="selectedCount">0</span> selecionados</span>
-            <div style="display:flex; gap:0.5rem; margin-left:auto;">
-                <button class="btn btn-sm" onclick="bulkDelete()" style="background: var(--danger); color: white;"><i
-                        class="fas fa-trash"></i></button>
-                <button class="btn btn-sm" onclick="bulkEdit()" style="background: var(--warning); color: black;"><i
-                        class="fas fa-edit"></i></button>
-                <button class="btn btn-sm" onclick="openPresetModal()" style="background: var(--info); color: white;"><i
-                        class="fas fa-magic"></i></button>
-            </div>
-        </div>
+                    <!-- Operações em lote -->
+                    <div id="bulkActions"
+                        style="display: none; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-bottom: 1px solid var(--border-subtle); align-items:center; gap:1rem;">
+                        <span style="font-weight:600; color:var(--info);"><i class="fas fa-check-square"></i> <span
+                                id="selectedCount">0</span> selecionados</span>
+                        <div style="display:flex; gap:0.5rem; margin-left:auto;">
+                            <button class="btn btn-sm" onclick="bulkDelete()"
+                                style="background: var(--danger); color: white;"><i class="fas fa-trash"></i></button>
+                            <button class="btn btn-sm" onclick="bulkEdit()"
+                                style="background: var(--warning); color: black;"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm" onclick="openPresetModal()"
+                                style="background: var(--info); color: white;"><i class="fas fa-magic"></i></button>
+                        </div>
+                    </div>
 
-        <div class="table-responsive">
-            <table class="table" id="rastreiosTable">
-                <thead>
-                    <tr>
-                        <th style="width: 40px;">
-                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                        </th>
-                        <th>Código</th>
-                        <th>Cidade</th>
-                        <th>Status</th>
-                        <th>Taxa</th>
-                        <th>Ultima Atualização</th>
-                        <th style="text-align:right;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    // Lógica para buscar rastreios
-                    $where = "";
-                    if (isset($_GET['filtro'])) {
-                        if ($_GET['filtro'] == "com_taxa") {
-                            $where = "HAVING MAX(taxa_valor) IS NOT NULL AND MAX(taxa_pix) IS NOT NULL";
-                        } elseif ($_GET['filtro'] == "sem_taxa") {
-                            $where = "HAVING MAX(taxa_valor) IS NULL OR MAX(taxa_pix) IS NULL";
-                        }
-                    }
+                    <div class="table-responsive">
+                        <table class="table" id="rastreiosTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th>Código</th>
+                                    <th>Cidade</th>
+                                    <th>Status</th>
+                                    <th>Taxa</th>
+                                    <th>Ultima Atualização</th>
+                                    <th style="text-align:right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                // Lógica para buscar rastreios
+                                $where = "";
+                                if (isset($_GET['filtro'])) {
+                                    if ($_GET['filtro'] == "com_taxa") {
+                                        $where = "HAVING MAX(taxa_valor) IS NOT NULL AND MAX(taxa_pix) IS NOT NULL";
+                                    } elseif ($_GET['filtro'] == "sem_taxa") {
+                                        $where = "HAVING MAX(taxa_valor) IS NULL OR MAX(taxa_pix) IS NULL";
+                                    }
+                                }
 
-                    // Consulta mais robusta - primeiro pega todos os códigos únicos
-                    $sql = "SELECT DISTINCT codigo FROM rastreios_status WHERE codigo IS NOT NULL AND codigo != '' ORDER BY codigo DESC";
-                    $codigos_result = fetchData($pdo, $sql);
+                                // Consulta mais robusta - primeiro pega todos os códigos únicos
+                                $sql = "SELECT DISTINCT codigo FROM rastreios_status WHERE codigo IS NOT NULL AND codigo != '' ORDER BY codigo DESC";
+                                $codigos_result = fetchData($pdo, $sql);
 
-                    $dados_rastreios = [];
-                    if (!empty($codigos_result)) {
-                        foreach ($codigos_result as $codigo_row) {
-                            $codigo = $codigo_row['codigo'];
+                                $dados_rastreios = [];
+                                if (!empty($codigos_result)) {
+                                    foreach ($codigos_result as $codigo_row) {
+                                        $codigo = $codigo_row['codigo'];
 
-                            // Para cada código, pega o último registro
-                            $ultimo_sql = "SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1";
-                            $ultimo_result = fetchOne($pdo, $ultimo_sql, [$codigo]);
+                                        // Para cada código, pega o último registro
+                                        $ultimo_sql = "SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1";
+                                        $ultimo_result = fetchOne($pdo, $ultimo_sql, [$codigo]);
 
-                            if ($ultimo_result) {
-                                $dados_rastreios[] = $ultimo_result;
-                            }
-                        }
-                    }
+                                        if ($ultimo_result) {
+                                            $dados_rastreios[] = $ultimo_result;
+                                        }
+                                    }
+                                }
 
-                    // Aplicar filtros se necessário
-                    if (isset($_GET['filtro'])) {
-                        $dados_rastreios = array_filter($dados_rastreios, function ($row) {
-                            if ($_GET['filtro'] == "com_taxa") {
-                                return !empty($row['taxa_valor']) && !empty($row['taxa_pix']);
-                            } elseif ($_GET['filtro'] == "sem_taxa") {
-                                return empty($row['taxa_valor']) || empty($row['taxa_pix']);
-                            }
-                            return true;
-                        });
-                    }
+                                // Aplicar filtros se necessário
+                                if (isset($_GET['filtro'])) {
+                                    $dados_rastreios = array_filter($dados_rastreios, function ($row) {
+                                        if ($_GET['filtro'] == "com_taxa") {
+                                            return !empty($row['taxa_valor']) && !empty($row['taxa_pix']);
+                                        } elseif ($_GET['filtro'] == "sem_taxa") {
+                                            return empty($row['taxa_valor']) || empty($row['taxa_pix']);
+                                        }
+                                        return true;
+                                    });
+                                }
 
-                    if (!empty($dados_rastreios)) {
-                        foreach ($dados_rastreios as $row) {
-                            $badge = !empty($row['taxa_valor']) && !empty($row['taxa_pix'])
-                                ? "<span class='badge badge-warning'>Pendente</span>"
-                                : "<span class='badge badge-success'>Sem taxa</span>";
+                                if (!empty($dados_rastreios)) {
+                                    foreach ($dados_rastreios as $row) {
+                                        $badge = !empty($row['taxa_valor']) && !empty($row['taxa_pix'])
+                                            ? "<span class='badge badge-warning'>Pendente</span>"
+                                            : "<span class='badge badge-success'>Sem taxa</span>";
 
-                            $statusClass = 'text-muted';
-                            if (strpos($row['status_atual'], 'Entregue') !== false)
-                                $statusClass = 'text-success';
-                            elseif (strpos($row['status_atual'], 'Saiu') !== false)
-                                $statusClass = 'text-warning';
-                            elseif (strpos($row['status_atual'], 'trânsito') !== false)
-                                $statusClass = 'text-info';
+                                        $statusClass = 'text-muted';
+                                        if (strpos($row['status_atual'], 'Entregue') !== false)
+                                            $statusClass = 'text-success';
+                                        elseif (strpos($row['status_atual'], 'Saiu') !== false)
+                                            $statusClass = 'text-warning';
+                                        elseif (strpos($row['status_atual'], 'trânsito') !== false)
+                                            $statusClass = 'text-info';
 
-                            echo "<tr data-codigo='{$row['codigo']}' data-cidade='{$row['cidade']}' data-status='{$row['status_atual']}'>
+                                        echo "<tr data-codigo='{$row['codigo']}' data-cidade='{$row['cidade']}' data-status='{$row['status_atual']}'>
                                     <td><input type='checkbox' class='row-checkbox' value='{$row['codigo']}' onchange='updateSelection()'></td>
                                     <td style='font-family:var(--font-mono); font-weight:600;'>{$row['codigo']}</td>
                                     <td>{$row['cidade']}</td>
@@ -1151,33 +1199,33 @@ if (isset($_POST['undo_action'])) {
                                         <button class='btn btn-icon' style='color:#25D366' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='WhatsApp'><i class='fab fa-whatsapp'></i></button>
                                     </td>
                                 </tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='7' style='text-align:center; padding:3rem; color:var(--text-muted);'>Nenhum rastreio encontrado</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
+                                    }
+                                } else {
+                                    echo "<tr><td colspan='7' style='text-align:center; padding:3rem; color:var(--text-muted);'>Nenhum rastreio encontrado</td></tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <!-- Cards View (Mobile Only) - Gerado via JS ou mantido PHP se preferir -->
-    <div class="cards-list">
-        <?php if (!empty($dados_rastreios)):
-            foreach ($dados_rastreios as $row): ?>
-                        <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
-                            <div class="card-header">
-                                <div class="card-code"><?= $row['codigo'] ?></div>
-                                <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
-                            </div>
-                            <div class="card-status"><?= $row['status_atual'] ?></div>
-                            <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
-                        </div>
-                <?php endforeach; endif; ?>
-    </div>
+                <!-- Cards View (Mobile Only) - Gerado via JS ou mantido PHP se preferir -->
+                <div class="cards-list">
+                    <?php if (!empty($dados_rastreios)):
+                        foreach ($dados_rastreios as $row): ?>
+                                            <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
+                                                <div class="card-header">
+                                                    <div class="card-code"><?= $row['codigo'] ?></div>
+                                                    <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
+                                                </div>
+                                                <div class="card-status"><?= $row['status_atual'] ?></div>
+                                                <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
+                                            </div>
+                                <?php endforeach; endif; ?>
+                </div>
 
-    </div> <!-- End .content-body -->
-    </main>
+            </div> <!-- End .content-body -->
+        </main>
     </div> <!-- End .admin-wrapper -->
 
     <!-- Modal Adicionar Rastreio (Novo, separado do layout principal) -->
@@ -1216,6 +1264,23 @@ if (isset($_POST['undo_action'])) {
                     <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; font-size:0.9rem;">
                         <input type="checkbox" name="cliente_notificar" value="1" checked> Enviar notificação automática
                     </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto do Pedido</label>
+                    <div class="photo-upload">
+                        <div class="photo-preview" id="fotoPreviewNovo">
+                            <img id="fotoPreviewImgNovo" src="" alt="Foto do pedido" style="display:none;">
+                            <span id="fotoPreviewPlaceholderNovo">Nenhuma foto selecionada</span>
+                        </div>
+                        <div class="photo-preview-actions">
+                            <input type="file" name="foto_pedido" id="novo_foto_pedido" accept="image/*"
+                                onchange="previewFotoNovo(this)">
+                        </div>
+                        <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">
+                            Formatos suportados: JPG, PNG, WEBP ou GIF (até <?= $uploadMaxSizeMb ?> MB).
+                        </small>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -1377,7 +1442,7 @@ if (isset($_POST['undo_action'])) {
                 .then(data => {
                     document.getElementById('modal').style.display = 'flex';
                     document.getElementById('edit_codigo').value = codigo;
-               document.getElementById('edit_cidade').value = data.cidade || '';
+                    document.getElementById('edit_cidade').value = data.cidade || '';
                     // Usar data inicial retornada ou data atual como fallback
                     document.getElementById('edit_data').value = data.data_inicial || new Date().toISOString().slice(0, 16);
                     document.getElementById('edit_taxa_valor').value = data.taxa_valor || '';
@@ -1425,6 +1490,25 @@ if (isset($_POST['undo_action'])) {
 
         function closeDetailsModal() {
             document.getElementById('detailsModal').style.display = 'none';
+        }
+        
+        function previewFotoNovo(input) {
+            const previewImg = document.getElementById('fotoPreviewImgNovo');
+            const placeholder = document.getElementById('fotoPreviewPlaceholderNovo');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
         }
 
         // Função para visualizar detalhes
@@ -1896,16 +1980,16 @@ if (isset($_POST['undo_action'])) {
 
         // Mostrar notificações de sucesso do PHP
         <?php if (isset($success_message)): ?>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            notifySuccess('<?= addslashes($success_message) ?>');
-                        });
+                    document.addEventListener('DOMContentLoaded', function () {
+                        notifySuccess('<?= addslashes($success_message) ?>');
+                    });
         <?php endif; ?>
 
         // Mostrar notificações de erro do PHP
         <?php if (isset($error_message)): ?>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            notifyError('<?= addslashes($error_message) ?>');
-                        });
+                    document.addEventListener('DOMContentLoaded', function () {
+                        notifyError('<?= addslashes($error_message) ?>');
+                    });
         <?php endif; ?>
 
         // Inicializar sistema de automações
