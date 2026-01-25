@@ -960,6 +960,12 @@ $semTaxa = $totalRastreios - $comTaxa;
             </header>
 
             <div class="content-body">
+                <!-- Mobile FAB -->
+                <button class="fab-add" onclick="document.getElementById('modalAdd').style.display='flex'"
+                    title="Novo Rastreio">
+                    <i class="fas fa-plus"></i>
+                </button>
+
 
                 <!-- Dashboard Stats Grid -->
                 <div class="stats-grid">
@@ -2875,10 +2881,10 @@ $semTaxa = $totalRastreios - $comTaxa;
         }
 
         // Close menu when clicking overlay
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const overlay = document.getElementById('sidebarOverlay');
             if (overlay) {
-                overlay.addEventListener('click', function(e) {
+                overlay.addEventListener('click', function (e) {
                     // Prevent bubbling issues
                     if (e.target === overlay) {
                         toggleSidebar();
