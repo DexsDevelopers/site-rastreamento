@@ -300,178 +300,184 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
+        /* Premium Reference Section */
+        .referencias-section {
+            width: 100%;
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 1rem;
         }
 
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            display: inline-block;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        /* Premium Card Design */
         .gallery-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
+            background: rgba(24, 24, 27, 0.6);
+            /* Zinc 900 with opacity */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             position: relative;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .gallery-item:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .gallery-item:hover::after {
-            opacity: 1;
+            transform: translateY(-5px);
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 20px 40px -15px rgba(239, 68, 68, 0.15);
         }
 
         .gallery-image {
-            height: 220px;
+            height: 240px;
             width: 100%;
-            overflow: hidden;
             position: relative;
+        }
+
+        .gallery-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to top, rgba(24, 24, 27, 1), transparent);
+            pointer-events: none;
         }
 
         .gallery-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            transition: transform 0.7s ease;
         }
 
         .gallery-item:hover .gallery-image img {
-            transform: scale(1.08);
+            transform: scale(1.05);
         }
 
         .gallery-info {
             padding: 1.5rem;
-            background: linear-gradient(to bottom, var(--surface), rgba(0, 0, 0, 0.2));
+            position: relative;
+            z-index: 2;
+            margin-top: -30px;
+            /* Overlap image */
         }
 
         .gallery-info h4 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+            color: #fff;
             font-size: 1.1rem;
             font-weight: 700;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .gallery-info p {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             line-height: 1.6;
+            font-style: italic;
         }
 
-
-        .trust-badges {
+        /* Stats Section */
+        .stats-badges {
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
-            margin-top: 2.5rem;
-            opacity: 0.6;
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 2rem;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .trust-item {
+        .stat-badge {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 1rem;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
         }
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .stat-info {
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Mobile specific */
-        /* Mobile specific (Robust) */
+        .stat-value {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Mobile Robustness */
         @media (max-width: 768px) {
-
-            .form-row,
-            .form-row-3 {
-                grid-template-columns: 1fr;
-            }
-
-            .checkout-card {
-                padding: 1.5rem;
-            }
-
-            .header-brand h1 {
+            .section-title {
                 font-size: 1.75rem;
             }
 
-            /* Gallery Mobile Fixes - Enforce single column and contained width */
-            .referencias-section {
-                padding: 0;
-                margin-top: 3rem;
-                width: 100% !important;
-                max-width: 100vw !important;
-                overflow: hidden !important;
-                /* Prevent headers or images from spilling */
-            }
-
             .gallery-grid {
-                display: grid !important;
                 grid-template-columns: 1fr !important;
-                /* Force 1 column */
                 gap: 1.5rem;
-                padding: 0 1rem;
-                width: 100% !important;
-                box-sizing: border-box;
+                padding: 0;
             }
 
             .gallery-item {
                 width: 100% !important;
-                margin: 0 auto;
-                border-radius: 16px;
-                overflow: hidden;
-                /* Ensure image corners don't bleed */
-            }
-
-            .gallery-image {
-                height: 220px !important;
-                /* Fixed height for consistency */
-                width: 100% !important;
-            }
-
-            .gallery-image img {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: cover !important;
+                margin: 0;
             }
 
             .stats-badges {
                 flex-direction: column;
-                align-items: stretch;
-                padding: 0 1rem;
-            }
-
-            .stat-badge {
-                justify-content: center;
-                width: 100%;
+                gap: 1.5rem;
+                align-items: flex-start;
             }
         }
     </style>
@@ -604,21 +610,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div> <!-- Close .container -->
 
     <section class="referencias-section">
-        <h2 class="section-title">
-            <i class="fas fa-bolt" style="color:var(--primary); margin-right:8px;"></i> Acompanhamento em Tempo Real
-        </h2>
-        <p class="section-subtitle">
-            Junte-se a milhares de clientes que recebem atualizações automáticas direto no WhatsApp a cada movimentação.
-        </p>
-        
+        <div class="section-header">
+            <h2 class="section-title">
+                Experiência de Compra Premium
+            </h2>
+            <p class="section-subtitle">
+                Tecnologia de ponta aliada a um atendimento humanizado. Veja o que quem já comprou tem a dizer sobre a Helmer Logistics.
+            </p>
+        </div>
+
         <div class="gallery-grid">
             <div class="gallery-item">
                 <div class="gallery-image">
                     <img src="assets/images/whatsapp-1.jpg" alt="Cliente Petrópolis" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>Luiz Gabriel <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Petrópolis/RJ</span></h4>
-                    <p>"Impressionado com a precisão! O sistema me avisou antes mesmo do entregador tocar a campainha."</p>
+                    <h4>Luiz Gabriel <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Petrópolis/RJ</span>
+                    </h4>
+                    <p>"Impressionado com a precisão! O sistema me avisou antes mesmo do entregador tocar a campainha."
+                    </p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -627,7 +637,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="gallery-info">
                     <h4>Julia Santos <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Ubá/MG</span></h4>
-                    <p>"Interface super limpa e moderna. Consigo ver exatamente onde meu pacote está sem complicação."</p>
+                    <p>"Interface super limpa e moderna. Consigo ver exatamente onde meu pacote está sem complicação."
+                    </p>
                 </div>
             </div>
             <div class="gallery-item">
@@ -653,7 +664,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="assets/images/whatsapp-5.jpg" alt="Entrega Confirmada" loading="lazy">
                 </div>
                 <div class="gallery-info">
-                    <h4>Entrega Confirmada <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Brasil</span></h4>
+                    <h4>Entrega Confirmada <span style="font-size:0.8em; opacity:0.7; font-weight:400;">• Brasil</span>
+                    </h4>
                     <p>"Transparência total desde o pagamento da taxa até a chegada em minha residência."</p>
                 </div>
             </div>
@@ -667,11 +679,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </div>
-        
+
         <div class="stats-badges">
-            <span class="stat-badge"><i class="fas fa-check-circle"></i> 99.8% de Entregas no Prazo</span>
-            <span class="stat-badge"><i class="fas fa-star"></i> 4.9/5 Avaliação Geral</span>
-            <span class="stat-badge"><i class="fas fa-shield-alt"></i> Garantia de Entrega</span>
+            <div class="stat-badge">
+                <div class="stat-icon"><i class="fas fa-shipping-fast"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">99.8%</span>
+                    <span class="stat-label">Entregas no Prazo</span>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon"><i class="fas fa-star"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">4.9/5</span>
+                    <span class="stat-label">Avaliação Geral</span>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">Garantia</span>
+                    <span class="stat-label">Seguro Incluso</span>
+                </div>
+            </div>
         </div>
     </section>
 
