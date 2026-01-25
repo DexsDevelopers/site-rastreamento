@@ -972,7 +972,8 @@ if (isset($_POST['undo_action'])) {
                                             style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
                                             <span style="color: var(--text-muted); font-size:0.85rem;">Obs:</span>
                                             <p style="color: var(--text-main); margin-top: 0.25rem;">
-                                                <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?></p>
+                                                <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?>
+                                            </p>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -1065,7 +1066,47 @@ if (isset($_POST['undo_action'])) {
                 </thead>
                 <tbody>
                     <?php
-                    // [...] Lógica de exibição da tabela mantida, apenas ajustando classes
+                    // Lógica para buscar rastreios
+                    $where = "";
+                    if (isset($_GET['filtro'])) {
+                        if ($_GET['filtro'] == "com_taxa") {
+                            $where = "HAVING MAX(taxa_valor) IS NOT NULL AND MAX(taxa_pix) IS NOT NULL";
+                        } elseif ($_GET['filtro'] == "sem_taxa") {
+                            $where = "HAVING MAX(taxa_valor) IS NULL OR MAX(taxa_pix) IS NULL";
+                        }
+                    }
+
+                    // Consulta mais robusta - primeiro pega todos os códigos únicos
+                    $sql = "SELECT DISTINCT codigo FROM rastreios_status WHERE codigo IS NOT NULL AND codigo != '' ORDER BY codigo DESC";
+                    $codigos_result = fetchData($pdo, $sql);
+
+                    $dados_rastreios = [];
+                    if (!empty($codigos_result)) {
+                        foreach ($codigos_result as $codigo_row) {
+                            $codigo = $codigo_row['codigo'];
+
+                            // Para cada código, pega o último registro
+                            $ultimo_sql = "SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1";
+                            $ultimo_result = fetchOne($pdo, $ultimo_sql, [$codigo]);
+
+                            if ($ultimo_result) {
+                                $dados_rastreios[] = $ultimo_result;
+                            }
+                        }
+                    }
+
+                    // Aplicar filtros se necessário
+                    if (isset($_GET['filtro'])) {
+                        $dados_rastreios = array_filter($dados_rastreios, function ($row) {
+                            if ($_GET['filtro'] == "com_taxa") {
+                                return !empty($row['taxa_valor']) && !empty($row['taxa_pix']);
+                            } elseif ($_GET['filtro'] == "sem_taxa") {
+                                return empty($row['taxa_valor']) || empty($row['taxa_pix']);
+                            }
+                            return true;
+                        });
+                    }
+
                     if (!empty($dados_rastreios)) {
                         foreach ($dados_rastreios as $row) {
                             $badge = !empty($row['taxa_valor']) && !empty($row['taxa_pix'])
@@ -1838,16 +1879,16 @@ if (isset($_POST['undo_action'])) {
 
         // Mostrar notificações de sucesso do PHP
         <?php if (isset($success_message)): ?>
-                document.addEventListener('DOMContentLoaded', function () {
-                    notifySuccess('<?= addslashes($success_message) ?>');
-                });
+                    document.addEventListener('DOMContentLoaded', function () {
+                        notifySuccess('<?= addslashes($success_message) ?>');
+                    });
         <?php endif; ?>
 
         // Mostrar notificações de erro do PHP
         <?php if (isset($error_message)): ?>
-                document.addEventListener('DOMContentLoaded', function () {
-                    notifyError('<?= addslashes($error_message) ?>');
-                });
+                    document.addEventListener('DOMContentLoaded', function () {
+                        notifyError('<?= addslashes($error_message) ?>');
+                    });
         <?php endif; ?>
 
         // Inicializar sistema de automações
