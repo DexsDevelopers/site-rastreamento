@@ -734,3 +734,23 @@ input[readonly] {
     cursor: not-allowed;
 }
 
+
+/* Mobile Modal Fixes */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .details-photo img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+}
+
