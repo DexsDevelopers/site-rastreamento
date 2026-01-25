@@ -1000,90 +1000,6 @@ $semTaxa = $totalRastreios - $comTaxa;
                     <?php endif; ?>
                 </div>
 
-                <!-- Seção de Pedidos Pendentes -->
-                <?php if ($totalPedidosPendentes > 0): ?>
-                    <div class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem;">
-                        <h2
-                            style="margin-bottom: 1.5rem; color: var(--warning); display:flex; align-items:center; gap:0.5rem;">
-                            <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
-                        </h2>
-
-                        <div style="display: grid; gap: 1.5rem;">
-                            <?php foreach ($pedidosPendentes as $pedido): ?>
-                                <div
-                                    style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem;">
-                                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
-                                        <div style="flex: 1; min-width: 280px;">
-                                            <h3
-                                                style="color: var(--text-main); margin-bottom: 1rem; font-size: 1.1rem; display:flex; align-items:center; gap:0.5rem;">
-                                                <i class="fas fa-user-circle"></i> <?= htmlspecialchars($pedido['nome']) ?>
-                                            </h3>
-
-                                            <div
-                                                style="display: grid; gap: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
-                                                <div><i class="fas fa-phone fa-fw"></i>
-                                                    <?= htmlspecialchars($pedido['telefone']) ?></div>
-                                                <?php if ($pedido['email']): ?>
-                                                    <div><i class="fas fa-envelope fa-fw"></i>
-                                                        <?= htmlspecialchars($pedido['email']) ?></div>
-                                                <?php endif; ?>
-                                                <div><i class="fas fa-calendar fa-fw"></i>
-                                                    <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
-                                            </div>
-
-                                            <div
-                                                style="margin-top: 1rem; padding: 1rem; background: rgba(255, 51, 51, 0.05); border-radius: 8px; border-left: 2px solid var(--primary);">
-                                                <div style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
-                                                    <strong>Endereço:</strong><br>
-                                                    <?= htmlspecialchars($pedido['rua']) ?>,
-                                                    <?= htmlspecialchars($pedido['numero']) ?>
-                                                    <?= $pedido['complemento'] ? ' - ' . htmlspecialchars($pedido['complemento']) : '' ?><br>
-                                                    <?= htmlspecialchars($pedido['bairro']) ?> -
-                                                    <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
-                                                    CEP: <?= htmlspecialchars($pedido['cep']) ?>
-                                                </div>
-                                                <?php if ($pedido['observacoes']): ?>
-                                                    <div
-                                                        style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
-                                                        <span style="color: var(--text-muted); font-size:0.85rem;">Obs:</span>
-                                                        <p style="color: var(--text-main); margin-top: 0.25rem;">
-                                                            <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?>
-                                                        </p>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-
-                                        <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 200px;">
-                                            <form method="POST"
-                                                onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
-                                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-                                                    <input type="text" name="codigo_rastreio" class="form-control"
-                                                        placeholder="Código de Rastreio" required>
-                                                </div>
-                                                <button type="submit" name="aprovar_pedido" class="btn btn-primary"
-                                                    style="width: 100%;">
-                                                    <i class="fas fa-check"></i> Aprovar Pedido
-                                                </button>
-                                            </form>
-
-                                            <form method="POST"
-                                                onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
-                                                <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                                <button type="submit" name="rejeitar_pedido" class="btn"
-                                                    style="width: 100%; border: 1px solid var(--border-subtle); color: var(--danger);">
-                                                    <i class="fas fa-times"></i> Rejeitar
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
                 <!-- Table Section -->
                 <div class="table-card">
                     <div class="table-header">
@@ -1226,29 +1142,29 @@ $semTaxa = $totalRastreios - $comTaxa;
                 <div class="cards-list">
                     <?php if (!empty($dados_rastreios)):
                         foreach ($dados_rastreios as $row): ?>
-                            <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
-                                <div class="card-header">
-                                    <div class="card-code"><?= $row['codigo'] ?></div>
-                                    <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
-                                </div>
-                                <div class="card-status"><?= $row['status_atual'] ?></div>
-                                <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
-                                <div class="card-actions">
-                                    <button class="btn-mobile-action btn-mobile-edit"
-                                        onclick="event.stopPropagation(); abrirModal('<?= $row['codigo'] ?>')">
-                                        <i class="fas fa-pencil"></i> Editar
-                                    </button>
-                                    <button class="btn-mobile-action btn-mobile-delete"
-                                        onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo'] ?>', 'rastreio', '<?= $row['codigo'] ?>')">
-                                        <i class="fas fa-trash"></i> Excluir
-                                    </button>
-                                </div>
-                                <form id="form-delete-<?= $row['codigo'] ?>" method="POST" style="display:none;">
-                                    <input type="hidden" name="deletar" value="1">
-                                    <input type="hidden" name="codigo" value="<?= $row['codigo'] ?>">
-                                </form>
-                            </div>
-                        <?php endforeach; endif; ?>
+                                    <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
+                                        <div class="card-header">
+                                            <div class="card-code"><?= $row['codigo'] ?></div>
+                                            <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
+                                        </div>
+                                        <div class="card-status"><?= $row['status_atual'] ?></div>
+                                        <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
+                                        <div class="card-actions">
+                                            <button class="btn-mobile-action btn-mobile-edit"
+                                                onclick="event.stopPropagation(); abrirModal('<?= $row['codigo'] ?>')">
+                                                <i class="fas fa-pencil"></i> Editar
+                                            </button>
+                                            <button class="btn-mobile-action btn-mobile-delete"
+                                                onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo'] ?>', 'rastreio', '<?= $row['codigo'] ?>')">
+                                                <i class="fas fa-trash"></i> Excluir
+                                            </button>
+                                        </div>
+                                        <form id="form-delete-<?= $row['codigo'] ?>" method="POST" style="display:none;">
+                                            <input type="hidden" name="deletar" value="1">
+                                            <input type="hidden" name="codigo" value="<?= $row['codigo'] ?>">
+                                        </form>
+                                    </div>
+                            <?php endforeach; endif; ?>
                 </div>
 
             </div> <!-- End .content-body -->
@@ -2007,16 +1923,16 @@ $semTaxa = $totalRastreios - $comTaxa;
 
         // Mostrar notificações de sucesso do PHP
         <?php if (isset($success_message)): ?>
-            document.addEventListener('DOMContentLoaded', function () {
-                notifySuccess('<?= addslashes($success_message) ?>');
-            });
+                document.addEventListener('DOMContentLoaded', function () {
+                    notifySuccess('<?= addslashes($success_message) ?>');
+                });
         <?php endif; ?>
 
         // Mostrar notificações de erro do PHP
         <?php if (isset($error_message)): ?>
-            document.addEventListener('DOMContentLoaded', function () {
-                notifyError('<?= addslashes($error_message) ?>');
-            });
+                document.addEventListener('DOMContentLoaded', function () {
+                    notifyError('<?= addslashes($error_message) ?>');
+                });
         <?php endif; ?>
 
         // Inicializar sistema de automações
