@@ -336,10 +336,7 @@ function aplicarPresetAoCodigo($pdo, $codigo, $cidade, $inicio, $preset, $taxa_v
     }
 }
 
-if (!isset($_SESSION['logado'])) {
-    header("Location: login.php");
-    exit;
-}
+
 
 
 // Função para adicionar etapas (versão segura)
