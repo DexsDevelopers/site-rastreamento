@@ -300,15 +300,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
-        .btn-submit:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.4);
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
         }
 
-        .btn-submit:active {
-            transform: translateY(0);
+        .gallery-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+
+        .gallery-item:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .gallery-item:hover::after {
+            opacity: 1;
+        }
+
+        .gallery-image {
+            height: 220px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gallery-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover .gallery-image img {
+            transform: scale(1.08);
+        }
+
+        .gallery-info {
+            padding: 1.5rem;
+            background: linear-gradient(to bottom, var(--surface), rgba(0, 0, 0, 0.2));
+        }
+
+        .gallery-info h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .gallery-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
 
         .trust-badges {
             display: flex;
@@ -353,58 +409,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Mobile specific */
         /* Mobile specific (Robust) */
         @media (max-width: 768px) {
-            .form-row, .form-row-3 {
+
+            .form-row,
+            .form-row-3 {
                 grid-template-columns: 1fr;
             }
+
             .checkout-card {
                 padding: 1.5rem;
             }
+
             .header-brand h1 {
                 font-size: 1.75rem;
             }
-            
+
             /* Gallery Mobile Fixes - Enforce single column and contained width */
             .referencias-section {
                 padding: 0;
                 margin-top: 3rem;
                 width: 100% !important;
                 max-width: 100vw !important;
-                overflow: hidden !important; /* Prevent headers or images from spilling */
+                overflow: hidden !important;
+                /* Prevent headers or images from spilling */
             }
-            
+
             .gallery-grid {
                 display: grid !important;
-                grid-template-columns: 1fr !important; /* Force 1 column */
+                grid-template-columns: 1fr !important;
+                /* Force 1 column */
                 gap: 1.5rem;
                 padding: 0 1rem;
                 width: 100% !important;
                 box-sizing: border-box;
             }
-            
+
             .gallery-item {
                 width: 100% !important;
                 margin: 0 auto;
                 border-radius: 16px;
-                overflow: hidden; /* Ensure image corners don't bleed */
+                overflow: hidden;
+                /* Ensure image corners don't bleed */
             }
-            
+
             .gallery-image {
-                height: 220px !important; /* Fixed height for consistency */
+                height: 220px !important;
+                /* Fixed height for consistency */
                 width: 100% !important;
             }
-            
+
             .gallery-image img {
                 width: 100% !important;
                 height: 100% !important;
                 object-fit: cover !important;
             }
-            
+
             .stats-badges {
                 flex-direction: column;
                 align-items: stretch;
                 padding: 0 1rem;
             }
-            
+
             .stat-badge {
                 justify-content: center;
                 width: 100%;
