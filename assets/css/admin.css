@@ -505,6 +505,10 @@ form {
     display: none;
 }
 
+.cards-list {
+    display: none;
+}
+
 .desktop-only {
     display: flex;
 }
