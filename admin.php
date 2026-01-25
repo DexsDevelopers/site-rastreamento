@@ -859,45 +859,62 @@ if (isset($_POST['undo_action'])) {
 </head>
 
 <body>
-    <!-- Overlay do Menu Mobile -->
-    <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
+    <div class="admin-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-cube"></i> Helmer
+            </div>
+            
+            <nav class="sidebar-menu">
+                <div class="menu-label">Principal</div>
+                <a href="index.php" class="nav-item"><i class="fas fa-home"></i> Página Inicial</a>
+                <a href="admin.php" class="nav-item active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="admin_indicacoes.php" class="nav-item"><i class="fas fa-users"></i> Indicações</a>
+                
+                <div class="menu-label">Gestão</div>
+                <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
+                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Configuração Bot</a>
+                <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-message"></i> Mensagens WPP</a>
+                
+                <div class="menu-label">Configuração</div>
+                <a href="admin_settings.php" class="nav-item"><i class="fas fa-gear"></i> Ajustes Expressa</a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <?php if (!empty($_SESSION['undo_action'])): ?>
+                        <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action" value="1"></form>
+                        <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;" style="color: var(--warning);">
+                            <i class="fas fa-rotate-left"></i> Desfazer
+                        </a>
+                <?php endif; ?>
+                <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i class="fas fa-power-off"></i> Sair</a>
+            </div>
+        </aside>
 
-    <!-- Container de Notificações -->
-    <div class="toast-container" id="toastContainer"></div>
+        <!-- Overlay Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-    <!-- Botão Toggle Mobile -->
-    <button class="nav-toggle" id="navToggle" onclick="toggleAdminMenu()" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">
+                        <h2>Painel Administrativo</h2>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn btn-icon"><i class="fas fa-bell"></i></button>
+                    <div style="width:32px; height:32px; background:var(--gradient-brand); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:white;">A</div>
+                </div>
+            </header>
 
-    <div class="admin-nav" id="adminNav">
-        <div class="nav-brand"><i class="fas fa-cube"></i> Helmer Admin</div>
-
-        <div class="nav-actions">
-            <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
-            <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
-            <a href="admin_homepage.php" class="nav-btn"><i class="fas fa-edit"></i> Editar Homepage</a>
-            <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Config Expressa</a>
-            <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Msgs WhatsApp</a>
-            <a href="admin_bot_config.php" class="nav-btn"><i class="fas fa-robot"></i> Config Bot</a>
-            <!-- PWA Install Button -->
-            <button id="pwaInstallBtn" class="nav-btn"
-                style="display:none; background: var(--success-bg); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);">
-                <i class="fas fa-download"></i> Instalar App
-            </button>
-            <?php if (!empty($_SESSION['undo_action'])): ?>
-                <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i
-                        class="fas fa-rotate-left"></i> Desfazer</a>
-            <?php else: ?>
-                <span class="nav-btn" style="opacity:.5; cursor:not-allowed"><i class="fas fa-rotate-left"></i>
-                    Desfazer</span>
-            <?php endif; ?>
-            <a href="admin.php?logout=1" class="nav-btn danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
-        </div>
-    </div>
-    <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action" value="1"></form>
+            <div class="content-body">
 
     <!-- Dashboard Stats Grid -->
     <div class="stats-grid">
@@ -922,90 +939,90 @@ if (isset($_POST['undo_action'])) {
             <div class="stat-label">Entregues</div>
         </div>
         <?php if ($totalPedidosPendentes > 0): ?>
-            <div class="stat-card" style="border-color: var(--warning);">
-                <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
-                <div class="stat-value"><?= $totalPedidosPendentes ?></div>
-                <div class="stat-label">Pedidos Pendentes</div>
-            </div>
+                <div class="stat-card" style="border-color: var(--warning);">
+                    <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-value"><?= $totalPedidosPendentes ?></div>
+                    <div class="stat-label">Pedidos Pendentes</div>
+                </div>
         <?php endif; ?>
     </div>
 
     <!-- Seção de Pedidos Pendentes -->
     <?php if ($totalPedidosPendentes > 0): ?>
-        <div class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem;">
-            <h2 style="margin-bottom: 1.5rem; color: var(--warning); display:flex; align-items:center; gap:0.5rem;">
-                <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
-            </h2>
+            <div class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem;">
+                <h2 style="margin-bottom: 1.5rem; color: var(--warning); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fas fa-shopping-cart"></i> Pedidos Pendentes (<?= $totalPedidosPendentes ?>)
+                </h2>
 
-            <div style="display: grid; gap: 1.5rem;">
-                <?php foreach ($pedidosPendentes as $pedido): ?>
-                    <div
-                        style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
-                            <div style="flex: 1; min-width: 280px;">
-                                <h3
-                                    style="color: var(--text-main); margin-bottom: 1rem; font-size: 1.1rem; display:flex; align-items:center; gap:0.5rem;">
-                                    <i class="fas fa-user-circle"></i> <?= htmlspecialchars($pedido['nome']) ?>
-                                </h3>
+                <div style="display: grid; gap: 1.5rem;">
+                    <?php foreach ($pedidosPendentes as $pedido): ?>
+                            <div
+                                style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem;">
+                                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+                                    <div style="flex: 1; min-width: 280px;">
+                                        <h3
+                                            style="color: var(--text-main); margin-bottom: 1rem; font-size: 1.1rem; display:flex; align-items:center; gap:0.5rem;">
+                                            <i class="fas fa-user-circle"></i> <?= htmlspecialchars($pedido['nome']) ?>
+                                        </h3>
 
-                                <div style="display: grid; gap: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
-                                    <div><i class="fas fa-phone fa-fw"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
-                                    <?php if ($pedido['email']): ?>
-                                        <div><i class="fas fa-envelope fa-fw"></i> <?= htmlspecialchars($pedido['email']) ?></div>
-                                    <?php endif; ?>
-                                    <div><i class="fas fa-calendar fa-fw"></i>
-                                        <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
-                                </div>
-
-                                <div
-                                    style="margin-top: 1rem; padding: 1rem; background: rgba(255, 51, 51, 0.05); border-radius: 8px; border-left: 2px solid var(--primary);">
-                                    <div style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
-                                        <strong>Endereço:</strong><br>
-                                        <?= htmlspecialchars($pedido['rua']) ?>, <?= htmlspecialchars($pedido['numero']) ?>
-                                        <?= $pedido['complemento'] ? ' - ' . htmlspecialchars($pedido['complemento']) : '' ?><br>
-                                        <?= htmlspecialchars($pedido['bairro']) ?> -
-                                        <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
-                                        CEP: <?= htmlspecialchars($pedido['cep']) ?>
-                                    </div>
-                                    <?php if ($pedido['observacoes']): ?>
-                                        <div
-                                            style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
-                                            <span style="color: var(--text-muted); font-size:0.85rem;">Obs:</span>
-                                            <p style="color: var(--text-main); margin-top: 0.25rem;">
-                                                <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?>
-                                            </p>
+                                        <div style="display: grid; gap: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                                            <div><i class="fas fa-phone fa-fw"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
+                                            <?php if ($pedido['email']): ?>
+                                                    <div><i class="fas fa-envelope fa-fw"></i> <?= htmlspecialchars($pedido['email']) ?></div>
+                                            <?php endif; ?>
+                                            <div><i class="fas fa-calendar fa-fw"></i>
+                                                <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
                                         </div>
-                                    <?php endif; ?>
+
+                                        <div
+                                            style="margin-top: 1rem; padding: 1rem; background: rgba(255, 51, 51, 0.05); border-radius: 8px; border-left: 2px solid var(--primary);">
+                                            <div style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
+                                                <strong>Endereço:</strong><br>
+                                                <?= htmlspecialchars($pedido['rua']) ?>, <?= htmlspecialchars($pedido['numero']) ?>
+                                                <?= $pedido['complemento'] ? ' - ' . htmlspecialchars($pedido['complemento']) : '' ?><br>
+                                                <?= htmlspecialchars($pedido['bairro']) ?> -
+                                                <?= htmlspecialchars($pedido['cidade']) ?>/<?= htmlspecialchars($pedido['estado']) ?><br>
+                                                CEP: <?= htmlspecialchars($pedido['cep']) ?>
+                                            </div>
+                                            <?php if ($pedido['observacoes']): ?>
+                                                    <div
+                                                        style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
+                                                        <span style="color: var(--text-muted); font-size:0.85rem;">Obs:</span>
+                                                        <p style="color: var(--text-main); margin-top: 0.25rem;">
+                                                            <?= nl2br(htmlspecialchars($pedido['observacoes'])) ?>
+                                                        </p>
+                                                    </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 200px;">
+                                        <form method="POST"
+                                            onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                                            <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                                                <input type="text" name="codigo_rastreio" class="form-control"
+                                                    placeholder="Código de Rastreio" required>
+                                            </div>
+                                            <button type="submit" name="aprovar_pedido" class="btn btn-primary" style="width: 100%;">
+                                                <i class="fas fa-check"></i> Aprovar Pedido
+                                            </button>
+                                        </form>
+
+                                        <form method="POST"
+                                            onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
+                                            <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                            <button type="submit" name="rejeitar_pedido" class="btn"
+                                                style="width: 100%; border: 1px solid var(--border-subtle); color: var(--danger);">
+                                                <i class="fas fa-times"></i> Rejeitar
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 200px;">
-                                <form method="POST"
-                                    onsubmit="return confirmarAprovarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
-                                    <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                    <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-                                        <input type="text" name="codigo_rastreio" class="form-control"
-                                            placeholder="Código de Rastreio" required>
-                                    </div>
-                                    <button type="submit" name="aprovar_pedido" class="btn btn-primary" style="width: 100%;">
-                                        <i class="fas fa-check"></i> Aprovar Pedido
-                                    </button>
-                                </form>
-
-                                <form method="POST"
-                                    onsubmit="return confirmarRejeitarPedido(this, '<?= htmlspecialchars($pedido['nome'], ENT_QUOTES) ?>')">
-                                    <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                    <button type="submit" name="rejeitar_pedido" class="btn"
-                                        style="width: 100%; border: 1px solid var(--border-subtle); color: var(--danger);">
-                                        <i class="fas fa-times"></i> Rejeitar
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
     <?php endif; ?>
 
     <!-- Table Section -->
@@ -1148,15 +1165,15 @@ if (isset($_POST['undo_action'])) {
     <div class="cards-list">
         <?php if (!empty($dados_rastreios)):
             foreach ($dados_rastreios as $row): ?>
-                <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
-                    <div class="card-header">
-                        <div class="card-code"><?= $row['codigo'] ?></div>
-                        <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
-                    </div>
-                    <div class="card-status"><?= $row['status_atual'] ?></div>
-                    <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
-                </div>
-            <?php endforeach; endif; ?>
+                        <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
+                            <div class="card-header">
+                                <div class="card-code"><?= $row['codigo'] ?></div>
+                                <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
+                            </div>
+                            <div class="card-status"><?= $row['status_atual'] ?></div>
+                            <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
+                        </div>
+                <?php endforeach; endif; ?>
     </div>
 
     </div> <!-- End .content-body -->
@@ -1879,16 +1896,16 @@ if (isset($_POST['undo_action'])) {
 
         // Mostrar notificações de sucesso do PHP
         <?php if (isset($success_message)): ?>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        notifySuccess('<?= addslashes($success_message) ?>');
-                    });
+                        document.addEventListener('DOMContentLoaded', function () {
+                            notifySuccess('<?= addslashes($success_message) ?>');
+                        });
         <?php endif; ?>
 
         // Mostrar notificações de erro do PHP
         <?php if (isset($error_message)): ?>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        notifyError('<?= addslashes($error_message) ?>');
-                    });
+                        document.addEventListener('DOMContentLoaded', function () {
+                            notifyError('<?= addslashes($error_message) ?>');
+                        });
         <?php endif; ?>
 
         // Inicializar sistema de automações
