@@ -144,6 +144,8 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
         $erroCidade = "❌ Código e cidade são obrigatórios!";
     } else {
         try {
+            writeLog("Debug City Check - Input Code: " . $codigo, 'DEBUG');
+            writeLog("Debug City Check - Input City: " . $cidade, 'DEBUG');
             $sql = "SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$codigo]);
@@ -159,23 +161,31 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                     }
                 }
 
-                if (!empty($rows) && normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
-                    $statusList = $rows;
-                    foreach ($rows as $r) {
-                        if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
-                            $temTaxa = true;
+                if (!empty($rows)) {
+                    $d = normalizeString($rows[0]['cidade']);
+                    $i = normalizeString($cidade);
+                    writeLog("DEBUG POST: DB raw='" . $rows[0]['cidade'] . "' DB norm='$d' | INPUT raw='$cidade' INPUT norm='$i'", 'INFO');
+
+                    if ($d === $i) {
+                        $statusList = $rows;
+                        foreach ($rows as $r) {
+                            if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
+                                $temTaxa = true;
+                            }
+                            if (!empty($r['prioridade'])) {
+                                $isExpress = true;
+                            }
                         }
-                        if (!empty($r['prioridade'])) {
-                            $isExpress = true;
+                        $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
+                        $fotoPedido = getRastreioFoto($pdo, $codigo);
+                        if ($fotoPedido) {
+                            $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
+                            $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
+                        } else {
+                            $fotoPedidoSrc = null;
                         }
-                    }
-                    $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
-                    $fotoPedido = getRastreioFoto($pdo, $codigo);
-                    if ($fotoPedido) {
-                        $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
-                        $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
                     } else {
-                        $fotoPedidoSrc = null;
+                        $erroCidade = "⚠️ A cidade informada não confere com este código!";
                     }
                 } else {
                     $erroCidade = "⚠️ A cidade informada não confere com este código!";
@@ -271,7 +281,9 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 <body>
     <header class="header">
         <div class="nav-container">
-            <a href="index.php" class="logo"><?= htmlspecialchars($nomeEmpresa) ?></a>
+            <a href="index.php" class="logo">
+                <?= htmlspecialchars($nomeEmpresa) ?>
+            </a>
             <nav class="nav-links">
                 <a href="index.php">Início</a>
                 <a href="sobre.php">Sobre</a>
@@ -314,7 +326,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                     <div class="results-container">
                         <div class="results-card">
                             <div class="status">
-                                📦 Status atual: <?= htmlspecialchars($statusAtualTopo) ?> —
+                                📦 Status atual:
+                                <?= htmlspecialchars($statusAtualTopo) ?> —
                                 <?= htmlspecialchars($cidade) ?>
                                 <?php if ($isExpress): ?>
                                     <span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span>
@@ -324,9 +337,15 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                                 <?php foreach ($statusList as $etapa): ?>
                                     <div class="step"
                                         style="border-left-color:<?= htmlspecialchars($etapa['cor'] ?? '#16A34A') ?>;">
-                                        <b><?= htmlspecialchars($etapa['titulo']) ?></b>
-                                        <small><?= htmlspecialchars($etapa['subtitulo']) ?></small>
-                                        <i><?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></i>
+                                        <b>
+                                            <?= htmlspecialchars($etapa['titulo']) ?>
+                                        </b>
+                                        <small>
+                                            <?= htmlspecialchars($etapa['subtitulo']) ?>
+                                        </small>
+                                        <i>
+                                            <?= date("d/m/Y H:i", strtotime($etapa['data'])) ?>
+                                        </i>
 
                                         <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
                                             <div class="pix-box">
@@ -370,14 +389,20 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                     </div>
                 <?php elseif (!empty($erroCidade)): ?>
                     <div class="results-container">
-                        <div class="erro"><?= htmlspecialchars($erroCidade) ?></div>
+                        <div class="erro">
+                            <?= htmlspecialchars($erroCidade) ?>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
 
             <div class="hero-content">
-                <h1><?= htmlspecialchars($tituloHero) ?></h1>
-                <p><?= htmlspecialchars($descricaoHero) ?></p>
+                <h1>
+                    <?= htmlspecialchars($tituloHero) ?>
+                </h1>
+                <p>
+                    <?= htmlspecialchars($descricaoHero) ?>
+                </p>
 
                 <div class="hero-actions" style="justify-content: flex-start;">
                     <a href="sobre.php" class="btn-hero secondary"><i class="fas fa-info-circle"></i> Sobre nós</a>
@@ -385,10 +410,14 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                 </div>
                 <div class="badges">
                     <span class="badge"><i class="fas fa-check-circle"></i>
-                        <?= htmlspecialchars($badgeSatisfacao) ?></span>
-                    <span class="badge"><i class="fas fa-truck"></i> <?= htmlspecialchars($badgeEntregas) ?></span>
+                        <?= htmlspecialchars($badgeSatisfacao) ?>
+                    </span>
+                    <span class="badge"><i class="fas fa-truck"></i>
+                        <?= htmlspecialchars($badgeEntregas) ?>
+                    </span>
                     <span class="badge"><i class="fas fa-map-marker-alt"></i>
-                        <?= htmlspecialchars($badgeCidades) ?></span>
+                        <?= htmlspecialchars($badgeCidades) ?>
+                    </span>
                 </div>
 
                 <div class="referral-box" style="margin-top: 2rem;">
@@ -411,45 +440,68 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <!-- Como funciona -->
     <section class="features" style="margin-top: 3rem;">
-        <h2 class="section-title"><?= htmlspecialchars($howItWorksTitle) ?></h2>
+        <h2 class="section-title">
+            <?= htmlspecialchars($howItWorksTitle) ?>
+        </h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-barcode" style="font-size: 1.5rem;"></i></div>
-                <h3><?= htmlspecialchars($feature1Title) ?></h3>
-                <p><?= htmlspecialchars($feature1Description) ?></p>
+                <h3>
+                    <?= htmlspecialchars($feature1Title) ?>
+                </h3>
+                <p>
+                    <?= htmlspecialchars($feature1Description) ?>
+                </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-stream" style="font-size: 1.5rem;"></i></div>
-                <h3><?= htmlspecialchars($feature2Title) ?></h3>
-                <p><?= htmlspecialchars($feature2Description) ?></p>
+                <h3>
+                    <?= htmlspecialchars($feature2Title) ?>
+                </h3>
+                <p>
+                    <?= htmlspecialchars($feature2Description) ?>
+                </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-bolt" style="font-size: 1.5rem;"></i></div>
-                <h3><?= htmlspecialchars($feature3Title) ?></h3>
-                <p><?= htmlspecialchars($feature3Description) ?></p>
+                <h3>
+                    <?= htmlspecialchars($feature3Title) ?>
+                </h3>
+                <p>
+                    <?= htmlspecialchars($feature3Description) ?>
+                </p>
             </div>
         </div>
         <!-- Prova social -->
         <div class="features-grid" style="margin-top:2rem;">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
-                <h3><?= htmlspecialchars($socialProof1Title) ?></h3>
-                <p><a href="sobre.php"
-                        style="color:#fff; text-decoration:underline;"><?= htmlspecialchars($socialProof1LinkText) ?></a>
+                <h3>
+                    <?= htmlspecialchars($socialProof1Title) ?>
+                </h3>
+                <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
+                        <?= htmlspecialchars($socialProof1LinkText) ?>
+                    </a>
                 </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
-                <h3><?= htmlspecialchars($socialProof2Title) ?></h3>
-                <p><a href="sobre.php"
-                        style="color:#fff; text-decoration:underline;"><?= htmlspecialchars($socialProof2LinkText) ?></a>
+                <h3>
+                    <?= htmlspecialchars($socialProof2Title) ?>
+                </h3>
+                <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
+                        <?= htmlspecialchars($socialProof2LinkText) ?>
+                    </a>
                 </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
-                <h3><?= htmlspecialchars($socialProof3Title) ?></h3>
-                <p><a href="sobre.php"
-                        style="color:#fff; text-decoration:underline;"><?= htmlspecialchars($socialProof3LinkText) ?></a>
+                <h3>
+                    <?= htmlspecialchars($socialProof3Title) ?>
+                </h3>
+                <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
+                        <?= htmlspecialchars($socialProof3LinkText) ?>
+                    </a>
                 </p>
             </div>
         </div>
@@ -627,23 +679,23 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             // Se os dados vieram da URL, os resultados já foram renderizados pelo PHP
             // Apenas garantir que o countdown e popup funcionem se necessário
             <?php if ($autoLoadFromUrl && !empty($statusList)): ?>
-                setTimeout(function () {
-                    try {
-                        startCountdownIfPresent();
-                        <?php if ($temTaxa): ?>
-                            const pixTextarea = document.querySelector('.pix-box textarea');
-                            if (pixTextarea && typeof showTaxaPopup === 'function') {
-                                let valorTexto = null;
-                                const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
-                                if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
-                                    const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                    valorTexto = m ? m[0] : null;
+                    setTimeout(function () {
+                        try {
+                            startCountdownIfPresent();
+                            <?php if ($temTaxa): ?>
+                                    const pixTextarea = document.querySelector('.pix-box textarea');
+                                if (pixTextarea && typeof showTaxaPopup === 'function') {
+                                    let valorTexto = null;
+                                    const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
+                                    if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
+                                        const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                                        valorTexto = m ? m[0] : null;
+                                    }
+                                    showTaxaPopup(valorTexto);
                                 }
-                                showTaxaPopup(valorTexto);
-                            }
-                        <?php endif; ?>
-                    } catch (_) { /* silencioso */ }
-                }, 200);
+                            <?php endif; ?>
+                        } catch (_) { /* silencioso */ }
+                    }, 200);
             <?php endif; ?>
 
             if (form && results && submitBtn) {
