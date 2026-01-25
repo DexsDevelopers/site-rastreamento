@@ -73,11 +73,30 @@ try {
         }
     }
 
+    // Check Pedidos Pendentes
+    echo "<h2>Pedidos Pendentes Check</h2>";
+
+    // Check Columns
+    $stmt = $pdo->query("SHOW COLUMNS FROM pedidos_pendentes");
+    $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    echo "<p>Columns: " . implode(', ', $cols) . "</p>";
+
+    // Check Data
+    $stmt = $pdo->query("SELECT id, nome, telefone, cidade, estado, status, codigo_rastreio FROM pedidos_pendentes ORDER BY id DESC LIMIT 5");
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "<h3>Last 5 Pedidos:</h3>";
+    foreach ($orders as $o) {
+        require_once 'includes/whatsapp_helper.php';
+        $norm = normalizePhoneToDigits($o['telefone']);
+        echo "<p>ID: {$o['id']} | Nome: '{$o['nome']}' | Tel Raw: '{$o['telefone']}' -> Norm: '{$norm}' | Status: {$o['status']}</p>";
+        if ($norm === null) {
+            echo "<p style='color:red'>⚠️ Phone normalization failed for '{$o['telefone']}'!</p>";
+        }
+    }
 } catch (Exception $e) {
     echo "<p>❌ DB Error: " . $e->getMessage() . "</p>";
 }
-
-echo "<h2>System Log (Last 20 lines)</h2>";
 $logFile = __DIR__ . '/logs/system.log';
 if (file_exists($logFile)) {
     $lines = file($logFile);
