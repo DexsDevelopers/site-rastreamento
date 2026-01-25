@@ -3,22 +3,25 @@
     /* Color Palette - HSL (Hue, Saturation, Lightness) for better manipulation */
     --primary-hue: 0;
     --primary-sat: 100%;
-    --primary-light: 60%; /* #FF3333 */
-    
+    --primary-light: 60%;
+    /* #FF3333 */
+
     --secondary-hue: 24;
     --secondary-sat: 100%;
-    --secondary-light: 50%; /* #FF6600 */
+    --secondary-light: 50%;
+    /* #FF6600 */
 
     --success-hue: 142;
     --success-sat: 76%;
-    --success-light: 36%; /* #16A34A */
+    --success-light: 36%;
+    /* #16A34A */
 
     /* Derived Colors */
     --primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-light));
     --primary-dark: hsl(var(--primary-hue), var(--primary-sat), 40%);
     --secondary: hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-light));
     --success: hsl(var(--success-hue), var(--success-sat), var(--success-light));
-    
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary-hue), 100%, 60%) 0%, hsl(var(--secondary-hue), 100%, 50%) 100%);
     --gradient-dark: linear-gradient(135deg, hsl(0, 0%, 4%) 0%, hsl(0, 50%, 5%) 100%);
@@ -34,20 +37,22 @@
     --text-main: #FFFFFF;
     --text-muted: rgba(255, 255, 255, 0.7);
     --text-dim: rgba(255, 255, 255, 0.4);
-    
+
     /* Spacing & Radius */
     --radius-sm: 8px;
     --radius-md: 16px;
     --radius-lg: 24px;
     --radius-full: 9999px;
-    
+
     /* Animation */
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reset & Base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -65,7 +70,12 @@ body {
 }
 
 /* Typography Utilities */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -112,171 +122,192 @@ img {
 /* Header & Nav */
 .header {
     position: fixed;
-    top: 1rem;
+    top: 1.5rem;
     left: 0;
     right: 0;
     z-index: 1000;
-    transition: all 0.3s ease;
 }
 
 .nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-radius: var(--radius-full);
-    background: rgba(10, 10, 10, 0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-glass);
-    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+    background: rgba(15, 15, 15, 0.85);
+    /* Mais escuro e sólido */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Borda sutil */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .logo {
     font-size: 1.5rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    letter-spacing: -0.02em;
     color: var(--text-main);
-}
-
-.logo span {
-    color: var(--primary);
+    text-transform: uppercase;
 }
 
 .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 2.5rem;
+    list-style: none;
+    /* Garantir que não tenha bullets */
 }
 
 .nav-links a {
-    font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
 }
 
-.nav-links a:hover, .nav-links a.active {
+.nav-links a:hover {
     color: var(--primary);
+}
+
+.mobile-menu,
+.mobile-menu-toggle {
+    display: none;
+    /* Esconder mobile por padrão no desktop */
 }
 
 /* Hero Section */
 .hero {
-    padding-top: 8rem;
-    padding-bottom: 4rem;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: 6rem;
+    /* Espaço para o header fixo */
     position: relative;
-    overflow: hidden;
-}
-
-/* Background Glow Effect */
-.hero::before {
-    content: '';
-    position: absolute;
-    top: -20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 600px;
-    background: var(--primary);
-    filter: blur(200px);
-    opacity: 0.15;
-    z-index: -1;
-    pointer-events: none;
+    background: #050505 radial-gradient(circle at 50% 20%, rgba(255, 51, 51, 0.08) 0%, rgba(0, 0, 0, 0) 60%);
 }
 
 .hero-box {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    gap: 5rem;
     align-items: center;
+    width: 100%;
 }
 
-.hero-content h1 {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.hero-content p {
-    font-size: 1.125rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-    max-width: 540px;
-}
-
-/* Search Interface */
+/* Search Card Styling (Fixing the Ugly Inputs) */
 .search-card {
-    background: linear-gradient(180deg, rgba(30, 30, 30, 0.6) 0%, rgba(20, 20, 20, 0.8) 100%);
-    border: 1px solid rgba(255, 51, 51, 0.15);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 2.5rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
 }
 
-.search-card::before {
+/* Borda brilhante no topo do card */
+.search-card::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    opacity: 0.5;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent);
+}
+
+.search-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.search-card h2 i {
+    color: var(--primary);
 }
 
 .form-group {
     margin-bottom: 1.5rem;
 }
 
-.form-label {
+.form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
+/* TARGETING GENERIC INPUTS TO FIX WHITE BOXES */
+.form-group input,
 .form-input {
     width: 100%;
     padding: 1rem 1.25rem;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-md);
-    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
     font-size: 1rem;
-    transition: all 0.2s;
+    font-family: inherit;
+    transition: all 0.2s ease;
 }
 
-.form-input:focus {
+.form-group input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 0 4px rgba(255, 51, 51, 0.15);
 }
 
-.btn {
-    display: inline-flex;
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Button Refinement */
+.btn-primary {
+    background: linear-gradient(135deg, #FF3333 0%, #D92020 100%);
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    box-shadow: 0 10px 20px -5px rgba(255, 51, 51, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem 2rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: var(--transition-fast);
-}
-
-.btn-primary {
-    background: var(--gradient-primary);
-    color: white;
-    box-shadow: 0 10px 20px -5px rgba(255, 51, 51, 0.3);
-    width: 100%;
+    gap: 0.75rem;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 15px 30px -5px rgba(255, 51, 51, 0.4);
+    box-shadow: 0 15px 30px -10px rgba(255, 51, 51, 0.6);
+}
+
+/* Hero Content Typography */
+.hero-content h1 {
+    font-size: 3.5rem;
+    /* Menor que antes para caber melhor */
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(180deg, #FFFFFF 0%, #AAAAAA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Features Grid */
@@ -435,7 +466,7 @@ img {
     border-radius: var(--radius-md);
     border: 1px solid var(--border-glass);
     margin-top: 1rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* Responsiveness */
@@ -445,16 +476,16 @@ img {
         gap: 3rem;
         text-align: center;
     }
-    
+
     .hero-content h1 {
         font-size: 2.75rem;
     }
-    
+
     .hero-content p {
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     .hero::before {
         width: 400px;
         height: 400px;
@@ -473,15 +504,16 @@ img {
     .hero-content h1 {
         font-size: 2.25rem;
     }
-    
+
     .nav-links {
-        display: none; /* Mobile menu to be implemented via JS logic if needed, or simple hide */
+        display: none;
+        /* Mobile menu to be implemented via JS logic if needed, or simple hide */
     }
-    
+
     .search-card {
         padding: 1.5rem;
     }
-    
+
     .results-card {
         padding: 1.5rem;
     }
@@ -489,14 +521,29 @@ img {
 
 /* Animation Utilities */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in {
     animation: fadeIn 0.6s ease-out forwards;
 }
 
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
+.delay-100 {
+    animation-delay: 100ms;
+}
+
+.delay-200 {
+    animation-delay: 200ms;
+}
+
+.delay-300 {
+    animation-delay: 300ms;
+}
