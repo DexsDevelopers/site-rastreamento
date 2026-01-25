@@ -856,30 +856,37 @@ if (isset($_POST['undo_action'])) {
     <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo time(); ?>">
     <!-- SweetAlert2 para popups bonitos -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
 </head>
 
 <body>
+    <!-- Overlay do Menu Mobile -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleAdminMenu()"></div>
+
     <!-- Container de Notificações -->
     <div class="toast-container" id="toastContainer"></div>
-    <button id="pwaInstallBtn"><i class="fas fa-download"></i> Instalar app</button>
+
+    <!-- Botão Toggle Mobile -->
+    <button class="nav-toggle" id="navToggle" onclick="toggleAdminMenu()" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 
     <div class="admin-nav" id="adminNav">
-        <div class="nav-brand"><i class="fas fa-truck"></i> Helmer Admin</div>
-        <button class="nav-toggle" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()"
-            aria-label="Toggle menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+        <div class="nav-brand"><i class="fas fa-cube"></i> Helmer Admin</div>
+
         <div class="nav-actions">
             <a href="admin_indicacoes.php" class="nav-btn"><i class="fas fa-users"></i> Indicações</a>
             <a href="index.php" class="nav-btn"><i class="fas fa-home"></i> Página inicial</a>
             <a href="admin_homepage.php" class="nav-btn"><i class="fas fa-edit"></i> Editar Homepage</a>
-            <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Configurações Expressa</a>
-            <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Mensagens WhatsApp</a>
+            <a href="admin_settings.php" class="nav-btn"><i class="fas fa-gear"></i> Config Expressa</a>
+            <a href="admin_mensagens.php" class="nav-btn"><i class="fas fa-comment-dots"></i> Msgs WhatsApp</a>
             <a href="admin_bot_config.php" class="nav-btn"><i class="fas fa-robot"></i> Config Bot</a>
+            <!-- PWA Install Button -->
+            <button id="pwaInstallBtn" class="nav-btn"
+                style="display:none; background: var(--success-bg); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <i class="fas fa-download"></i> Instalar App
+            </button>
             <?php if (!empty($_SESSION['undo_action'])): ?>
                 <a href="#" class="nav-btn" onclick="document.getElementById('undoForm').submit(); return false;"><i
                         class="fas fa-rotate-left"></i> Desfazer</a>
@@ -3092,10 +3099,25 @@ if (isset($_POST['undo_action'])) {
 
         function toggleAdminMenu() {
             const nav = document.getElementById('adminNav');
-            const btn = document.querySelector('.nav-toggle');
+            const overlay = document.getElementById('navOverlay');
+            const btn = document.getElementById('navToggle');
+
             if (!nav || !btn) return;
-            const open = nav.classList.toggle('open');
-            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+            const isActive = nav.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active', isActive);
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+
+            // Prevent body scroll when menu is open on mobile
+            if (window.innerWidth <= 768) {
+                document.body.style.overflow = isActive ? 'hidden' : '';
+            }
+        }
+
+        // Close menu when clicking overlay
+        if (document.getElementById('navOverlay')) {
+            document.getElementById('navOverlay').addEventListener('click', toggleAdminMenu);
         }
     </script>
     <?php // Expor presets ao JS ?>
