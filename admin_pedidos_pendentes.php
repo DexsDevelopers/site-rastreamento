@@ -181,7 +181,7 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
 
                                 <form method="POST" style="background:#111; padding:1rem; border-radius:8px; border:1px solid var(--border-subtle);">
                                     <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                    <div style="display:grid; grid-template-columns: 1fr auto; gap:1rem; align-items:end;">
+                                    <div class="pending-action-grid" style="display:grid; grid-template-columns: 1fr auto; gap:1rem; align-items:end;">
                                         <div class="form-group" style="margin-bottom:0;">
                                             <label style="font-size:0.9rem;">Gerar Código de Rastreio</label>
                                             <div class="input-with-button" style="display:flex; gap:0.5rem;">

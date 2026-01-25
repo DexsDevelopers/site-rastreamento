@@ -626,6 +626,7 @@ form {
     opacity: 1;
     pointer-events: auto;
 }
+
 /* Improved Modals */
 .modal-content {
     background: var(--bg-card);
@@ -652,7 +653,8 @@ form {
 }
 
 .form-control {
-    background: #0a0a0a !important; /* Force dark background */
+    background: #0a0a0a !important;
+    /* Force dark background */
     border: 1px solid var(--border-light) !important;
     color: #fff !important;
     padding: 0.85rem 1rem;
@@ -670,7 +672,7 @@ form {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
     padding: 1rem;
     border-radius: 8px;
     border: 1px solid var(--border-subtle);
@@ -687,7 +689,7 @@ form {
 }
 
 .checkbox-item:hover {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .checkbox-item input[type='checkbox'] {
@@ -710,7 +712,7 @@ form {
     border-radius: 12px;
     padding: 1.5rem;
     text-align: center;
-    background: rgba(255,255,255,0.01);
+    background: rgba(255, 255, 255, 0.01);
     transition: all 0.2s;
 }
 
@@ -729,7 +731,7 @@ form {
 
 /* Input readonly state */
 input[readonly] {
-    background: rgba(255,255,255,0.05) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
     color: var(--text-muted) !important;
     cursor: not-allowed;
 }
@@ -742,13 +744,13 @@ input[readonly] {
         max-height: 90vh;
         overflow-y: auto;
     }
-    
+
     .details-photo img {
         max-width: 100%;
         height: auto;
         border-radius: 8px;
     }
-    
+
     .modal-header h3 {
         font-size: 1.1rem;
     }
@@ -797,7 +799,7 @@ input[readonly] {
         border-top: 1px solid var(--border-subtle);
         justify-content: flex-end;
     }
-    
+
     .btn-mobile-action {
         flex: 1;
         display: flex;
@@ -812,13 +814,13 @@ input[readonly] {
         background: var(--bg-surface);
         color: var(--text-main);
     }
-    
+
     .btn-mobile-edit {
         background: rgba(245, 158, 11, 0.1);
         color: #F59E0B;
         border-color: rgba(245, 158, 11, 0.2);
     }
-    
+
     .btn-mobile-delete {
         background: rgba(239, 68, 68, 0.1);
         color: #EF4444;
@@ -826,3 +828,24 @@ input[readonly] {
     }
 }
 
+
+/* Mobile Fix for Pending Orders Input */
+@media (max-width: 768px) {
+    .pending-action-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .pending-action-grid .form-group {
+        width: 100% !important;
+    }
+
+    .pending-action-grid .input-with-button {
+        width: 100% !important;
+    }
+
+    .pending-action-grid input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
