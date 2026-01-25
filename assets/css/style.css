@@ -322,17 +322,184 @@ img {
 }
 
 /* Hero Content Typography */
-.hero-content h1 {
-    font-size: 3.5rem;
-    /* Menor que antes para caber melhor */
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
-    background: linear-gradient(180deg, #FFFFFF 0%, #AAAAAA 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-/* Features Grid */
+.hero-content h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(180deg, #FFFFFF 0%, #E0E0E0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    max-width: 90%;
+}
+
+/* Styled Hero Action Buttons */
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.btn-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.btn-hero:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-hero i {
+    color: var(--primary);
+}
+
+/* Badges as Glass Chips */
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 100px;
+    background: rgba(0, 255, 136, 0.08);
+    /* Green Tint */
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    color: #ccffdd;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.badge i {
+    color: #00ff88;
+}
+
+/* Referral Card Redesign */
+.referral-box {
+    background: linear-gradient(145deg, rgba(20, 20, 20, 0.9) 0%, rgba(30, 20, 20, 0.9) 100%);
+    border: 1px solid rgba(255, 51, 51, 0.2);
+    border-left: 4px solid var(--primary);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Glow effect inside referral box */
+.referral-box::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: var(--primary);
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.referral-box i.fa-star {
+    font-size: 1.5rem !important;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.referral-box h3 {
+    font-size: 1.25rem;
+    color: white;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.referral-box p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+}
+
+.btn-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-referral {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.2s;
+}
+
+.btn-referral:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 51, 51, 0.3);
+}
+
+.btn-info {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.2s;
+}
+
+.btn-info:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Feature Grid Restored */
 .features {
     padding: 4rem 0;
 }
@@ -386,7 +553,6 @@ img {
     color: var(--text-muted);
 }
 
-/* Results Section */
 .results-container {
     max-width: 800px;
     margin: 2rem auto;
