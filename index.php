@@ -105,7 +105,7 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
                         }
                     }
 
-                    if (!empty($rows) && strcasecmp(trim($rows[0]['cidade']), $cidade) === 0) {
+                    if (!empty($rows) && normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
                         $statusList = $rows;
                         foreach ($rows as $r) {
                             if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
@@ -159,7 +159,7 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                     }
                 }
 
-                if (!empty($rows) && strcasecmp(trim($rows[0]['cidade']), $cidade) === 0) {
+                if (!empty($rows) && normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
                     $statusList = $rows;
                     foreach ($rows as $r) {
                         if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {

@@ -87,12 +87,14 @@ if (!headers_sent()) {
 }
 
 // Função para obter configuração
-function getConfig($key, $default = null) {
+function getConfig($key, $default = null)
+{
     return defined($key) ? constant($key) : $default;
 }
 
 // Config dinâmico persistido em config.json (base) e config_custom.json (personalizações)
-function getDynamicConfig($key, $default = null) {
+function getDynamicConfig($key, $default = null)
+{
     // Primeiro, verificar config_custom.json (personalizações do usuário - não sobrescrito por deploy)
     $customPath = __DIR__ . '/../config_custom.json';
     if (is_readable($customPath)) {
@@ -104,7 +106,7 @@ function getDynamicConfig($key, $default = null) {
             }
         }
     }
-    
+
     // Depois, verificar config.json (configurações base)
     $path = __DIR__ . '/../config.json';
     if (is_readable($path)) {
@@ -117,11 +119,12 @@ function getDynamicConfig($key, $default = null) {
     return getConfig($key, $default);
 }
 
-function setDynamicConfig($key, $value) {
+function setDynamicConfig($key, $value)
+{
     // Salvar personalizações em config_custom.json (não sobrescrito por deploy)
     $path = __DIR__ . '/../config_custom.json';
     $data = [];
-    
+
     // Ler dados existentes
     if (file_exists($path) && is_readable($path)) {
         $json = @file_get_contents($path);
@@ -132,47 +135,49 @@ function setDynamicConfig($key, $value) {
             }
         }
     }
-    
+
     // Atualizar valor
     $data[$key] = $value;
-    
+
     // Escrever de volta
     $jsonOut = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    
+
     // Garantir que o diretório existe
     $dir = dirname($path);
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
-    
+
     // Tentar escrever o arquivo
     $result = @file_put_contents($path, $jsonOut, LOCK_EX);
-    
+
     if ($result === false) {
         $error = error_get_last();
         $errorMsg = $error && isset($error['message']) ? $error['message'] : 'Erro desconhecido';
         error_log("Falha ao escrever config_custom.json: " . $errorMsg);
         return false;
     }
-    
+
     return true;
 }
 
 // Função para verificar se está em modo debug
-function isDebugMode() {
+function isDebugMode()
+{
     return getConfig('DEBUG_MODE', false);
 }
 
 // Função para logging
-function writeLog($message, $level = 'INFO') {
+function writeLog($message, $level = 'INFO')
+{
     if (!getConfig('LOG_ENABLED', true)) {
         return;
     }
-    
+
     $logFile = getConfig('LOG_FILE');
     $timestamp = date('Y-m-d H:i:s');
     $logEntry = "[$timestamp] [$level] $message" . PHP_EOL;
-    
+
     if ($logFile && is_writable(dirname($logFile))) {
         file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
     }
@@ -181,25 +186,43 @@ function writeLog($message, $level = 'INFO') {
 // (Sem handlers globais adicionais)
 
 // Função para sanitizar entrada
-function sanitizeInput($input) {
+function sanitizeInput($input)
+{
     if (is_array($input)) {
         return array_map('sanitizeInput', $input);
     }
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
+// Função para normalizar strings (remover acentos e lowercase)
+function normalizeString($str)
+{
+    $str = mb_strtolower($str, 'UTF-8');
+    $str = preg_replace('/[áàãâä]/u', 'a', $str);
+    $str = preg_replace('/[éèêë]/u', 'e', $str);
+    $str = preg_replace('/[íìîï]/u', 'i', $str);
+    $str = preg_replace('/[óòõôö]/u', 'o', $str);
+    $str = preg_replace('/[úùûü]/u', 'u', $str);
+    $str = preg_replace('/[ç]/u', 'c', $str);
+    $str = preg_replace('/[^a-z0-9]/i', '', $str); // Remove tudo que não for letra ou número
+    return $str;
+}
+
 // Função para validar email
-function isValidEmail($email) {
+function isValidEmail($email)
+{
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 // Função para gerar token seguro
-function generateSecureToken($length = 32) {
+function generateSecureToken($length = 32)
+{
     return bin2hex(random_bytes($length));
 }
 
 // Função para hash seguro
-function secureHash($password) {
+function secureHash($password)
+{
     return password_hash($password, PASSWORD_ARGON2ID, [
         'memory_cost' => 65536,
         'time_cost' => 4,
@@ -208,7 +231,8 @@ function secureHash($password) {
 }
 
 // Função para verificar hash
-function verifyHash($password, $hash) {
+function verifyHash($password, $hash)
+{
     return password_verify($password, $hash);
 }
 
@@ -233,4 +257,3 @@ foreach ($directories as $dir) {
     }
 }
 ?>
-
