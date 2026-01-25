@@ -1231,6 +1231,20 @@ $semTaxa = $totalRastreios - $comTaxa;
                                 </div>
                                 <div class="card-status"><?= $row['status_atual'] ?></div>
                                 <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
+                                <div class="card-actions">
+                                    <button class="btn-mobile-action btn-mobile-edit"
+                                        onclick="event.stopPropagation(); abrirModal('<?= $row['codigo'] ?>')">
+                                        <i class="fas fa-pencil"></i> Editar
+                                    </button>
+                                    <button class="btn-mobile-action btn-mobile-delete"
+                                        onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo'] ?>', 'rastreio', '<?= $row['codigo'] ?>')">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                </div>
+                                <form id="form-delete-<?= $row['codigo'] ?>" method="POST" style="display:none;">
+                                    <input type="hidden" name="deletar" value="1">
+                                    <input type="hidden" name="codigo" value="<?= $row['codigo'] ?>">
+                                </form>
                             </div>
                         <?php endforeach; endif; ?>
                 </div>

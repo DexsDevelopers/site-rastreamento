@@ -754,3 +754,75 @@ input[readonly] {
     }
 }
 
+
+/* Floating Action Button for Mobile */
+.fab-add {
+    display: none;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--gradient-brand);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 51, 51, 0.5);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 90;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fab-add:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
+}
+
+@media (max-width: 768px) {
+    .fab-add {
+        display: flex;
+    }
+}
+
+/* Mobile Card Actions */
+@media (max-width: 768px) {
+    .card-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-subtle);
+        justify-content: flex-end;
+    }
+    
+    .btn-mobile-action {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.6rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-surface);
+        color: var(--text-main);
+    }
+    
+    .btn-mobile-edit {
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+    
+    .btn-mobile-delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+}
+
