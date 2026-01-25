@@ -351,50 +351,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* Mobile specific */
-        @media (max-width: 640px) {
-
-            .form-row,
-            .form-row-3 {
+        /* Mobile specific (Robust) */
+        @media (max-width: 768px) {
+            .form-row, .form-row-3 {
                 grid-template-columns: 1fr;
             }
-
             .checkout-card {
                 padding: 1.5rem;
             }
-
             .header-brand h1 {
                 font-size: 1.75rem;
             }
-
-            /* Gallery Mobile Fixes */
+            
+            /* Gallery Mobile Fixes - Enforce single column and contained width */
             .referencias-section {
                 padding: 0;
                 margin-top: 3rem;
-                width: 100%;
-                overflow: hidden;
+                width: 100% !important;
+                max-width: 100vw !important;
+                overflow: hidden !important; /* Prevent headers or images from spilling */
             }
-
+            
             .gallery-grid {
-                grid-template-columns: 1fr;
+                display: grid !important;
+                grid-template-columns: 1fr !important; /* Force 1 column */
                 gap: 1.5rem;
-                padding: 0 0.5rem;
+                padding: 0 1rem;
+                width: 100% !important;
+                box-sizing: border-box;
             }
-
+            
             .gallery-item {
-                width: 100%;
+                width: 100% !important;
                 margin: 0 auto;
+                border-radius: 16px;
+                overflow: hidden; /* Ensure image corners don't bleed */
             }
-
+            
             .gallery-image {
-                height: 200px;
+                height: 220px !important; /* Fixed height for consistency */
+                width: 100% !important;
             }
-
+            
+            .gallery-image img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+            }
+            
             .stats-badges {
                 flex-direction: column;
                 align-items: stretch;
                 padding: 0 1rem;
             }
-
+            
             .stat-badge {
                 justify-content: center;
                 width: 100%;
