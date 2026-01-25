@@ -411,7 +411,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <!-- Como funciona -->
     <section class="features" style="margin-top: 3rem;">
-        <h2><?= htmlspecialchars($howItWorksTitle) ?></h2>
+        <h2 class="section-title"><?= htmlspecialchars($howItWorksTitle) ?></h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-barcode" style="font-size: 1.5rem;"></i></div>
@@ -457,7 +457,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <!-- Depoimentos -->
     <section class="features" style="margin-top: 0;">
-        <h2>Depoimentos</h2>
+        <h2 class="section-title">Depoimentos</h2>
         <div class="features-grid">
             <div class="feature-card" style="text-align:left;">
                 <p>“Recebi antes do prazo e pude acompanhar tudo. Recomendo!”</p>
@@ -497,7 +497,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     ?>
 
     <section class="features">
-        <h2>Por que escolher Helmer Logistics?</h2>
+        <h2 class="section-title">Por que escolher Helmer Logistics?</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-rocket" style="font-size: 1.5rem;"></i></div>
