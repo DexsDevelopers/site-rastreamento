@@ -26,15 +26,21 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Helmer Logistics</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #FF3333;
             --primary-dark: #CC0000;
@@ -44,7 +50,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             --light: #FFF;
             --gradient: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
         }
-        
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%);
@@ -52,7 +58,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .header {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -66,13 +72,13 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             flex-wrap: wrap;
             gap: 1rem;
         }
-        
+
         .header-left {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        
+
         .logo {
             font-size: 1.8rem;
             font-weight: 900;
@@ -80,18 +86,18 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .user-info {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        
+
         .user-name {
             color: rgba(255, 255, 255, 0.9);
             font-weight: 500;
         }
-        
+
         .btn-logout {
             padding: 0.6rem 1.2rem;
             background: rgba(255, 51, 51, 0.15);
@@ -106,22 +112,22 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .btn-logout:hover {
             background: rgba(255, 51, 51, 0.25);
             transform: translateY(-2px);
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         .welcome-section {
             text-align: center;
             margin-bottom: 3rem;
         }
-        
+
         .welcome-title {
             font-size: 2.5rem;
             font-weight: 800;
@@ -130,19 +136,19 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .welcome-subtitle {
             color: rgba(255, 255, 255, 0.7);
             font-size: 1.1rem;
         }
-        
+
         .panels-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
         }
-        
+
         .panel-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -158,7 +164,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             position: relative;
             overflow: hidden;
         }
-        
+
         .panel-card::before {
             content: '';
             position: absolute;
@@ -170,17 +176,17 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             transform: scaleX(0);
             transition: transform 0.4s ease;
         }
-        
+
         .panel-card:hover {
             transform: translateY(-8px);
             border-color: var(--primary);
             box-shadow: 0 20px 60px rgba(255, 51, 51, 0.3);
         }
-        
+
         .panel-card:hover::before {
             transform: scaleX(1);
         }
-        
+
         .panel-icon {
             width: 80px;
             height: 80px;
@@ -193,26 +199,26 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             font-size: 2rem;
             box-shadow: 0 10px 30px rgba(255, 51, 51, 0.3);
         }
-        
+
         .panel-title {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
             color: var(--light);
         }
-        
+
         .panel-description {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.95rem;
             line-height: 1.6;
             margin-bottom: 1.5rem;
         }
-        
+
         .panel-features {
             text-align: left;
             margin-bottom: 1.5rem;
         }
-        
+
         .feature-item {
             display: flex;
             align-items: center;
@@ -221,12 +227,12 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
         }
-        
+
         .feature-item i {
             color: var(--primary);
             font-size: 0.8rem;
         }
-        
+
         .btn-access {
             display: inline-flex;
             align-items: center;
@@ -241,18 +247,18 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             cursor: pointer;
             transition: transform 0.3s;
         }
-        
+
         .btn-access:hover {
             transform: scale(1.05);
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
-        
+
         .stat-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -261,7 +267,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             padding: 1.5rem;
             text-align: center;
         }
-        
+
         .stat-value {
             font-size: 2rem;
             font-weight: 800;
@@ -270,28 +276,29 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
-        
+
         .stat-label {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.9rem;
         }
-        
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            
+
             .welcome-title {
                 font-size: 2rem;
             }
-            
+
             .panels-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="header-left">
@@ -308,13 +315,13 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             </a>
         </div>
     </div>
-    
+
     <div class="container">
         <div class="welcome-section">
             <h1 class="welcome-title">Bem-vindo ao Dashboard</h1>
             <p class="welcome-subtitle">Escolha qual painel você deseja acessar</p>
         </div>
-        
+
         <div class="panels-grid">
             <!-- Painel de Rastreamento -->
             <a href="admin.php" class="panel-card">
@@ -343,11 +350,11 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                         <span>Relatórios e estatísticas</span>
                     </div>
                 </div>
-                <button class="btn-access">
+                <div class="btn-access">
                     Acessar Painel <i class="fas fa-arrow-right"></i>
-                </button>
+                </div>
             </a>
-            
+
             <!-- Painel do Bot -->
             <a href="admin_bot_config.php" class="panel-card">
                 <div class="panel-icon">
@@ -375,12 +382,12 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                         <span>Templates e configurações</span>
                     </div>
                 </div>
-                <button class="btn-access">
+                <div class="btn-access">
                     Acessar Painel <i class="fas fa-arrow-right"></i>
-                </button>
+                </div>
             </a>
         </div>
-        
+
         <div class="stats-grid">
             <?php
             try {
@@ -389,7 +396,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                 $rastreiosHoje = fetchOne($pdo, "SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status WHERE DATE(data) = CURDATE()");
                 $totalWhatsapp = fetchOne($pdo, "SELECT COUNT(*) as total FROM whatsapp_contatos WHERE notificacoes_ativas = 1");
                 $automacoes = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations WHERE ativo = 1");
-            ?>
+                ?>
                 <div class="stat-card">
                     <div class="stat-value"><?= number_format($totalRastreios['total'] ?? 0) ?></div>
                     <div class="stat-label">Total de Rastreios</div>
@@ -406,7 +413,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
                     <div class="stat-value"><?= number_format($automacoes['total'] ?? 0) ?></div>
                     <div class="stat-label">Automações Ativas</div>
                 </div>
-            <?php
+                <?php
             } catch (Exception $e) {
                 // Silenciosamente falhar se não conseguir buscar stats
             }
@@ -414,5 +421,5 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         </div>
     </div>
 </body>
-</html>
 
+</html>
