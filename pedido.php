@@ -378,23 +378,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="checkout-card">
             <form method="POST" id="pedidoForm" onsubmit="handleSubmit(event)">
-                
+
                 <div class="section-title">
                     <i class="fas fa-user-circle"></i> Dados Pessoais
                 </div>
-                
+
                 <div class="form-grid">
                     <div class="input-group">
                         <label>Nome Completo <span>*</span></label>
                         <input type="text" name="nome" required autocomplete="name" placeholder="Ex: Maria Silva">
                     </div>
-                
+
                     <div class="form-row">
                         <div class="input-group">
                             <label>WhatsApp <span>*</span></label>
                             <input type="tel" name="telefone" required placeholder="(11) 99999-9999" autocomplete="tel">
                         </div>
-                        
+
                         <div class="input-group">
                             <label>E-mail (Opcional)</label>
                             <input type="email" name="email" placeholder="email@exemplo.com" autocomplete="email">
@@ -405,14 +405,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="section-title" style="margin-top: 2rem;">
                     <i class="fas fa-map-marker-alt"></i> Endereço
                 </div>
-                
+
                 <div class="form-grid">
                     <div class="form-row">
                         <div class="input-group">
                             <label>CEP <span>*</span></label>
                             <input type="text" name="cep" id="cep" required maxlength="9" placeholder="00000-000">
                         </div>
-                        
+
                         <div class="input-group">
                             <label>Estado <span>*</span></label>
                             <select name="estado" id="estado" required>
@@ -447,40 +447,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="input-group">
                         <label>Cidade <span>*</span></label>
                         <input type="text" name="cidade" id="cidade" required autocomplete="address-level2">
                     </div>
-                    
+
                     <div class="input-group">
                         <label>Bairro <span>*</span></label>
                         <input type="text" name="bairro" id="bairro" required autocomplete="address-level3">
                     </div>
-                    
+
                     <div class="form-row-3">
                         <div class="input-group">
                             <label>Rua/Avenida <span>*</span></label>
                             <input type="text" name="rua" id="rua" required autocomplete="street-address">
                         </div>
-                        
+
                         <div class="input-group">
                             <label>Número <span>*</span></label>
                             <input type="text" name="numero" required>
                         </div>
                     </div>
-                    
+
                     <div class="input-group">
                         <label>Complemento</label>
                         <input type="text" name="complemento" placeholder="Apto, Bloco, etc">
                     </div>
-                
+
                     <div class="input-group">
                         <label>Observações de entrega</label>
                         <textarea name="observacoes" rows="2" placeholder="Ponto de referência, etc..."></textarea>
                     </div>
                 </div>
-                
+
                 <button type="submit" class="btn-submit" id="submitBtn">
                     <i class="fas fa-check-circle"></i> Confirmar Pedido
                 </button>
@@ -495,7 +495,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </div> <!-- Close .container -->
 
-    <!-- Seção de Referências -->
     <section class="referencias-section">
         <h2 class="section-title">📱 Sistema em Ação</h2>
         <p class="section-subtitle">
