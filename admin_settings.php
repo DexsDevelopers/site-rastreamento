@@ -1,197 +1,208 @@
 <?php
 /**
- * Configurações de Entrega Expressa (Admin)
+ * Painel Admin - Configurações (Moderno)
+ * Helmer Logistics
  */
 
-require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/db_connect.php';
+require_once 'includes/config.php';
+require_once 'includes/db_connect.php';
+require_once 'includes/auth_helper.php';
 
-// Verificar login
-if (!isset($_SESSION['logado'])) {
-    header('Location: admin.php');
-    exit;
-}
+requireLogin();
 
 $message = '';
 $type = '';
 $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
 $currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
-
-// Configurações do formulário de pedidos
 $pedidoPixKey = getDynamicConfig('PEDIDO_PIX_KEY', '');
 
-// Salvar configurações do formulário de pedidos
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_pedido'])) {
-    try {
-        $pixPedido = isset($_POST['pedido_pix_key']) ? trim($_POST['pedido_pix_key']) : '';
-        
-        $savedPixPedido = setDynamicConfig('PEDIDO_PIX_KEY', $pixPedido);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['salvar_settings_express'])) {
+        try {
+            $fee = isset($_POST['express_fee_value']) ? trim($_POST['express_fee_value']) : '';
+            $pix = isset($_POST['express_pix_key']) ? trim($_POST['express_pix_key']) : '';
 
-        if (!$savedPixPedido) {
-            throw new Exception('Erro ao salvar configurações. Verifique permissões do arquivo config.json.');
-        }
+            $fee = str_replace([',', ' '], ['.', ''], $fee);
+            if ($fee === '' || !is_numeric($fee))
+                throw new Exception('Valor da taxa inválido.');
+            if ($pix === '')
+                throw new Exception('Chave PIX obrigatória.');
 
-        writeLog("Configurações do formulário de pedidos atualizadas: PIX={$pixPedido}", 'INFO');
-        
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        }
-        clearstatcache(true, __DIR__ . '/config_custom.json');
-        
-        $pedidoPixKey = getDynamicConfig('PEDIDO_PIX_KEY', '');
-        
-        $message = "✅ Configurações do formulário de pedidos salvas com sucesso!";
-        $type = 'success';
-    } catch (Exception $e) {
-        $message = $e->getMessage();
-        $type = 'error';
-        writeLog("Erro ao salvar configurações de pedidos: " . $e->getMessage(), 'ERROR');
-    }
-}
+            setDynamicConfig('EXPRESS_FEE_VALUE', (float) $fee);
+            setDynamicConfig('EXPRESS_PIX_KEY', $pix);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_settings_express'])) {
-    try {
-        $fee = isset($_POST['express_fee_value']) ? trim($_POST['express_fee_value']) : '';
-        $pix = isset($_POST['express_pix_key']) ? trim($_POST['express_pix_key']) : '';
-        
-        // Converter vírgula para ponto e remover espaços
-        $fee = str_replace([',', ' '], ['.', ''], $fee);
-        
-        if ($fee === '' || !is_numeric($fee)) {
-            throw new Exception('Informe um valor numérico válido para a taxa.');
-        }
-        if ($pix === '') {
-            throw new Exception('Informe a chave PIX.');
-        }
+            $currentFee = (float) $fee;
+            $currentPix = $pix;
 
-        // Persistir em config.json via helpers de config
-        $feeFloat = (float)$fee;
-        $savedFee = setDynamicConfig('EXPRESS_FEE_VALUE', $feeFloat);
-        $savedPix = setDynamicConfig('EXPRESS_PIX_KEY', $pix);
+            $message = "Configurações de Expressa atualizadas!";
+            $type = 'success';
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            $type = 'error';
+        }
+    } elseif (isset($_POST['salvar_settings_pedido'])) {
+        try {
+            $pixPedido = isset($_POST['pedido_pix_key']) ? trim($_POST['pedido_pix_key']) : '';
+            setDynamicConfig('PEDIDO_PIX_KEY', $pixPedido);
+            $pedidoPixKey = $pixPedido;
 
-        if (!$savedFee || !$savedPix) {
-            throw new Exception('Erro ao salvar configurações. Verifique permissões do arquivo config.json.');
+            $message = "Configurações de Pedido atualizadas!";
+            $type = 'success';
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            $type = 'error';
         }
-
-        writeLog("Configurações de entrega expressa atualizadas: Valor={$feeFloat}, PIX={$pix}", 'INFO');
-        
-        // Limpar qualquer cache do opcode
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        }
-        
-        // Forçar releitura do arquivo
-        clearstatcache(true, __DIR__ . '/config_custom.json');
-        
-        // Recarregar valores do config.json após salvar
-        $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
-        $currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
-        
-        // Verificar se realmente salvou
-        if ($currentFee == $feeFloat && $currentPix == $pix) {
-            $message = "✅ Configurações salvas e verificadas com sucesso!\n\nValor: R$ " . number_format($feeFloat, 2, ',', '') . "\nPIX: $pix";
-        } else {
-            $message = "⚠️ Configurações salvas, mas houve um problema na verificação. Recarregue a página.";
-        }
-        $type = 'success';
-    } catch (Exception $e) {
-        $message = $e->getMessage();
-        $type = 'error';
-        writeLog("Erro ao salvar configurações de entrega expressa: " . $e->getMessage(), 'ERROR');
     }
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <title>Configurações - Entrega Expressa</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#FF3333">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
-    <link rel="stylesheet" href="assets/css/admin-mobile.css">
-    <style>
-        body { background:#0b0b0b; color:#fff; font-family: Arial, sans-serif; margin:0; padding:20px; }
-        .container { max-width: 720px; margin: 0 auto; background:#161616; padding:24px; border-radius:12px; border:1px solid #2a2a2a; }
-        h1 { margin-top:0; }
-        .form-group { margin-bottom: 16px; }
-        label { display:block; margin-bottom:6px; color:#ddd; }
-        input[type="text"], input[type="number"] { width:100%; padding:12px; border-radius:8px; border:1px solid #333; background:#0f0f0f; color:#fff; }
-        .actions { display:flex; gap:12px; }
-        button { padding:12px 18px; border:none; border-radius:8px; cursor:pointer; font-weight:700; color:#fff; background:linear-gradient(90deg,#ff0000,#ff6600); }
-        a { color:#fff; text-decoration:none; }
-        .msg { padding:12px; border-radius:8px; margin-bottom:16px; }
-        .success { background:#0a2915; border:1px solid #1a6b2d; }
-        .error { background:#2a1111; border:1px solid #6b1a1a; }
-        .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-        .topbar a { background:#252525; padding:8px 12px; border-radius:8px; border:1px solid #333 }
-    </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-store" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <meta name="robots" content="noindex,nofollow" />
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>Configurações | Helmer Admin</title>
+    <meta name="theme-color" content="#FF3333">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo time(); ?>">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-    <div class="container">
-        <div class="topbar">
-            <h1>⚙️ Configurações</h1>
-            <a href="admin.php">⟵ Voltar ao painel</a>
-        </div>
-        <?php if ($message): ?>
-            <div class="msg <?= $type ?>"><?= nl2br(htmlspecialchars($message)) ?></div>
-        <?php endif; ?>
-        
-        <!-- Configurações do Formulário de Pedidos -->
-        <div style="margin-bottom: 30px; padding: 20px; background: #1a1a1a; border-radius: 12px; border: 1px solid #F59E0B;">
-            <h2 style="margin-top: 0; color: #F59E0B; font-size: 1.2rem;">📦 Formulário de Pedidos</h2>
-            <p style="color: #888; margin-bottom: 16px; font-size: 0.9rem;">
-                Configurações da página <a href="pedido.php" target="_blank" style="color: #F59E0B;">pedido.php</a> - Quando o cliente preenche o endereço
-            </p>
-            <form method="POST">
-                <div class="form-group">
-                    <label for="pedido_pix_key">Chave PIX (enviada no WhatsApp)</label>
-                    <input type="text" name="pedido_pix_key" id="pedido_pix_key" value="<?= htmlspecialchars($pedidoPixKey) ?>" placeholder="CPF, Email, Telefone ou Chave aleatória">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <i class="fas fa-cube"></i> Helmer
                 </div>
-                <p style="color: #666; font-size: 0.85rem; margin-bottom: 12px;">
-                    💡 O valor do produto <strong>não é enviado</strong> automaticamente. Você envia manualmente pelo WhatsApp.
-                </p>
-                <div class="actions">
-                    <button type="submit" name="salvar_settings_pedido" style="background: linear-gradient(90deg, #F59E0B, #D97706);">Salvar Configurações</button>
+                <button class="mobile-close-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-menu">
+                <div class="menu-label">Principal</div>
+                <a href="index.php" class="nav-item"><i class="fas fa-home"></i> Página Inicial</a>
+                <a href="admin.php" class="nav-item"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="admin_pedidos_pendentes.php" class="nav-item"><i class="fas fa-shopping-cart"></i> Pedidos
+                    Pendentes</a>
+                <a href="admin_indicacoes.php" class="nav-item"><i class="fas fa-users"></i> Indicações</a>
+
+                <div class="menu-label">Gestão</div>
+                <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
+                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Configuração Bot</a>
+                <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-message"></i> Mensagens WPP</a>
+
+                <div class="menu-label">Configuração</div>
+                <a href="admin_settings.php" class="nav-item active"><i class="fas fa-gear"></i> Ajustes Expressa</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i
+                        class="fas fa-power-off"></i> Sair</a>
+            </div>
+        </aside>
+
+        <!-- Overlay Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">
+                        <h2>Configurações</h2>
+                    </div>
                 </div>
-            </form>
-        </div>
-        
-        <!-- Configurações de Entrega Expressa -->
-        <div style="padding: 20px; background: #1a1a1a; border-radius: 12px; border: 1px solid #ff3333;">
-            <h2 style="margin-top: 0; color: #ff3333; font-size: 1.2rem;">🚀 Entrega Expressa</h2>
-            <p style="color: #888; margin-bottom: 16px; font-size: 0.9rem;">
-                Taxa cobrada para upgrade de entrega expressa
-            </p>
-            <form method="POST">
-                <div class="form-group">
-                    <label for="express_fee_value">Valor da taxa (R$)</label>
-                    <input type="text" name="express_fee_value" id="express_fee_value" value="<?= htmlspecialchars(number_format((float)$currentFee, 2, ',', '')) ?>" inputmode="decimal" required>
+            </header>
+
+            <div class="content-body" style="max-width: 800px; margin: 0 auto;">
+
+                <!-- Pedidos Settings -->
+                <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+                    <h3
+                        style="color: var(--text-main); margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fas fa-box-open" style="color: var(--warning);"></i> Formulário de Pedidos
+                    </h3>
+                    <form method="POST">
+                        <div class="form-group">
+                            <label>Chave PIX (Para pagamento do produto)</label>
+                            <input type="text" name="pedido_pix_key" class="form-control"
+                                value="<?= htmlspecialchars($pedidoPixKey) ?>" placeholder="CNPJ, Email ou Telefone">
+                            <small class="text-muted" style="display:block; margin-top:0.5rem;">Esta chave será enviada
+                                ao cliente após o pedido.</small>
+                        </div>
+                        <div style="text-align:right;">
+                            <button type="submit" name="salvar_settings_pedido" class="btn btn-primary">Salvar
+                                Configuração</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="express_pix_key">Chave PIX (Entrega Expressa)</label>
-                    <input type="text" name="express_pix_key" id="express_pix_key" value="<?= htmlspecialchars($currentPix) ?>" required>
+
+                <!-- Express Settings -->
+                <div class="glass-panel" style="padding: 2rem;">
+                    <h3
+                        style="color: var(--text-main); margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fas fa-rocket" style="color: var(--primary);"></i> Entrega Expressa
+                    </h3>
+                    <form method="POST">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Valor da Taxa (R$)</label>
+                                <input type="text" name="express_fee_value" class="form-control"
+                                    value="<?= number_format($currentFee, 2, ',', '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Chave PIX (Para taxa expressa)</label>
+                                <input type="text" name="express_pix_key" class="form-control"
+                                    value="<?= htmlspecialchars($currentPix) ?>">
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <button type="submit" name="salvar_settings_express" class="btn btn-primary">Atualizar
+                                Taxa</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="actions">
-                    <button type="submit" name="salvar_settings_express">Salvar</button>
-                    <a href="index.php" target="_blank">Ver site</a>
-                    <a href="debug_config.php" target="_blank" style="background:#333;padding:12px 18px;border-radius:8px;">🔍 Diagnóstico</a>
-                </div>
-            </form>
-        </div>
-        
-        <p style="margin-top:20px;color:#4ade80;text-align:center;">✅ As configurações são salvas em <code>config_custom.json</code> e <strong>NÃO são sobrescritas</strong> por atualizações do sistema!</p>
+
+            </div>
+        </main>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) {
+                const isActive = sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active', isActive);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+
+            <?php if ($message): ?>
+                Swal.fire({
+                    icon: '<?= $type ?>',
+                    title: '<?= $type == "success" ? "Sucesso" : "Erro" ?>',
+                    text: '<?= addslashes($message) ?>',
+                    background: '#1a1a1a',
+                    color: '#fff',
+                    confirmButtonColor: '#16A34A',
+                    timer: 2000
+                });
+            <?php endif; ?>
+        });
+    </script>
 </body>
+
 </html>
-
-

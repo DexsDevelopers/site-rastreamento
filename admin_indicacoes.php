@@ -1,21 +1,15 @@
 <?php
 /**
- * Painel Admin - Gerenciamento de Indicações
+ * Painel Admin - Gerenciamento de Indicações (Moderno)
  * Helmer Logistics
  */
 
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/auth_helper.php';
 
 // Verificar login
-session_start();
-if (!isset($_SESSION['logado'])) {
-    header('Location: admin.php');
-    exit;
-}
-
-$message = '';
-$messageType = '';
+requireLogin();
 
 // Processar ações
 if (isset($_POST['action'])) {
@@ -23,31 +17,22 @@ if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'aprovar_indicacao':
                 $id = sanitizeInput($_POST['id']);
-                $sql = "UPDATE indicacoes SET status = 'confirmada' WHERE id = ?";
-                executeQuery($pdo, $sql, [$id]);
-                $message = "Indicação aprovada com sucesso!";
-                $messageType = 'success';
+                executeQuery($pdo, "UPDATE indicacoes SET status = 'confirmada' WHERE id = ?", [$id]);
+                $success_message = "Indicação aprovada!";
                 break;
-                
             case 'rejeitar_indicacao':
                 $id = sanitizeInput($_POST['id']);
-                $sql = "UPDATE indicacoes SET status = 'pendente' WHERE id = ?";
-                executeQuery($pdo, $sql, [$id]);
-                $message = "Indicação rejeitada!";
-                $messageType = 'warning';
+                executeQuery($pdo, "UPDATE indicacoes SET status = 'pendente' WHERE id = ?", [$id]);
+                $success_message = "Indicação rejeitada!";
                 break;
-                
             case 'marcar_entregue':
                 $id = sanitizeInput($_POST['id']);
-                $sql = "UPDATE indicacoes SET status = 'entregue' WHERE id = ?";
-                executeQuery($pdo, $sql, [$id]);
-                $message = "Entrega marcada como concluída!";
-                $messageType = 'success';
+                executeQuery($pdo, "UPDATE indicacoes SET status = 'entregue' WHERE id = ?", [$id]);
+                $success_message = "Entrega marcada como concluída!";
                 break;
         }
     } catch (Exception $e) {
-        $message = "Erro: " . $e->getMessage();
-        $messageType = 'error';
+        $error_message = $e->getMessage();
     }
 }
 
@@ -58,509 +43,230 @@ try {
                                    LEFT JOIN clientes c1 ON i.codigo_indicador = c1.codigo 
                                    LEFT JOIN clientes c2 ON i.codigo_indicado = c2.codigo 
                                    ORDER BY i.data_indicacao DESC");
-    
+
     $stats = fetchOne($pdo, "SELECT 
                                 COUNT(*) as total_indicacoes,
                                 COUNT(CASE WHEN status = 'confirmada' THEN 1 END) as confirmadas,
                                 COUNT(CASE WHEN status = 'entregue' THEN 1 END) as entregues
                               FROM indicacoes");
-    
-    $rastreiosPrioritarios = fetchData($pdo, "SELECT rs.*, c.nome as nome_cliente, ci.nome as nome_indicador
-                                              FROM rastreios_status rs
-                                              LEFT JOIN clientes c ON rs.codigo = c.codigo
-                                              LEFT JOIN clientes ci ON rs.codigo_indicador = ci.codigo
-                                              WHERE rs.prioridade = TRUE
-                                              ORDER BY rs.data_entrega_prevista ASC, rs.data ASC");
 } catch (Exception $e) {
     $indicacoes = [];
     $stats = ['total_indicacoes' => 0, 'confirmadas' => 0, 'entregues' => 0];
-    $rastreiosPrioritarios = [];
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Admin - Indicações | Helmer Logistics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indicações | Helmer Admin</title>
     <meta name="theme-color" content="#FF3333">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/admin-mobile.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            color: #f8fafc;
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #334155;
-        }
-        
-        .header h1 {
-            color: #3b82f6;
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: #1e293b;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #334155;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-card h3 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            color: #3b82f6;
-        }
-        
-        .stat-card p {
-            color: #cbd5e1;
-            font-size: 0.9rem;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            background: #334155;
-            color: #cbd5e1;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .tab.active {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .table-container {
-            background: #1e293b;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #334155;
-        }
-        
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .table th {
-            background: #0f172a;
-            color: #f8fafc;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #334155;
-        }
-        
-        .table td {
-            padding: 15px;
-            border-bottom: 1px solid #334155;
-            vertical-align: middle;
-        }
-        
-        .table tbody tr:hover {
-            background: rgba(59, 130, 246, 0.05);
-        }
-        
-        .badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .badge-success {
-            background: #10b981;
-            color: white;
-        }
-        
-        .badge-warning {
-            background: #f59e0b;
-            color: black;
-        }
-        
-        .badge-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-warning {
-            background: #f59e0b;
-            color: black;
-        }
-        
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .message {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        .message.success {
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid #10b981;
-            color: #10b981;
-        }
-        
-        .message.warning {
-            background: rgba(245, 158, 11, 0.2);
-            border: 1px solid #f59e0b;
-            color: #f59e0b;
-        }
-        
-        .message.error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid #ef4444;
-            color: #ef4444;
-        }
-        
-        .priority-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #10b981;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .back-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-        
-        .back-btn:hover {
-            background: #b91c1c;
-            transform: translateY(-2px);
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .table-container {
-                overflow-x: auto;
-            }
-            
-            .table {
-                min-width: 600px;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo time(); ?>">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-    <button class="back-btn" onclick="window.location.href='admin.php'">
-        <i class="fas fa-arrow-left"></i> Voltar ao Admin
-    </button>
-    
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-users"></i> Gerenciamento de Indicações</h1>
-        </div>
-        
-        <?php if ($message): ?>
-            <div class="message <?= $messageType ?>">
-                <?= $message ?>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <i class="fas fa-cube"></i> Helmer
+                </div>
+                <button class="mobile-close-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-        <?php endif; ?>
-        
-        <!-- Estatísticas -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3><?= $stats['total_indicacoes'] ?></h3>
-                <p>Total de Indicações</p>
+
+            <nav class="sidebar-menu">
+                <div class="menu-label">Principal</div>
+                <a href="index.php" class="nav-item"><i class="fas fa-home"></i> Página Inicial</a>
+                <a href="admin.php" class="nav-item"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="admin_pedidos_pendentes.php" class="nav-item"><i class="fas fa-shopping-cart"></i> Pedidos
+                    Pendentes</a>
+                <a href="admin_indicacoes.php" class="nav-item active"><i class="fas fa-users"></i> Indicações</a>
+
+                <div class="menu-label">Gestão</div>
+                <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
+                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Configuração Bot</a>
+                <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-message"></i> Mensagens WPP</a>
+
+                <div class="menu-label">Configuração</div>
+                <a href="admin_settings.php" class="nav-item"><i class="fas fa-gear"></i> Ajustes Expressa</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i
+                        class="fas fa-power-off"></i> Sair</a>
             </div>
-            <div class="stat-card">
-                <h3><?= $stats['confirmadas'] ?></h3>
-                <p>Confirmadas</p>
+        </aside>
+
+        <!-- Overlay Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">
+                        <h2>Indicações</h2>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card featured">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-value"><?= $stats['total_indicacoes'] ?></div>
+                        <div class="stat-label">Total Indicações</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--success);"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-value"><?= $stats['confirmadas'] ?></div>
+                        <div class="stat-label">Confirmadas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--info);"><i class="fas fa-truck"></i></div>
+                        <div class="stat-value"><?= $stats['entregues'] ?></div>
+                        <div class="stat-label">Entregues</div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="glass-panel" style="margin-top: 2rem;">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Indicador</th>
+                                    <th>Indicado</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($indicacoes)): ?>
+                                    <tr>
+                                        <td colspan="6" style="text-align:center; padding: 2rem; color: var(--text-muted);">
+                                            Nenhuma indicação encontrada.
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($indicacoes as $row): ?>
+                                        <tr>
+                                            <td style="color: var(--text-muted);">#<?= $row['id'] ?></td>
+                                            <td>
+                                                <div style="font-weight:600;">
+                                                    <?= htmlspecialchars($row['nome_indicador'] ?? 'N/A') ?></div>
+                                                <div style="font-size:0.8rem; color:var(--text-muted);">
+                                                    <?= htmlspecialchars($row['codigo_indicador']) ?></div>
+                                            </td>
+                                            <td>
+                                                <div style="font-weight:600;">
+                                                    <?= htmlspecialchars($row['nome_indicado'] ?? 'N/A') ?></div>
+                                                <div style="font-size:0.8rem; color:var(--text-muted);">
+                                                    <?= htmlspecialchars($row['codigo_indicado']) ?></div>
+                                            </td>
+                                            <td style="color:var(--text-muted);">
+                                                <?= date('d/m/Y H:i', strtotime($row['data_indicacao'])) ?></td>
+                                            <td>
+                                                <?php
+                                                $badgeClass = 'badge-warning';
+                                                switch ($row['status']) {
+                                                    case 'confirmada':
+                                                        $badgeClass = 'badge-success';
+                                                        break;
+                                                    case 'entregue':
+                                                        $badgeClass = 'badge-info';
+                                                        break;
+                                                }
+                                                ?>
+                                                <span class="badge <?= $badgeClass ?>"><?= ucfirst($row['status']) ?></span>
+                                            </td>
+                                            <td style="text-align:right;">
+                                                <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                                                    <?php if ($row['status'] == 'pendente'): ?>
+                                                        <form method="POST">
+                                                            <input type="hidden" name="action" value="aprovar_indicacao">
+                                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                            <button type="submit" class="btn btn-icon"
+                                                                style="color: var(--success);" title="Aprovar">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($row['status'] == 'confirmada'): ?>
+                                                        <form method="POST">
+                                                            <input type="hidden" name="action" value="marcar_entregue">
+                                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                            <button type="submit" class="btn btn-icon" style="color: var(--info);"
+                                                                title="Marcar Entregue">
+                                                                <i class="fas fa-truck"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+
+                                                    <form method="POST" onsubmit="return confirm('Rejeitar indicação?');">
+                                                        <input type="hidden" name="action" value="rejeitar_indicacao">
+                                                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                        <button type="submit" class="btn btn-icon" style="color: var(--danger);"
+                                                            title="Rejeitar">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3><?= $stats['entregues'] ?></h3>
-                <p>Entregues</p>
-            </div>
-        </div>
-        
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('indicacoes')">
-                <i class="fas fa-list"></i> Indicações
-            </button>
-            <button class="tab" onclick="showTab('prioritarios')">
-                <i class="fas fa-star"></i> Rastreios Prioritários
-            </button>
-        </div>
-        
-        <!-- Tab: Indicações -->
-        <div id="indicacoes" class="tab-content active">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Indicador</th>
-                            <th>Indicado</th>
-                            <th>Data</th>
-                            <th>Status</th>
-                            <th>Prioridade</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($indicacoes)): ?>
-                            <?php foreach ($indicacoes as $indicacao): ?>
-                            <tr>
-                                <td><?= $indicacao['id'] ?></td>
-                                <td>
-                                    <strong><?= $indicacao['codigo_indicador'] ?></strong><br>
-                                    <small><?= $indicacao['nome_indicador'] ?></small>
-                                </td>
-                                <td>
-                                    <strong><?= $indicacao['codigo_indicado'] ?></strong><br>
-                                    <small><?= $indicacao['nome_indicado'] ?></small>
-                                </td>
-                                <td><?= date('d/m/Y H:i', strtotime($indicacao['data_indicacao'])) ?></td>
-                                <td>
-                                    <?php
-                                    $statusClass = '';
-                                    $statusText = '';
-                                    switch ($indicacao['status']) {
-                                        case 'pendente':
-                                            $statusClass = 'badge-warning';
-                                            $statusText = 'Pendente';
-                                            break;
-                                        case 'confirmada':
-                                            $statusClass = 'badge-success';
-                                            $statusText = 'Confirmada';
-                                            break;
-                                        case 'entregue':
-                                            $statusClass = 'badge-success';
-                                            $statusText = 'Entregue';
-                                            break;
-                                    }
-                                    ?>
-                                    <span class="badge <?= $statusClass ?>"><?= $statusText ?></span>
-                                </td>
-                                <td>
-                                    <?php if ($indicacao['prioridade']): ?>
-                                        <span class="priority-indicator"></span>Prioritário
-                                    <?php else: ?>
-                                        Normal
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                        <?php if ($indicacao['status'] == 'pendente'): ?>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="action" value="aprovar_indicacao">
-                                                <input type="hidden" name="id" value="<?= $indicacao['id'] ?>">
-                                                <button type="submit" class="btn btn-success" title="Aprovar">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($indicacao['status'] == 'confirmada'): ?>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="action" value="marcar_entregue">
-                                                <input type="hidden" name="id" value="<?= $indicacao['id'] ?>">
-                                                <button type="submit" class="btn btn-success" title="Marcar como Entregue">
-                                                    <i class="fas fa-truck"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                        
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="action" value="rejeitar_indicacao">
-                                            <input type="hidden" name="id" value="<?= $indicacao['id'] ?>">
-                                            <button type="submit" class="btn btn-danger" title="Rejeitar">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 20px; color: #cbd5e1;">
-                                    <i class="fas fa-inbox"></i> Nenhuma indicação encontrada
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Tab: Rastreios Prioritários -->
-        <div id="prioritarios" class="tab-content">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Cliente</th>
-                            <th>Indicador</th>
-                            <th>Status</th>
-                            <th>Data Entrega</th>
-                            <th>Prioridade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($rastreiosPrioritarios)): ?>
-                            <?php foreach ($rastreiosPrioritarios as $rastreio): ?>
-                            <tr>
-                                <td><strong><?= $rastreio['codigo'] ?></strong></td>
-                                <td><?= $rastreio['nome_cliente'] ?></td>
-                                <td><?= $rastreio['nome_indicador'] ?></td>
-                                <td><?= $rastreio['status_atual'] ?></td>
-                                <td><?= date('d/m/Y', strtotime($rastreio['data_entrega_prevista'])) ?></td>
-                                <td>
-                                    <span class="priority-indicator"></span>Prioritário
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 20px; color: #cbd5e1;">
-                                    <i class="fas fa-inbox"></i> Nenhum rastreio prioritário encontrado
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        </main>
     </div>
-    
+
     <script>
-        function showTab(tabName) {
-            // Esconder todas as tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remover active de todos os botões
-            document.querySelectorAll('.tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Mostrar tab selecionada
-            document.getElementById(tabName).classList.add('active');
-            
-            // Adicionar active ao botão clicado
-            event.target.classList.add('active');
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) {
+                const isActive = sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active', isActive);
+            }
         }
-        
-        // Auto-refresh removido - atualização manual apenas
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+
+            <?php if (isset($success_message)): ?>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso',
+                    text: '<?= addslashes($success_message) ?>',
+                    background: '#1a1a1a',
+                    color: '#fff',
+                    confirmButtonColor: '#16A34A',
+                    timer: 2000
+                });
+            <?php endif; ?>
+        });
     </script>
 </body>
+
 </html>

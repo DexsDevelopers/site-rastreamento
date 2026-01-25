@@ -910,6 +910,8 @@ $semTaxa = $totalRastreios - $comTaxa;
                 <div class="menu-label">Principal</div>
                 <a href="index.php" class="nav-item"><i class="fas fa-home"></i> Página Inicial</a>
                 <a href="admin.php" class="nav-item active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="admin_pedidos_pendentes.php" class="nav-item"><i class="fas fa-shopping-cart"></i> Pedidos
+                    Pendentes</a>
                 <a href="admin_indicacoes.php" class="nav-item"><i class="fas fa-users"></i> Indicações</a>
 
                 <div class="menu-label">Gestão</div>
