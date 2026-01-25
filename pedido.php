@@ -365,6 +365,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .header-brand h1 {
                 font-size: 1.75rem;
             }
+
+            /* Gallery Mobile Fixes */
+            .referencias-section {
+                padding: 0;
+                margin-top: 3rem;
+                width: 100%;
+                overflow: hidden;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+
+            .gallery-item {
+                width: 100%;
+                margin: 0 auto;
+            }
+
+            .gallery-image {
+                height: 200px;
+            }
+
+            .stats-badges {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 0 1rem;
+            }
+
+            .stat-badge {
+                justify-content: center;
+                width: 100%;
+            }
         }
     </style>
 </head>
