@@ -215,19 +215,27 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     }
     if (!empty($statusList)) {
         echo '<div class="results-container">';
-        echo '<div class="results-card">';
-        echo '<div class="status">📦 Status atual: ' . htmlspecialchars($statusAtualTopo) . ' — ' . htmlspecialchars($cidade);
+        echo '<div class="results-card animate-fade-in">';
+        echo '<div class="status-header">';
+        echo '<span class="status-icon">📦</span>';
+        echo '<h3>' . htmlspecialchars($statusAtualTopo) . '</h3>';
+        echo '<small style="color:var(--text-muted);">' . htmlspecialchars($cidade) . '</small>';
         if ($isExpress) {
-            echo ' <span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span>';
+            echo '<div style="margin-top:0.5rem;"><span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span></div>';
         }
         echo '</div>';
+
         echo '<div class="timeline">';
-        foreach ($statusList as $etapa) {
-            $cor = !empty($etapa['cor']) ? $etapa['cor'] : '#16A34A';
-            echo '<div class="step" style="border-left-color:' . htmlspecialchars($cor) . ';">';
-            echo '<b>' . htmlspecialchars($etapa['titulo']) . '</b>';
-            echo '<small>' . htmlspecialchars($etapa['subtitulo']) . '</small>';
-            echo '<i>' . date("d/m/Y H:i", strtotime($etapa['data'])) . '</i>';
+        foreach ($statusList as $index => $etapa) {
+            $isFirst = $index === 0;
+            $activeClass = $isFirst ? 'active' : '';
+            echo '<div class="timeline-item ' . $activeClass . '">';
+            echo '<div class="timeline-marker"></div>';
+            echo '<div class="timeline-content">';
+            echo '<h4>' . htmlspecialchars($etapa['titulo']) . '</h4>';
+            echo '<span>' . htmlspecialchars($etapa['subtitulo']) . '</span>';
+            echo '<div class="timeline-date"><i class="far fa-clock"></i> ' . date("d/m/Y H:i", strtotime($etapa['data'])) . '</div>';
+
             if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])) {
                 echo '<div class="pix-box">';
                 echo '<p>💰 <b>Taxa de distribuição nacional:</b> R$ ' . number_format($etapa['taxa_valor'], 2, ',', '.') . '</p>';
@@ -239,7 +247,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                 }
                 echo '</div>';
             }
-            echo '</div>';
+            echo '</div>'; // content
+            echo '</div>'; // item
         }
         echo '</div>'; // timeline
         if (!$temTaxa && !$isExpress) {
@@ -330,45 +339,46 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             <div id="ajaxResults">
                 <?php if (!empty($statusList)): ?>
                     <div class="results-container">
-                        <div class="results-card">
-                            <div class="status">
-                                📦 Status atual:
-                                <?= htmlspecialchars($statusAtualTopo) ?> —
-                                <?= htmlspecialchars($cidade) ?>
+                        <div class="results-card animate-fade-in">
+                            <div class="status-header">
+                                <span class="status-icon">📦</span>
+                                <h3><?= htmlspecialchars($statusAtualTopo) ?></h3>
+                                <small style="color:var(--text-muted);"><?= htmlspecialchars($cidade) ?></small>
                                 <?php if ($isExpress): ?>
-                                    <span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span>
+                                    <div style="margin-top:0.5rem;"><span class="badge"><i class="fas fa-bolt"></i> Entrega
+                                            Expressa</span></div>
                                 <?php endif; ?>
                             </div>
                             <div class="timeline">
-                                <?php foreach ($statusList as $etapa): ?>
-                                    <div class="step"
-                                        style="border-left-color:<?= htmlspecialchars($etapa['cor'] ?? '#16A34A') ?>;">
-                                        <b>
-                                            <?= htmlspecialchars($etapa['titulo']) ?>
-                                        </b>
-                                        <small>
-                                            <?= htmlspecialchars($etapa['subtitulo']) ?>
-                                        </small>
-                                        <i>
-                                            <?= date("d/m/Y H:i", strtotime($etapa['data'])) ?>
-                                        </i>
+                                <?php foreach ($statusList as $index => $etapa):
+                                    $isFirst = $index === 0;
+                                    $activeClass = $isFirst ? 'active' : '';
+                                    ?>
+                                    <div class="timeline-item <?= $activeClass ?>">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h4><?= htmlspecialchars($etapa['titulo']) ?></h4>
+                                            <span><?= htmlspecialchars($etapa['subtitulo']) ?></span>
+                                            <div class="timeline-date"><i class="far fa-clock"></i>
+                                                <?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></div>
 
-                                        <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                                            <div class="pix-box">
-                                                <p>💰 <b>Taxa de distribuição nacional:</b> R$
-                                                    <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?>
-                                                </p>
-                                                <p>Faça o pagamento via PIX:</p>
-                                                <textarea readonly><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
-                                                <button
-                                                    onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')">
-                                                    📋 Copiar chave PIX
-                                                </button>
-                                                <?php if ($temTaxa): ?>
-                                                    <div id="countdown" class="countdown"></div>
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php endif; ?>
+                                            <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
+                                                <div class="pix-box">
+                                                    <p>💰 <b>Taxa de distribuição nacional:</b> R$
+                                                        <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?>
+                                                    </p>
+                                                    <p>Faça o pagamento via PIX:</p>
+                                                    <textarea readonly><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
+                                                    <button
+                                                        onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')">
+                                                        📋 Copiar chave PIX
+                                                    </button>
+                                                    <?php if ($temTaxa): ?>
+                                                        <div id="countdown" class="countdown"></div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
