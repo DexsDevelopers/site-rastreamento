@@ -35,10 +35,10 @@ try {
         INDEX idx_codigo (codigo),
         INDEX idx_email (email)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-    
+
     $pdo->exec($sql);
     echo "✅ Tabela 'clientes' criada com sucesso!<br>";
-    
+
     // 2. Criar tabela de indicações
     echo "<p>📋 Criando tabela de indicações...</p>";
     $sql = "CREATE TABLE indicacoes (
@@ -53,10 +53,10 @@ try {
         INDEX idx_codigo_indicado (codigo_indicado),
         INDEX idx_data_indicacao (data_indicacao)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-    
+
     $pdo->exec($sql);
     echo "✅ Tabela 'indicacoes' criada com sucesso!<br>";
-    
+
     // 3. Criar tabela de compras
     echo "<p>📋 Criando tabela de compras...</p>";
     $sql = "CREATE TABLE compras (
@@ -71,25 +71,25 @@ try {
         INDEX idx_codigo_cliente (codigo_cliente),
         INDEX idx_data_compra (data_compra)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-    
+
     $pdo->exec($sql);
     echo "✅ Tabela 'compras' criada com sucesso!<br>";
-    
+
     // 4. Verificar se a tabela rastreios_status existe e adicionar colunas
     echo "<p>📋 Verificando tabela rastreios_status...</p>";
     $checkRastreios = "SHOW TABLES LIKE 'rastreios_status'";
     $result = $pdo->query($checkRastreios);
-    
+
     if ($result->rowCount() > 0) {
         echo "✅ Tabela 'rastreios_status' já existe. Adicionando colunas de prioridade...<br>";
-        
+
         // Adicionar colunas de prioridade se não existirem
         $columns = [
             "ADD COLUMN prioridade BOOLEAN DEFAULT FALSE",
             "ADD COLUMN codigo_indicador VARCHAR(50)",
             "ADD COLUMN data_entrega_prevista DATE"
         ];
-        
+
         foreach ($columns as $column) {
             try {
                 $sql = "ALTER TABLE rastreios_status $column";
@@ -103,7 +103,7 @@ try {
                 }
             }
         }
-        
+
         // Adicionar índices
         try {
             $pdo->exec("ALTER TABLE rastreios_status ADD INDEX idx_prioridade (prioridade)");
@@ -111,17 +111,17 @@ try {
         } catch (PDOException $e) {
             echo "⚠️ Índice de prioridade já existe<br>";
         }
-        
+
         try {
             $pdo->exec("ALTER TABLE rastreios_status ADD INDEX idx_codigo_indicador (codigo_indicador)");
             echo "✅ Índice de código indicador criado<br>";
         } catch (PDOException $e) {
             echo "⚠️ Índice de código indicador já existe<br>";
         }
-        
+
     } else {
         echo "❌ Tabela 'rastreios_status' não encontrada. Criando tabela completa...<br>";
-        
+
         $sql = "CREATE TABLE rastreios_status (
             id INT AUTO_INCREMENT PRIMARY KEY,
             codigo VARCHAR(50) NOT NULL,
@@ -140,11 +140,11 @@ try {
             INDEX idx_prioridade (prioridade),
             INDEX idx_codigo_indicador (codigo_indicador)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-        
+
         $pdo->exec($sql);
         echo "✅ Tabela 'rastreios_status' criada com sucesso!<br>";
     }
-    
+
     // 5. Criar tabela de mídias por rastreio
     echo "<p>📷 Criando tabela de mídias...</p>";
     $sql = "CREATE TABLE IF NOT EXISTS rastreios_midias (
@@ -163,7 +163,7 @@ try {
 
     // 6. Criar triggers para atualizar contadores
     echo "<p>📋 Criando triggers...</p>";
-    
+
     // Trigger para atualizar contadores de indicações
     try {
         $pdo->exec("DROP TRIGGER IF EXISTS tr_atualizar_indicacoes");
@@ -180,7 +180,7 @@ try {
     } catch (PDOException $e) {
         echo "❌ Erro ao criar trigger: " . $e->getMessage() . "<br>";
     }
-    
+
     // Trigger para atualizar contadores de compras
     try {
         $pdo->exec("DROP TRIGGER IF EXISTS tr_atualizar_compras");
@@ -205,10 +205,10 @@ try {
     } catch (PDOException $e) {
         echo "❌ Erro ao criar trigger: " . $e->getMessage() . "<br>";
     }
-    
+
     // 7. Inserir dados de exemplo (opcional)
     echo "<p>📋 Inserindo dados de exemplo...</p>";
-    
+
     // Cliente exemplo
     try {
         $sql = "INSERT INTO clientes (codigo, nome, email, telefone, cidade) VALUES 
@@ -219,10 +219,50 @@ try {
     } catch (PDOException $e) {
         echo "⚠️ Dados de exemplo já existem ou erro: " . $e->getMessage() . "<br>";
     }
-    
-    // 8. Criar arquivo de configuração para indicar que foi executado
+
+    // 8. Criar tabela whatsapp_contatos
+    echo "<p>📱 Criando tabela whatsapp_contatos...</p>";
+    $sql = "CREATE TABLE IF NOT EXISTS whatsapp_contatos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        codigo VARCHAR(50) NOT NULL UNIQUE,
+        nome VARCHAR(255) NULL,
+        telefone_original VARCHAR(30) NULL,
+        telefone_normalizado VARCHAR(20) NULL,
+        notificacoes_ativas TINYINT(1) DEFAULT 1,
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_codigo (codigo),
+        INDEX idx_telefone (telefone_normalizado)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    $pdo->exec($sql);
+    echo "✅ Tabela 'whatsapp_contatos' criada com sucesso!<br>";
+
+    // 9. Criar tabela whatsapp_notificacoes
+    echo "<p>🔔 Criando tabela whatsapp_notificacoes...</p>";
+    $sql = "CREATE TABLE IF NOT EXISTS whatsapp_notificacoes (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        codigo VARCHAR(50) NOT NULL,
+        status_titulo VARCHAR(255) NOT NULL,
+        status_subtitulo VARCHAR(255) NULL,
+        status_data DATETIME NOT NULL,
+        telefone VARCHAR(20) NOT NULL,
+        mensagem TEXT NOT NULL,
+        resposta_http TEXT NULL,
+        http_code INT NULL,
+        sucesso TINYINT(1) DEFAULT 0,
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        enviado_em TIMESTAMP NULL,
+        UNIQUE KEY uniq_codigo_status (codigo, status_titulo, status_data),
+        INDEX idx_codigo_notificacoes (codigo),
+        INDEX idx_sucesso (sucesso)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    $pdo->exec($sql);
+    echo "✅ Tabela 'whatsapp_notificacoes' criada com sucesso!<br>";
+
+    // 10. Criar arquivo de configuração para indicar que foi executado
     file_put_contents('database_setup_complete.txt', date('Y-m-d H:i:s') . ' - Database setup completed successfully');
-    
+
     echo "<hr>";
     echo "<h2>🎉 Configuração Concluída com Sucesso!</h2>";
     echo "<p><strong>✅ Todas as tabelas foram criadas com sucesso!</strong></p>";
@@ -233,25 +273,28 @@ try {
     echo "<li>✅ compras</li>";
     echo "<li>✅ rastreios_status (atualizada)</li>";
     echo "<li>✅ rastreios_midias</li>";
+    echo "<li>✅ whatsapp_contatos</li>";
+    echo "<li>✅ whatsapp_notificacoes</li>";
     echo "</ul>";
-    
+
     echo "<p><strong>🔧 Funcionalidades disponíveis:</strong></p>";
     echo "<ul>";
     echo "<li>✅ Sistema de indicação</li>";
     echo "<li>✅ Prioridade de entrega</li>";
     echo "<li>✅ Controle de clientes</li>";
     echo "<li>✅ Relatórios de indicações</li>";
+    echo "<li>✅ Notificações WhatsApp</li>";
     echo "</ul>";
-    
+
     echo "<p><strong>🚀 Próximos passos:</strong></p>";
     echo "<ol>";
     echo "<li>Acesse <a href='indicacao.php'>indicacao.php</a> para testar o sistema</li>";
     echo "<li>Configure o painel admin para gerenciar indicações</li>";
     echo "<li>Teste o sistema de prioridade</li>";
     echo "</ol>";
-    
+
     echo "<p><strong>⚠️ Importante:</strong> Delete este arquivo (setup_database.php) após a execução por segurança!</p>";
-    
+
 } catch (PDOException $e) {
     echo "<h2>❌ Erro na Configuração</h2>";
     echo "<p><strong>Erro:</strong> " . $e->getMessage() . "</p>";

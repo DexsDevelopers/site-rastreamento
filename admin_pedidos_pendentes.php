@@ -48,12 +48,57 @@ if (isset($_POST['aprovar_pedido'])) {
             '#16A34A'
         ]);
 
-        // Atualizar pedido
-        executeQuery($pdo, "UPDATE pedidos_pendentes SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?", [$codigoRastreio, $pedidoId]);
+        // Salvar contato do cliente
+        $telefoneNormalizado = normalizePhoneToDigits($pedido['telefone']);
+        
+        // Log para debug
+        writeLog("Aprovando Pedido ID: {$pedidoId}", 'INFO');
+        writeLog("Dados Contato - Nome: {$pedido['nome']}, Telefone: {$pedido['telefone']}, Normalizado: {$telefoneNormalizado}", 'INFO');
+        
+        try {
+            upsertWhatsappContact(
+                $pdo,
+                $codigoRastreio,
+                $pedido['nome'],
+                $pedido['telefone'], // Passar original para salvar mesmo se inválido
+                true // Ativar notificações
+            );
+            writeLog("Contato WhatsApp salvo com sucesso para {$codigoRastreio}", 'INFO');
+        } catch (Exception $wppError) {
+            writeLog("Erro ao salvar contato WhatsApp: " . $wppError->getMessage(), 'ERROR');
+            // Não interromper o fluxo se falhar o contato, mas logar o erro
+        }
 
-        $success_message = "Pedido aprovado com sucesso! Rastreio criado: {$codigoRastreio}";
+        // Gerar link de rastreamento
+        $baseUrl = getDynamicConfig('WHATSAPP_TRACKING_URL', '');
+        if ($baseUrl) {
+            $linkRastreio = str_replace('{{codigo}}', $codigoRastreio, $baseUrl);
+        } else {
+            // Fallback: usar URL atual
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $linkRastreio = "{$protocol}://{$host}/?codigo={$codigoRastreio}";
+        }
+
+        // Enviar mensagem personalizada com link
+        $mensagemPostado = "Olá, {$pedido['nome']}! 📦\n\n";
+        $mensagemPostado .= "✅ *Seu pedido foi postado!*\n\n";
+        $mensagemPostado .= "🔎 *Código de rastreio:*\n`{$codigoRastreio}`\n\n";
+        $mensagemPostado .= "📍 *Acompanhe seu pedido:*\n{$linkRastreio}\n\n";
+        $mensagemPostado .= "Você receberá atualizações automáticas sobre o status da entrega.\n\n";
+        $mensagemPostado .= "Obrigado pela preferência! 🚚";
+
+        sendWhatsappMessage($telefoneNormalizado, $mensagemPostado);
+
+        // Atualizar pedido como aprovado
+        $sql = "UPDATE pedidos_pendentes SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?";
+        executeQuery($pdo, $sql, [$codigoRastreio, $pedidoId]);
+
+        $success_message = "✅ Pedido aprovado! Rastreamento {$codigoRastreio} criado e cliente notificado.";
+        writeLog("Pedido aprovado: ID {$pedidoId}, Código: {$codigoRastreio}, Cliente: {$pedido['nome']}", 'INFO');
     } catch (Exception $e) {
-        $error_message = $e->getMessage();
+        $error_message = "Erro ao aprovar pedido: " . $e->getMessage();
+        writeLog("Erro ao aprovar pedido: " . $e->getMessage(), 'ERROR');
     }
 }
 
