@@ -76,8 +76,13 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
 
         writeLog("Iniciando envio manual de WhatsApp para código {$codigo}, telefone: " . ($contato['telefone_normalizado'] ?? 'não informado'), 'INFO');
 
+        // Aumentar timeout do PHP para evitar cortes no meio
+        set_time_limit(40);
+
         // Verificar se o bot está online antes de enviar
         $statusUrl = $apiConfig['base_url'] . '/status';
+
+        // Timeout curto para verificar status do bot (5s)
         $statusCh = curl_init($statusUrl);
         curl_setopt_array($statusCh, [
             CURLOPT_RETURNTRANSFER => true,
@@ -86,27 +91,30 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
                 'ngrok-skip-browser-warning: true'
             ],
             CURLOPT_TIMEOUT => 5,
+            CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_SSL_VERIFYPEER => false
         ]);
         $statusResponse = curl_exec($statusCh);
         $statusHttpCode = curl_getinfo($statusCh, CURLINFO_HTTP_CODE);
+        $statusError = curl_error($statusCh);
         curl_close($statusCh);
 
         if ($statusResponse === false || $statusHttpCode !== 200) {
-            writeLog("Bot WhatsApp não está acessível. Status HTTP: {$statusHttpCode}", 'ERROR');
+            writeLog("Bot WhatsApp não está acessível. Status HTTP: {$statusHttpCode}, Erro: {$statusError}", 'ERROR');
             echo json_encode([
                 'success' => false,
-                'message' => '❌ Bot WhatsApp não está online ou não está acessível. Verifique se o bot está rodando e o ngrok está ativo.'
+                'message' => "❌ Bot WhatsApp inacessível. HTTP {$statusHttpCode}. Verifique se o bot está rodando."
             ]);
             exit;
         }
 
         $statusData = json_decode($statusResponse, true);
         if (!$statusData || !isset($statusData['ready']) || !$statusData['ready']) {
+            $qrCodeMsg = isset($statusData['qr']) ? ' (QR Code pendente)' : '';
             writeLog("Bot WhatsApp não está pronto. Status: " . json_encode($statusData), 'ERROR');
             echo json_encode([
                 'success' => false,
-                'message' => '❌ Bot WhatsApp não está conectado ao WhatsApp. Verifique a conexão do bot.'
+                'message' => "❌ Bot WhatsApp desconectado{$qrCodeMsg}. Escaneie o QR Code no terminal do bot."
             ]);
             exit;
         }
@@ -129,17 +137,22 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         } else {
             $erroMsg = 'Erro desconhecido';
             if ($ultimaNotif) {
-                $erroMsg = "HTTP {$ultimaNotif['http_code']}";
-                if ($ultimaNotif['resposta_http']) {
-                    $resposta = json_decode($ultimaNotif['resposta_http'], true);
-                    if ($resposta && isset($resposta['error'])) {
-                        $erroMsg = $resposta['error'];
-                    }
+                // Tentar extrair erro da resposta HTTP
+                $respostaBot = json_decode($ultimaNotif['resposta_http'] ?? '{}', true);
+                if (isset($respostaBot['error'])) {
+                    $erroMsg = $respostaBot['error'];
+                } elseif (isset($respostaBot['message'])) {
+                    $erroMsg = $respostaBot['message'];
+                } else {
+                    $erroMsg = "HTTP {$ultimaNotif['http_code']}";
                 }
+            } else {
+                $erroMsg = "Nenhum registro de envio encontrado (possível timeout interno)";
             }
+
             echo json_encode([
                 'success' => false,
-                'message' => "❌ Falha ao enviar notificação: {$erroMsg}"
+                'message' => "❌ Falha ao enviar: {$erroMsg}"
             ]);
             writeLog("Envio manual de WhatsApp para código {$codigo} falhou: {$erroMsg}", 'ERROR');
         }
@@ -2698,9 +2711,14 @@ $semTaxa = $totalRastreios - $comTaxa;
             const url = 'admin.php?t=' + new Date().getTime();
             console.log('[WhatsApp] Enviando requisição para:', url);
 
+            // Timeout de 30 segundos
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
             fetch(url, {
                 method: 'POST',
                 body: formData,
+                signal: controller.signal,
                 credentials: 'same-origin',
                 cache: 'no-cache',
                 headers: {
@@ -2708,6 +2726,7 @@ $semTaxa = $totalRastreios - $comTaxa;
                 }
             })
                 .then(response => {
+                    clearTimeout(timeoutId);
                     console.log('[WhatsApp] Response status:', response.status);
                     console.log('[WhatsApp] Response ok:', response.ok);
 
@@ -2768,7 +2787,11 @@ $semTaxa = $totalRastreios - $comTaxa;
                         btn.innerHTML = originalHTML;
                     });
 
-                    const errorMsg = error.message || 'Erro desconhecido';
+                    let errorMsg = error.message || 'Erro desconhecido';
+                    if (error.name === 'AbortError') {
+                        errorMsg = 'Tempo limite excedido. O bot pode estar offline ou lento.';
+                    }
+
                     notifyError('❌ Erro ao enviar notificação: ' + errorMsg);
 
                     // Mostrar mais detalhes no console
