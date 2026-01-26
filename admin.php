@@ -925,12 +925,12 @@ $semTaxa = $totalRastreios - $comTaxa;
 
             <div class="sidebar-footer">
                 <?php if (!empty($_SESSION['undo_action'])): ?>
-                        <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action"
-                                value="1"></form>
-                        <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;"
-                            style="color: var(--warning);">
-                            <i class="fas fa-rotate-left"></i> Desfazer
-                        </a>
+                    <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action"
+                            value="1"></form>
+                    <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;"
+                        style="color: var(--warning);">
+                        <i class="fas fa-rotate-left"></i> Desfazer
+                    </a>
                 <?php endif; ?>
                 <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i
                         class="fas fa-power-off"></i> Sair</a>
@@ -992,11 +992,11 @@ $semTaxa = $totalRastreios - $comTaxa;
                         <div class="stat-label">Entregues</div>
                     </div>
                     <?php if ($totalPedidosPendentes > 0): ?>
-                            <div class="stat-card" style="border-color: var(--warning);">
-                                <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
-                                <div class="stat-value"><?= $totalPedidosPendentes ?></div>
-                                <div class="stat-label">Pedidos Pendentes</div>
-                            </div>
+                        <div class="stat-card" style="border-color: var(--warning);">
+                            <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
+                            <div class="stat-value"><?= $totalPedidosPendentes ?></div>
+                            <div class="stat-label">Pedidos Pendentes</div>
+                        </div>
                     <?php endif; ?>
                 </div>
 
@@ -1126,6 +1126,11 @@ $semTaxa = $totalRastreios - $comTaxa;
                                         <button class='btn btn-icon' onclick='abrirModal(\"{$row['codigo']}\")' title='Editar'><i class='fas fa-pencil'></i></button>
                                         <button class='btn btn-icon' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver'><i class='fas fa-eye'></i></button>
                                         <button class='btn btn-icon' style='color:#25D366' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='WhatsApp'><i class='fab fa-whatsapp'></i></button>
+                                        <button class='btn btn-icon' style='color:var(--danger)' onclick='confirmarExclusao(\"form-delete-table-{$row['codigo']}\", \"rastreio\", \"{$row['codigo']}\")' title='Excluir'><i class='fas fa-trash'></i></button>
+                                        <form id=\"form-delete-table-{$row['codigo']}\" method=\"POST\" style=\"display:none;\">
+                                            <input type=\"hidden\" name=\"deletar\" value=\"1\">
+                                            <input type=\"hidden\" name=\"codigo\" value=\"{$row['codigo']}\">
+                                        </form>
                                     </td>
                                 </tr>";
                                     }
@@ -1142,34 +1147,34 @@ $semTaxa = $totalRastreios - $comTaxa;
                 <div class="cards-list">
                     <?php if (!empty($dados_rastreios)):
                         foreach ($dados_rastreios as $row): ?>
-                                    <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
-                                        <div class="card-header">
-                                            <div class="card-code"><?= $row['codigo'] ?></div>
-                                            <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
-                                        </div>
-                                        <div class="card-status"><?= $row['status_atual'] ?></div>
-                                        <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
-                                        <div class="card-actions">
-                                            <button class="btn-mobile-action btn-mobile-edit"
-                                                onclick="event.stopPropagation(); abrirModal('<?= $row['codigo'] ?>')">
-                                                <i class="fas fa-pencil"></i> Editar
-                                            </button>
-                                            <button class="btn-mobile-action"
-                                                style="background: rgba(37, 211, 102, 0.1); color: #25D366; border-color: rgba(37, 211, 102, 0.2);"
-                                                onclick="event.stopPropagation(); enviarWhatsappManual('<?= $row['codigo'] ?>')">
-                                                <i class="fab fa-whatsapp"></i> Zap
-                                            </button>
-                                            <button class="btn-mobile-action btn-mobile-delete"
-                                                onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo'] ?>', 'rastreio', '<?= $row['codigo'] ?>')">
-                                                <i class="fas fa-trash"></i> Excluir
-                                            </button>
-                                        </div>
-                                        <form id="form-delete-<?= $row['codigo'] ?>" method="POST" style="display:none;">
-                                            <input type="hidden" name="deletar" value="1">
-                                            <input type="hidden" name="codigo" value="<?= $row['codigo'] ?>">
-                                        </form>
-                                    </div>
-                            <?php endforeach; endif; ?>
+                            <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
+                                <div class="card-header">
+                                    <div class="card-code"><?= $row['codigo'] ?></div>
+                                    <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
+                                </div>
+                                <div class="card-status"><?= $row['status_atual'] ?></div>
+                                <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
+                                <div class="card-actions">
+                                    <button class="btn-mobile-action btn-mobile-edit"
+                                        onclick="event.stopPropagation(); abrirModal('<?= $row['codigo'] ?>')">
+                                        <i class="fas fa-pencil"></i> Editar
+                                    </button>
+                                    <button class="btn-mobile-action"
+                                        style="background: rgba(37, 211, 102, 0.1); color: #25D366; border-color: rgba(37, 211, 102, 0.2);"
+                                        onclick="event.stopPropagation(); enviarWhatsappManual('<?= $row['codigo'] ?>')">
+                                        <i class="fab fa-whatsapp"></i> Zap
+                                    </button>
+                                    <button class="btn-mobile-action btn-mobile-delete"
+                                        onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo'] ?>', 'rastreio', '<?= $row['codigo'] ?>')">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                </div>
+                                <form id="form-delete-<?= $row['codigo'] ?>" method="POST" style="display:none;">
+                                    <input type="hidden" name="deletar" value="1">
+                                    <input type="hidden" name="codigo" value="<?= $row['codigo'] ?>">
+                                </form>
+                            </div>
+                        <?php endforeach; endif; ?>
                 </div>
 
             </div> <!-- End .content-body -->
@@ -1928,16 +1933,16 @@ $semTaxa = $totalRastreios - $comTaxa;
 
         // Mostrar notificações de sucesso do PHP
         <?php if (isset($success_message)): ?>
-                document.addEventListener('DOMContentLoaded', function () {
-                    notifySuccess('<?= addslashes($success_message) ?>');
-                });
+            document.addEventListener('DOMContentLoaded', function () {
+                notifySuccess('<?= addslashes($success_message) ?>');
+            });
         <?php endif; ?>
 
         // Mostrar notificações de erro do PHP
         <?php if (isset($error_message)): ?>
-                document.addEventListener('DOMContentLoaded', function () {
-                    notifyError('<?= addslashes($error_message) ?>');
-                });
+            document.addEventListener('DOMContentLoaded', function () {
+                notifyError('<?= addslashes($error_message) ?>');
+            });
         <?php endif; ?>
 
         // Inicializar sistema de automações
