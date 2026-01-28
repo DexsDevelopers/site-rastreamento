@@ -49,32 +49,12 @@ try {
     switch ($action) {
         case 'get_automations':
             // Buscar automações ativas
-            // Adicionado campo grupos_permitidos
             $automations = fetchData($pdo, 
-                "SELECT id, nome, tipo, gatilho, resposta, imagem_url, grupo_id, grupos_permitidos, grupo_nome, 
+                "SELECT id, nome, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                         apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade
                  FROM bot_automations 
                  WHERE ativo = 1 
                  ORDER BY prioridade DESC, id ASC");
-            
-            // Decodificar grupos_permitidos se for JSON válido
-            foreach ($automations as &$auto) {
-                if (!empty($auto['grupos_permitidos'])) {
-                    $decoded = json_decode($auto['grupos_permitidos'], true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        $auto['grupos_permitidos'] = $decoded;
-                    } else {
-                        // Se não for JSON, assumir string separada por vírgula
-                        $auto['grupos_permitidos'] = array_map('trim', explode(',', $auto['grupos_permitidos']));
-                    }
-                } else {
-                    $auto['grupos_permitidos'] = [];
-                    // Fallback para grupo_id antigo se existir
-                    if (!empty($auto['grupo_id'])) {
-                        $auto['grupos_permitidos'][] = $auto['grupo_id'];
-                    }
-                }
-            }
             
             $response = [
                 'success' => true,
@@ -82,32 +62,6 @@ try {
                 'count' => count($automations),
                 'timestamp' => date('c')
             ];
-            break;
-
-        case 'migrate_schema':
-            // Endpoint temporário para migração
-            try {
-                // Adicionar coluna grupos_permitidos se não existir
-                $sql = "SHOW COLUMNS FROM bot_automations LIKE 'grupos_permitidos'";
-                $stmt = $pdo->query($sql);
-                
-                $message = "";
-                
-                if ($stmt->rowCount() == 0) {
-                    $pdo->exec("ALTER TABLE bot_automations ADD COLUMN grupos_permitidos TEXT DEFAULT NULL COMMENT 'JSON array ou lista separada por vírgula de JIDs permitidos' AFTER grupo_id");
-                    $message .= "Coluna adicionada. ";
-                    
-                    // Migrar dados existentes
-                    $sqlMigrate = "UPDATE bot_automations SET grupos_permitidos = JSON_ARRAY(grupo_id) WHERE grupo_id IS NOT NULL AND grupo_id != '' AND grupos_permitidos IS NULL";
-                    $pdo->exec($sqlMigrate);
-                    $message .= "Dados migrados.";
-                } else {
-                    $message = "Coluna já existe.";
-                }
-                $response = ['success' => true, 'message' => $message];
-            } catch (Exception $e) {
-                $response = ['success' => false, 'error' => $e->getMessage()];
-            }
             break;
             
         case 'get_settings':
@@ -303,12 +257,6 @@ try {
             } else {
                 $response = ['success' => false, 'error' => 'grupo_jid não informado'];
             }
-            break;
-
-        case 'get_grupos':
-            // Buscar grupos cadastrados pelo bot
-            $grupos = fetchData($pdo, "SELECT * FROM bot_grupos ORDER BY nome");
-            $response = ['success' => true, 'data' => $grupos];
             break;
             
         default:

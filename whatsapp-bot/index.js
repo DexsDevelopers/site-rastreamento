@@ -40,67 +40,6 @@ function isGroupJid(jid) {
   return jid.includes('@g.us') || jid.includes('@newsletter');
 }
 
-function unwrapMessageContent(message) {
-  let current = message;
-  while (current && typeof current === 'object') {
-    if (current.ephemeralMessage?.message) {
-      current = current.ephemeralMessage.message;
-      continue;
-    }
-    if (current.viewOnceMessageV2?.message) {
-      current = current.viewOnceMessageV2.message;
-      continue;
-    }
-    if (current.viewOnceMessage?.message) {
-      current = current.viewOnceMessage.message;
-      continue;
-    }
-    if (current.documentWithCaptionMessage?.message) {
-      current = current.documentWithCaptionMessage.message;
-      continue;
-    }
-    if (current.protocolMessage?.editedMessage?.message) {
-      current = current.protocolMessage.editedMessage.message;
-      continue;
-    }
-    if (current.protocolMessage?.editedMessage?.message?.message) {
-      current = current.protocolMessage.editedMessage.message.message;
-      continue;
-    }
-    if (current.editedMessage?.message) {
-      current = current.editedMessage.message;
-      continue;
-    }
-    break;
-  }
-  return current || message;
-}
-
-function getTextFromMessage(message) {
-  const m = unwrapMessageContent(message);
-  return (
-    m?.conversation ||
-    m?.extendedTextMessage?.text ||
-    m?.imageMessage?.caption ||
-    m?.videoMessage?.caption ||
-    m?.documentMessage?.caption ||
-    ''
-  );
-}
-
-function normalizeReplyJid(jid) {
-  try {
-    if (!jid || typeof jid !== 'string') return jid;
-    if (jid.includes('@g.us') || jid.includes('@newsletter')) return jid;
-    return jidNormalizedUser(jid);
-  } catch (e) {
-    return jid;
-  }
-}
-
-let lastInbound = { at: 0, jid: null, text: null, fromMe: null };
-let lastCommand = { at: 0, jid: null, text: null, result: null, error: null };
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -1451,25 +1390,8 @@ async function saveGroupSettings(grupoJid, grupoNome, config) {
 
 // ===== SISTEMA DE AUTOMAÇÕES - FUNÇÕES =====
 
-let migrationChecked = false;
-
 // Carregar automações do servidor
 async function loadAutomations() {
-  // Tentar migração de schema na primeira execução
-  if (!migrationChecked) {
-    try {
-      log.info(`[MIGRATION] Verificando schema do banco de dados...`);
-      const migrationUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=migrate_schema`;
-      await axios.get(migrationUrl, {
-        headers: { 'x-api-token': RASTREAMENTO_TOKEN },
-        timeout: 5000
-      });
-      migrationChecked = true;
-    } catch (e) {
-      log.warn(`[MIGRATION] Erro ao verificar schema (não fatal): ${e.message}`);
-    }
-  }
-
   try {
     // Verificar cache
     if (Date.now() - lastAutomationsLoad < AUTOMATIONS_CACHE_TTL && automationsCache.length > 0) {
@@ -1776,14 +1698,8 @@ async function processAutomations(remoteJid, text, msg) {
       
       log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo/privado`);
       
-      // Verificar se é para grupos específicos (Suporte a múltiplos grupos)
-      if (Array.isArray(automation.grupos_permitidos) && automation.grupos_permitidos.length > 0) {
-        if (!automation.grupos_permitidos.includes(remoteJid)) {
-          log.warn(`[AUTOMATIONS] ❌ Pulando: automação restrita a grupos específicos e este (${remoteJid}) não está na lista`);
-          continue;
-        }
-      } else if (automation.grupo_id && automation.grupo_id !== remoteJid) {
-        // Fallback legado caso a API não tenha enviado grupos_permitidos corretamente
+      // Verificar se é para grupo específico
+      if (automation.grupo_id && automation.grupo_id !== remoteJid) {
         log.warn(`[AUTOMATIONS] ❌ Pulando: automação é para grupo específico diferente`);
         continue;
       }
@@ -1910,7 +1826,7 @@ async function saveGroupInfo(jid, nome, descricao, participantes) {
 // Comandos como /ban, /kick, /promote, /demote
 async function processGroupAdminCommand(remoteJid, text, msg) {
   try {
-    const command = text.trim().split(/\s+/)[0].toLowerCase();
+    const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
     
     // Sistema de segurança desabilitado - sem cooldown
@@ -2411,17 +2327,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
 // Aceita comandos com / (rastreamento) ou ! (financeiro)
 async function processAdminCommand(from, text, msg = null) {
   try {
-    // Identificar quem enviou a mensagem (Sender)
-    // Se for grupo, o sender está em msg.key.participant
-    // Se for privado, o sender é o próprio from (remoteJid)
-    let senderJid = from;
-    if (msg && msg.key && msg.key.participant) {
-      senderJid = msg.key.participant;
-    }
-    
-    const fromNumber = senderJid.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
-    
-    log.info(`[COMMAND] Processando comando para ${fromNumber} (Origem: ${from === senderJid ? 'Privado' : 'Grupo'})`);
+    const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     
     // Detectar qual projeto pelo prefixo
     const prefix = text.charAt(0);
@@ -2465,11 +2371,6 @@ async function processAdminCommand(from, text, msg = null) {
           log.warn(`[${projectName}] Bot não está pronto para enviar poll, usando fallback`);
           // Fallback: enviar para API normalmente
         } else {
-          // Poll logic...
-          // IMPORTANTE: Enviar para o GRUPO (remoteJid/from), não para o sender
-          // Mas se for poll, o Baileys exige que o usuário possa votar
-          // Polls em grupos funcionam normalmente
-          
           const pollQuestion = '👋 Olá! Como posso ajudar você hoje?';
           const pollOptions = [
             '📊 Ver saldo',
@@ -2491,8 +2392,6 @@ async function processAdminCommand(from, text, msg = null) {
           log.info(`[${projectName}] Tentando enviar poll para ${from}`);
           
           try {
-            // sendPoll usa safeSendMessage, que usa sock.sendMessage
-            // from aqui deve ser o JID do grupo ou chat privado
             const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions, {
               type: 'menu_principal',
               commandMap: commandMap
@@ -2515,9 +2414,7 @@ async function processAdminCommand(from, text, msg = null) {
     // Se for comando !comprovante do financeiro, aguardar foto
     if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
       const transactionId = params[0];
-      // Para aguardar foto, precisamos usar o senderJid (quem enviou) e não o from (grupo)
-      // Senão qualquer um no grupo poderia enviar a foto
-      waitingPhoto.set(senderJid, {
+      waitingPhoto.set(from, {
         transactionId,
         isFinanceiro: true,
         timestamp: Date.now()
@@ -2559,23 +2456,20 @@ async function processAdminCommand(from, text, msg = null) {
       }
     );
     
-    log.info(`[${projectName}] Resposta API Status: ${response.status}`);
-    log.info(`[${projectName}] Resposta API Data: ${JSON.stringify(response.data).substring(0, 200)}`);
-    
     const result = response.data;
     
     // Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
     if (result.waiting_photo) {
       if (result.photo_codigo) {
         // Rastreamento
-        waitingPhoto.set(senderJid, {
+        waitingPhoto.set(from, {
           codigo: result.photo_codigo,
           isFinanceiro: false,
           timestamp: Date.now()
         });
       } else if (result.photo_transaction_id || result.transaction_id) {
         // Financeiro
-        waitingPhoto.set(senderJid, {
+        waitingPhoto.set(from, {
           transactionId: result.photo_transaction_id || result.transaction_id,
           isFinanceiro: true,
           timestamp: Date.now()
@@ -2583,7 +2477,7 @@ async function processAdminCommand(from, text, msg = null) {
       }
       
       setTimeout(() => {
-        waitingPhoto.delete(senderJid);
+        waitingPhoto.delete(from);
       }, 5 * 60 * 1000);
     }
     
@@ -3226,21 +3120,6 @@ async function start() {
         }).catch(err => {
           log.warn(`[AUTOMATIONS] Erro ao carregar automações: ${err.message}`);
         });
-
-        // Atualizar lista de grupos conhecidos no banco
-        try {
-          log.info('[GROUPS] Buscando grupos participados...');
-          const groups = await sock.groupFetchAllParticipating();
-          const groupsList = Object.values(groups);
-          log.info(`[GROUPS] ${groupsList.length} grupos encontrados.`);
-          
-          for (const g of groupsList) {
-            await saveGroupInfo(g.id, g.subject, g.desc || '', g.participants?.length || 0);
-          }
-          log.success('[GROUPS] Lista de grupos atualizada no banco.');
-        } catch (err) {
-          log.warn(`[GROUPS] Erro ao atualizar grupos: ${err.message}`);
-        }
       }
 
       if (connection === 'close') {
@@ -3310,51 +3189,11 @@ async function start() {
       }
     });
 
-    // Handler para novos grupos ou atualizações de grupos
-    sock.ev.on('groups.upsert', async (groups) => {
-      log.info(`[GROUPS] Upsert de ${groups.length} grupos detectado`);
-      for (const g of groups) {
-        // Só salvar se tiver nome (subject)
-        if (g.subject) {
-          await saveGroupInfo(g.id, g.subject, g.desc || '', g.participants?.length || 0);
-        }
-      }
-    });
-
     sock.ev.on('messages.upsert', async (m) => {
-      // LOG GERAL PARA DEBUG
-      log.info(`[DEBUG] messages.upsert disparado. Qtd mensagens: ${m.messages?.length}`);
-
       try {
         const msg = m.messages?.[0];
         if (!msg?.message) return;
         
-        const remoteJid = msg.key.remoteJid;
-        const replyJid = normalizeReplyJid(remoteJid);
-        const unwrapped = unwrapMessageContent(msg.message);
-        const msgTypes = Object.keys(unwrapped || {}).join(', ') || 'vazio';
-        let text = String(getTextFromMessage(msg.message) || '');
-        const textTrimmed = text.trim();
-        lastInbound = { at: Date.now(), jid: remoteJid, text: `${textTrimmed.substring(0, 160)}${textTrimmed ? '' : ` [tipos: ${msgTypes}]`}`, fromMe: !!msg.key.fromMe };
-                   
-        // COMANDO DE TESTE DIRETO NO SOCKET (IGNORA API)
-        if (textTrimmed === '/ping') {
-           log.info(`[PING] Recebido de ${remoteJid}`);
-           try {
-             await safeSendMessage(sock, replyJid, { text: '🏓 Pong! O bot está ouvindo.' });
-           } catch (e) {
-             const alt = remoteJid && typeof remoteJid === 'string' && remoteJid.includes('@lid')
-               ? `${remoteJid.split('@')[0].split(':')[0]}@s.whatsapp.net`
-               : null;
-             if (alt) {
-               await safeSendMessage(sock, alt, { text: '🏓 Pong! O bot está ouvindo.' });
-             } else {
-               throw e;
-             }
-           }
-           return;
-        }
-
         // Verificar se é mensagem antiga (mais de 2 minutos) - ignorar para evitar processar mensagens antigas
         const messageTimestamp = msg.messageTimestamp ? msg.messageTimestamp * 1000 : Date.now();
         const now = Date.now();
@@ -3366,14 +3205,26 @@ async function start() {
           return; // Ignorar mensagens antigas
         }
         
+        const remoteJid = msg.key.remoteJid;
+        // Extrair texto de várias formas (mensagem normal, respondida, etc)
+        let text = msg.message.conversation || 
+                   msg.message.extendedTextMessage?.text || 
+                   msg.message.imageMessage?.caption ||
+                   msg.message.videoMessage?.caption ||
+                   '';
+        
         // Se for mensagem respondida, pegar o texto da mensagem original também
         // MAS: se o texto atual for um comando ($, /, !), manter o comando e não sobrescrever
-        const isCommand = textTrimmed.startsWith('$') || textTrimmed.startsWith('/') || textTrimmed.startsWith('!');
+        const isCommand = text.trim().startsWith('$') || text.trim().startsWith('/') || text.trim().startsWith('!');
         let quotedText = '';
         
         if (msg.message.extendedTextMessage?.contextInfo?.quotedMessage) {
           const quoted = msg.message.extendedTextMessage.contextInfo.quotedMessage;
-          quotedText = String(getTextFromMessage(quoted) || '');
+          quotedText = quoted.conversation || 
+                       quoted.extendedTextMessage?.text ||
+                       quoted.imageMessage?.caption ||
+                       quoted.videoMessage?.caption ||
+                       '';
         }
         
         // Se não for comando, usar o texto da mensagem original quando respondida (para anti-link)
@@ -3384,29 +3235,20 @@ async function start() {
           // Se for comando, manter o texto do comando atual
           log.info(`[COMMAND] Comando detectado em resposta, mantendo comando: "${text.substring(0, 50)}"`);
         }
-        const commandText = String(text || '').trim();
         
         const isFromMe = msg.key.fromMe;
         
         // DEBUG: Log de todas as mensagens recebidas
-        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${commandText.substring(0, 50)}" | fromMe=${isFromMe}`);
+        log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${text.substring(0, 50)}" | fromMe=${isFromMe}`);
         
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
         
         // Aceitar comandos com / (rastreamento), ! (financeiro) ou $ (comandos de grupo)
         // Para comandos, aceitar também mensagens próprias (para testes)
-        if (commandText.startsWith('/') || commandText.startsWith('!') || commandText.startsWith('$')) {
-          log.info(`🎯 Comando detectado: "${commandText}" de ${remoteJid.split('@')[0]}`);
-          lastCommand = { at: Date.now(), jid: remoteJid, text: commandText.substring(0, 200), result: null, error: null };
-          let result;
-          try {
-            result = await processAdminCommand(remoteJid, commandText, msg);
-            lastCommand.result = result ? (result.success === undefined ? 'ok' : result.success) : 'null';
-          } catch (e) {
-            lastCommand.error = e?.message || String(e);
-            result = { success: false, message: '❌ Erro interno ao processar comando.' };
-          }
+        if (text.startsWith('/') || text.startsWith('!') || text.startsWith('$')) {
+          log.info(`🎯 Comando detectado: "${text}" de ${remoteJid.split('@')[0]}`);
+          const result = await processAdminCommand(remoteJid, text, msg);
           // Se poll foi enviada, não enviar mensagem de texto adicional
           if (result && !result.pollSent && result.message) {
             // Verificar se precisa enviar com mentions
@@ -3631,43 +3473,14 @@ app.get('/status', (req, res) => {
   res.json({ 
     ok: !isInLoopState, 
     ready: isReady,
-    sock: {
-      exists: !!sock,
-      userId: sock?.user?.id || null,
-      name: sock?.user?.name || null
-    },
     loopState: isInLoopState,
     uptime: uptime,
     uptimeFormatted: `${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m ${uptime%60}s`,
     reconnectAttempts: reconnectAttempts,
     recentDisconnects: disconnectTimestamps.length,
     memoryMB: memUsed,
-    lastHeartbeat: lastHeartbeat ? new Date(lastHeartbeat).toISOString() : null,
-    lastInbound: {
-      secondsAgo: lastInbound.at ? Math.round((Date.now() - lastInbound.at) / 1000) : null,
-      jid: lastInbound.jid,
-      text: lastInbound.text,
-      fromMe: lastInbound.fromMe
-    },
-    lastCommand: {
-      secondsAgo: lastCommand.at ? Math.round((Date.now() - lastCommand.at) / 1000) : null,
-      jid: lastCommand.jid,
-      text: lastCommand.text,
-      result: lastCommand.result,
-      error: lastCommand.error
-    },
+    lastHeartbeat: new Date(lastHeartbeat).toISOString(),
     message: isInLoopState ? 'LOOP DETECTADO - Delete ./auth e reinicie' : 'OK'
-  });
-});
-
-app.get('/whoami', (req, res) => {
-  const userId = sock?.user?.id || null;
-  const number = userId ? String(userId).split(':')[0].split('@')[0] : null;
-  res.json({
-    ready: isReady,
-    userId,
-    number,
-    name: sock?.user?.name || null
   });
 });
 

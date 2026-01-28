@@ -2,7 +2,7 @@
 
 ## ✅ Ngrok está ATIVO!
 
-**URL do túnel:** `https://lazaro-enforceable-finley.ngrok-free.dev`
+**URL do túnel:** `https://leola-formulable-iridescently.ngrok-free.dev`
 
 ## 📝 O QUE FAZER AGORA:
 
@@ -23,7 +23,7 @@
 
 **PARA:**
 ```json
-"WHATSAPP_API_URL": "https://lazaro-enforceable-finley.ngrok-free.dev",
+"WHATSAPP_API_URL": "https://leola-formulable-iridescently.ngrok-free.dev",
 ```
 
 ### **6. Salve o arquivo**
@@ -51,7 +51,7 @@ Após atualizar, o teste deve mostrar:
 
 ## 📋 Checklist:
 
-- [ ] Ngrok rodando (URL: lazaro-enforceable-finley.ngrok-free.dev)
+- [ ] Ngrok rodando (URL: leola-formulable-iridescently.ngrok-free.dev)
 - [ ] Bot WhatsApp rodando (localhost:3000)
 - [ ] config.json na Hostinger atualizado
 - [ ] Teste executado com sucesso

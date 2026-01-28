@@ -1,0 +1,12 @@
+t=2026-01-28T16:03:45-0300 lvl=info msg="no configuration paths supplied"
+t=2026-01-28T16:03:45-0300 lvl=info msg="using configuration at default config path" path=/home/johan/snap/ngrok/340/.config/ngrok/ngrok.yml
+t=2026-01-28T16:03:45-0300 lvl=info msg="open config file" path=/home/johan/snap/ngrok/340/.config/ngrok/ngrok.yml err=nil
+t=2026-01-28T16:03:45-0300 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-01-28T16:03:45-0300 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2026-01-28T16:03:45-0300 lvl=info msg="client session established" obj=tunnels.session
+t=2026-01-28T16:03:45-0300 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-01-28T16:03:46-0300 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:3001 url=https://leola-formulable-iridescently.ngrok-free.dev
+t=2026-01-28T16:03:46-0300 lvl=info msg="update available" obj=updater
+t=2026-01-28T16:03:57-0300 lvl=info msg=start pg=/api/tunnels id=512484c27a11f335
+t=2026-01-28T16:03:57-0300 lvl=info msg=end pg=/api/tunnels id=512484c27a11f335 status=200 dur=29.617277ms
+t=2026-01-28T16:04:07-0300 lvl=info msg="join connections" obj=join id=59fc785051ee l=127.0.0.1:3001 r=[2804:c90:f808:8200:6f19:6e6a:ce0c:4a37]:56574

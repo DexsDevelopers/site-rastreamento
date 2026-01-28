@@ -69,16 +69,6 @@ try {
         }
     }
     
-    // Adicionar coluna grupos_permitidos se não existir
-    try {
-        $pdo->exec("ALTER TABLE bot_automations ADD COLUMN grupos_permitidos TEXT DEFAULT NULL COMMENT 'JSON array ou lista separada por vírgula de JIDs permitidos' AFTER grupo_id");
-        echo "✅ Coluna grupos_permitidos adicionada!\n";
-    } catch (PDOException $e) {
-        if (strpos($e->getMessage(), 'Duplicate column') === false) {
-            // Coluna já existe, tudo ok
-        }
-    }
-    
     // Tabela de logs de uso das automações
     $sql2 = "CREATE TABLE IF NOT EXISTS bot_automation_logs (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
