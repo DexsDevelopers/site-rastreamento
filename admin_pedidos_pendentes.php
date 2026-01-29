@@ -111,9 +111,6 @@ if (isset($_POST['rejeitar_pedido'])) {
     } catch (Exception $e) {
         $error_message = $e->getMessage();
     }
-    } catch (Exception $e) {
-        $error_message = $e->getMessage();
-    }
 }
 
 if (isset($_POST['cobrar_pedido'])) {
