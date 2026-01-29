@@ -3912,7 +3912,8 @@ app.post('/send', auth, async (req, res) => {
     const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
 
     if (!exists) {
-      return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
+      // return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
+      log.warn(`[SEND] Número não verificado, tentando envio forçado: ${digits} -> ${mappedJid}`);
     }
 
     await safeSendMessage(sock, mappedJid, { text });

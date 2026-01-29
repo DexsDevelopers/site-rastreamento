@@ -113,30 +113,37 @@ if (isset($_POST['rejeitar_pedido'])) {
     }
 }
 
-if (isset($_POST['cobrar_pedido'])) {
+    } catch (Exception $e) {
+        $error_message = "Erro ao cobrar cliente: " . $e->getMessage();
+    }
+}
+
+// Handler AJAX para cobrança
+if (isset($_POST['action']) && $_POST['action'] === 'cobrar_cliente') {
+    header('Content-Type: application/json');
     try {
         $pedidoId = (int) $_POST['pedido_id'];
         
-        // Buscar dados do pedido para garantir
         $pedido = fetchOne($pdo, "SELECT * FROM pedidos_pendentes WHERE id = ?", [$pedidoId]);
         if (!$pedido) throw new Exception('Pedido não encontrado.');
 
         $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
-        if (!$phoneDigits) throw new Exception('Telefone inválido para envio.');
+        if (!$phoneDigits) throw new Exception('Telefone inválido.');
 
         $msg = "Olá {$pedido['nome']}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?";
         
         $result = sendWhatsappMessage($phoneDigits, $msg);
         
         if ($result['success']) {
-            $success_message = "Mensagem de cobrança enviada com sucesso para {$pedido['nome']}!";
+            echo json_encode(['success' => true, 'message' => "Enviado para {$pedido['nome']}!"]);
         } else {
-            throw new Exception("Falha no envio: " . ($result['error'] ?? 'Erro desconhecido'));
+            throw new Exception($result['error'] ?? 'Erro no envio');
         }
 
     } catch (Exception $e) {
-        $error_message = "Erro ao cobrar cliente: " . $e->getMessage();
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
+    exit;
 }
 
 // Buscar pedidos pendentes
@@ -241,12 +248,13 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                                 if ($phoneDigits):
 
                                                 ?>
-                                                    <form method="POST" style="display:inline;">
-                                                        <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
-                                                        <button type="submit" name="cobrar_pedido" class="btn-sm" style="background:#25D366; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
-                                                            <i class="fab fa-whatsapp"></i> Cobrar
-                                                        </button>
-                                                    </form>
+                                                $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
+                                                if ($phoneDigits):
+                                                ?>
+                                                    <button type="button" onclick="cobrarCliente(<?= $pedido['id'] ?>, this)" class="btn-sm" style="background:#25D366; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition: all 0.2s;">
+                                                        <i class="fab fa-whatsapp"></i> Cobrar
+                                                    </button>
+                                                <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
                                             <?php if($pedido['email']): ?>
@@ -334,5 +342,53 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
         });
     </script>
     <script src="assets/js/codigo-auto-increment.js"></script>
+    <script>
+        function cobrarCliente(id, btn) {
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            btn.style.opacity = '0.7';
+
+            const formData = new FormData();
+            formData.append('action', 'cobrar_cliente');
+            formData.append('pedido_id', id);
+
+            fetch('admin_pedidos_pendentes.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    btn.style.background = '#16A34A';
+                    btn.innerHTML = '<i class="fas fa-check"></i> Enviado';
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        background: '#1a1a1a',
+                        color: '#fff'
+                    });
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                btn.style.opacity = '1';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro no envio',
+                    text: error.message,
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
+            });
+        }
+    </script>
 </body>
 </html>
