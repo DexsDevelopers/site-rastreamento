@@ -111,6 +111,35 @@ if (isset($_POST['rejeitar_pedido'])) {
     } catch (Exception $e) {
         $error_message = $e->getMessage();
     }
+    } catch (Exception $e) {
+        $error_message = $e->getMessage();
+    }
+}
+
+if (isset($_POST['cobrar_pedido'])) {
+    try {
+        $pedidoId = (int) $_POST['pedido_id'];
+        
+        // Buscar dados do pedido para garantir
+        $pedido = fetchOne($pdo, "SELECT * FROM pedidos_pendentes WHERE id = ?", [$pedidoId]);
+        if (!$pedido) throw new Exception('Pedido não encontrado.');
+
+        $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
+        if (!$phoneDigits) throw new Exception('Telefone inválido para envio.');
+
+        $msg = "Olá {$pedido['nome']}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?";
+        
+        $result = sendWhatsappMessage($phoneDigits, $msg);
+        
+        if ($result['success']) {
+            $success_message = "Mensagem de cobrança enviada com sucesso para {$pedido['nome']}!";
+        } else {
+            throw new Exception("Falha no envio: " . ($result['error'] ?? 'Erro desconhecido'));
+        }
+
+    } catch (Exception $e) {
+        $error_message = "Erro ao cobrar cliente: " . $e->getMessage();
+    }
 }
 
 // Buscar pedidos pendentes
@@ -213,12 +242,15 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                                 <?php 
                                                 $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
                                                 if ($phoneDigits):
-                                                    $msg = "Olá {$pedido['nome']}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?";
-                                                    $waLink = "https://wa.me/{$phoneDigits}?text=" . urlencode($msg);
+                                                $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
+                                                if ($phoneDigits):
                                                 ?>
-                                                    <a href="<?= $waLink ?>" target="_blank" style="background:#25D366; color:#fff; padding:2px 8px; border-radius:4px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
-                                                        <i class="fab fa-whatsapp"></i> Cobrar
-                                                    </a>
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
+                                                        <button type="submit" name="cobrar_pedido" class="btn-sm" style="background:#25D366; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                                                            <i class="fab fa-whatsapp"></i> Cobrar
+                                                        </button>
+                                                    </form>
                                                 <?php endif; ?>
                                             </div>
                                             <?php if($pedido['email']): ?>
