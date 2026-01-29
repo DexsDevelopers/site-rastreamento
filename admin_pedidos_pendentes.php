@@ -248,9 +248,7 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                                 if ($phoneDigits):
 
                                                 ?>
-                                                $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
-                                                if ($phoneDigits):
-                                                ?>
+
                                                     <button type="button" onclick="cobrarCliente(<?= $pedido['id'] ?>, this)" class="btn-sm" style="background:#25D366; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition: all 0.2s;">
                                                         <i class="fab fa-whatsapp"></i> Cobrar
                                                     </button>
