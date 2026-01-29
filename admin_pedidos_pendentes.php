@@ -113,10 +113,7 @@ if (isset($_POST['rejeitar_pedido'])) {
     }
 }
 
-    } catch (Exception $e) {
-        $error_message = "Erro ao cobrar cliente: " . $e->getMessage();
-    }
-}
+
 
 // Handler AJAX para cobrança
 if (isset($_POST['action']) && $_POST['action'] === 'cobrar_cliente') {
