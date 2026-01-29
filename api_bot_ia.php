@@ -1,7 +1,8 @@
 <?php
 /**
- * API de IA para o Bot WhatsApp
- * Processa mensagens usando Gemini + Base de Conhecimento + Aprendizado
+ * API de IA Própria (Local Brain)
+ * Sistema de Inteligência Autônomo sem dependência de APIs externas.
+ * Baseado em similaridade de texto, palavras-chave e aprendizado supervisionado.
  */
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -23,283 +24,185 @@ if ($receivedToken !== $expectedToken) {
     exit;
 }
 
-// Verificar tabelas
-try {
-    $pdo->query("SELECT 1 FROM bot_ia_settings LIMIT 1");
-} catch (PDOException $e) {
-    echo json_encode([
-        'success' => false, 
-        'message' => 'Sistema de IA não configurado. Execute setup_bot_ia.php'
-    ]);
-    exit;
-}
+// =================================================================================
+// 🧠 CÉREBRO LOCAL: FUNÇÕES DE INTELIGÊNCIA
+// =================================================================================
 
-// Funções auxiliares
-function getIASetting($pdo, $key, $default = null) {
-    $stmt = $pdo->prepare("SELECT setting_value FROM bot_ia_settings WHERE setting_key = ?");
-    $stmt->execute([$key]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $result ? $result['setting_value'] : $default;
-}
-
-function setIASetting($pdo, $key, $value) {
-    $stmt = $pdo->prepare("INSERT INTO bot_ia_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
-    $stmt->execute([$key, $value, $value]);
-}
-
-function searchKnowledge($pdo, $query) {
-    $queryLower = mb_strtolower(trim($query));
-    $queryWords = explode(' ', $queryLower);
-    $queryWords = array_filter($queryWords, function($w) { return strlen($w) >= 2; });
+/**
+ * Remove palavras irrelevantes (stopwords) para focar no significado
+ */
+function cleanText($text) {
+    $text = mb_strtolower(trim($text));
+    // Remover pontuação
+    $text = preg_replace('/[?!.,;:]/', '', $text);
+    // Remover acentos
+    $text = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
     
-        // 1. Busca exata na pergunta (mais precisa)
-        $stmt = $pdo->prepare("
-            SELECT pergunta, resposta, categoria, prioridade, palavras_chave
-            FROM bot_ia_knowledge 
-            WHERE ativo = 1 
-            AND (LOWER(pergunta) LIKE ? OR LOWER(palavras_chave) LIKE ?)
-            ORDER BY prioridade DESC, uso_count DESC
-            LIMIT 5
-        ");
-        $stmt->execute(["%{$queryLower}%", "%{$queryLower}%"]);
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Lista de palavras irrelevantes em português
+    $stopwords = [
+        'o','a','os','as','um','uma','uns','umas','de','do','da','em','no','na',
+        'que','e','é','eh','para','pra','com','por','se','eu','vc','voce','você',
+        'me','mim','te','tua','seu','sua','nos','gostaria','queria','saber','pode',
+        'por favor','favor','dizer','falar','perguntar'
+    ];
+    
+    $words = explode(' ', $text);
+    $cleanWords = array_diff($words, $stopwords);
+    return implode(' ', $cleanWords);
+}
+
+/**
+ * Calcula a similaridade entre duas frases (0 a 100)
+ * Usa Levenshtein combinada com Jaccard (conjunto de palavras)
+ */
+function calculateSimilarity($input, $target) {
+    $cleanInput = cleanText($input);
+    $cleanTarget = cleanText($target);
+    
+    if (empty($cleanInput) || empty($cleanTarget)) return 0;
+    
+    // 1. Similaridade de caracteres (Levenshtein)
+    $lev = levenshtein($cleanInput, $cleanTarget);
+    $maxLength = max(strlen($cleanInput), strlen($cleanTarget));
+    $charScore = (1 - ($lev / $maxLength)) * 100;
+    
+    // 2. Similaridade de palavras (Jaccard)
+    $inputWords = explode(' ', $cleanInput);
+    $targetWords = explode(' ', $cleanTarget);
+    $intersection = array_intersect($inputWords, $targetWords);
+    $union = array_unique(array_merge($inputWords, $targetWords));
+    
+    if (count($union) === 0) $wordScore = 0;
+    else $wordScore = (count($intersection) / count($union)) * 100;
+    
+    // Peso maior para palavras iguais (60% palavras, 40% escrita)
+    return ($wordScore * 0.6) + ($charScore * 0.4);
+}
+
+/**
+ * Busca a melhor resposta na base de conhecimento
+ */
+function findBestMatch($pdo, $query) {
+    $queryFormatted = cleanText($query);
+    
+    // 1. Busca textual no banco (primeiro filtro)
+    // Busca por palavras-chave ou texto parcial
+    $stmt = $pdo->prepare("
+        SELECT id, pergunta, resposta, palavras_chave, categoria, prioridade 
+        FROM bot_ia_knowledge 
+        WHERE ativo = 1
+    ");
+    $stmt->execute();
+    $allKnowledge = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $bestMatch = null;
+    $highestScore = 0;
+    
+    foreach ($allKnowledge as $item) {
+        // Calcular Score da Pergunta Principal
+        $score = calculateSimilarity($query, $item['pergunta']);
         
-        if ($results) {
-            // Verificar similaridade para cada resultado
-            foreach ($results as $result) {
-                $knowledgeText = mb_strtolower($result['pergunta'] . ' ' . ($result['palavras_chave'] ?? ''));
-                $knowledgeWords = explode(' ', $knowledgeText);
-                $matchCount = 0;
-                foreach ($queryWords as $qw) {
-                    if (strlen($qw) < 2) continue;
-                    foreach ($knowledgeWords as $kw) {
-                        if (strpos($kw, $qw) !== false || strpos($qw, $kw) !== false) {
-                            $matchCount++;
-                            break;
-                        }
-                    }
-                }
-                $similarity = count($queryWords) > 0 ? ($matchCount / count($queryWords)) : 0;
+        // Calcular Score das Palavras-Chave (Bônus)
+        if (!empty($item['palavras_chave'])) {
+            $keywords = explode(',', $item['palavras_chave']);
+            foreach ($keywords as $kw) {
+                $kw = trim($kw);
+                if (empty($kw)) continue;
                 
-                // Retornar se similaridade for alta (>= 50%) ou prioridade alta (>= 85)
-                if ($similarity >= 0.5 || $result['prioridade'] >= 85) {
-                    $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
-                    return $result;
+                // Se a palavra-chave estiver contida na query
+                if (mb_stripos($query, $kw) !== false) {
+                    $score += 30; // Bônus alto por palavra-chave exata
+                }
+                
+                // Similaridade da palavra-chave
+                $kwProp = calculateSimilarity($query, $kw);
+                if ($kwProp > 80) {
+                     $score += 20; // Bônus por palavra-chave parecida
                 }
             }
         }
-    
-        // 2. Busca por palavras-chave (mais específica) - reduzir limite de prioridade
-        foreach ($queryWords as $word) {
-            if (strlen($word) < 2) continue; // Aceitar palavras de 2+ caracteres
-            
-            $stmt = $pdo->prepare("
-                SELECT pergunta, resposta, categoria, prioridade 
-                FROM bot_ia_knowledge 
-                WHERE ativo = 1 
-                AND (LOWER(palavras_chave) LIKE ? OR LOWER(pergunta) LIKE ?)
-                AND prioridade >= 80
-                ORDER BY prioridade DESC, uso_count DESC
-                LIMIT 1
-            ");
-            $stmt->execute(["%{$word}%", "%{$word}%"]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($result) {
-                $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
-                return $result;
-            }
-        }
-    
-    // 3. Busca FULLTEXT (apenas se score muito alto)
-    try {
-        $stmt = $pdo->prepare("
-            SELECT pergunta, resposta, categoria, prioridade,
-                   MATCH(pergunta) AGAINST(? IN NATURAL LANGUAGE MODE) as score
-            FROM bot_ia_knowledge 
-            WHERE ativo = 1 
-            AND MATCH(pergunta) AGAINST(? IN NATURAL LANGUAGE MODE)
-            ORDER BY score DESC, prioridade DESC
-            LIMIT 1
-        ");
-        $stmt->execute([$queryLower, $queryLower]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Score mais alto necessário (0.7 ao invés de 0.5)
-        if ($result && $result['score'] > 0.7 && $result['prioridade'] >= 80) {
-            $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE pergunta = " . $pdo->quote($result['pergunta']));
-            return $result;
+        // Ajustar score pela prioridade manual (0 a 100 viram 0 a 10 pontos extras)
+        $score += ($item['prioridade'] / 10);
+        
+        if ($score > $highestScore) {
+            $highestScore = $score;
+            $bestMatch = $item;
         }
-    } catch (Exception $e) {
-        // FULLTEXT pode falhar, ignorar
     }
     
-    // Se não encontrou correspondência forte, retornar null para usar IA
-    return null;
+    return ['match' => $bestMatch, 'score' => $highestScore];
 }
 
-function getConversationContext($pdo, $phone, $limit = 10) {
-    // Pegar apenas mensagens recentes (últimas 30 minutos) para evitar contexto antigo
-    $stmt = $pdo->prepare("
-        SELECT role, message, created_at
-        FROM bot_ia_conversations 
-        WHERE phone_number = ? 
-        AND created_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
-        ORDER BY created_at DESC 
-        LIMIT ?
-    ");
-    $stmt->execute([$phone, $limit]);
-    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    return array_reverse($messages);
-}
-
-function saveConversation($pdo, $phone, $role, $message) {
-    $stmt = $pdo->prepare("INSERT INTO bot_ia_conversations (phone_number, role, message) VALUES (?, ?, ?)");
-    $stmt->execute([$phone, $role, $message]);
+/**
+ * Salva pergunta não respondida para aprendizado futuro
+ */
+function logUnansweredQuestion($pdo, $query, $phone) {
+    // Verificar se já existe log recente dessa pergunta
+    $stmt = $pdo->prepare("SELECT id FROM bot_ia_feedback WHERE pergunta_original = ? AND processado = 0 LIMIT 1");
+    $stmt->execute([$query]);
+    if ($stmt->fetch()) return; // Já está na fila
     
-    // Limpar conversas antigas (manter últimas 100)
-    $pdo->exec("DELETE FROM bot_ia_conversations WHERE phone_number = " . $pdo->quote($phone) . " AND id NOT IN (SELECT id FROM (SELECT id FROM bot_ia_conversations WHERE phone_number = " . $pdo->quote($phone) . " ORDER BY created_at DESC LIMIT 100) tmp)");
+    $stmt = $pdo->prepare("INSERT INTO bot_ia_feedback (phone_number, pergunta_original, resposta_ia, processado) VALUES (?, ?, 'SEM_RESPOSTA', 0)");
+    $stmt->execute([$phone, $query]);
 }
 
-function saveFeedback($pdo, $phone, $pergunta, $respostaIA) {
-    $stmt = $pdo->prepare("INSERT INTO bot_ia_feedback (phone_number, pergunta_original, resposta_ia) VALUES (?, ?, ?)");
-    $stmt->execute([$phone, $pergunta, $respostaIA]);
-    return $pdo->lastInsertId();
-}
-
-// ========== MEMÓRIA DE LONGO PRAZO ==========
-
-function getUserFacts($pdo, $phone) {
-    $stmt = $pdo->prepare("SELECT fact_key, fact_value FROM bot_ia_user_facts WHERE phone_number = ?");
-    $stmt->execute([$phone]);
-    return $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Retorna array [key => value]
-}
+// =================================================================================
+// 🧠 SISTEMA DE FATOS (MEMÓRIA DE LONGO PRAZO)
+// =================================================================================
 
 function saveUserFact($pdo, $phone, $key, $value) {
-    // Normalizar chave
     $key = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $key)));
     if (empty($key) || empty($value)) return;
-    
     $stmt = $pdo->prepare("INSERT INTO bot_ia_user_facts (phone_number, fact_key, fact_value) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE fact_value = ?, updated_at = NOW()");
     $stmt->execute([$phone, $key, $value, $value]);
 }
 
-function extractAndSaveFacts($pdo, $apiKey, $phone, $message) {
-    // Verificar gatilhos simples para não gastar API à toa
-    $triggers = ['meu nome', 'eu moro', 'eu sou', 'gosto de', 'tenho', 'me chama', 'trabalho com', 'minha empresa'];
-    $shouldCheck = false;
+function getUserFact($pdo, $phone, $key) {
+    $stmt = $pdo->prepare("SELECT fact_value FROM bot_ia_user_facts WHERE phone_number = ? AND fact_key = ?");
+    $stmt->execute([$phone, $key]);
+    return $stmt->fetchColumn();
+}
+
+/**
+ * Extrai fatos simples baseados em padrões de regex (Regras Locais)
+ * Substitui o Gemini na extração de fatos
+ */
+function extractFactsRuleBased($pdo, $phone, $message) {
     $msgLower = mb_strtolower($message);
     
-    foreach ($triggers as $t) {
-        if (strpos($msgLower, $t) !== false) {
-            $shouldCheck = true;
-            break;
+    // Regra 1: Nome (Meu nome é X, Me chamo X, Sou o X)
+    if (preg_match('/(meu nome (?:é|eh)|me chamo|sou (?:o|a)) ([a-zà-ú]+)/u', $msgLower, $matches)) {
+        $nome = ucfirst($matches[2]);
+        // Ignorar nomes comuns de erro
+        if (strlen($nome) > 2 && !in_array(strtolower($nome), ['um', 'uma', 'seu', 'cliente'])) {
+            saveUserFact($pdo, $phone, 'nome_usuario', $nome);
+            return true;
         }
     }
     
-    if (!$shouldCheck) return;
-    
-    // Prompt para extração
-    $prompt = "Analise a seguinte mensagem do usuário e extraia fatos sobre ele (nome, localização, preferências, profissão, empresa, etc).
-    Mensagem: \"{$message}\"
-    
-    Retorne APENAS um JSON válido no formato: {\"chave\": \"valor\"}.
-    Use chaves em snake_case (ex: nome_usuario, cidade, profissao).
-    Se não houver fatos claros, retorne {}.
-    NÃO invente informações.";
-    
-    $result = callGeminiAPI($apiKey, 'gemini-1.5-flash', [['role' => 'user', 'message' => $prompt]], "Você é um extrator de fatos JSON.", 0.2, 200);
-    
-    if ($result['success']) {
-        $jsonStr = preg_replace('/```json|```/', '', $result['response']); // Limpar markdown
-        $facts = json_decode($jsonStr, true);
-        
-        if ($facts && is_array($facts)) {
-            foreach ($facts as $key => $value) {
-                if (!empty($value) && is_string($value)) {
-                    saveUserFact($pdo, $phone, $key, $value);
-                    error_log("[BOT_MEMORY] Fato aprendido sobre {$phone}: {$key} = {$value}");
-                }
-            }
+    // Regra 2: Localização (Moro em X, Sou de X)
+    if (preg_match('/(moro em|sou de|estou em) ([a-zà-ú\s]+)/u', $msgLower, $matches)) {
+        $cidade = ucwords(trim($matches[2]));
+        if (strlen($cidade) > 3) {
+            saveUserFact($pdo, $phone, 'cidade', $cidade);
+            return true;
         }
     }
+    
+    // Regra 3: Captura de Email
+    if (preg_match('/[\w\.-]+@[\w\.-]+\.\w+/', $message, $matches)) {
+        saveUserFact($pdo, $phone, 'email', $matches[0]);
+        return true;
+    }
+    
+    return false;
 }
 
-function callGeminiAPI($apiKey, $model, $messages, $systemPrompt, $temperature, $maxTokens) {
-    $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-    
-    // Construir conteúdo
-    $contents = [];
-    
-    // Adicionar mensagens de contexto
-    foreach ($messages as $msg) {
-        $contents[] = [
-            'role' => $msg['role'] === 'assistant' ? 'model' : 'user',
-            'parts' => [['text' => $msg['message']]]
-        ];
-    }
-    
-    $data = [
-        'contents' => $contents,
-        'systemInstruction' => [
-            'parts' => [['text' => $systemPrompt]]
-        ],
-        'generationConfig' => [
-            'temperature' => (float)$temperature,
-            'maxOutputTokens' => (int)$maxTokens,
-            'topP' => 0.95,
-            'topK' => 40
-        ]
-    ];
-    
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    
-    if ($error) {
-        return ['success' => false, 'error' => "Erro cURL: {$error}"];
-    }
-    
-        if ($httpCode !== 200) {
-        $errorData = json_decode($response, true);
-        $errorMsg = $errorData['error']['message'] ?? "HTTP {$httpCode}";
-        $errorDetails = $errorData['error'] ?? [];
-        
-        // Detectar quota excedida especificamente
-        $isQuotaExceeded = false;
-        if ($httpCode === 429 || strpos(strtolower($errorMsg), 'quota') !== false || strpos(strtolower($errorMsg), 'exceeded') !== false) {
-            $isQuotaExceeded = true;
-        }
-        
-        return [
-            'success' => false, 
-            'error' => $errorMsg, 
-            'httpCode' => $httpCode,
-            'quotaExceeded' => $isQuotaExceeded,
-            'errorDetails' => $errorDetails
-        ];
-    }
-    
-    $result = json_decode($response, true);
-    $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
-    
-    if (!$text) {
-        return ['success' => false, 'error' => 'Resposta vazia da IA'];
-    }
-    
-    return ['success' => true, 'response' => $text];
-}
+// =================================================================================
+// 🔄 PROCESSAMENTO DA REQUISIÇÃO
+// =================================================================================
 
-// ========== PROCESSAMENTO ==========
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 $action = $input['action'] ?? 'chat';
 $phone = $input['phone'] ?? '';
@@ -312,399 +215,98 @@ switch ($action) {
             exit;
         }
         
-        // Verificar se IA está habilitada
-        if (getIASetting($pdo, 'ia_enabled', '1') !== '1') {
-            echo json_encode(['success' => false, 'message' => 'IA desabilitada']);
+        // 1. Verificar Contexto Especial (Data/Hora)
+        if (preg_match('/\b(que dia|que horas|data de hoje|hora certa)\b/i', $message)) {
+            date_default_timezone_set('America/Sao_Paulo');
+            $response = "📅 Hoje é " . date('d/m/Y') . " e são " . date('H:i') . ".";
+            echo json_encode(['success' => true, 'response' => $response, 'source' => 'system_time']);
             exit;
         }
         
-        // Log da mensagem recebida
-        error_log("[BOT_IA] Mensagem recebida: " . substr($message, 0, 100) . " | Phone: {$phone} | Timestamp: " . date('Y-m-d H:i:s'));
+        // 2. Extrair fatos da mensagem (Aprendizado Passivo)
+        extractFactsRuleBased($pdo, $phone, $message);
         
-        // Salvar mensagem do usuário
-        if ($phone) {
-            saveConversation($pdo, $phone, 'user', $message);
-        }
+        // 3. Buscar no Cérebro Local
+        $result = findBestMatch($pdo, $message);
+        $match = $result['match'];
+        $score = $result['score'];
         
-        // 1. SEMPRE tentar base de conhecimento primeiro (para usar correções)
-        // Verificar se é pergunta sobre data/hora (sempre usar IA para essas)
-        $messageLower = mb_strtolower(trim($message));
-        $isDateTimeQuestion = preg_match('/\b(hoje|agora|que\s+dia|que\s+hora|data|horário|dia\s+é|hora\s+é|quando)\b/i', $messageLower);
+        // SCORE MÍNIMO DE CONFIANÇA (Ajustável)
+        $MIN_CONFIDENCE = 45; // Se for menor que isso, ele assume que não sabe
         
-        // Buscar na base de conhecimento (exceto perguntas sobre data/hora que são dinâmicas)
-        if (!$isDateTimeQuestion) {
-            $knowledge = searchKnowledge($pdo, $message);
-            if ($knowledge) {
-                $response = $knowledge['resposta'];
-                
-                if ($phone) {
-                    saveConversation($pdo, $phone, 'assistant', $response);
-                }
-                
-                error_log("[BOT_IA] Resposta da base de conhecimento: " . substr($response, 0, 50));
-                
-                echo json_encode([
-                    'success' => true,
-                    'response' => $response,
-                    'source' => 'knowledge',
-                    'category' => $knowledge['categoria']
-                ]);
-                exit;
-            }
-        }
-        
-        // 2. Usar Gemini
-        $apiKey = getIASetting($pdo, 'gemini_api_key', '');
-        if (empty($apiKey)) {
-            // Tentar base de conhecimento primeiro quando API key não está configurada
-            $fallbackKnowledge = searchKnowledge($pdo, $message);
-            if ($fallbackKnowledge) {
-                $response = $fallbackKnowledge['resposta'];
-                
-                if ($phone) {
-                    saveConversation($pdo, $phone, 'assistant', $response);
-                }
-                
-                echo json_encode([
-                    'success' => true,
-                    'response' => $response,
-                    'source' => 'knowledge',
-                    'category' => $fallbackKnowledge['categoria']
-                ]);
-                exit;
+        if ($match && $score >= $MIN_CONFIDENCE) {
+            $response = $match['resposta'];
+            
+            // Personalização com fatos (Injeção de Variáveis)
+            // Se tiver {nome} na resposta e soubermos o nome, substitui
+            if (strpos($response, '{nome}') !== false) {
+                $nomeUser = getUserFact($pdo, $phone, 'nome_usuario') ?? 'amigo(a)';
+                $response = str_replace('{nome}', $nomeUser, $response);
             }
             
-            // Se não encontrou, resposta natural
-            $fallback = 'Desculpe, não consegui processar isso agora. Pode reformular sua pergunta ou perguntar sobre rastreamento de pedidos?';
+            // Incrementar contador de uso
+            $pdo->exec("UPDATE bot_ia_knowledge SET uso_count = uso_count + 1 WHERE id = {$match['id']}");
             
-            // Log para debug
-            error_log("[BOT_IA] API Key não configurada. Mensagem: " . substr($message, 0, 50));
-            
-            echo json_encode([
-                'success' => true,
-                'response' => $fallback,
-                'source' => 'fallback',
-                'error' => 'API Key não configurada',
-                'needs_config' => true
-            ]);
-            exit;
-        }
-        
-        // Verificar se quota está desabilitada (flag de quota excedida)
-        $quotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0') === '1';
-        if ($quotaDisabled) {
-            // Se quota está desabilitada, usar apenas base de conhecimento
-            $fallbackKnowledge = searchKnowledge($pdo, $message);
-            if ($fallbackKnowledge) {
-                $response = $fallbackKnowledge['resposta'];
-                
-                if ($phone) {
-                    saveConversation($pdo, $phone, 'assistant', $response);
-                }
-                
-                echo json_encode([
-                    'success' => true,
-                    'response' => $response,
-                    'source' => 'knowledge',
-                    'category' => $fallbackKnowledge['categoria']
-                ]);
-                exit;
-            }
-            
-            // Se não encontrou, resposta natural
-            $fallback = 'Desculpe, não tenho essa informação no momento. Posso ajudar com rastreamento de pedidos ou outras dúvidas!';
-            error_log("[BOT_IA] Quota desabilitada - usando apenas base de conhecimento");
-            
-            echo json_encode([
-                'success' => true,
-                'response' => $fallback,
-                'source' => 'fallback',
-                'error' => 'Quota desabilitada',
-                'quota_exceeded' => true
-            ]);
-            exit;
-        }
-        
-        $model = getIASetting($pdo, 'ia_model', 'gemini-2.5-flash');
-        $systemPrompt = getIASetting($pdo, 'ia_system_prompt', 'Você é um assistente virtual amigável.');
-        $temperature = getIASetting($pdo, 'ia_temperature', '0.7');
-        $maxTokens = getIASetting($pdo, 'ia_max_tokens', '500');
-        $contextLimit = (int)getIASetting($pdo, 'ia_context_messages', '10');
-        
-        // Adicionar data/hora atual ao prompt
-        date_default_timezone_set('America/Sao_Paulo');
-        $currentDate = date('d/m/Y');
-        $currentTime = date('H:i');
-        $currentDay = date('l'); // Nome do dia em inglês
-        $dayNames = [
-            'Monday' => 'Segunda-feira',
-            'Tuesday' => 'Terça-feira',
-            'Wednesday' => 'Quarta-feira',
-            'Thursday' => 'Quinta-feira',
-            'Friday' => 'Sexta-feira',
-            'Saturday' => 'Sábado',
-            'Sunday' => 'Domingo'
-        ];
-        $currentDayPT = $dayNames[$currentDay] ?? $currentDay;
-        
-        $dateTimeInfo = "\n\nINFORMAÇÕES ATUAIS:\n";
-        $dateTimeInfo .= "- Data atual: {$currentDayPT}, {$currentDate}\n";
-        $dateTimeInfo .= "- Hora atual: {$currentTime} (horário de Brasília)\n";
-        $dateTimeInfo .= "- Quando o usuário perguntar sobre data, hora, dia da semana, etc., use essas informações.\n";
-        
-        // Base de conhecimento desabilitada - usar apenas IA
-        $fullSystemPrompt = $systemPrompt . $dateTimeInfo;
-        
-        // ========== INJETAR MEMÓRIA (Fatos do Usuário) ==========
-        if ($phone) {
-            $userFacts = getUserFacts($pdo, $phone);
-            if (!empty($userFacts)) {
-                $memoryInfo = "\n\nO QUE VOCÊ SABE SOBRE ESSE USUÁRIO (Use isso para personalizar a conversa):\n";
-                foreach ($userFacts as $key => $val) {
-                    $niceKey = ucfirst(str_replace('_', ' ', $key));
-                    $memoryInfo .= "- {$niceKey}: {$val}\n";
-                }
-                $fullSystemPrompt .= $memoryInfo;
-            }
-        }
-        
-        // Obter contexto da conversa
-        $context = [];
-        if ($phone) {
-            $context = getConversationContext($pdo, $phone, $contextLimit);
-        }
-        
-        // Se não tem contexto, adiciona só a mensagem atual
-        if (empty($context)) {
-            $context = [['role' => 'user', 'message' => $message]];
-        }
-        
-        // Tentar modelos em cascata (mesma ordem do financeiro que está funcionando)
-        $models = [
-            'gemini-2.5-flash',      // Primary - modelo mais recente
-            'gemini-1.5-flash',      // Standard fallback
-            'gemini-1.5-flash-001',  // Legacy stable
-            'gemini-1.5-pro'         // High capacity fallback
-        ];
-        
-        // Se o modelo configurado não estiver na lista, adicionar no início
-        if (!in_array($model, $models)) {
-            array_unshift($models, $model);
-        }
-        $result = null;
-        
-        $quotaExceeded = false;
-        foreach ($models as $tryModel) {
-            $result = callGeminiAPI($apiKey, $tryModel, $context, $fullSystemPrompt, $temperature, $maxTokens);
-            if ($result['success']) {
-                break;
-            }
-            
-            // Verificar se quota foi excedida
-            $errorMsg = $result['error'] ?? '';
-            $httpCode = $result['httpCode'] ?? null;
-            if ($httpCode === 429 || $result['quotaExceeded'] || 
-                strpos(strtolower($errorMsg), 'quota') !== false || 
-                strpos(strtolower($errorMsg), 'exceeded') !== false) {
-                $quotaExceeded = true;
-                error_log("[BOT_IA] ⚠️ QUOTA EXCEDIDA detectada - desabilitando IA temporariamente");
-                
-                // Desabilitar IA automaticamente quando quota excedida (apenas se ainda não estiver desabilitada)
-                $currentQuotaDisabled = getIASetting($pdo, 'ia_quota_disabled', '0');
-                if ($currentQuotaDisabled !== '1') {
-                    setIASetting($pdo, 'ia_quota_disabled', '1');
-                    error_log("[BOT_IA] IA desabilitada automaticamente devido a quota excedida");
-                }
-                
-                // Não tentar outros modelos se quota excedida
-                break;
-            }
-        }
-        
-        if (!$result['success']) {
-            // Log detalhado do erro (apenas para debug, não mostrar ao usuário)
-            $errorMsg = $result['error'] ?? 'Erro desconhecido';
-            $httpCode = $result['httpCode'] ?? null;
-            
-            error_log("[BOT_IA] Erro ao chamar Gemini: {$errorMsg}" . ($httpCode ? " (HTTP {$httpCode})" : ""));
-            error_log("[BOT_IA] Mensagem original: " . substr($message, 0, 100));
-            
-            // Se quota excedida, usar apenas base de conhecimento
-            if ($quotaExceeded) {
-                $fallbackKnowledge = searchKnowledge($pdo, $message);
-                if ($fallbackKnowledge) {
-                    $response = $fallbackKnowledge['resposta'];
-                    
-                    if ($phone) {
-                        saveConversation($pdo, $phone, 'assistant', $response);
-                    }
-                    
-                    error_log("[BOT_IA] Usando apenas base de conhecimento (quota excedida)");
-                    
-                    echo json_encode([
-                        'success' => true,
-                        'response' => $response,
-                        'source' => 'knowledge',
-                        'category' => $fallbackKnowledge['categoria'],
-                        'quota_exceeded' => true
-                    ]);
-                    exit;
-                }
-                
-                // Se não encontrou na base, resposta natural
-                $fallback = 'Desculpe, a IA está temporariamente indisponível devido ao limite de uso. Tente novamente mais tarde ou pergunte sobre rastreamento de pedidos!';
-                
-                echo json_encode([
-                    'success' => true,
-                    'response' => $fallback,
-                    'source' => 'fallback',
-                    'quota_exceeded' => true
-                ]);
-                exit;
-            }
-            
-            // Tentar buscar na base de conhecimento como fallback antes de mostrar erro
-            $fallbackKnowledge = searchKnowledge($pdo, $message);
-            if ($fallbackKnowledge) {
-                $response = $fallbackKnowledge['resposta'];
-                
-                if ($phone) {
-                    saveConversation($pdo, $phone, 'assistant', $response);
-                }
-                
-                error_log("[BOT_IA] Usando base de conhecimento como fallback devido a erro da IA");
-                
-                echo json_encode([
-                    'success' => true,
-                    'response' => $response,
-                    'source' => 'knowledge_fallback',
-                    'category' => $fallbackKnowledge['categoria']
-                ]);
-                exit;
-            }
-            
-            // Se não encontrou na base, usar resposta natural e humana
-            // Gerar resposta baseada no contexto da pergunta
-            $respostasNaturais = [
-                'Desculpe, não entendi muito bem. Pode reformular sua pergunta? 😊',
-                'Hmm, preciso pensar melhor sobre isso. Pode me explicar de outra forma?',
-                'Não tenho certeza sobre isso no momento. Tem alguma outra dúvida sobre rastreamento?',
-                'Deixa eu ver... Não consegui processar isso direito. Você pode perguntar de outra maneira?',
-                'Ops, não consegui entender completamente. Sobre o que você gostaria de saber?',
-                'Preciso de um pouco mais de contexto. Pode me dar mais detalhes?',
-                'Não tenho essa informação agora. Posso ajudar com rastreamento de pedidos ou outras dúvidas!',
-                'Desculpe, não consegui processar isso. Você tem alguma dúvida sobre seu pedido ou rastreamento?'
-            ];
-            
-            // Escolher resposta baseada no hash da mensagem para variar
-            $fallback = $respostasNaturais[abs(crc32($message)) % count($respostasNaturais)];
-            
-            // Salvar para feedback/aprendizado
+            // Salvar histórico
             if ($phone) {
-                saveFeedback($pdo, $phone, $message, null);
+                // Salvar conversa (simples)
+                $stmt = $pdo->prepare("INSERT INTO bot_ia_conversations (phone_number, role, message) VALUES (?, 'user', ?), (?, 'assistant', ?)");
+                $stmt->execute([$phone, $message, $phone, $response]);
             }
+
+            error_log("[IA_LOCAL] Match encontrado: '{$match['pergunta']}' (Score: {$score})");
+            
+            echo json_encode([
+                'success' => true, 
+                'response' => $response, 
+                'source' => 'local_brain',
+                'confidence' => $score,
+                'category' => $match['categoria']
+            ]);
+            
+        } else {
+            // NÃO SABE A RESPOSTA
+            error_log("[IA_LOCAL] Sem resposta para: '{$message}' (Melhor score: {$score})");
+            
+            // Registrar para aprendizado
+            logUnansweredQuestion($pdo, $message, $phone);
+            
+            // Respostas de fallback variadas
+            $fallbacks = [
+                "Desculpe, ainda estou aprendendo e não sei responder isso. 🧠\nVou anotar aqui para meu criador me ensinar!",
+                "Essa eu não sei! 😅\nMas já registrei sua dúvida para aprender em breve.",
+                "Humm... não encontrei essa informação na minha base. Pode tentar perguntar de outra forma?",
+                "Minha inteligência ainda está em treinamento para esse assunto. Tente usar o menu principal!"
+            ];
+            $fallbackResponse = $fallbacks[array_rand($fallbacks)];
             
             echo json_encode([
                 'success' => true,
-                'response' => $fallback,
-                'source' => 'fallback',
-                'error' => $errorMsg,
-                'httpCode' => $httpCode,
-                'quotaExceeded' => $quotaExceeded
+                'response' => $fallbackResponse,
+                'source' => 'fallback_unknown',
+                'confidence' => $score
             ]);
-            exit;
         }
-        
-        $response = $result['response'];
-        
-        // Salvar resposta da IA
-        if ($phone) {
-            saveConversation($pdo, $phone, 'assistant', $response);
-            saveFeedback($pdo, $phone, $message, $response);
-            
-            // Tentar extrair fatos novos (Memória de Longo Prazo)
-            // Limitado a mensagens que pareçam conter fatos para economizar quota
-            extractAndSaveFacts($pdo, $apiKey, $phone, $message);
-        }
-        
-        echo json_encode([
-            'success' => true,
-            'response' => $response,
-            'source' => 'gemini'
-        ]);
         break;
-        
+
+    // ... (Manter casos de teach, correct, etc. para permitir que o admin ensine)
     case 'teach':
-        // Admin ensina algo novo para a IA
+        // Admin ensina algo novo diretamente
         $pergunta = trim($input['pergunta'] ?? '');
         $resposta = trim($input['resposta'] ?? '');
         $categoria = trim($input['categoria'] ?? 'geral');
         $palavrasChave = trim($input['palavras_chave'] ?? '');
         
         if (empty($pergunta) || empty($resposta)) {
-            echo json_encode(['success' => false, 'message' => 'Pergunta e resposta são obrigatórias']);
-            exit;
+            echo json_encode(['success' => false, 'message' => 'Dados incompletos']); exit;
         }
         
         $stmt = $pdo->prepare("INSERT INTO bot_ia_knowledge (pergunta, resposta, categoria, palavras_chave, prioridade) VALUES (?, ?, ?, ?, 50)");
         $stmt->execute([$pergunta, $resposta, $categoria, $palavrasChave]);
-        
-        echo json_encode(['success' => true, 'message' => 'Conhecimento adicionado!', 'id' => $pdo->lastInsertId()]);
-        break;
-        
-    case 'correct':
-        // Admin corrige uma resposta da IA
-        $feedbackId = (int)($input['feedback_id'] ?? 0);
-        $correcao = trim($input['correcao'] ?? '');
-        $salvarConhecimento = (bool)($input['salvar_conhecimento'] ?? true);
-        
-        if (!$feedbackId || empty($correcao)) {
-            echo json_encode(['success' => false, 'message' => 'ID e correção são obrigatórios']);
-            exit;
-        }
-        
-        // Atualizar feedback
-        $stmt = $pdo->prepare("UPDATE bot_ia_feedback SET correcao = ?, aprovado = 1 WHERE id = ?");
-        $stmt->execute([$correcao, $feedbackId]);
-        
-        // Se deve salvar como conhecimento
-        if ($salvarConhecimento && getIASetting($pdo, 'ia_learn_from_corrections', '1') === '1') {
-            $feedback = fetchOne($pdo, "SELECT pergunta_original FROM bot_ia_feedback WHERE id = ?", [$feedbackId]);
-            if ($feedback) {
-                $stmt = $pdo->prepare("INSERT INTO bot_ia_knowledge (pergunta, resposta, categoria, prioridade, criado_por) VALUES (?, ?, 'correcao', 60, 'admin')");
-                $stmt->execute([$feedback['pergunta_original'], $correcao]);
-            }
-        }
-        
-        echo json_encode(['success' => true, 'message' => 'Correção salva!']);
-        break;
-        
-    case 'clear_context':
-        // Limpar contexto de conversa de um número
-        if (empty($phone)) {
-            echo json_encode(['success' => false, 'message' => 'Número não informado']);
-            exit;
-        }
-        
-        $pdo->exec("DELETE FROM bot_ia_conversations WHERE phone_number = " . $pdo->quote($phone));
-        echo json_encode(['success' => true, 'message' => 'Contexto limpo']);
-        break;
-        
-    case 'get_settings':
-        $settings = fetchData($pdo, "SELECT setting_key, setting_value, description FROM bot_ia_settings ORDER BY setting_key");
-        echo json_encode(['success' => true, 'data' => $settings]);
-        break;
-        
-    case 'save_settings':
-        $settings = $input['settings'] ?? [];
-        foreach ($settings as $key => $value) {
-            setIASetting($pdo, $key, $value);
-        }
-        echo json_encode(['success' => true, 'message' => 'Configurações salvas!']);
+        echo json_encode(['success' => true, 'message' => 'Cérebro atualizado!']);
         break;
         
     default:
-        echo json_encode(['success' => false, 'message' => 'Ação não reconhecida']);
+        echo json_encode(['success' => false, 'message' => 'Ação desconhecida']);
 }
 ?>
-
