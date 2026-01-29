@@ -1179,7 +1179,10 @@ foreach ($settings as $s) {
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm text-zinc-400 mb-2">Grupos Específicos (opcional)</label>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm text-zinc-400">Grupos Específicos (opcional)</label>
+                            <a href="#" onclick="purgeGroups(); return false;" class="text-xs text-red-500 hover:text-red-400" title="Limpar lista antiga">Limpar cache</a>
+                        </div>
                         <div class="text-xs text-zinc-500 mb-1">Segure Ctrl (ou Cmd) para selecionar vários</div>
                         <select name="grupo_id[]" id="autoGrupoId" class="input-field w-full" multiple size="4" onchange="updateGrupoNome()">
                             <option value="">Todos os chats</option>
@@ -1398,6 +1401,10 @@ foreach ($settings as $s) {
                 document.getElementById('autoDelay').value = '0';
                 document.getElementById('autoCooldown').value = '0';
                 document.getElementById('autoPrioridade').value = '0';
+                
+                // Clear group selection
+                const grupoSelect = document.getElementById('autoGrupoId');
+                Array.from(grupoSelect.options).forEach(opt => opt.selected = false);
             }
             
             modal.classList.add('active');
@@ -1642,6 +1649,26 @@ foreach ($settings as $s) {
             document.getElementById('setting_log_automations').checked = settings.log_automations === '1';
             document.getElementById('setting_welcome_message').value = settings.welcome_message || '';
             document.getElementById('setting_max_automations_per_minute').value = settings.max_automations_per_minute || 10;
+        }
+
+        async function purgeGroups() {
+            if (!confirm('Tem certeza? Isso apagará a lista de grupos do banco. O bot precisará ser reiniciado para sincronizar novamente.')) return;
+            
+            try {
+                // Usando o script separado que criamos
+                const res = await fetch('limpar_grupos.php');
+                const text = await res.text();
+                if (text.includes('Concluído')) {
+                    showToast('Grupos limpos! Reinicie o bot agora.', 'success');
+                    // Recarregar lista (vai ficar vazia)
+                    loadGrupos();
+                } else {
+                    showToast('Erro ao limpar grupos. Verifique console.', 'error');
+                    console.log(text);
+                }
+            } catch (err) {
+                showToast('Erro ao limpar: ' + err.message, 'error');
+            }
         }
         
         async function saveSetting(chave, valor) {
