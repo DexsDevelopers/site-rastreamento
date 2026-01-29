@@ -159,6 +159,99 @@ function registerCommandUse(jid, command) {
   }
 }
 
+// ===== MODO AQUECIMENTO (WARMING) =====
+const WARMING_PHRASES = [
+  "Olá! Tudo bem?",
+  "Oi! Já te respondo em um instante.",
+  "Bom dia! Como posso ajudar?",
+  "Tudo certo aqui, e com você?",
+  "Aguarde um momento, por favor.",
+  "Estou verificando aqui...",
+  "👍",
+  "Oi oi",
+  "Pode falar",
+  "Só um minuto",
+  "Estou meio ocupado agora, mas já vejo",
+  "Recebi sua mensagem!",
+  "😄",
+  "Qualquer dúvida é só chamar",
+  "Opa, tudo bem?"
+];
+
+// Status aleatórios para parecer ativo
+const WARMING_STATUSES = [
+  "Trabalhando muito! 🚀",
+  "Disponível para atendimento ✅",
+  "Foco total hoje 💪",
+  "Atendendo clientes 📞",
+  "Ótimo dia a todos! ☀️",
+  "Sempre evoluindo 📈",
+  "Pausa para o café ☕",
+  "Online e operante 🤖",
+  "Resolvendo pendências 📝",
+  "Tudo flui 🌊"
+];
+
+let warmingStatusTimer = null;
+
+// Loop para postar status automaticamente
+function startWarmingStatusLoop() {
+  if (warmingStatusTimer) clearInterval(warmingStatusTimer);
+
+  // Intervalo aleatório entre 2 e 5 horas
+  const interval = (Math.floor(Math.random() * (5 - 2 + 1)) + 2) * 60 * 60 * 1000;
+
+  warmingStatusTimer = setInterval(async () => {
+    if (!automationsSettings.warming_mode || !sock || !isReady) return;
+
+    try {
+      const status = WARMING_STATUSES[Math.floor(Math.random() * WARMING_STATUSES.length)];
+      log.info(`[WARMING-STATUS] Postando status: "${status}"`);
+
+      await sock.sendMessage('status@broadcast', { text: status, backgroundColor: '#3b82f6', font: 2 });
+    } catch (e) {
+      log.error(`[WARMING-STATUS] Erro ao postar: ${e.message}`);
+    }
+  }, interval);
+
+  log.info(`[WARMING] Loop de status iniciado (Intervalo: ~${Math.round(interval / 1000 / 60)}min)`);
+}
+
+// Processar mensagem de aquecimento (resposta natural)
+async function processWarming(remoteJid, text) {
+  // 30% de chance de responder para não floodar
+  if (Math.random() > 0.3) {
+    log.info(`[WARMING] Ignorando mensagem para parecer natural (Chance 30%)`);
+    return;
+  }
+
+  const phrase = WARMING_PHRASES[Math.floor(Math.random() * WARMING_PHRASES.length)];
+
+  // Delay aleatório entre 5 e 20 segundos
+  const delay = Math.floor(Math.random() * (20000 - 5000 + 1)) + 5000;
+
+  log.info(`[WARMING] Agendando resposta para ${remoteJid.split('@')[0]} em ${delay / 1000}s: "${phrase}"`);
+
+  setTimeout(async () => {
+    if (!isReady || !sock) return;
+
+    try {
+      // Simular "Digitando..."
+      await sock.sendPresenceUpdate('composing', remoteJid);
+
+      // Esperar mais 3-6 segundos digitando
+      setTimeout(async () => {
+        await sock.sendPresenceUpdate('paused', remoteJid);
+        await safeSendMessage(sock, remoteJid, { text: phrase });
+        log.success(`[WARMING] Resposta enviada para ${remoteJid.split('@')[0]}`);
+      }, Math.floor(Math.random() * 3000) + 3000);
+
+    } catch (e) {
+      log.error(`[WARMING] Erro ao responder: ${e.message}`);
+    }
+  }, delay);
+}
+
 // Função para verificar e atualizar rate limits
 function checkRateLimit(jid) {
   if (!SAFETY_ENABLED) return { allowed: true };
@@ -3296,6 +3389,9 @@ async function start() {
           log.warn(`[GROUP SETTINGS] Erro ao carregar: ${err.message}`);
         });
 
+        // Iniciar loop de status (aquecimento)
+        startWarmingStatusLoop();
+
         loadAutomations().then(autos => {
           log.success(`[AUTOMATIONS] ${autos.length} automações prontas!`);
         }).catch(err => {
@@ -3590,6 +3686,20 @@ async function start() {
           // ===== PROCESSAR IA (Chat Inteligente) =====
           // Se nenhuma automação respondeu, tentar IA (principalmente para chats privados)
           const isPrivateChat = !isGroupJid(remoteJid);
+
+          // ===== MODO AQUECIMENTO (RESPOSTA PASSIVA) =====
+          if (!automationProcessed && automationsSettings.warming_mode && isPrivateChat) {
+            const lowerText = text.toLowerCase().trim();
+            // Não responder comandos
+            if (!lowerText.startsWith('/') && !lowerText.startsWith('$') && !lowerText.startsWith('!') && text.length >= 2) {
+              processWarming(remoteJid, text);
+              // Não damos return aqui para permitir que IA ou AutoReply também funcionem se necessário, 
+              // mas idealmente o warming substitui o behavior padrão. 
+              // Vamos dar return para que o warming seja o comportamento exclusivo quando ativado.
+              return;
+            }
+          }
+
           if (IA_ENABLED && (isPrivateChat || !IA_ONLY_PRIVATE)) {
             // Não processar comandos especiais ou mensagens muito curtas
             const lowerText = text.toLowerCase().trim();

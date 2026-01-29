@@ -128,6 +128,7 @@ try {
         ['log_automations', '1', 'boolean', 'Registrar logs das automações'],
         ['notify_admin_errors', '1', 'boolean', 'Notificar admin em caso de erros'],
         ['auto_join_groups', '0', 'boolean', 'Entrar automaticamente em grupos via link'],
+        ['warming_mode', '0', 'boolean', 'Modo Aquecimento (Simula humano)'],
     ];
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO bot_settings (chave, valor, tipo, descricao) VALUES (?, ?, ?, ?)");

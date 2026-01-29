@@ -1051,6 +1051,18 @@ foreach ($settings as $s) {
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
+
+                    <!-- Warming Mode -->
+                    <div class="flex items-center justify-between mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                        <div>
+                            <h4 class="font-medium text-orange-400">🔥 Modo Aquecimento</h4>
+                            <p class="text-sm text-zinc-400">Simula comportamento humano (digita, varia tempo) para evitar banimento.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting_warming_mode" onchange="saveSetting('warming_mode', this.checked ? '1' : '0')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                     
                     <hr class="border-zinc-800">
                     
@@ -1660,6 +1672,7 @@ foreach ($settings as $s) {
             document.getElementById('setting_auto_reply_enabled').checked = settings.auto_reply_enabled === '1';
             document.getElementById('setting_log_automations').checked = settings.log_automations === '1';
             document.getElementById('setting_auto_join_groups').checked = settings.auto_join_groups === '1';
+            document.getElementById('setting_warming_mode').checked = settings.warming_mode === '1';
             document.getElementById('setting_welcome_message').value = settings.welcome_message || '';
             document.getElementById('setting_max_automations_per_minute').value = settings.max_automations_per_minute || 10;
         }
