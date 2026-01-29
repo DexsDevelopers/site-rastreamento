@@ -3450,8 +3450,45 @@ async function start() {
           return;
         }
 
-        // ===== VERIFICAR ANTI-LINK =====
+        // ===== AUTO ENTRAR EM GRUPOS (PRIVATE CHAT ONLY) =====
         const isGroup = isGroupJid(remoteJid);
+
+        if (!isGroup && automationsSettings.auto_join_groups && text) {
+          const inviteMatch = text.match(/chat\.whatsapp\.com\/([a-zA-Z0-9]{20,})/);
+          if (inviteMatch) {
+            const inviteCode = inviteMatch[1];
+            log.info(`[AUTO-JOIN] Link de grupo detectado: ${inviteCode}`);
+
+            try {
+              // Validar convite
+              const info = await sock.groupGetInviteInfo(inviteCode);
+              log.info(`[AUTO-JOIN] Convite válido para grupo: ${info.subject}`);
+
+              // Verificar se já está no grupo (participants)
+              const alreadyIn = info.participants?.some(p => p.id?.includes(sock.user.id.split(':')[0]));
+
+              if (alreadyIn) {
+                await safeSendMessage(sock, remoteJid, { text: `✅ Já estou no grupo *${info.subject}*!` });
+              } else {
+                // Entrar no grupo
+                await sock.groupAcceptInvite(inviteCode);
+                log.success(`[AUTO-JOIN] Entrou no grupo: ${info.subject}`);
+                await safeSendMessage(sock, remoteJid, { text: `✅ Entrei no grupo *${info.subject}* com sucesso!` });
+
+                // Sincronizar grupos após entrar
+                setTimeout(() => syncGroups(sock), 5000);
+              }
+            } catch (joinErr) {
+              log.error(`[AUTO-JOIN] Erro ao entrar: ${joinErr.message}`);
+              let errorMsg = '❌ Erro ao entrar no grupo.';
+              if (joinErr.message.includes('401')) errorMsg = '❌ O link foi redefinido ou expirou.';
+              if (joinErr.message.includes('409')) errorMsg = '✅ Eu já estou neste grupo.';
+
+              await safeSendMessage(sock, remoteJid, { text: errorMsg });
+            }
+          }
+        }
+
         if (isGroup && text) {
           const antilinkConfig = antilinkGroups.get(remoteJid);
 

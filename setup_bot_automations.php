@@ -127,6 +127,7 @@ try {
         ['max_automations_per_minute', '10', 'number', 'Limite de automações por minuto por usuário'],
         ['log_automations', '1', 'boolean', 'Registrar logs das automações'],
         ['notify_admin_errors', '1', 'boolean', 'Notificar admin em caso de erros'],
+        ['auto_join_groups', '0', 'boolean', 'Entrar automaticamente em grupos via link'],
     ];
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO bot_settings (chave, valor, tipo, descricao) VALUES (?, ?, ?, ?)");

@@ -1039,6 +1039,18 @@ foreach ($settings as $s) {
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
+
+                    <!-- Auto Join Groups -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium">Entrar Automaticamente em Grupos</h4>
+                            <p class="text-sm text-zinc-500">Entrar em grupos quando receber link no privado (após validação)</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting_auto_join_groups" onchange="saveSetting('auto_join_groups', this.checked ? '1' : '0')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                     
                     <hr class="border-zinc-800">
                     
@@ -1647,6 +1659,7 @@ foreach ($settings as $s) {
             document.getElementById('setting_automations_enabled').checked = settings.automations_enabled === '1';
             document.getElementById('setting_auto_reply_enabled').checked = settings.auto_reply_enabled === '1';
             document.getElementById('setting_log_automations').checked = settings.log_automations === '1';
+            document.getElementById('setting_auto_join_groups').checked = settings.auto_join_groups === '1';
             document.getElementById('setting_welcome_message').value = settings.welcome_message || '';
             document.getElementById('setting_max_automations_per_minute').value = settings.max_automations_per_minute || 10;
         }
