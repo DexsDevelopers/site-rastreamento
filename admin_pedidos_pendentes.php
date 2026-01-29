@@ -250,7 +250,7 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                                         <i class="fab fa-whatsapp"></i> Cobrar
                                                     </button>
                                                 <?php endif; ?>
-                                                <?php endif; ?>
+
                                             </div>
                                             <?php if($pedido['email']): ?>
                                                 <div><i class="fas fa-envelope fa-fw"></i> <?= htmlspecialchars($pedido['email']) ?></div>
