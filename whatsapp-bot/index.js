@@ -3855,20 +3855,49 @@ app.get('/health', (req, res) => {
 // Resolve JID
 async function resolveJidFromPhone(digits) {
   const pnJid = `${digits}@s.whatsapp.net`;
-  try {
-    const res = await sock.onWhatsApp(pnJid);
-    if (Array.isArray(res) && res.length > 0) {
-      const item = res[0];
-      const mapped = item?.jid || pnJid;
-      const exists = !!item?.exists || !!item?.isBusiness || !!item?.isEnterprise;
-      return { exists, pnJid, mappedJid: mapped };
+
+  const checkOne = async (jid) => {
+    try {
+      const res = await sock.onWhatsApp(jid);
+      if (Array.isArray(res) && res.length > 0) {
+        const item = res[0];
+        const mapped = item?.jid || jid;
+        const exists = !!item?.exists || !!item?.isBusiness || !!item?.isEnterprise;
+        return { exists, mappedJid: mapped, error: null };
+      }
+      return { exists: false, mappedJid: jid, error: null };
+    } catch (e) {
+      return { exists: false, mappedJid: jid, error: e?.message || String(e) };
     }
-    const exists = !!res?.exists;
-    const mapped = res?.jid || pnJid;
-    return { exists, pnJid, mappedJid: mapped };
-  } catch (e) {
-    return { exists: false, pnJid, mappedJid: pnJid, error: e?.message || String(e) };
+  };
+
+  // 1. Tentar original
+  let result = await checkOne(pnJid);
+  if (result.exists) return { exists: true, pnJid, mappedJid: result.mappedJid };
+
+  // 2. Se falhar e for BR, tentar variação do 9º dígito
+  if (digits.startsWith('55')) {
+    let altDigits = null;
+    if (digits.length === 13 && digits[4] === '9') {
+      // Remover 9 (55 11 9 8888 8888 -> 55 11 8888 8888)
+      altDigits = digits.substring(0, 4) + digits.substring(5);
+    } else if (digits.length === 12) {
+      // Adicionar 9 (55 11 8888 8888 -> 55 11 9 8888 8888)
+      altDigits = digits.substring(0, 4) + '9' + digits.substring(4);
+    }
+
+    if (altDigits) {
+      console.log(`[RESOLVE] Tentando variação BR: ${altDigits} (original: ${digits})`);
+      const altJid = `${altDigits}@s.whatsapp.net`;
+      const resultAlt = await checkOne(altJid);
+      if (resultAlt.exists) {
+        console.log(`[RESOLVE] Variação encontrada: ${altDigits}`);
+        return { exists: true, pnJid: altJid, mappedJid: resultAlt.mappedJid };
+      }
+    }
   }
+
+  return { exists: false, pnJid, mappedJid: pnJid, error: result.error || 'not_found' };
 }
 
 // Enviar mensagem
