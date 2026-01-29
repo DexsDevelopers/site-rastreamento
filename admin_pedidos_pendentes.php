@@ -239,8 +239,7 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                                 <?php 
                                                 $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
                                                 if ($phoneDigits):
-                                                $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
-                                                if ($phoneDigits):
+
                                                 ?>
                                                     <form method="POST" style="display:inline;">
                                                         <input type="hidden" name="pedido_id" value="<?= $pedido['id'] ?>">
