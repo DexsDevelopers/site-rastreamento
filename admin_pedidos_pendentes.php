@@ -279,7 +279,7 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                             </div>
                                         </div>
                                         <div style="display:flex; gap:0.5rem;">
-                                            <button type="submit" name="rejeitar_pedido" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja rejeitar?')">
+                                            <button type="submit" name="rejeitar_pedido" class="btn btn-danger" formnovalidate onclick="return confirm('Tem certeza que deseja rejeitar?')">
                                                 <i class="fas fa-times"></i> Rejeitar
                                             </button>
                                             <button type="submit" name="aprovar_pedido" class="btn btn-success">

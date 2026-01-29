@@ -2874,6 +2874,9 @@ async function start() {
     silentLogger.error = () => { };
     silentLogger.fatal = () => { };
 
+    // Cache para retry de mensagens (Ajuda no erro "Aguardando mensagem")
+    const msgRetryCounterCache = new Map();
+
     sock = makeWASocket({
       auth: state,
       logger: silentLogger,
@@ -2887,6 +2890,7 @@ async function start() {
       markOnlineOnConnect: true,
       syncFullHistory: false,
       printQRInTerminal: false, // Desativa QR duplicado
+      msgRetryCounterCache, // Adicionado para lidar com retries
       getMessage: async (key) => {
         if (store && ENABLE_STORE) {
           const msg = await store.loadMessage(key.remoteJid, key.id);
