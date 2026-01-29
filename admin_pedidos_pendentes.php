@@ -208,7 +208,19 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                     <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px;">
                                         <h4 style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.5rem; text-transform:uppercase;">Contato</h4>
                                         <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                                            <div><i class="fas fa-phone fa-fw"></i> <?= htmlspecialchars($pedido['telefone']) ?></div>
+                                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                                <i class="fas fa-phone fa-fw"></i> <?= htmlspecialchars($pedido['telefone']) ?>
+                                                <?php 
+                                                $phoneDigits = normalizePhoneToDigits($pedido['telefone']);
+                                                if ($phoneDigits):
+                                                    $msg = "Olá {$pedido['nome']}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?";
+                                                    $waLink = "https://wa.me/{$phoneDigits}?text=" . urlencode($msg);
+                                                ?>
+                                                    <a href="<?= $waLink ?>" target="_blank" style="background:#25D366; color:#fff; padding:2px 8px; border-radius:4px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                                        <i class="fab fa-whatsapp"></i> Cobrar
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
                                             <?php if($pedido['email']): ?>
                                                 <div><i class="fas fa-envelope fa-fw"></i> <?= htmlspecialchars($pedido['email']) ?></div>
                                             <?php endif; ?>
