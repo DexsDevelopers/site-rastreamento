@@ -908,8 +908,9 @@ async function processIAChat(remoteJid, text, senderNumber) {
 
   const isGroup = isGroupJid(remoteJid);
 
-  // Se configurado para só privado e for grupo, ignorar
-  if (IA_ONLY_PRIVATE && isGroup) {
+  // FORÇAR IA APENAS NO PRIVADO (Solicitado pelo usuário)
+  // Ignorar qualquer interação de IA em grupos
+  if (isGroup) {
     return null;
   }
 
@@ -3700,7 +3701,8 @@ async function start() {
             }
           }
 
-          if (IA_ENABLED && (isPrivateChat || !IA_ONLY_PRIVATE)) {
+          // GARANTIDO: IA apenas no privado
+          if (IA_ENABLED && isPrivateChat) {
             // Não processar comandos especiais ou mensagens muito curtas
             const lowerText = text.toLowerCase().trim();
             if (!lowerText.startsWith('/') && !lowerText.startsWith('$') && !lowerText.startsWith('!') && text.length >= 2) {

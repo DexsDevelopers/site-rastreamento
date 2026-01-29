@@ -63,6 +63,22 @@ try {
     
     $pdo->exec($sql3);
     echo "<p>✅ Tabela <code>bot_ia_feedback</code> criada!</p>";
+
+    // Tabela de fatos sobre o usuário (Memória de Longo Prazo)
+    $sql_facts = "CREATE TABLE IF NOT EXISTS bot_ia_user_facts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        phone_number VARCHAR(50) NOT NULL,
+        fact_key VARCHAR(100) NOT NULL,
+        fact_value TEXT NOT NULL,
+        confidence INT DEFAULT 100,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_fact (phone_number, fact_key),
+        INDEX idx_phone (phone_number)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    
+    $pdo->exec($sql_facts);
+    echo "<p>✅ Tabela <code>bot_ia_user_facts</code> criada!</p>";
     
     // Tabela de configurações da IA
     $sql4 = "CREATE TABLE IF NOT EXISTS bot_ia_settings (

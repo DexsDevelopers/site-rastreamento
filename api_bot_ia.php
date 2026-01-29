@@ -167,6 +167,64 @@ function saveFeedback($pdo, $phone, $pergunta, $respostaIA) {
     return $pdo->lastInsertId();
 }
 
+// ========== MEMÓRIA DE LONGO PRAZO ==========
+
+function getUserFacts($pdo, $phone) {
+    $stmt = $pdo->prepare("SELECT fact_key, fact_value FROM bot_ia_user_facts WHERE phone_number = ?");
+    $stmt->execute([$phone]);
+    return $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Retorna array [key => value]
+}
+
+function saveUserFact($pdo, $phone, $key, $value) {
+    // Normalizar chave
+    $key = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $key)));
+    if (empty($key) || empty($value)) return;
+    
+    $stmt = $pdo->prepare("INSERT INTO bot_ia_user_facts (phone_number, fact_key, fact_value) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE fact_value = ?, updated_at = NOW()");
+    $stmt->execute([$phone, $key, $value, $value]);
+}
+
+function extractAndSaveFacts($pdo, $apiKey, $phone, $message) {
+    // Verificar gatilhos simples para não gastar API à toa
+    $triggers = ['meu nome', 'eu moro', 'eu sou', 'gosto de', 'tenho', 'me chama', 'trabalho com', 'minha empresa'];
+    $shouldCheck = false;
+    $msgLower = mb_strtolower($message);
+    
+    foreach ($triggers as $t) {
+        if (strpos($msgLower, $t) !== false) {
+            $shouldCheck = true;
+            break;
+        }
+    }
+    
+    if (!$shouldCheck) return;
+    
+    // Prompt para extração
+    $prompt = "Analise a seguinte mensagem do usuário e extraia fatos sobre ele (nome, localização, preferências, profissão, empresa, etc).
+    Mensagem: \"{$message}\"
+    
+    Retorne APENAS um JSON válido no formato: {\"chave\": \"valor\"}.
+    Use chaves em snake_case (ex: nome_usuario, cidade, profissao).
+    Se não houver fatos claros, retorne {}.
+    NÃO invente informações.";
+    
+    $result = callGeminiAPI($apiKey, 'gemini-1.5-flash', [['role' => 'user', 'message' => $prompt]], "Você é um extrator de fatos JSON.", 0.2, 200);
+    
+    if ($result['success']) {
+        $jsonStr = preg_replace('/```json|```/', '', $result['response']); // Limpar markdown
+        $facts = json_decode($jsonStr, true);
+        
+        if ($facts && is_array($facts)) {
+            foreach ($facts as $key => $value) {
+                if (!empty($value) && is_string($value)) {
+                    saveUserFact($pdo, $phone, $key, $value);
+                    error_log("[BOT_MEMORY] Fato aprendido sobre {$phone}: {$key} = {$value}");
+                }
+            }
+        }
+    }
+}
+
 function callGeminiAPI($apiKey, $model, $messages, $systemPrompt, $temperature, $maxTokens) {
     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
     
@@ -397,6 +455,19 @@ switch ($action) {
         // Base de conhecimento desabilitada - usar apenas IA
         $fullSystemPrompt = $systemPrompt . $dateTimeInfo;
         
+        // ========== INJETAR MEMÓRIA (Fatos do Usuário) ==========
+        if ($phone) {
+            $userFacts = getUserFacts($pdo, $phone);
+            if (!empty($userFacts)) {
+                $memoryInfo = "\n\nO QUE VOCÊ SABE SOBRE ESSE USUÁRIO (Use isso para personalizar a conversa):\n";
+                foreach ($userFacts as $key => $val) {
+                    $niceKey = ucfirst(str_replace('_', ' ', $key));
+                    $memoryInfo .= "- {$niceKey}: {$val}\n";
+                }
+                $fullSystemPrompt .= $memoryInfo;
+            }
+        }
+        
         // Obter contexto da conversa
         $context = [];
         if ($phone) {
@@ -550,6 +621,10 @@ switch ($action) {
         if ($phone) {
             saveConversation($pdo, $phone, 'assistant', $response);
             saveFeedback($pdo, $phone, $message, $response);
+            
+            // Tentar extrair fatos novos (Memória de Longo Prazo)
+            // Limitado a mensagens que pareçam conter fatos para economizar quota
+            extractAndSaveFacts($pdo, $apiKey, $phone, $message);
         }
         
         echo json_encode([
