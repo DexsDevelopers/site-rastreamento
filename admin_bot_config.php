@@ -47,7 +47,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $gatilho = sanitizeInput($_POST['gatilho'] ?? '');
                 $resposta = $_POST['resposta'] ?? ''; // Não sanitizar para manter formatação
                 $imagemUrl = sanitizeInput($_POST['imagem_url'] ?? '') ?: null;
-                $grupoId = sanitizeInput($_POST['grupo_id'] ?? '') ?: null;
+                $grupoIdData = $_POST['grupo_id'] ?? null;
+                if (is_array($grupoIdData)) {
+                    $grupoIdData = array_filter($grupoIdData); // Remove vazios
+                    $grupoId = !empty($grupoIdData) ? implode(',', $grupoIdData) : null;
+                } else {
+                    $grupoId = sanitizeInput($grupoIdData) ?: null;
+                }
+                
                 $grupoNome = sanitizeInput($_POST['grupo_nome'] ?? '') ?: null;
                 $apenasPrivado = isset($_POST['apenas_privado']) ? 1 : 0;
                 $apenasGrupo = isset($_POST['apenas_grupo']) ? 1 : 0;
@@ -1172,8 +1179,9 @@ foreach ($settings as $s) {
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm text-zinc-400 mb-2">Grupo Específico (opcional)</label>
-                        <select name="grupo_id" id="autoGrupoId" class="input-field w-full" onchange="updateGrupoNome()">
+                        <label class="block text-sm text-zinc-400 mb-2">Grupos Específicos (opcional)</label>
+                        <div class="text-xs text-zinc-500 mb-1">Segure Ctrl (ou Cmd) para selecionar vários</div>
+                        <select name="grupo_id[]" id="autoGrupoId" class="input-field w-full" multiple size="4" onchange="updateGrupoNome()">
                             <option value="">Todos os chats</option>
                         </select>
                     </div>
@@ -1327,7 +1335,11 @@ foreach ($settings as $s) {
                 document.getElementById('autoGatilho').value = automation.gatilho;
                 document.getElementById('autoResposta').value = automation.resposta;
                 document.getElementById('autoImagemUrl').value = automation.imagem_url || '';
-                document.getElementById('autoGrupoId').value = automation.grupo_id || '';
+                const grupoIdSelect = document.getElementById('autoGrupoId');
+                const selectedIds = (automation.grupo_id || '').split(',');
+                Array.from(grupoIdSelect.options).forEach(opt => {
+                    opt.selected = selectedIds.includes(opt.value);
+                });
                 document.getElementById('autoGrupoNome').value = automation.grupo_nome || '';
                 document.getElementById('autoPrioridade').value = automation.prioridade || 0;
                 
@@ -1768,8 +1780,16 @@ foreach ($settings as $s) {
         function updateGrupoNome() {
             const select = document.getElementById('autoGrupoId');
             const nomeInput = document.getElementById('autoGrupoNome');
-            const selectedOption = select.options[select.selectedIndex];
-            nomeInput.value = selectedOption.text !== 'Todos os chats' ? selectedOption.text : '';
+            
+            const selectedOptions = Array.from(select.selectedOptions);
+            
+            if (selectedOptions.length === 0 || (selectedOptions.length === 1 && selectedOptions[0].value === '')) {
+                nomeInput.value = ''; // Todos os chats
+            } else if (selectedOptions.length === 1) {
+                nomeInput.value = selectedOptions[0].text;
+            } else {
+                nomeInput.value = selectedOptions.length + ' grupos selecionados';
+            }
         }
         
         // ===== FUNÇÕES DE IMAGEM =====

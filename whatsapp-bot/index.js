@@ -1811,9 +1811,13 @@ async function processAutomations(remoteJid, text, msg) {
       log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo/privado`);
 
       // Verificar se é para grupo específico
-      if (automation.grupo_id && automation.grupo_id !== remoteJid) {
-        log.warn(`[AUTOMATIONS] ❌ Pulando: automação é para grupo específico diferente`);
-        continue;
+      if (automation.grupo_id) {
+        // Suporte para múltiplos grupos (CSV)
+        const allowedGroups = automation.grupo_id.split(',').map(g => g.trim());
+        if (!allowedGroups.includes(remoteJid)) {
+          log.warn(`[AUTOMATIONS] ❌ Pulando: automação é para grupo(s) específico(s) diferente(s)`);
+          continue;
+        }
       }
 
       log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo específico`);
@@ -1931,6 +1935,43 @@ async function saveGroupInfo(jid, nome, descricao, participantes) {
     );
   } catch (error) {
     // Silencioso
+  }
+}
+
+// Sincronizar todos os grupos (Lista Completa)
+async function syncGroups(sock) {
+  try {
+    log.info('[GROUPS] Buscando grupos do WhatsApp...');
+    // groupFetchAllParticipating retorna um objeto onde chaves são JIDs
+    const groups = await sock.groupFetchAllParticipating();
+
+    const groupList = [];
+    for (const jid in groups) {
+      const g = groups[jid];
+      groupList.push({
+        jid: g.id,
+        nome: g.subject,
+        descricao: g.desc || '',
+        participantes: g.participants?.length || 0
+      });
+    }
+
+    log.info(`[GROUPS] Encontrados ${groupList.length} grupos. Sincronizando com o servidor...`);
+
+    await axios.post(
+      `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=sync_all_groups`,
+      { groups: groupList },
+      {
+        headers: {
+          'x-api-token': RASTREAMENTO_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        timeout: 20000 // Aumentado timeout para lista grande
+      }
+    );
+    log.success(`[GROUPS] Sincronização de grupos concluída!`);
+  } catch (error) {
+    log.error(`[GROUPS] Erro ao sincronizar grupos: ${error.message}`);
   }
 }
 
@@ -2768,6 +2809,31 @@ async function start() {
 
     sock.ev.on('creds.update', saveCreds);
 
+    // Listener para atualizações de grupos (Adição/Modificação)
+    sock.ev.on('groups.upsert', async (groups) => {
+      log.info(`[GROUPS] Evento groups.upsert recebido: ${groups.length} grupos`);
+      for (const g of groups) {
+        if (g.id) {
+          // Em upsert, as vezes vem incompleto, mas tentamos salvar o que temos
+          saveGroupInfo(g.id, g.subject || '', g.desc || '', g.participants?.length || 0);
+        }
+      }
+    });
+
+    // Listener para atualizações de metadados de grupos
+    sock.ev.on('groups.update', async (groups) => {
+      try {
+        for (const g of groups) {
+          if (!g.id) continue;
+          // Fetch info completa para garantir
+          const meta = await sock.groupMetadata(g.id);
+          saveGroupInfo(meta.id, meta.subject, meta.desc, meta.participants.length);
+        }
+      } catch (e) {
+        // Ignorar erro se não conseguir buscar metadata (pode não estar mais no grupo)
+      }
+    });
+
     // Listener para capturar eventos de poll em messages.upsert (QUANDO USUÁRIO VOTA)
     sock.ev.on('messages.upsert', async (m) => {
       // DEBUG: Log de todas as mensagens no primeiro handler
@@ -3211,6 +3277,9 @@ async function start() {
 
         startHeartbeat();
         startPing();
+
+        // Sincronizar grupos
+        syncGroups(sock);
 
         // Carregar automações e configurações
         log.info('[AUTOMATIONS] Carregando automações e configurações...');

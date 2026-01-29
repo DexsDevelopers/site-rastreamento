@@ -152,6 +152,44 @@ try {
             }
             break;
             
+        case 'sync_all_groups':
+            // Sincronizar todos os grupos (remover antigos, adicionar novos)
+            $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+            $groups = $input['groups'] ?? [];
+            
+            if (is_array($groups)) {
+                $pdo->beginTransaction();
+                try {
+                    // Remover todos os grupos existentes (cache)
+                    $pdo->exec("DELETE FROM bot_grupos");
+                    
+                    $stmt = $pdo->prepare("INSERT INTO bot_grupos (jid, nome, descricao, participantes, criado_em, atualizado_em) VALUES (?, ?, ?, ?, NOW(), NOW())");
+                    
+                    $count = 0;
+                    foreach ($groups as $g) {
+                        $jid = sanitizeInput($g['jid'] ?? '');
+                        // Ignorar JIDs inválidos
+                        if (!$jid || strpos($jid, '@g.us') === false) continue;
+                        
+                        $nome = sanitizeInput($g['nome'] ?? '');
+                        $descricao = sanitizeInput($g['descricao'] ?? '');
+                        $participantes = (int) ($g['participantes'] ?? 0);
+                        
+                        $stmt->execute([$jid, $nome, $descricao, $participantes]);
+                        $count++;
+                    }
+                    
+                    $pdo->commit();
+                    $response = ['success' => true, 'message' => 'Grupos sincronizados', 'count' => $count];
+                } catch (Exception $e) {
+                    $pdo->rollBack();
+                    throw $e;
+                }
+            } else {
+                 $response = ['success' => false, 'error' => 'Formato de grupos inválido'];
+            }
+            break;
+            
         case 'check_cooldown':
             // Verificar se usuário está em cooldown
             $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
