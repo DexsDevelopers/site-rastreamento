@@ -10,3 +10,8 @@ t=2026-01-28T16:03:46-0300 lvl=info msg="update available" obj=updater
 t=2026-01-28T16:03:57-0300 lvl=info msg=start pg=/api/tunnels id=512484c27a11f335
 t=2026-01-28T16:03:57-0300 lvl=info msg=end pg=/api/tunnels id=512484c27a11f335 status=200 dur=29.617277ms
 t=2026-01-28T16:04:07-0300 lvl=info msg="join connections" obj=join id=59fc785051ee l=127.0.0.1:3001 r=[2804:c90:f808:8200:6f19:6e6a:ce0c:4a37]:56574
+t=2026-01-28T16:18:29-0300 lvl=info msg="join connections" obj=join id=e427a03580c2 l=127.0.0.1:3001 r=[2a02:4780:13:948:0:32db:7451:1]:25880
+t=2026-01-28T16:18:39-0300 lvl=info msg="join connections" obj=join id=f2beb3e0524b l=127.0.0.1:3001 r=[2a02:4780:13:948:0:32db:7451:1]:23612
+t=2026-01-28T16:18:40-0300 lvl=info msg="join connections" obj=join id=d94f3a84b270 l=127.0.0.1:3001 r=[2a02:4780:13:948:0:32db:7451:1]:23622
+t=2026-01-28T21:55:16-0300 lvl=info msg="join connections" obj=join id=eb06900bdbd7 l=127.0.0.1:3001 r=[2a02:4780:13:948:0:32db:7451:1]:28236
+t=2026-01-28T22:03:47-0300 lvl=info msg="update available" obj=updater

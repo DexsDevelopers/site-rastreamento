@@ -21,6 +21,10 @@ ENABLE_DELAYS=true                  # Ativar delays automáticos
 
 # Verificações
 CHECK_CONTACT_BEFORE_SEND=true      # Verificar se contato existe antes de enviar
+
+# Humanização
+SIMULATE_TYPING=true                # Simular digitando... antes de enviar
+RANDOM_SUFFIX_ENABLED=true          # Adicionar letras aleatórias no fim das mensagens
 ```
 
 ## 🔒 Proteções Implementadas
@@ -34,23 +38,33 @@ CHECK_CONTACT_BEFORE_SEND=true      # Verificar se contato existe antes de envia
 - Limite de mensagens por chat/minuto (padrão: 5)
 - Evita spam em grupos ou chats individuais
 
-### 3. **Cooldown entre Mensagens**
+### 3. **Humanização (Simular Digitação)**
+- Mostra "digitando..." ou "gravando áudio..." antes de enviar a mensagem.
+- O tempo de digitação é proporcional ao tamanho da mensagem (mínimo 1.5s).
+- Isso reduz drasticamente a detecção automática de robôs pelo WhatsApp.
+
+### 4. **Quebra de Padrão (Sufixo Aleatório)**
+- Adiciona um código aleatório no final de cada mensagem (ex: `[ID: aB3]`).
+- Isso faz com que cada mensagem enviada seja tecnicamente "única" para o WhatsApp.
+- Evita que o sistema identifique que o bot está enviando a mesma mensagem repetidamente (um dos maiores motivos de ban).
+
+### 5. **Cooldown entre Mensagens**
 - Delay mínimo entre mensagens (padrão: 1 segundo)
 - Aplica delay automático quando necessário
 
-### 4. **Cooldown de Comandos**
+### 6. **Cooldown de Comandos**
 - 2 segundos entre comandos do mesmo tipo
 - Protege contra abuso de comandos ($ban, $kick, etc)
 
-### 5. **Verificação de Contato**
+### 7. **Verificação de Contato**
 - Verifica se o número existe no WhatsApp antes de enviar
 - Evita enviar para números inválidos
 
-### 6. **Sistema de Blacklist**
+### 8. **Sistema de Blacklist**
 - Números problemáticos são bloqueados temporariamente
 - Remoção automática após 1 hora
 
-### 7. **Limpeza Automática**
+### 9. **Limpeza Automática**
 - Contadores antigos são limpos automaticamente
 - Otimiza uso de memória
 

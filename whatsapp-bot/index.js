@@ -112,6 +112,9 @@ const MIN_DELAY_BETWEEN_MESSAGES = Number(process.env.MIN_DELAY_BETWEEN_MESSAGES
 const MAX_MESSAGES_PER_CHAT_PER_MINUTE = Number(process.env.MAX_MESSAGES_PER_CHAT_PER_MINUTE || 5); // 5 mensagens por chat/minuto
 const CHECK_CONTACT_BEFORE_SEND = String(process.env.CHECK_CONTACT_BEFORE_SEND || 'true').toLowerCase() === 'true';
 const ENABLE_DELAYS = String(process.env.ENABLE_DELAYS || 'true').toLowerCase() === 'true';
+const SIMULATE_TYPING = String(process.env.SIMULATE_TYPING || 'true').toLowerCase() === 'true';
+const SIMULATE_TYPING_GROUPS = String(process.env.SIMULATE_TYPING_GROUPS || 'false').toLowerCase() === 'true'; // Falso por padrão para evitar lag em grupos grandes
+const RANDOM_SUFFIX_ENABLED = String(process.env.RANDOM_SUFFIX_ENABLED || 'true').toLowerCase() === 'true';
 
 // Contadores de segurança
 const messageCounts = new Map(); // key: jid, value: { count: number, resetAt: timestamp }
@@ -125,30 +128,30 @@ const COMMAND_COOLDOWN_MS = 2000; // 2 segundos entre comandos do mesmo tipo
 // Verificar cooldown de comando
 function checkCommandCooldown(jid, command) {
   if (!SAFETY_ENABLED) return { allowed: true };
-  
+
   const key = `${jid}-${command}`;
   const lastUse = commandCooldowns.get(key);
-  
+
   if (!lastUse) {
     return { allowed: true };
   }
-  
+
   const timeSinceLastUse = Date.now() - lastUse;
   if (timeSinceLastUse < COMMAND_COOLDOWN_MS) {
     const waitTime = COMMAND_COOLDOWN_MS - timeSinceLastUse;
     return { allowed: false, waitTime };
   }
-  
+
   return { allowed: true };
 }
 
 // Registrar uso de comando
 function registerCommandUse(jid, command) {
   if (!SAFETY_ENABLED) return;
-  
+
   const key = `${jid}-${command}`;
   commandCooldowns.set(key, Date.now());
-  
+
   // Limpar cooldowns antigos (mais de 1 hora)
   const oneHourAgo = Date.now() - 3600000;
   for (const [k, v] of commandCooldowns.entries()) {
@@ -159,14 +162,14 @@ function registerCommandUse(jid, command) {
 // Função para verificar e atualizar rate limits
 function checkRateLimit(jid) {
   if (!SAFETY_ENABLED) return { allowed: true };
-  
+
   const now = Date.now();
-  
+
   // Verificar blacklist
   if (blacklist.has(jid)) {
     return { allowed: false, reason: 'blacklisted', retryAfter: 3600000 }; // 1 hora
   }
-  
+
   // Limite por chat (mensagens por minuto)
   const chatKey = jid;
   let chatCount = chatMessageCounts.get(chatKey) || { count: 0, resetAt: now + 60000 };
@@ -177,7 +180,7 @@ function checkRateLimit(jid) {
     const waitTime = chatCount.resetAt - now;
     return { allowed: false, reason: 'chat_rate_limit', retryAfter: waitTime };
   }
-  
+
   // Limite global por minuto
   let globalCount = messageCounts.get('global') || { count: 0, resetAt: now + 60000 };
   if (now > globalCount.resetAt) {
@@ -187,7 +190,7 @@ function checkRateLimit(jid) {
     const waitTime = globalCount.resetAt - now;
     return { allowed: false, reason: 'global_rate_limit', retryAfter: waitTime };
   }
-  
+
   // Limite global por hora
   let hourlyCount = hourlyCounts.get('global') || { count: 0, resetAt: now + 3600000 };
   if (now > hourlyCount.resetAt) {
@@ -197,7 +200,7 @@ function checkRateLimit(jid) {
     const waitTime = hourlyCount.resetAt - now;
     return { allowed: false, reason: 'hourly_rate_limit', retryAfter: waitTime };
   }
-  
+
   // Verificar delay mínimo entre mensagens
   const lastTime = lastMessageTime.get(jid);
   if (lastTime && ENABLE_DELAYS) {
@@ -207,16 +210,16 @@ function checkRateLimit(jid) {
       return { allowed: false, reason: 'min_delay', retryAfter: waitTime };
     }
   }
-  
+
   return { allowed: true };
 }
 
 // Função para registrar envio de mensagem
 function registerMessageSent(jid) {
   if (!SAFETY_ENABLED) return;
-  
+
   const now = Date.now();
-  
+
   // Atualizar contador por chat
   let chatCount = chatMessageCounts.get(jid) || { count: 0, resetAt: now + 60000 };
   if (now > chatCount.resetAt) {
@@ -224,7 +227,7 @@ function registerMessageSent(jid) {
   }
   chatCount.count++;
   chatMessageCounts.set(jid, chatCount);
-  
+
   // Atualizar contador global por minuto
   let globalCount = messageCounts.get('global') || { count: 0, resetAt: now + 60000 };
   if (now > globalCount.resetAt) {
@@ -232,7 +235,7 @@ function registerMessageSent(jid) {
   }
   globalCount.count++;
   messageCounts.set('global', globalCount);
-  
+
   // Atualizar contador global por hora
   let hourlyCount = hourlyCounts.get('global') || { count: 0, resetAt: now + 3600000 };
   if (now > hourlyCount.resetAt) {
@@ -240,7 +243,7 @@ function registerMessageSent(jid) {
   }
   hourlyCount.count++;
   hourlyCounts.set('global', hourlyCount);
-  
+
   // Registrar último envio
   lastMessageTime.set(jid, now);
 }
@@ -248,37 +251,37 @@ function registerMessageSent(jid) {
 // Função para verificar se contato existe antes de enviar
 async function checkContactExists(sock, jid) {
   if (!CHECK_CONTACT_BEFORE_SEND || !SAFETY_ENABLED) return true;
-  
+
   try {
     // Verificar se é grupo ou comunidade (sempre existem se o bot está neles)
     if (isGroupJid(jid)) {
       return true;
     }
-    
+
     // Números com @lid são válidos (device ID) - aceitar diretamente
     if (jid.includes('@lid')) {
       return true;
     }
-    
+
     // Normalizar JID para verificação (remover device ID se houver)
     let normalizedJid = jid;
     if (jid.includes(':')) {
       // Remover device ID (parte após :)
       normalizedJid = jid.split(':')[0] + '@' + jid.split('@')[1];
     }
-    
+
     // Garantir que tem @s.whatsapp.net
     if (!normalizedJid.includes('@s.whatsapp.net')) {
       normalizedJid = normalizedJid.replace(/@.*$/, '') + '@s.whatsapp.net';
     }
-    
+
     // Para chats privados, verificar se o número existe no WhatsApp
     const onWhatsApp = await sock.onWhatsApp(normalizedJid);
     if (!onWhatsApp || onWhatsApp.length === 0) {
       log.warn(`[SAFETY] Número ${normalizedJid} não está no WhatsApp`);
       return false;
     }
-    
+
     return onWhatsApp[0].exists || onWhatsApp[0].isBusiness || onWhatsApp[0].isEnterprise;
   } catch (error) {
     log.error(`[SAFETY] Erro ao verificar contato: ${error.message}`);
@@ -291,10 +294,119 @@ async function checkContactExists(sock, jid) {
   }
 }
 
-// Função wrapper segura para sendMessage (desabilitada - usa sendMessage direto)
+// Função para gerar sufixo aleatório para quebrar padrões
+function generateRandomSuffix() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  // Gera entre 2 e 4 caracteres aleatórios
+  const length = Math.floor(Math.random() * 3) + 2;
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `\n\n[ID: ${result}]`;
+}
+
+// Função wrapper segura para sendMessage com proteções anti-ban
 async function safeSendMessage(sock, jid, message, options = {}) {
-  // Sistema de segurança desabilitado - enviar diretamente sem limitações
-  return await sock.sendMessage(jid, message, options);
+  if (!sock) {
+    log.error('[SAFETY] Socket não disponível em safeSendMessage');
+    return null;
+  }
+
+  if (!SAFETY_ENABLED) {
+    return await sock.sendMessage(jid, message, options);
+  }
+
+  try {
+    // 1. Verificar Rate Limit
+    let rateLimit = checkRateLimit(jid);
+    if (!rateLimit.allowed) {
+      log.warn(`[SAFETY] Rate limit atingido para ${jid}: ${rateLimit.reason}. Aguardando ${rateLimit.retryAfter}ms`);
+
+      // Se for apenas delay mínimo, aguardar e continuar
+      if (rateLimit.reason === 'min_delay' || rateLimit.reason === 'chat_rate_limit') {
+        const waitTime = Math.min(rateLimit.retryAfter, 10000); // No máximo 10s de espera síncrona
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        // Re-verificar após o delay
+        rateLimit = checkRateLimit(jid);
+        if (!rateLimit.allowed && rateLimit.reason !== 'min_delay') {
+          log.error(`[SAFETY] Rate limit ainda ativo após espera: ${rateLimit.reason}`);
+          return null;
+        }
+      } else {
+        // Para limites globais ou blacklist, abortar
+        return null;
+      }
+    }
+
+    // 2. Verificar se o contato existe (apenas para privados)
+    const exists = await checkContactExists(sock, jid);
+    if (!exists) {
+      log.error(`[SAFETY] Cancelando envio para ${jid} - contato não existe ou é inválido`);
+      return null;
+    }
+
+    // 3. Simular Digitação/Presença (Humanização)
+    if (SIMULATE_TYPING) {
+      const isGroup = isGroupJid(jid);
+      // Só simula em grupo se explicitamente habilitado, para evitar overhead
+      if (!isGroup || (isGroup && SIMULATE_TYPING_GROUPS)) {
+        try {
+          await sock.sendPresenceUpdate('composing', jid);
+
+          // Calcular tempo de "digitação" baseado no tamanho do texto
+          let textContent = '';
+          if (typeof message === 'string') textContent = message;
+          else if (message.text) textContent = message.text;
+          else if (message.caption) textContent = message.caption;
+
+          const typingTime = Math.min(Math.max(textContent.length * 50, 1500), 4000);
+          await new Promise(resolve => setTimeout(resolve, typingTime));
+
+          await sock.sendPresenceUpdate('paused', jid);
+        } catch (e) {
+          // Ignorar erros de presença para não travar o envio
+        }
+      }
+    }
+
+    // 4. Delay aleatório adicional (Humanização extra)
+    if (ENABLE_DELAYS) {
+      const extraDelay = Math.floor(Math.random() * 1500) + 500; // 0.5s a 2s
+      await new Promise(resolve => setTimeout(resolve, extraDelay));
+    }
+
+    // 5. Adicionar Sufixo Aleatório (Quebra de Padrão)
+    if (RANDOM_SUFFIX_ENABLED) {
+      const suffix = generateRandomSuffix();
+      if (typeof message === 'string') {
+        message = message + suffix;
+      } else if (message.text) {
+        message.text = message.text + suffix;
+      } else if (message.caption) {
+        message.caption = message.caption + suffix;
+      }
+    }
+
+    // 6. Envio Real
+    const result = await sock.sendMessage(jid, message, options);
+
+    // 7. Registrar sucesso no sistema de cotas
+    registerMessageSent(jid);
+
+    return result;
+  } catch (error) {
+    log.error(`[SAFETY] Falha fatal no safeSendMessage: ${error.message}`);
+    // Tentar envio direto como último recurso se não for erro de conexão
+    if (!error.message.includes('close') && !error.message.includes('reconnect')) {
+      try {
+        return await sock.sendMessage(jid, message, options);
+      } catch (e2) {
+        return null;
+      }
+    }
+    return null;
+  }
 }
 
 // Limites máximos para evitar crescimento indefinido (reduzidos para evitar OOM)
@@ -312,7 +424,7 @@ function enforceCacheLimit(map, maxSize = MAX_CACHE_SIZE) {
       const bTime = typeof b[1] === 'object' && b[1].timestamp ? b[1].timestamp : (typeof b[1] === 'number' ? b[1] : 0);
       return bTime - aTime; // Mais recentes primeiro
     });
-    
+
     // Remover as mais antigas
     const toKeep = entries.slice(0, maxSize);
     map.clear();
@@ -327,49 +439,49 @@ setInterval(() => {
   const now = Date.now();
   const oneHourAgo = now - 3600000;
   const fiveMinutesAgo = now - 300000;
-  
+
   // Limpar contadores expirados
   for (const [key, value] of messageCounts.entries()) {
     if (now > value.resetAt || (now - value.resetAt) > 60000) {
       messageCounts.delete(key);
     }
   }
-  
+
   for (const [key, value] of hourlyCounts.entries()) {
     if (now > value.resetAt) {
       hourlyCounts.delete(key);
     }
   }
-  
+
   for (const [key, value] of chatMessageCounts.entries()) {
     if (now > value.resetAt) {
       chatMessageCounts.delete(key);
     }
   }
-  
+
   // Limpar lastMessageTime antigo (mais de 5 minutos)
   for (const [key, value] of lastMessageTime.entries()) {
     if (now - value > 300000) {
       lastMessageTime.delete(key);
     }
   }
-  
+
   // Limpar commandCooldowns antigos
   for (const [key, value] of commandCooldowns.entries()) {
     if (now - value > 3600000) {
       commandCooldowns.delete(key);
     }
   }
-  
+
   // Limpar blacklist antiga
   // (blacklist já tem timeout automático, mas garantir limpeza)
-  
+
   // Enforçar limites de tamanho (mais agressivos)
   enforceCacheLimit(messageCounts, 100);
   enforceCacheLimit(lastMessageTime, 100);
   enforceCacheLimit(chatMessageCounts, 100);
   enforceCacheLimit(commandCooldowns, 100);
-  
+
   // Limpar cache de licenças expiradas
   for (const [key, value] of groupLicenseCache.entries()) {
     if (now > value.expires) {
@@ -377,7 +489,7 @@ setInterval(() => {
     }
   }
   enforceCacheLimit(groupLicenseCache, 50);
-  
+
   // Limpar store de mensagens apenas se habilitado
   if (ENABLE_STORE) {
     const allJids = Object.keys(store.messages);
@@ -391,13 +503,13 @@ setInterval(() => {
         return { jid, lastMsg };
       });
       jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-      
+
       // Manter apenas os mais recentes
       for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
         delete store.messages[jidsWithTime[i].jid];
       }
     }
-    
+
     // Limpar mensagens antigas dentro de cada chat
     for (const jid of Object.keys(store.messages)) {
       const keys = Object.keys(store.messages[jid]);
@@ -415,15 +527,15 @@ setInterval(() => {
       }
     }
   }
-  
+
 }, 15000); // Limpar a cada 15 segundos (muito mais frequente)
 
 console.log('📡 APIs configuradas:');
-console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0,4) + '***)');
-console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0,4) + '***)');
+console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0, 4) + '***)');
+console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0, 4) + '***)');
 console.log('   Verificação de licença:', LICENSE_CHECK_ENABLED ? 'ATIVADA' : 'DESATIVADA');
 console.log('   IA Chat:', IA_ENABLED ? 'ATIVADA' : 'DESATIVADA', IA_ONLY_PRIVATE ? '(só privado)' : '(todos)');
-console.log('🛡️  Sistema de Segurança: DESATIVADO (sem limitações)');
+console.log(`🛡️  Sistema de Segurança: ${SAFETY_ENABLED ? 'ATIVADO' : 'DESATIVADO'}`);
 
 // ===== CONFIGURAÇÕES DE ESTABILIDADE =====
 const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
@@ -456,86 +568,86 @@ const MAX_STORE_MESSAGES_MEMORY = 50; // Máximo 50 mensagens por chat
 const MAX_STORE_CHATS_MEMORY = 100; // Máximo 100 chats
 
 const simpleStore = {
-    messages: {},
-    
-    bind(ev) {
-        if (!ENABLE_STORE) {
-            // Store desabilitado - não armazenar nada
-            return;
-        }
-        
-        ev.on('messages.upsert', ({ messages: newMessages }) => {
-            for (const msg of newMessages) {
-                if (!msg.message) continue;
-                const jid = msg.key.remoteJid;
-                const id = msg.key.id;
-                
-                if (!this.messages[jid]) this.messages[jid] = {};
-                this.messages[jid][id] = msg;
-                
-                // Limitar memória drasticamente: manter apenas últimas 5 mensagens por chat
-                const keys = Object.keys(this.messages[jid]);
-                if (keys.length > MAX_STORE_MESSAGES_MEMORY) {
-                    // Remover as mais antigas
-                    const sortedKeys = keys.sort((a, b) => {
-                        const aMsg = this.messages[jid][a];
-                        const bMsg = this.messages[jid][b];
-                        const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
-                        const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
-                        return aTime - bTime;
-                    });
-                    // Remover as mais antigas até ficar com o limite
-                    for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES_MEMORY; i++) {
-                        delete this.messages[jid][sortedKeys[i]];
-                    }
-                }
-                
-                // Limitar número total de chats (manter apenas os 10 mais recentes)
-                const allJids = Object.keys(this.messages);
-                if (allJids.length > MAX_STORE_CHATS_MEMORY) {
-                    // Ordenar por última mensagem
-                    const jidsWithTime = allJids.map(jid => {
-                        const msgs = this.messages[jid];
-                        const lastMsg = Object.values(msgs).reduce((latest, msg) => {
-                            const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
-                            return msgTime > latest ? msgTime : latest;
-                        }, 0);
-                        return { jid, lastMsg };
-                    });
-                    jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-                    
-                    // Remover os chats mais antigos
-                    for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
-                        delete this.messages[jidsWithTime[i].jid];
-                    }
-                }
-            }
-        });
-    },
-    
-    async loadMessage(jid, id) {
-        if (!ENABLE_STORE) return undefined;
-        return this.messages[jid]?.[id];
-    },
-    
-    writeToFile(path) {
-        try {
-            fs.writeFileSync(path, JSON.stringify(this.messages));
-        } catch (e) { 
-            console.error('Erro ao salvar store:', e.message); 
-        }
-    },
-    
-    readFromFile(path) {
-        try {
-            if (fs.existsSync(path)) {
-                this.messages = JSON.parse(fs.readFileSync(path, 'utf-8'));
-                console.log('📦 Store carregado do arquivo');
-            }
-        } catch (e) { 
-            console.log('📦 Novo store iniciado'); 
-        }
+  messages: {},
+
+  bind(ev) {
+    if (!ENABLE_STORE) {
+      // Store desabilitado - não armazenar nada
+      return;
     }
+
+    ev.on('messages.upsert', ({ messages: newMessages }) => {
+      for (const msg of newMessages) {
+        if (!msg.message) continue;
+        const jid = msg.key.remoteJid;
+        const id = msg.key.id;
+
+        if (!this.messages[jid]) this.messages[jid] = {};
+        this.messages[jid][id] = msg;
+
+        // Limitar memória drasticamente: manter apenas últimas 5 mensagens por chat
+        const keys = Object.keys(this.messages[jid]);
+        if (keys.length > MAX_STORE_MESSAGES_MEMORY) {
+          // Remover as mais antigas
+          const sortedKeys = keys.sort((a, b) => {
+            const aMsg = this.messages[jid][a];
+            const bMsg = this.messages[jid][b];
+            const aTime = aMsg?.messageTimestamp || aMsg?.key?.timestamp || 0;
+            const bTime = bMsg?.messageTimestamp || bMsg?.key?.timestamp || 0;
+            return aTime - bTime;
+          });
+          // Remover as mais antigas até ficar com o limite
+          for (let i = 0; i < sortedKeys.length - MAX_STORE_MESSAGES_MEMORY; i++) {
+            delete this.messages[jid][sortedKeys[i]];
+          }
+        }
+
+        // Limitar número total de chats (manter apenas os 10 mais recentes)
+        const allJids = Object.keys(this.messages);
+        if (allJids.length > MAX_STORE_CHATS_MEMORY) {
+          // Ordenar por última mensagem
+          const jidsWithTime = allJids.map(jid => {
+            const msgs = this.messages[jid];
+            const lastMsg = Object.values(msgs).reduce((latest, msg) => {
+              const msgTime = msg?.messageTimestamp || msg?.key?.timestamp || 0;
+              return msgTime > latest ? msgTime : latest;
+            }, 0);
+            return { jid, lastMsg };
+          });
+          jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
+
+          // Remover os chats mais antigos
+          for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
+            delete this.messages[jidsWithTime[i].jid];
+          }
+        }
+      }
+    });
+  },
+
+  async loadMessage(jid, id) {
+    if (!ENABLE_STORE) return undefined;
+    return this.messages[jid]?.[id];
+  },
+
+  writeToFile(path) {
+    try {
+      fs.writeFileSync(path, JSON.stringify(this.messages));
+    } catch (e) {
+      console.error('Erro ao salvar store:', e.message);
+    }
+  },
+
+  readFromFile(path) {
+    try {
+      if (fs.existsSync(path)) {
+        this.messages = JSON.parse(fs.readFileSync(path, 'utf-8'));
+        console.log('📦 Store carregado do arquivo');
+      }
+    } catch (e) {
+      console.log('📦 Novo store iniciado');
+    }
+  }
 };
 
 // Inicializar Store
@@ -543,16 +655,16 @@ const store = simpleStore;
 store.readFromFile('./baileys_store.json');
 
 if (ENABLE_STORE) {
-    console.log(`📦 Store habilitado (${MAX_STORE_MESSAGES_MEMORY} msgs/chat, ${MAX_STORE_CHATS_MEMORY} chats)`);
+  console.log(`📦 Store habilitado (${MAX_STORE_MESSAGES_MEMORY} msgs/chat, ${MAX_STORE_CHATS_MEMORY} chats)`);
 } else {
-    console.log('📦 Store desabilitado');
+  console.log('📦 Store desabilitado');
 }
 
 // Salvar periodicamente
 setInterval(() => {
-    if (ENABLE_STORE) {
-        store.writeToFile('./baileys_store.json');
-    }
+  if (ENABLE_STORE) {
+    store.writeToFile('./baileys_store.json');
+  }
 }, 10_000);
 
 // Controle simples para evitar auto-resposta repetida
@@ -594,13 +706,13 @@ async function checkGroupLicense(groupJid) {
   if (!LICENSE_CHECK_ENABLED) {
     return { valid: true, unlimited: true };
   }
-  
+
   // Verificar cache
   const cached = groupLicenseCache.get(groupJid);
   if (cached && Date.now() < cached.expires) {
     return cached.data;
   }
-  
+
   try {
     const response = await axios.post(`${RASTREAMENTO_API_URL}/api_check_license.php`, {
       action: 'check',
@@ -612,15 +724,15 @@ async function checkGroupLicense(groupJid) {
       },
       timeout: 5000
     });
-    
+
     const result = response.data;
-    
+
     // Cachear resultado
     groupLicenseCache.set(groupJid, {
       expires: Date.now() + LICENSE_CACHE_TTL,
       data: result
     });
-    
+
     return result;
   } catch (error) {
     console.error('[LICENSE] Erro ao verificar licença:', error.message);
@@ -643,10 +755,10 @@ async function activateGroupLicense(groupJid, groupName, licenseKey) {
       },
       timeout: 10000
     });
-    
+
     // Limpar cache do grupo para forçar nova verificação
     groupLicenseCache.delete(groupJid);
-    
+
     return response.data;
   } catch (error) {
     console.error('[LICENSE] Erro ao ativar licença:', error.message);
@@ -666,7 +778,7 @@ async function getLicenseStatus(groupJid) {
       },
       timeout: 5000
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('[LICENSE] Erro ao obter status:', error.message);
@@ -685,12 +797,12 @@ async function getLicenseInfo() {
       },
       timeout: 5000
     });
-    
+
     return response.data;
   } catch (error) {
-    return { 
-      success: true, 
-      message: '🔑 *SISTEMA DE LICENÇAS*\n\nPara usar o bot neste grupo, é necessário uma licença.\n\nUse: `$licenca SUA-CHAVE` para ativar.' 
+    return {
+      success: true,
+      message: '🔑 *SISTEMA DE LICENÇAS*\n\nPara usar o bot neste grupo, é necessário uma licença.\n\nUse: `$licenca SUA-CHAVE` para ativar.'
     };
   }
 }
@@ -700,18 +812,18 @@ async function processIAChat(remoteJid, text, senderNumber) {
   if (!IA_ENABLED) {
     return null;
   }
-  
+
   const isGroup = isGroupJid(remoteJid);
-  
+
   // Se configurado para só privado e for grupo, ignorar
   if (IA_ONLY_PRIVATE && isGroup) {
     return null;
   }
-  
+
   try {
     const messageTimestamp = Date.now();
     log.info(`[IA] Processando mensagem de ${senderNumber}: "${text.substring(0, 50)}..." | Timestamp: ${new Date(messageTimestamp).toISOString()}`);
-    
+
     const response = await axios.post(`${RASTREAMENTO_API_URL}/api_bot_ia.php`, {
       action: 'chat',
       message: text,
@@ -723,11 +835,11 @@ async function processIAChat(remoteJid, text, senderNumber) {
       },
       timeout: 30000
     });
-    
+
     if (response.data && response.data.success && response.data.response) {
       const source = response.data.source || 'unknown';
       const error = response.data.error;
-      
+
       if (source === 'fallback') {
         if (response.data.needs_config) {
           log.warn(`[IA] API Key não configurada - usando fallback`);
@@ -739,7 +851,7 @@ async function processIAChat(remoteJid, text, senderNumber) {
       } else {
         log.success(`[IA] Resposta obtida (fonte: ${source})`);
       }
-      
+
       return {
         success: true,
         response: response.data.response,
@@ -747,7 +859,7 @@ async function processIAChat(remoteJid, text, senderNumber) {
         error: error
       };
     }
-    
+
     log.warn(`[IA] Resposta inválida: ${JSON.stringify(response.data)}`);
     return null;
   } catch (error) {
@@ -771,23 +883,23 @@ const log = {
 // ===== HEARTBEAT SYSTEM =====
 function startHeartbeat() {
   if (heartbeatTimer) clearInterval(heartbeatTimer);
-  
+
   heartbeatTimer = setInterval(async () => {
     if (!sock || !isReady) {
       return; // Silencioso quando não está pronto
     }
-    
+
     try {
       // Verificação mais robusta da conexão
       // No Baileys, sock.user existe quando autenticado e conectado
       const isAuthenticated = sock.user && sock.user.id;
-      
+
       // Verificar WebSocket apenas se disponível (pode ser undefined em algumas versões)
       let wsState = null;
       if (sock.ws) {
         wsState = sock.ws.readyState;
       }
-      
+
       // Se não está autenticado E WebSocket está fechado, reconectar
       // Mas dar um tempo antes de reconectar (pode ser temporário)
       if (!isAuthenticated && wsState === 3) {
@@ -795,7 +907,7 @@ function startHeartbeat() {
         await reconnect('Heartbeat detectou falta de autenticação');
         return;
       }
-      
+
       // Se WebSocket está explicitamente fechado (3 = CLOSED), reconectar
       // Mas ignorar se wsState for undefined (normal em algumas versões do Baileys)
       if (wsState !== null && wsState === 3) {
@@ -803,26 +915,26 @@ function startHeartbeat() {
         await reconnect('Heartbeat detectou WebSocket fechado');
         return;
       }
-      
+
       // Verificar tempo desde última atividade (mais tolerante)
       const timeSinceLastBeat = Date.now() - lastHeartbeat;
       if (timeSinceLastBeat > CONNECTION_TIMEOUT) {
-        log.warn(`Heartbeat: Conexão parece travada (${Math.round(timeSinceLastBeat/1000)}s sem atividade)`);
+        log.warn(`Heartbeat: Conexão parece travada (${Math.round(timeSinceLastBeat / 1000)}s sem atividade)`);
         await reconnect('Timeout de conexão detectado');
         return;
       }
-      
+
       // Atualizar timestamp
       lastHeartbeat = Date.now();
-      
+
       // Calcular uptime
       const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000 / 60) : 0;
-      
+
       // Log a cada 5 minutos (15 heartbeats com intervalo de 20s)
       if (Math.random() < 0.067) {
         log.heartbeat(`Conexão ativa há ${uptime} minutos | Tentativas reconexão: ${reconnectAttempts}`);
       }
-      
+
     } catch (error) {
       // Se o erro indica que o socket não existe mais, reconectar
       if (error.message?.includes('socket') || error.message?.includes('connection') || error.message?.includes('Cannot read')) {
@@ -833,7 +945,7 @@ function startHeartbeat() {
       // Ignorar erros menores
     }
   }, HEARTBEAT_INTERVAL);
-  
+
   log.info('Sistema de heartbeat iniciado');
 }
 
@@ -852,12 +964,12 @@ function stopHeartbeat() {
 // Envia um ping periódico para manter a conexão ativa
 function startPing() {
   if (pingTimer) clearInterval(pingTimer);
-  
+
   pingTimer = setInterval(async () => {
     if (!sock || !isReady) {
       return;
     }
-    
+
     try {
       // Tentar uma operação leve para manter conexão ativa
       // Verificar se o socket ainda responde
@@ -890,24 +1002,24 @@ async function reconnect(reason = 'Desconhecido') {
     log.warn(`Reconexão já em andamento, ignorando nova solicitação: ${reason}`);
     return;
   }
-  
+
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
   }
-  
+
   // Registrar timestamp de desconexão
   const now = Date.now();
   disconnectTimestamps.push(now);
-  
+
   // Limpar timestamps antigos (fora da janela)
   disconnectTimestamps = disconnectTimestamps.filter(ts => now - ts < LOOP_DETECTION_WINDOW);
-  
+
   // Detectar loop de desconexão
   if (disconnectTimestamps.length >= MAX_DISCONNECTS_IN_WINDOW) {
     isInLoopState = true;
     log.error('🔴 LOOP DE DESCONEXÃO DETECTADO!');
-    log.error(`${disconnectTimestamps.length} desconexões em ${LOOP_DETECTION_WINDOW/1000} segundos`);
+    log.error(`${disconnectTimestamps.length} desconexões em ${LOOP_DETECTION_WINDOW / 1000} segundos`);
     log.error('');
     log.error('╔══════════════════════════════════════════════════════════╗');
     log.error('║  AÇÃO NECESSÁRIA: Sessão inválida ou corrompida          ║');
@@ -919,15 +1031,15 @@ async function reconnect(reason = 'Desconhecido') {
     log.error('╚══════════════════════════════════════════════════════════╝');
     log.error('');
     log.error('Bot pausado. Aguardando intervenção manual...');
-    
+
     // Parar de tentar reconectar
     stopHeartbeat();
     isReconnecting = false;
     return;
   }
-  
+
   reconnectAttempts++;
-  
+
   if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
     log.error(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido.`);
     log.error('Provavelmente a sessão expirou. Delete a pasta ./auth e escaneie QR novamente.');
@@ -935,16 +1047,16 @@ async function reconnect(reason = 'Desconhecido') {
     isReconnecting = false;
     return;
   }
-  
+
   const delay = calculateReconnectDelay();
-  log.warn(`Reconexão #${reconnectAttempts} em ${Math.round(delay/1000)}s. Motivo: ${reason}`);
-  
+  log.warn(`Reconexão #${reconnectAttempts} em ${Math.round(delay / 1000)}s. Motivo: ${reason}`);
+
   reconnectTimer = setTimeout(async () => {
     isReconnecting = true;
     try {
       stopHeartbeat();
       if (sock) {
-        try { sock.end(); } catch (e) {}
+        try { sock.end(); } catch (e) { }
       }
       await start();
       isReconnecting = false;
@@ -960,65 +1072,65 @@ async function reconnect(reason = 'Desconhecido') {
 async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
   try {
     const phoneNumber = jid.split('@')[0];
-    
+
     // Validar índice selecionado
     if (typeof selectedOptionIndex !== 'number' || selectedOptionIndex < 0 || selectedOptionIndex > 11) {
       log.warn(`[POLL] Índice de voto inválido: ${selectedOptionIndex}`);
       return;
     }
-    
+
     // ANTI-LOOP: Verificar se já processamos este voto
     const voteKey = `${messageId}-${selectedOptionIndex}-${jid}`;
     if (processedVotes.has(voteKey)) {
       log.info(`[POLL] Voto já processado, ignorando duplicado: ${voteKey}`);
       return;
     }
-    
+
     // ANTI-LOOP: Marcar voto como processado
     processedVotes.set(voteKey, Date.now());
-    
+
     log.info(`[POLL] ✅ Usuário ${phoneNumber} votou na opção ${selectedOptionIndex} (poll: ${pollCtx.type})`);
-    
+
     // Mapear opção para comando usando o contexto
     const command = pollCtx.commandMap && pollCtx.commandMap[selectedOptionIndex];
     if (!command) {
       log.warn(`[POLL] Comando não encontrado para índice ${selectedOptionIndex} no contexto ${pollCtx.type}`);
       return;
     }
-    
+
     log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
-    
+
     // Mapeamento de mensagens personalizadas para comandos que precisam de argumentos
     const commandsWithArgs = {
       '!receita': {
         title: '💰 Registrar Receita',
         message: `✅ Você escolheu registrar uma receita!\n\n` +
-                 `📝 *Como usar:*\n` +
-                 `Digite: *!receita VALOR DESCRIÇÃO*\n\n` +
-                 `💡 *Exemplos:*\n` +
-                 `• \`!receita 1500 Salário\`\n` +
-                 `• \`!receita 500 Venda de produtos\`\n` +
-                 `• \`recebi 1200 Freelance\`\n\n` +
-                 `Digite o comando acima para registrar sua receita.`
+          `📝 *Como usar:*\n` +
+          `Digite: *!receita VALOR DESCRIÇÃO*\n\n` +
+          `💡 *Exemplos:*\n` +
+          `• \`!receita 1500 Salário\`\n` +
+          `• \`!receita 500 Venda de produtos\`\n` +
+          `• \`recebi 1200 Freelance\`\n\n` +
+          `Digite o comando acima para registrar sua receita.`
       },
       '!despesa': {
         title: '💸 Registrar Despesa',
         message: `✅ Você escolheu registrar uma despesa!\n\n` +
-                 `📝 *Como usar:*\n` +
-                 `Digite: *!despesa VALOR DESCRIÇÃO*\n\n` +
-                 `💡 *Exemplos:*\n` +
-                 `• \`!despesa 200 Supermercado\`\n` +
-                 `• \`!despesa 50 Combustível\`\n` +
-                 `• \`gastei 30 Almoço\`\n\n` +
-                 `Digite o comando acima para registrar sua despesa.`
+          `📝 *Como usar:*\n` +
+          `Digite: *!despesa VALOR DESCRIÇÃO*\n\n` +
+          `💡 *Exemplos:*\n` +
+          `• \`!despesa 200 Supermercado\`\n` +
+          `• \`!despesa 50 Combustível\`\n` +
+          `• \`gastei 30 Almoço\`\n\n` +
+          `Digite o comando acima para registrar sua despesa.`
       }
     };
-    
+
     // Verificar se o comando precisa de argumentos
     if (commandsWithArgs[command]) {
       const cmdInfo = commandsWithArgs[command];
       try {
-        await safeSendMessage(sock,jid, { text: cmdInfo.message });
+        await safeSendMessage(sock, jid, { text: cmdInfo.message });
         log.success(`[POLL] ✅ Mensagem personalizada enviada para comando ${command}`);
         return; // Não chamar a API para comandos que precisam de argumentos
       } catch (sendError) {
@@ -1026,12 +1138,12 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
         // Continuar para tentar a API como fallback
       }
     }
-    
+
     // Processar comando automaticamente (para comandos que não precisam de argumentos)
     try {
       const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
       log.info(`[POLL] Enviando requisição para: ${apiUrl}`);
-      
+
       // Preparar payload da requisição
       const requestPayload = {
         phone: phoneNumber,
@@ -1041,13 +1153,13 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
         source: 'poll',
         pollContext: pollCtx.type
       };
-      
+
       // Se for comando de tarefas, incluir flag para retornar subtarefas
       if (command === '!tarefas' || command === 'tarefas') {
         requestPayload.include_subtasks = true;
         log.info(`[POLL] Comando tarefas detectado - solicitando subtarefas`);
       }
-      
+
       const apiResponse = await axios.post(apiUrl, requestPayload, {
         headers: {
           'Content-Type': 'application/json',
@@ -1055,11 +1167,11 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
         },
         timeout: 30000
       });
-      
+
       log.info(`[POLL] Resposta da API recebida: ${JSON.stringify(apiResponse.data).substring(0, 200)}`);
-      
+
       if (apiResponse && apiResponse.data && apiResponse.data.message) {
-        await safeSendMessage(sock,jid, { text: apiResponse.data.message });
+        await safeSendMessage(sock, jid, { text: apiResponse.data.message });
         log.success(`[POLL] ✅ Comando ${command} executado via poll (${pollCtx.type})`);
       } else {
         log.warn(`[POLL] API não retornou mensagem na resposta`);
@@ -1070,8 +1182,8 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
         log.error(`[POLL] Resposta de erro: ${JSON.stringify(apiError.response.data)}`);
       }
       try {
-        await safeSendMessage(sock,jid, { 
-          text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.` 
+        await safeSendMessage(sock, jid, {
+          text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.`
         });
       } catch (sendError) {
         log.error(`[POLL] Erro ao enviar mensagem de erro: ${sendError.message}`);
@@ -1091,15 +1203,15 @@ async function sendPoll(sock, jid, question, options, context = {}) {
     if (!sock) {
       throw new Error('Socket não está disponível');
     }
-    
+
     if (!isReady) {
       throw new Error('Bot não está pronto (não conectado)');
     }
-    
+
     if (!options || !Array.isArray(options)) {
       throw new Error('Opções devem ser um array');
     }
-    
+
     if (options.length < 2 || options.length > 12) {
       throw new Error('Poll deve ter entre 2 e 12 opções');
     }
@@ -1123,23 +1235,23 @@ async function sendPoll(sock, jid, question, options, context = {}) {
     };
 
     log.info(`[POLL] Enviando poll para ${jid}...`);
-    
+
     // Enviar poll usando formato oficial
     const sent = await safeSendMessage(sock, jid, pollMessage);
-    
+
     if (!sent || !sent.key || !sent.key.id) {
       throw new Error('Resposta inválida ao enviar poll');
     }
-    
+
     const messageId = sent.key.id;
-    
+
     // Obter pollEncKey da mensagem enviada (necessário para descriptografar votos)
     // Segundo o código do Baileys, a chave está em messageContextInfo.messageSecret
     let pollEncKey = null;
     try {
       // Debug: ver o que realmente está na resposta
       log.info(`[POLL] DEBUG - Estrutura de sent.message: ${JSON.stringify(Object.keys(sent.message || {})).substring(0, 200)}`);
-      
+
       // Tentar obter da resposta imediata
       // A chave pode estar em messageContextInfo.messageSecret (conforme código do Baileys)
       if (sent.message?.messageContextInfo?.messageSecret) {
@@ -1151,14 +1263,14 @@ async function sendPoll(sock, jid, question, options, context = {}) {
         log.info(`[POLL] ✅ pollEncKey obtida de pollCreationMessage.encKey: ${pollEncKey.toString('hex').substring(0, 32)}...`);
       } else {
         log.warn(`[POLL] pollEncKey não encontrada na resposta imediata, tentando buscar do store...`);
-        
+
         // Tentar buscar do store do Baileys após um pequeno delay
         (async () => {
           await new Promise(resolve => setTimeout(resolve, 1500)); // Aguardar 1.5 segundos
           try {
             const fullMessage = await sock.loadMessage(jid, messageId);
             log.info(`[POLL] DEBUG - Mensagem do store: ${JSON.stringify(Object.keys(fullMessage?.message || {})).substring(0, 200)}`);
-            
+
             // Tentar messageContextInfo.messageSecret primeiro
             if (fullMessage?.message?.messageContextInfo?.messageSecret) {
               const foundKey = Buffer.from(fullMessage.message.messageContextInfo.messageSecret);
@@ -1188,7 +1300,7 @@ async function sendPoll(sock, jid, question, options, context = {}) {
     } catch (keyError) {
       log.warn(`[POLL] Erro ao obter pollEncKey: ${keyError.message}`);
     }
-    
+
     // Armazenar contexto da poll para processar votos depois
     pollContext.set(messageId, {
       type: context.type || 'default',
@@ -1200,14 +1312,14 @@ async function sendPoll(sock, jid, question, options, context = {}) {
       pollCreatorJid: sock.user?.id || jid, // JID do criador da poll (bot)
       pollMsgId: messageId
     });
-    
+
     if (pollEncKey) {
       log.success(`[POLL] ✅ Enquete enviada com sucesso! Message ID: ${messageId}, pollEncKey: ${pollEncKey.toString('hex').substring(0, 32)}...`);
     } else {
       log.warn(`[POLL] ⚠️ Enquete enviada, mas pollEncKey não foi encontrada imediatamente. Será buscada do store quando necessário. Message ID: ${messageId}`);
     }
     return { success: true, messageId: messageId };
-    
+
   } catch (error) {
     log.error(`[POLL] ❌ Erro ao enviar enquete: ${error.message}`);
     if (error.stack) {
@@ -1222,11 +1334,11 @@ function checkMemory() {
   const used = process.memoryUsage();
   const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
   const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
-  
+
   const now = Date.now();
   const oneHourAgo = now - (60 * 60 * 1000);
   const fiveMinutesAgo = now - 300000;
-  
+
   // Limpar caches antigos sempre (não só quando memória alta)
   for (const [key, value] of lastReplyAt.entries()) {
     if (now - value > AUTO_REPLY_WINDOW_MS * 2) {
@@ -1256,14 +1368,14 @@ function checkMemory() {
       pendingPollVotes.delete(key);
     }
   }
-  
+
   // Limpar automações cooldowns antigos
   for (const [key, timestamp] of automationCooldowns.entries()) {
     if (!timestamp || timestamp < oneHourAgo) {
       automationCooldowns.delete(key);
     }
   }
-  
+
   // Enforçar limites
   enforceCacheLimit(lastReplyAt, 200);
   enforceCacheLimit(waitingPhoto, 100);
@@ -1272,33 +1384,33 @@ function checkMemory() {
   enforceCacheLimit(pendingPollVotes, 100);
   enforceCacheLimit(automationCooldowns, 500);
   enforceCacheLimit(antilinkGroups, 200);
-  
+
   // Limpeza preventiva quando memória > 300MB
   if (heapUsedMB > 300) {
     log.warn(`⚠️ Memória moderada: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpeza preventiva...`);
   }
-  
+
   // Limpar store de mensagens se memória alta (apenas se habilitado)
   if (heapUsedMB > 400 && ENABLE_STORE) {
     log.warn(`⚠️ Memória alta: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpando store...`);
-    
+
     // Limpar store completamente se memória alta
     store.messages = {};
   }
-  
+
   if (heapUsedMB > 500) {
     log.error(`🚨 MEMÓRIA CRÍTICA: ${heapUsedMB}MB / ${heapTotalMB}MB - Limpeza de emergência!`);
-    
+
     // Limpeza de emergência - limpar quase tudo
     const emergencyLimit = 50;
-    
+
     // Limpar todos os caches drasticamente
     messageCounts.clear();
     lastMessageTime.clear();
     chatMessageCounts.clear();
     commandCooldowns.clear();
     groupLicenseCache.clear();
-    
+
     enforceCacheLimit(lastReplyAt, emergencyLimit);
     enforceCacheLimit(waitingPhoto, emergencyLimit);
     enforceCacheLimit(pollContext, emergencyLimit);
@@ -1306,12 +1418,12 @@ function checkMemory() {
     enforceCacheLimit(pendingPollVotes, emergencyLimit);
     enforceCacheLimit(automationCooldowns, emergencyLimit);
     enforceCacheLimit(antilinkGroups, emergencyLimit);
-    
+
     // Limpar store completamente se habilitado
     if (ENABLE_STORE) {
       store.messages = {};
     }
-    
+
     // Forçar garbage collection se disponível
     if (global.gc) {
       log.info('🗑️ Forçando garbage collection de emergência...');
@@ -1334,27 +1446,27 @@ async function loadGroupSettings() {
       },
       timeout: 10000
     });
-    
+
     if (response.data && response.data.success) {
       const settings = response.data.data || [];
-      
+
       // Limpar configurações antigas
       antilinkGroups.clear();
       disabledAutomationGroups.clear();
-      
+
       // Carregar configurações
       for (const s of settings) {
         if (s.antilink_enabled == 1) {
-          antilinkGroups.set(s.grupo_jid, { 
-            enabled: true, 
-            allowAdmins: s.antilink_allow_admins == 1 
+          antilinkGroups.set(s.grupo_jid, {
+            enabled: true,
+            allowAdmins: s.antilink_allow_admins == 1
           });
         }
         if (s.automations_enabled == 0) {
           disabledAutomationGroups.add(s.grupo_jid);
         }
       }
-      
+
       groupSettingsLoaded = true;
       log.info(`[GROUP SETTINGS] ${settings.length} configurações de grupo carregadas`);
       log.info(`[GROUP SETTINGS] Antilink ativo em ${antilinkGroups.size} grupos`);
@@ -1397,7 +1509,7 @@ async function loadAutomations() {
     if (Date.now() - lastAutomationsLoad < AUTOMATIONS_CACHE_TTL && automationsCache.length > 0) {
       return automationsCache;
     }
-    
+
     const apiUrl = `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=get_automations`;
     const response = await axios.get(apiUrl, {
       headers: {
@@ -1405,13 +1517,13 @@ async function loadAutomations() {
       },
       timeout: 10000
     });
-    
+
     if (response.data && response.data.success) {
       automationsCache = response.data.automations || [];
       lastAutomationsLoad = Date.now();
       log.info(`[AUTOMATIONS] ${automationsCache.length} automações carregadas`);
     }
-    
+
     return automationsCache;
   } catch (error) {
     log.warn(`[AUTOMATIONS] Erro ao carregar automações: ${error.message}`);
@@ -1429,12 +1541,12 @@ async function loadBotSettings() {
       },
       timeout: 10000
     });
-    
+
     if (response.data && response.data.success) {
       automationsSettings = response.data.settings || {};
       log.info(`[AUTOMATIONS] Configurações carregadas`);
     }
-    
+
     return automationsSettings;
   } catch (error) {
     log.warn(`[AUTOMATIONS] Erro ao carregar configurações: ${error.message}`);
@@ -1448,34 +1560,34 @@ function matchAutomation(text, automation) {
     log.warn(`[AUTOMATIONS-MATCH] Texto ou gatilho vazio`);
     return false;
   }
-  
+
   const lowerText = text.toLowerCase().trim();
   const gatilho = automation.gatilho.toLowerCase();
-  
+
   log.info(`[AUTOMATIONS-MATCH] Testando automação "${automation.nome}" (ID: ${automation.id})`);
   log.info(`[AUTOMATIONS-MATCH] Tipo: ${automation.tipo}`);
   log.info(`[AUTOMATIONS-MATCH] Texto recebido: "${lowerText}"`);
   log.info(`[AUTOMATIONS-MATCH] Gatilho: "${gatilho.substring(0, 100)}..."`);
-  
+
   let matched = false;
-  
+
   switch (automation.tipo) {
     case 'mensagem_especifica':
       // Match exato
       matched = lowerText === gatilho;
       log.info(`[AUTOMATIONS-MATCH] Mensagem específica: ${matched ? 'MATCH ✅' : 'NO MATCH ❌'}`);
       return matched;
-      
+
     case 'palavra_chave':
       // Match com palavras-chave separadas por |
       const keywords = gatilho.split('|').map(k => k.trim()).filter(k => k.length > 0); // Remover vazias
       log.info(`[AUTOMATIONS-MATCH] Palavras-chave: ${keywords.length} palavras`);
-      
+
       if (keywords.length === 0) {
         log.warn(`[AUTOMATIONS-MATCH] Nenhuma palavra-chave válida encontrada!`);
         return false;
       }
-      
+
       matched = keywords.some(keyword => {
         const hasMatch = lowerText.includes(keyword) || lowerText === keyword;
         if (hasMatch) {
@@ -1483,10 +1595,10 @@ function matchAutomation(text, automation) {
         }
         return hasMatch;
       });
-      
+
       log.info(`[AUTOMATIONS-MATCH] Resultado: ${matched ? 'MATCH ✅' : 'NO MATCH ❌'}`);
       return matched;
-      
+
     case 'regex':
       // Match com expressão regular
       try {
@@ -1498,7 +1610,7 @@ function matchAutomation(text, automation) {
         log.warn(`[AUTOMATIONS] Regex inválido: ${automation.gatilho}`);
         return false;
       }
-      
+
     default:
       log.warn(`[AUTOMATIONS-MATCH] Tipo desconhecido: ${automation.tipo}`);
       return false;
@@ -1508,12 +1620,12 @@ function matchAutomation(text, automation) {
 // Verificar cooldown (usando banco de dados para persistência)
 async function checkCooldown(automationId, jid, cooldownSeconds) {
   log.info(`[AUTOMATIONS-COOLDOWN] 🔍 Verificando cooldown para automação ${automationId}, grupo ${jid.split('@')[0]}, cooldown: ${cooldownSeconds}s`);
-  
+
   if (!cooldownSeconds || cooldownSeconds <= 0) {
     log.info(`[AUTOMATIONS-COOLDOWN] Sem cooldown configurado (automationId: ${automationId})`);
     return false; // Sem cooldown configurado
   }
-  
+
   try {
     log.info(`[AUTOMATIONS-COOLDOWN] 📡 Consultando API para verificar cooldown...`);
     // Verificar no banco de dados (persistente, sobrevive a reinicializações)
@@ -1532,38 +1644,38 @@ async function checkCooldown(automationId, jid, cooldownSeconds) {
         timeout: 5000
       }
     );
-    
+
     if (response.data && response.data.success) {
       const data = response.data;
       const isInCooldown = data.in_cooldown;
-      
+
       log.info(`[AUTOMATIONS-COOLDOWN] Automação ${automationId} para ${jid.split('@')[0]}:`);
       log.info(`  - Cooldown configurado: ${cooldownSeconds}s`);
       log.info(`  - Tempo decorrido: ${data.elapsed_seconds}s`);
       log.info(`  - Em cooldown: ${isInCooldown ? 'SIM' : 'NÃO'}`);
-      
+
       if (isInCooldown) {
         const remaining = data.remaining_seconds;
         log.warn(`[AUTOMATIONS-COOLDOWN] ⏳ Cooldown ativo: ${remaining}s restantes (total: ${cooldownSeconds}s)`);
       } else {
         log.success(`[AUTOMATIONS-COOLDOWN] ✅ Cooldown OK, pode executar`);
       }
-      
+
       return isInCooldown;
     }
-    
+
     // Fallback para memória local se API falhar
     log.warn(`[AUTOMATIONS-COOLDOWN] API falhou, usando fallback em memória`);
-  const key = `${automationId}-${jid}`;
-  const lastUse = automationCooldowns.get(key);
-  
+    const key = `${automationId}-${jid}`;
+    const lastUse = automationCooldowns.get(key);
+
     if (!lastUse) {
       return false;
     }
-  
-  const elapsed = (Date.now() - lastUse) / 1000;
-  return elapsed < cooldownSeconds;
-    
+
+    const elapsed = (Date.now() - lastUse) / 1000;
+    return elapsed < cooldownSeconds;
+
   } catch (error) {
     log.error(`[AUTOMATIONS-COOLDOWN] ❌ Erro ao verificar cooldown: ${error.message}`);
     log.error(`[AUTOMATIONS-COOLDOWN] Stack: ${error.stack}`);
@@ -1578,9 +1690,9 @@ function registerAutomationUse(automationId, jid) {
   const key = `${automationId}-${jid}`;
   const now = Date.now();
   automationCooldowns.set(key, now);
-  
+
   log.info(`[AUTOMATIONS-COOLDOWN] 📝 Registrado uso da automação ${automationId} em ${new Date(now).toLocaleString('pt-BR')}`);
-  
+
   // Limpar cooldowns antigos (mais de 7 dias para suportar cooldowns longos)
   const sevenDaysAgo = Date.now() - (7 * 24 * 3600 * 1000);
   for (const [k, v] of automationCooldowns.entries()) {
@@ -1592,9 +1704,9 @@ function registerAutomationUse(automationId, jid) {
 async function logAutomationExecution(automation, jid, message, response, grupoId, grupoNome) {
   try {
     if (!automationsSettings.log_automations) return;
-    
+
     const numero = jid.split('@')[0];
-    
+
     await axios.post(
       `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=log_execution`,
       {
@@ -1614,7 +1726,7 @@ async function logAutomationExecution(automation, jid, message, response, grupoI
         timeout: 5000
       }
     );
-    
+
     // Incrementar contador
     await axios.post(
       `${RASTREAMENTO_API_URL}/api_bot_automations.php?action=increment_usage`,
@@ -1636,13 +1748,13 @@ async function logAutomationExecution(automation, jid, message, response, grupoI
 async function processAutomations(remoteJid, text, msg) {
   try {
     log.info(`[AUTOMATIONS] Processando: "${text}" de ${remoteJid.split('@')[0]}`);
-    
+
     // Verificar se automações estão desativadas para este grupo específico
     if (disabledAutomationGroups.has(remoteJid)) {
       log.info(`[AUTOMATIONS] Automações desativadas para este grupo`);
       return false;
     }
-    
+
     // Verificar se automações estão habilitadas globalmente
     if (!automationsSettings.automations_enabled) {
       log.warn(`[AUTOMATIONS] automations_enabled = false`);
@@ -1652,24 +1764,24 @@ async function processAutomations(remoteJid, text, msg) {
       log.warn(`[AUTOMATIONS] bot_enabled = false`);
       return false;
     }
-    
+
     // Carregar automações (do cache ou API)
     const automations = await loadAutomations();
     if (!automations || automations.length === 0) {
       log.warn(`[AUTOMATIONS] Nenhuma automação carregada`);
       return false;
     }
-    
+
     log.info(`[AUTOMATIONS] ${automations.length} automações disponíveis`);
-    
+
     const isGroup = isGroupJid(remoteJid);
     const grupoId = isGroup ? remoteJid : null;
-    
+
     // Automações agora funcionam em todos os grupos, mesmo sem licença
     // (A verificação de licença foi removida conforme solicitado)
-    
+
     let grupoNome = null;
-    
+
     // Tentar obter nome do grupo
     if (isGroup && sock) {
       try {
@@ -1679,13 +1791,13 @@ async function processAutomations(remoteJid, text, msg) {
         // Ignorar erro ao obter metadata
       }
     }
-    
+
     // Verificar cada automação por ordem de prioridade
     for (const automation of automations) {
       log.info(`[AUTOMATIONS] ━━━ Verificando automação: "${automation.nome}" (ID: ${automation.id}) ━━━`);
       log.info(`[AUTOMATIONS] Configuração: apenas_privado=${automation.apenas_privado}, apenas_grupo=${automation.apenas_grupo}, grupo_id=${automation.grupo_id || 'TODOS'}`);
       log.info(`[AUTOMATIONS] Contexto: isGroup=${isGroup}, remoteJid=${remoteJid}`);
-      
+
       // Verificar se é para grupo/privado
       if (automation.apenas_privado == 1 && isGroup) {
         log.warn(`[AUTOMATIONS] ❌ Pulando: automação é apenas para PRIVADO e mensagem veio de GRUPO`);
@@ -1695,96 +1807,96 @@ async function processAutomations(remoteJid, text, msg) {
         log.warn(`[AUTOMATIONS] ❌ Pulando: automação é apenas para GRUPO e mensagem veio de PRIVADO`);
         continue;
       }
-      
+
       log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo/privado`);
-      
+
       // Verificar se é para grupo específico
       if (automation.grupo_id && automation.grupo_id !== remoteJid) {
         log.warn(`[AUTOMATIONS] ❌ Pulando: automação é para grupo específico diferente`);
         continue;
       }
-      
+
       log.info(`[AUTOMATIONS] ✅ Passou verificação de grupo específico`);
-      
+
       // Verificar match
       if (!matchAutomation(text, automation)) {
         log.warn(`[AUTOMATIONS] ❌ Pulando: texto não deu match com gatilho`);
         continue;
       }
-      
+
       log.success(`[AUTOMATIONS] ✅✅✅ Match encontrado: "${automation.nome}" (ID: ${automation.id}, Cooldown: ${automation.cooldown_segundos}s)`);
-      
+
       // TRAVA DE SEGURANÇA: Verificar se já está executando
       const lockKey = `${automation.id}-${remoteJid}`;
       const now = Date.now();
       const existingLock = automationLocks.get(lockKey);
-      
+
       if (existingLock && (now - existingLock) < 30000) { // 30 segundos de trava
-        log.warn(`[AUTOMATIONS] 🔒 TRAVA ATIVA: Automação ${automation.id} já está executando para este grupo (trava há ${Math.floor((now - existingLock)/1000)}s)`);
+        log.warn(`[AUTOMATIONS] 🔒 TRAVA ATIVA: Automação ${automation.id} já está executando para este grupo (trava há ${Math.floor((now - existingLock) / 1000)}s)`);
         continue;
       }
-      
+
       // Criar trava
       automationLocks.set(lockKey, now);
       log.info(`[AUTOMATIONS] 🔐 Trava criada para prevenir execução simultânea`);
-      
+
       // Verificar cooldown
       if (await checkCooldown(automation.id, remoteJid, automation.cooldown_segundos)) {
         log.info(`[AUTOMATIONS] Cooldown ativo para automação ${automation.id} e JID ${remoteJid}`);
         automationLocks.delete(lockKey); // Remover trava antes de continuar
         continue;
       }
-      
+
       // Match encontrado! Enviar resposta
       log.success(`[AUTOMATIONS] ✅ Match: "${automation.nome}" para "${text.substring(0, 50)}..."`);
-      
+
       // Aplicar delay se configurado
       if (automation.delay_ms && automation.delay_ms > 0) {
         await new Promise(resolve => setTimeout(resolve, automation.delay_ms));
       }
-      
+
       // Enviar resposta
       try {
         // Verificar se tem imagem configurada
         if (automation.imagem_url && automation.imagem_url.trim()) {
           log.info(`[AUTOMATIONS] Enviando com imagem: ${automation.imagem_url}`);
-          
+
           // Enviar imagem com caption (texto)
-          await safeSendMessage(sock,remoteJid, {
+          await safeSendMessage(sock, remoteJid, {
             image: { url: automation.imagem_url },
             caption: automation.resposta
           });
         } else {
           // Enviar apenas texto
-          await safeSendMessage(sock,remoteJid, { text: automation.resposta });
+          await safeSendMessage(sock, remoteJid, { text: automation.resposta });
         }
-        
+
         log.success(`[AUTOMATIONS] 📤 Mensagem enviada com sucesso!`);
-        
+
         // Registrar uso
         registerAutomationUse(automation.id, remoteJid);
-        log.success(`[AUTOMATIONS] 🔒 Cooldown registrado para ${automation.cooldown_segundos}s (${Math.floor(automation.cooldown_segundos/3600)}h ${Math.floor((automation.cooldown_segundos%3600)/60)}min)`);
-        
+        log.success(`[AUTOMATIONS] 🔒 Cooldown registrado para ${automation.cooldown_segundos}s (${Math.floor(automation.cooldown_segundos / 3600)}h ${Math.floor((automation.cooldown_segundos % 3600) / 60)}min)`);
+
         // Log na API
         logAutomationExecution(automation, remoteJid, text, automation.resposta, grupoId, grupoNome);
-        
+
         // Remover trava após sucesso
         automationLocks.delete(lockKey);
         log.info(`[AUTOMATIONS] 🔓 Trava removida após envio bem-sucedido`);
-        
+
         return true; // Automação executada
       } catch (sendError) {
         log.error(`[AUTOMATIONS] Erro ao enviar resposta: ${sendError.message}`);
-        
+
         // Remover trava em caso de erro
         automationLocks.delete(lockKey);
         log.warn(`[AUTOMATIONS] 🔓 Trava removida após erro`);
-        
+
         // Se falhar com imagem, tentar só texto
         if (automation.imagem_url) {
           try {
             log.warn(`[AUTOMATIONS] Tentando enviar apenas texto após falha de imagem`);
-            await safeSendMessage(sock,remoteJid, { text: automation.resposta });
+            await safeSendMessage(sock, remoteJid, { text: automation.resposta });
             registerAutomationUse(automation.id, remoteJid);
             automationLocks.delete(lockKey); // Garantir remoção
             return true;
@@ -1795,7 +1907,7 @@ async function processAutomations(remoteJid, text, msg) {
         }
       }
     }
-    
+
     return false; // Nenhuma automação correspondeu
   } catch (error) {
     log.error(`[AUTOMATIONS] Erro ao processar: ${error.message}`);
@@ -1828,57 +1940,57 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
   try {
     const command = text.split(' ')[0].toLowerCase();
     const senderJid = msg.key.participant || msg.key.remoteJid;
-    
+
     // Sistema de segurança desabilitado - sem cooldown
-    
+
     log.info(`[GROUP ADMIN] Comando extraído: "${command}" | Texto completo: "${text}"`);
     log.info(`[GROUP ADMIN] RemoteJid: ${remoteJid}`);
-    
+
     // Comando $menu - mostrar menu de comandos (também aceita $help e $ajuda)
     // Este comando funciona em grupos e também em chat privado (para testes)
     if (command === '$menu' || command === '$help' || command === '$ajuda') {
       log.info(`[GROUP ADMIN] Comando $menu detectado!`);
       const menuText = `🤖 *MENU DE COMANDOS DO GRUPO*\n\n` +
-                      `*Comandos de Administração:*\n` +
-                      `• \`$ban @pessoa\` - Banir membro do grupo\n` +
-                      `• \`$kick @pessoa\` - Remover membro do grupo\n` +
-                      `• \`$promote @pessoa\` - Promover a admin\n` +
-                      `• \`$demote @pessoa\` - Remover admin\n` +
-                      `• \`$todos\` ou \`$all\` - Marcar todos os membros\n` +
-                      `• \`$link\` - Obter link do grupo\n` +
-                      `• \`$fechar\` - Fechar grupo (só admins podem falar)\n` +
-                      `• \`$abrir\` - Abrir grupo (todos podem falar)\n\n` +
-                      `*Configurações do Bot:*\n` +
-                      `• \`$antilink on\` - Ativar anti-link\n` +
-                      `• \`$antilink off\` - Desativar anti-link\n` +
-                      `• \`$antilink status\` - Ver status do anti-link\n` +
-                      `• \`$automacao on\` - Ativar automações\n` +
-                      `• \`$automacao off\` - Desativar automações\n` +
-                      `• \`$automacao status\` - Ver status das automações\n\n` +
-                      `*Como usar:*\n` +
-                      `• Marque a pessoa ou responda a mensagem dela\n` +
-                      `• Ou mencione: \`$ban @pessoa\`\n` +
-                      `• Ou digite o número: \`$ban 5511999999999\`\n\n` +
-                      `⚠️ *Atenção:* O bot precisa ser admin do grupo para executar comandos de administração.`;
-      
+        `*Comandos de Administração:*\n` +
+        `• \`$ban @pessoa\` - Banir membro do grupo\n` +
+        `• \`$kick @pessoa\` - Remover membro do grupo\n` +
+        `• \`$promote @pessoa\` - Promover a admin\n` +
+        `• \`$demote @pessoa\` - Remover admin\n` +
+        `• \`$todos\` ou \`$all\` - Marcar todos os membros\n` +
+        `• \`$link\` - Obter link do grupo\n` +
+        `• \`$fechar\` - Fechar grupo (só admins podem falar)\n` +
+        `• \`$abrir\` - Abrir grupo (todos podem falar)\n\n` +
+        `*Configurações do Bot:*\n` +
+        `• \`$antilink on\` - Ativar anti-link\n` +
+        `• \`$antilink off\` - Desativar anti-link\n` +
+        `• \`$antilink status\` - Ver status do anti-link\n` +
+        `• \`$automacao on\` - Ativar automações\n` +
+        `• \`$automacao off\` - Desativar automações\n` +
+        `• \`$automacao status\` - Ver status das automações\n\n` +
+        `*Como usar:*\n` +
+        `• Marque a pessoa ou responda a mensagem dela\n` +
+        `• Ou mencione: \`$ban @pessoa\`\n` +
+        `• Ou digite o número: \`$ban 5511999999999\`\n\n` +
+        `⚠️ *Atenção:* O bot precisa ser admin do grupo para executar comandos de administração.`;
+
       log.info(`[GROUP ADMIN] Retornando menu com ${menuText.length} caracteres`);
       return { success: true, message: menuText };
     }
-    
+
     const isGroup = isGroupJid(remoteJid);
     if (!isGroup) {
       return { success: false, message: '❌ Este comando só funciona em grupos.' };
     }
-    
+
     // Verificar se a mensagem é uma resposta ou está marcada (para identificar o alvo)
     const extendedText = msg.message?.extendedTextMessage;
     const contextInfo = extendedText?.contextInfo;
     const quotedMessage = contextInfo?.quotedMessage;
     const quotedParticipant = contextInfo?.participant || quotedMessage?.participant;
-    
+
     // Verificar se há menções na mensagem (@pessoa)
     const mentionedJids = contextInfo?.mentionedJid || [];
-    
+
     // Log detalhado para debug
     log.info(`[GROUP ADMIN] Command: ${command}`);
     log.info(`[GROUP ADMIN] ExtendedText existe: ${!!extendedText}`);
@@ -1891,15 +2003,15 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
     } : 'null')}`);
     log.info(`[GROUP ADMIN] QuotedParticipant: ${quotedParticipant || 'não encontrado'}`);
     log.info(`[GROUP ADMIN] Mentions: ${mentionedJids.length} (${JSON.stringify(mentionedJids)})`);
-    
+
     // Prioridade: 1. Mensagem marcada/respondida (participant do contextInfo), 2. Menção @, 3. Número digitado
     let targetJid = quotedParticipant;
-    
+
     if (!targetJid && mentionedJids.length > 0) {
       targetJid = mentionedJids[0]; // Pegar a primeira menção
       log.info(`[GROUP ADMIN] Usando menção: ${targetJid}`);
     }
-    
+
     // Se não tem resposta nem menção, verificar se digitou um número
     if (!targetJid) {
       const args = text.split(' ').slice(1);
@@ -1913,9 +2025,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         }
       }
     }
-    
+
     log.info(`[GROUP ADMIN] TargetJid final: ${targetJid || 'não encontrado'}`);
-    
+
     // Obter metadata do grupo
     let groupMetadata;
     try {
@@ -1924,64 +2036,64 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
       log.error(`[GROUP ADMIN] Erro ao obter metadata: ${e.message}`);
       return { success: false, message: '❌ Erro ao obter informações do grupo.' };
     }
-    
+
     log.info(`[GROUP ADMIN] Grupo: ${groupMetadata.subject}, Total participantes: ${groupMetadata.participants.length}`);
-    
+
     // Verificar se quem enviou é admin
     // Como o WhatsApp usa LIDs, vamos verificar pelo participant da mensagem diretamente
     const senderIsAdmin = groupMetadata.participants.some(p => {
       // Comparar diretamente o JID do sender com os participantes
-      const match = p.id === senderJid || 
-                    p.id.split('@')[0] === senderJid.split('@')[0] ||
-                    p.id.includes(senderJid.split('@')[0].split(':')[0]);
+      const match = p.id === senderJid ||
+        p.id.split('@')[0] === senderJid.split('@')[0] ||
+        p.id.includes(senderJid.split('@')[0].split(':')[0]);
       return match && (p.admin === 'admin' || p.admin === 'superadmin');
     });
-    
+
     log.info(`[GROUP ADMIN] Sender JID: ${senderJid}, é admin: ${senderIsAdmin}`);
-    
+
     if (!senderIsAdmin) {
       return { success: false, message: '❌ Apenas admins do grupo podem usar este comando.' };
     }
-    
+
     // Nota: A verificação se o BOT é admin será feita pela própria ação
     // Se o bot não for admin, o WhatsApp retornará erro que será capturado
-    
+
     switch (command) {
       case '$ban':
       case '$kick':
       case '$remover': {
         if (!targetJid) {
-          return { 
-            success: false, 
+          return {
+            success: false,
             message: '❌ *Como usar o $ban:*\n\n• Marque a mensagem da pessoa e digite: $ban\n• Ou mencione: $ban @pessoa\n• Ou digite: $ban 5511999999999\n\n_💡 Dica: Marque a mensagem da pessoa e digite apenas $ban_'
           };
         }
-        
+
         // Não permitir banir admin
         const targetNumber = targetJid.split('@')[0].split(':')[0];
         const targetIsAdmin = groupMetadata.participants.some(p => {
           const participantNumber = p.id.split('@')[0].split(':')[0];
           return participantNumber === targetNumber && (p.admin === 'admin' || p.admin === 'superadmin');
         });
-        
+
         if (targetIsAdmin) {
           return { success: false, message: '❌ Não é possível banir um admin do grupo.' };
         }
-        
+
         // Não permitir banir a si mesmo
         if (targetJid === senderJid) {
           return { success: false, message: '❌ Você não pode se banir.' };
         }
-        
+
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'remove');
           log.success(`[GROUP] Usuário ${targetNumber} banido do grupo ${groupMetadata.subject}`);
-          
+
           // Deletar a mensagem marcada se existir
           if (contextInfo && contextInfo.stanzaId) {
             try {
               log.info(`[GROUP] Tentando deletar mensagem: ${contextInfo.stanzaId}, participant: ${contextInfo.participant}`);
-              
+
               // Para mensagens em grupo, precisamos do participant
               const deleteKey = {
                 remoteJid: remoteJid,
@@ -1989,13 +2101,13 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
                 id: contextInfo.stanzaId,
                 participant: contextInfo.participant || targetJid
               };
-              
+
               log.info(`[GROUP] Delete key: ${JSON.stringify(deleteKey)}`);
-              
-              await safeSendMessage(sock,remoteJid, {
+
+              await safeSendMessage(sock, remoteJid, {
                 delete: deleteKey
               });
-              
+
               log.success(`[GROUP] Mensagem deletada com sucesso: ${contextInfo.stanzaId}`);
             } catch (deleteError) {
               // Não falhar o ban se a deleção falhar, apenas logar
@@ -2005,9 +2117,9 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           } else {
             log.info(`[GROUP] Mensagem não será deletada - contextInfo: ${!!contextInfo}, stanzaId: ${contextInfo?.stanzaId}`);
           }
-          
-          return { 
-            success: true, 
+
+          return {
+            success: true,
             message: `✅ Usuário @${targetNumber} foi removido do grupo.`,
             mentions: [targetJid]
           };
@@ -2019,22 +2131,22 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           return { success: false, message: '❌ Erro ao remover usuário: ' + e.message };
         }
       }
-      
+
       case '$promote':
       case '$promover': {
         if (!targetJid) {
-          return { 
-            success: false, 
-            message: '❌ *Como usar o $promote:*\n\n• Responda a mensagem da pessoa\n• Ou marque: $promote @pessoa\n• Ou digite: $promote 5511999999999' 
+          return {
+            success: false,
+            message: '❌ *Como usar o $promote:*\n\n• Responda a mensagem da pessoa\n• Ou marque: $promote @pessoa\n• Ou digite: $promote 5511999999999'
           };
         }
-        
+
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'promote');
           const promoteNumber = targetJid.split('@')[0];
           log.success(`[GROUP] Usuário ${promoteNumber} promovido a admin`);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `✅ @${promoteNumber} agora é admin do grupo!`,
             mentions: [targetJid]
           };
@@ -2045,22 +2157,22 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           return { success: false, message: '❌ Erro ao promover: ' + e.message };
         }
       }
-      
+
       case '$demote':
       case '$rebaixar': {
         if (!targetJid) {
-          return { 
-            success: false, 
-            message: '❌ *Como usar o $demote:*\n\n• Responda a mensagem do admin\n• Ou marque: $demote @pessoa\n• Ou digite: $demote 5511999999999' 
+          return {
+            success: false,
+            message: '❌ *Como usar o $demote:*\n\n• Responda a mensagem do admin\n• Ou marque: $demote @pessoa\n• Ou digite: $demote 5511999999999'
           };
         }
-        
+
         try {
           await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'demote');
           const demoteNumber = targetJid.split('@')[0];
           log.success(`[GROUP] Admin ${demoteNumber} rebaixado`);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `✅ @${demoteNumber} não é mais admin.`,
             mentions: [targetJid]
           };
@@ -2071,24 +2183,24 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           return { success: false, message: '❌ Erro ao rebaixar: ' + e.message };
         }
       }
-      
+
       case '$licenca':
       case '$license':
       case '$key': {
         // Sistema de licenças de grupos
         const args = text.split(' ').slice(1);
         const subCommand = args[0]?.toLowerCase() || 'status';
-        
+
         if (subCommand === 'info' || subCommand === 'ajuda' || subCommand === 'help') {
           const info = await getLicenseInfo();
           return { success: true, message: info.message };
         }
-        
+
         if (subCommand === 'status') {
           const status = await getLicenseStatus(remoteJid);
           return { success: true, message: status.message };
         }
-        
+
         // Tentar ativar licença com a chave fornecida
         const licenseKey = subCommand.toUpperCase();
         if (licenseKey && licenseKey.length >= 10) {
@@ -2096,22 +2208,22 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           try {
             const metadata = await sock.groupMetadata(remoteJid);
             groupName = metadata?.subject || '';
-          } catch (e) {}
-          
+          } catch (e) { }
+
           const result = await activateGroupLicense(remoteJid, groupName, licenseKey);
           return { success: result.success, message: result.message };
         }
-        
-        return { 
-          success: false, 
+
+        return {
+          success: false,
           message: '🔑 *COMANDOS DE LICENÇA*\n\n' +
-                   '`$licenca` - Ver status atual\n' +
-                   '`$licenca SUA-CHAVE` - Ativar licença\n' +
-                   '`$licenca info` - Mais informações\n\n' +
-                   '_Adquira sua licença com o administrador._'
+            '`$licenca` - Ver status atual\n' +
+            '`$licenca SUA-CHAVE` - Ativar licença\n' +
+            '`$licenca info` - Mais informações\n\n' +
+            '_Adquira sua licença com o administrador._'
         };
       }
-      
+
       case '$todos':
       case '$all':
       case '$marcar': {
@@ -2120,33 +2232,33 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
         const mentionText = groupMetadata.participants
           .map(p => `@${p.id.split('@')[0]}`)
           .join(' ');
-        
+
         // Texto adicional após o comando
         const extraText = text.replace(/^\$(todos|all|marcar)\s*/i, '').trim();
-        const finalText = extraText 
+        const finalText = extraText
           ? `📢 *${extraText}*\n\n${mentionText}`
           : `📢 *Atenção todos!*\n\n${mentionText}`;
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           message: finalText,
           mentions: mentions
         };
       }
-      
+
       case '$link': {
         // Obter link do grupo
         try {
           const inviteCode = await sock.groupInviteCode(remoteJid);
-          return { 
-            success: true, 
-            message: `🔗 *Link do Grupo*\n\nhttps://chat.whatsapp.com/${inviteCode}` 
+          return {
+            success: true,
+            message: `🔗 *Link do Grupo*\n\nhttps://chat.whatsapp.com/${inviteCode}`
           };
         } catch (e) {
           return { success: false, message: '❌ Erro ao obter link: ' + e.message };
         }
       }
-      
+
       case '$fechar':
       case '$close': {
         // Fechar grupo (só admins podem enviar)
@@ -2160,7 +2272,7 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           return { success: false, message: '❌ Erro ao fechar grupo: ' + e.message };
         }
       }
-      
+
       case '$abrir':
       case '$open': {
         // Abrir grupo (todos podem enviar)
@@ -2174,36 +2286,36 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
           return { success: false, message: '❌ Erro ao abrir grupo: ' + e.message };
         }
       }
-      
+
       case '$antilink': {
         // Configurar anti-link no grupo
         const args = text.split(' ').slice(1);
         const action = args[0]?.toLowerCase();
-        
+
         if (!action || !['on', 'off', 'status'].includes(action)) {
           const currentStatus = antilinkGroups.get(remoteJid);
-          return { 
-            success: false, 
+          return {
+            success: false,
             message: `🔗 *Anti-Link*\n\n` +
-                     `Status atual: ${currentStatus?.enabled ? '✅ Ativado' : '❌ Desativado'}\n\n` +
-                     `*Como usar:*\n` +
-                     `• $antilink on - Ativar\n` +
-                     `• $antilink off - Desativar\n` +
-                     `• $antilink status - Ver status`
+              `Status atual: ${currentStatus?.enabled ? '✅ Ativado' : '❌ Desativado'}\n\n` +
+              `*Como usar:*\n` +
+              `• $antilink on - Ativar\n` +
+              `• $antilink off - Desativar\n` +
+              `• $antilink status - Ver status`
           };
         }
-        
+
         if (action === 'status') {
           const config = antilinkGroups.get(remoteJid);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `🔗 *Status Anti-Link*\n\n` +
-                     `Grupo: ${groupMetadata.subject}\n` +
-                     `Status: ${config?.enabled ? '✅ Ativado' : '❌ Desativado'}\n\n` +
-                     `_Quando ativado, membros que enviarem links serão removidos automaticamente._`
+              `Grupo: ${groupMetadata.subject}\n` +
+              `Status: ${config?.enabled ? '✅ Ativado' : '❌ Desativado'}\n\n` +
+              `_Quando ativado, membros que enviarem links serão removidos automaticamente._`
           };
         }
-        
+
         if (action === 'on') {
           antilinkGroups.set(remoteJid, { enabled: true, allowAdmins: true });
           // Salvar no banco de dados
@@ -2214,15 +2326,15 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
             automationsEnabled: !isAutomationDisabled
           });
           log.success(`[ANTILINK] Ativado no grupo ${groupMetadata.subject}`);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `✅ *Anti-Link Ativado!*\n\n` +
-                     `Membros que enviarem links serão removidos automaticamente.\n\n` +
-                     `⚠️ _Admins podem enviar links normalmente._\n\n` +
-                     `💾 _Configuração salva permanentemente._`
+              `Membros que enviarem links serão removidos automaticamente.\n\n` +
+              `⚠️ _Admins podem enviar links normalmente._\n\n` +
+              `💾 _Configuração salva permanentemente._`
           };
         }
-        
+
         if (action === 'off') {
           antilinkGroups.set(remoteJid, { enabled: false, allowAdmins: true });
           // Salvar no banco de dados
@@ -2233,47 +2345,47 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
             automationsEnabled: !isAutomationDisabled
           });
           log.success(`[ANTILINK] Desativado no grupo ${groupMetadata.subject}`);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `❌ *Anti-Link Desativado!*\n\n` +
-                     `Membros podem enviar links normalmente.\n\n` +
-                     `💾 _Configuração salva permanentemente._`
+              `Membros podem enviar links normalmente.\n\n` +
+              `💾 _Configuração salva permanentemente._`
           };
         }
-        
+
         return null;
       }
-      
+
       case '$automacao':
       case '$automacoes': {
         // Ativar/desativar automações no grupo
         const argsAuto = text.split(' ').slice(1);
         const actionAuto = argsAuto[0]?.toLowerCase();
-        
+
         if (!actionAuto || !['on', 'off', 'status'].includes(actionAuto)) {
           const isDisabled = disabledAutomationGroups.has(remoteJid);
-          return { 
-            success: false, 
+          return {
+            success: false,
             message: `🤖 *Automações do Grupo*\n\n` +
-                     `Status atual: ${isDisabled ? '❌ Desativadas' : '✅ Ativadas'}\n\n` +
-                     `*Como usar:*\n` +
-                     `• $automacao on - Ativar automações\n` +
-                     `• $automacao off - Desativar automações\n` +
-                     `• $automacao status - Ver status`
+              `Status atual: ${isDisabled ? '❌ Desativadas' : '✅ Ativadas'}\n\n` +
+              `*Como usar:*\n` +
+              `• $automacao on - Ativar automações\n` +
+              `• $automacao off - Desativar automações\n` +
+              `• $automacao status - Ver status`
           };
         }
-        
+
         if (actionAuto === 'status') {
           const isDisabled = disabledAutomationGroups.has(remoteJid);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `🤖 *Status das Automações*\n\n` +
-                     `Grupo: ${groupMetadata.subject}\n` +
-                     `Status: ${isDisabled ? '❌ Desativadas' : '✅ Ativadas'}\n\n` +
-                     `_Quando desativadas, o bot não responde automaticamente neste grupo._`
+              `Grupo: ${groupMetadata.subject}\n` +
+              `Status: ${isDisabled ? '❌ Desativadas' : '✅ Ativadas'}\n\n` +
+              `_Quando desativadas, o bot não responde automaticamente neste grupo._`
           };
         }
-        
+
         if (actionAuto === 'on') {
           disabledAutomationGroups.delete(remoteJid);
           // Salvar no banco de dados
@@ -2284,14 +2396,14 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
             automationsEnabled: true
           });
           log.success(`[AUTOMACAO] Ativadas no grupo ${groupMetadata.subject}`);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `✅ *Automações Ativadas!*\n\n` +
-                     `O bot agora responderá às automações configuradas neste grupo.\n\n` +
-                     `💾 _Configuração salva permanentemente._`
+              `O bot agora responderá às automações configuradas neste grupo.\n\n` +
+              `💾 _Configuração salva permanentemente._`
           };
         }
-        
+
         if (actionAuto === 'off') {
           disabledAutomationGroups.add(remoteJid);
           // Salvar no banco de dados
@@ -2302,18 +2414,18 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
             automationsEnabled: false
           });
           log.success(`[AUTOMACAO] Desativadas no grupo ${groupMetadata.subject}`);
-          return { 
-            success: true, 
+          return {
+            success: true,
             message: `❌ *Automações Desativadas!*\n\n` +
-                     `O bot não responderá mais automaticamente neste grupo.\n\n` +
-                     `_Comandos ($ban, $antilink, etc) continuam funcionando._\n\n` +
-                     `💾 _Configuração salva permanentemente._`
+              `O bot não responderá mais automaticamente neste grupo.\n\n` +
+              `_Comandos ($ban, $antilink, etc) continuam funcionando._\n\n` +
+              `💾 _Configuração salva permanentemente._`
           };
         }
-        
+
         return null;
       }
-      
+
       default:
         return null; // Não é um comando de admin de grupo
     }
@@ -2328,18 +2440,18 @@ async function processGroupAdminCommand(remoteJid, text, msg) {
 async function processAdminCommand(from, text, msg = null) {
   try {
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
-    
+
     // Detectar qual projeto pelo prefixo
     const prefix = text.charAt(0);
     const isFinanceiro = prefix === '!';
     const isRastreamento = prefix === '/';
-    
+
     // Sistema de segurança desabilitado - sem cooldown
-    
+
     // Verificar se é comando de admin de grupo primeiro (prefixo $)
     const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes', '$menu', '$help', '$ajuda', '$licenca', '$license', '$key'];
     const commandLower = text.split(' ')[0].toLowerCase();
-    
+
     if (msg && groupAdminCommands.includes(commandLower)) {
       log.info(`[GROUP ADMIN] Comando de grupo detectado: ${commandLower}`);
       const result = await processGroupAdminCommand(from, text, msg);
@@ -2347,23 +2459,23 @@ async function processAdminCommand(from, text, msg = null) {
         return result;
       }
     }
-    
+
     const apiUrl = isFinanceiro ? FINANCEIRO_API_URL : RASTREAMENTO_API_URL;
     const apiToken = isFinanceiro ? FINANCEIRO_TOKEN : RASTREAMENTO_TOKEN;
     const projectName = isFinanceiro ? 'Financeiro' : 'Rastreamento';
-    
+
     log.info(`[${projectName}] Comando de ${fromNumber}: ${text}`);
-    log.info(`[${projectName}] Usando token: ${apiToken.substring(0,4)}***`);
-    
+    log.info(`[${projectName}] Usando token: ${apiToken.substring(0, 4)}***`);
+
     const parts = text.trim().split(/\s+/);
     const commandWithPrefix = parts[0].toLowerCase(); // Manter o prefixo ! ou /
     const commandWithoutPrefix = parts[0].substring(1).toLowerCase(); // Sem prefixo
     const params = parts.slice(1);
-    
+
     // Site-financeiro espera COM prefixo (!menu)
     // Site-rastreamento espera SEM prefixo (menu)
     const commandToSend = isFinanceiro ? commandWithPrefix : commandWithoutPrefix;
-    
+
     // Se for comando !menu do financeiro, enviar poll interativa (com fallback)
     if (isFinanceiro && commandWithPrefix === '!menu') {
       try {
@@ -2379,7 +2491,7 @@ async function processAdminCommand(from, text, msg = null) {
             '📋 Ver tarefas',
             '❓ Ver menu completo'
           ];
-          
+
           // Mapeamento de comandos para o contexto
           const commandMap = {
             0: '!saldo',
@@ -2388,9 +2500,9 @@ async function processAdminCommand(from, text, msg = null) {
             3: '!tarefas',
             4: '!menu'
           };
-          
+
           log.info(`[${projectName}] Tentando enviar poll para ${from}`);
-          
+
           try {
             const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions, {
               type: 'menu_principal',
@@ -2410,7 +2522,7 @@ async function processAdminCommand(from, text, msg = null) {
         // Fallback: enviar para API normalmente
       }
     }
-    
+
     // Se for comando !comprovante do financeiro, aguardar foto
     if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
       const transactionId = params[0];
@@ -2419,31 +2531,31 @@ async function processAdminCommand(from, text, msg = null) {
         isFinanceiro: true,
         timestamp: Date.now()
       });
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: '📸 Envie o comprovante agora (foto ou documento)',
         waiting_photo: true,
         photo_transaction_id: transactionId
       };
     }
-    
+
     // Preparar payload da requisição
-    const requestPayload = { 
+    const requestPayload = {
       command: commandToSend,
-      params, 
+      params,
       args: params, // Compatibilidade com site-financeiro
       from: fromNumber,
       phone: fromNumber, // Compatibilidade com site-financeiro
       message: text // Compatibilidade com site-financeiro
     };
-    
+
     // Se for comando de tarefas, incluir flag para retornar subtarefas
     if (commandToSend === '!tarefas' || commandToSend === 'tarefas') {
       requestPayload.include_subtasks = true;
       log.info(`[${projectName}] Comando tarefas detectado - solicitando subtarefas`);
       log.info(`[${projectName}] DEBUG - Payload completo: ${JSON.stringify(requestPayload).substring(0, 300)}`);
     }
-    
+
     const response = await axios.post(
       `${apiUrl}/admin_bot_api.php`,
       requestPayload,
@@ -2455,9 +2567,9 @@ async function processAdminCommand(from, text, msg = null) {
         timeout: 30000
       }
     );
-    
+
     const result = response.data;
-    
+
     // Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
     if (result.waiting_photo) {
       if (result.photo_codigo) {
@@ -2475,15 +2587,15 @@ async function processAdminCommand(from, text, msg = null) {
           timestamp: Date.now()
         });
       }
-      
+
       setTimeout(() => {
         waitingPhoto.delete(from);
       }, 5 * 60 * 1000);
     }
-    
+
     // Atualizar heartbeat
     lastHeartbeat = Date.now();
-    
+
     return result;
   } catch (error) {
     log.error(`Erro comando: ${error.message}`);
@@ -2501,15 +2613,15 @@ async function processPhotoUpload(from, msg) {
   try {
     const waiting = waitingPhoto.get(from);
     if (!waiting) return false;
-    
+
     if (Date.now() - waiting.timestamp > 5 * 60 * 1000) {
       waitingPhoto.delete(from);
       return false;
     }
-    
+
     const imageMessage = msg.message.imageMessage || msg.message.documentMessage;
     if (!imageMessage) return false;
-    
+
     // Download da mídia usando downloadMediaMessage
     const stream = await downloadMediaMessage(msg, 'buffer', {}, { logger: pino({ level: 'silent' }) });
     const chunks = [];
@@ -2517,10 +2629,10 @@ async function processPhotoUpload(from, msg) {
       chunks.push(chunk);
     }
     const buffer = Buffer.concat(chunks);
-    
+
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     const form = new FormData();
-    
+
     // Determinar qual formato usar (rastreamento ou financeiro)
     if (waiting.isFinanceiro && waiting.transactionId) {
       // Formato financeiro
@@ -2531,7 +2643,7 @@ async function processPhotoUpload(from, msg) {
       });
       form.append('transaction_id', waiting.transactionId);
       form.append('phone', fromNumber);
-      
+
       const response = await axios.post(
         `${FINANCEIRO_API_URL}/admin_bot_photo.php`,
         form,
@@ -2543,15 +2655,15 @@ async function processPhotoUpload(from, msg) {
           timeout: 30000
         }
       );
-      
+
       waitingPhoto.delete(from);
-      
+
       if (response.data.success) {
-        await safeSendMessage(sock,from, { 
+        await safeSendMessage(sock, from, {
           text: `✅ Comprovante anexado ao ID #${waiting.transactionId}`
         });
       } else {
-        await safeSendMessage(sock,from, { 
+        await safeSendMessage(sock, from, {
           text: `❌ Erro ao anexar comprovante: ${response.data.error || 'Erro desconhecido'}`
         });
       }
@@ -2564,7 +2676,7 @@ async function processPhotoUpload(from, msg) {
       form.append('codigo', waiting.codigo);
       form.append('from', fromNumber);
       form.append('token', RASTREAMENTO_TOKEN);
-      
+
       const response = await axios.post(
         `${RASTREAMENTO_API_URL}/admin_bot_photo.php`,
         form,
@@ -2576,30 +2688,30 @@ async function processPhotoUpload(from, msg) {
           timeout: 30000
         }
       );
-      
+
       waitingPhoto.delete(from);
-      
-      await safeSendMessage(sock,from, { 
+
+      await safeSendMessage(sock, from, {
         text: response.data.message || '✅ Foto recebida e anexada ao pedido!'
       });
     } else {
       waitingPhoto.delete(from);
-      await safeSendMessage(sock,from, { 
+      await safeSendMessage(sock, from, {
         text: '❌ Erro: formato de upload não reconhecido'
       });
       return true;
     }
-    
+
     lastHeartbeat = Date.now();
     return true;
   } catch (error) {
     log.error(`Erro foto: ${error.message}`);
     waitingPhoto.delete(from);
-    
-    await safeSendMessage(sock,from, { 
+
+    await safeSendMessage(sock, from, {
       text: '❌ Erro ao processar a foto. Tente novamente.'
     });
-    
+
     return true;
   }
 }
@@ -2608,25 +2720,25 @@ async function processPhotoUpload(from, msg) {
 async function start() {
   try {
     log.info('Iniciando conexão com WhatsApp...');
-    
+
     const { version, isLatest } = await fetchLatestBaileysVersion();
     log.info(`WhatsApp Web version: ${version?.join('.')} (latest=${isLatest})`);
 
     const { state, saveCreds } = await useMultiFileAuthState('./auth');
-    
+
     // Logger personalizado que silencia TUDO do Baileys
     const silentLogger = pino({
       level: 'silent',
       enabled: false
     });
     silentLogger.child = () => silentLogger;
-    silentLogger.trace = () => {};
-    silentLogger.debug = () => {};
-    silentLogger.info = () => {};
-    silentLogger.warn = () => {};
-    silentLogger.error = () => {};
-    silentLogger.fatal = () => {};
-    
+    silentLogger.trace = () => { };
+    silentLogger.debug = () => { };
+    silentLogger.info = () => { };
+    silentLogger.warn = () => { };
+    silentLogger.error = () => { };
+    silentLogger.fatal = () => { };
+
     sock = makeWASocket({
       auth: state,
       logger: silentLogger,
@@ -2666,9 +2778,9 @@ async function start() {
         const dbgText = dbgMsg.message?.conversation || dbgMsg.message?.extendedTextMessage?.text || `[tipos: ${msgTypes}]`;
         log.info(`🔵 [HANDLER-POLL] Msg de ${dbgJid.split('@')[0]}: "${dbgText.substring(0, 50)}" | fromMe=${dbgMsg.key?.fromMe}`);
       }
-      
+
       if (!isReady || !sock) return;
-      
+
       try {
         const messages = m.messages || [];
         for (const msg of messages) {
@@ -2676,30 +2788,30 @@ async function start() {
           if (msg.message?.pollUpdateMessage) {
             const pollUpdate = msg.message.pollUpdateMessage;
             const pollMessage = pollUpdate.pollCreationMessageKey;
-            
+
             if (!pollMessage || !pollMessage.id) {
               continue;
             }
-            
+
             const messageId = pollMessage.id;
             const pollJid = pollMessage.remoteJid || msg.key?.remoteJid; // JID do destino da poll
             const voterJid = msg.key?.remoteJid; // JID de quem votou (quem enviou o voto)
-            
+
             if (!pollJid || typeof pollJid !== 'string' || isGroupJid(pollJid)) {
               continue; // Ignorar grupos e comunidades
             }
-            
+
             if (!voterJid || typeof voterJid !== 'string' || isGroupJid(voterJid)) {
               continue; // Ignorar grupos e comunidades
             }
-            
+
             const phoneNumber = voterJid.split('@')[0];
             if (!phoneNumber || phoneNumber.length < 10) {
               continue;
             }
-            
+
             log.info(`[POLL] ✅ Voto detectado! messageId: ${messageId}, pollJid: ${pollJid}, voterJid: ${voterJid}`);
-            
+
             // Buscar contexto da poll
             let pollCtx = pollContext.get(messageId);
             if (!pollCtx) {
@@ -2716,7 +2828,7 @@ async function start() {
                 }
               };
             }
-            
+
             // O voto está criptografado (encPayload, encIv)
             // Descriptografar manualmente usando decryptPollVote do Baileys
             try {
@@ -2725,7 +2837,7 @@ async function start() {
                 log.warn(`[POLL] Voto não contém dados de criptografia necessários`);
                 continue;
               }
-              
+
               // Verificar se temos a chave de criptografia da poll
               if (!pollCtx.pollEncKey) {
                 log.warn(`[POLL] pollEncKey não encontrada no contexto, tentando buscar da mensagem...`);
@@ -2733,7 +2845,7 @@ async function start() {
                 try {
                   const fullMessage = await sock.loadMessage(pollJid, messageId);
                   log.info(`[POLL] DEBUG - Buscando pollEncKey da mensagem do store...`);
-                  
+
                   // Tentar messageContextInfo.messageSecret primeiro (conforme código do Baileys)
                   if (fullMessage?.message?.messageContextInfo?.messageSecret) {
                     pollCtx.pollEncKey = Buffer.from(fullMessage.message.messageContextInfo.messageSecret);
@@ -2757,9 +2869,9 @@ async function start() {
                   continue;
                 }
               }
-              
+
               log.info(`[POLL] Tentando descriptografar voto...`);
-              
+
               // Helper para forçar conversão para Buffer (mesmo vindo de JSON ou objetos genéricos)
               const forceBuffer = (data) => {
                 if (!data) return undefined;
@@ -2772,7 +2884,7 @@ async function start() {
                 }
                 return Buffer.from(data);
               };
-              
+
               // Log dos parâmetros antes da descriptografia
               log.info(`[POLL] DEBUG - Parâmetros:`);
               log.info(`[POLL]   pollMsgId: ${messageId}`);
@@ -2781,7 +2893,7 @@ async function start() {
               log.info(`[POLL]   pollEncKey length: ${pollCtx.pollEncKey?.length || 'N/A'}`);
               log.info(`[POLL]   encPayload type: ${typeof vote.encPayload}, isBuffer: ${Buffer.isBuffer(vote.encPayload)}`);
               log.info(`[POLL]   encIv type: ${typeof vote.encIv}, isBuffer: ${Buffer.isBuffer(vote.encIv)}`);
-              
+
               // --- FORÇAR CONVERSÃO PARA BUFFER (CORREÇÃO CRÍTICA) ---
               const rawEncPayload = vote.encPayload;
               const rawEncIv = vote.encIv;
@@ -2790,17 +2902,17 @@ async function start() {
               const finalEncPayload = forceBuffer(rawEncPayload);
               const finalEncIv = forceBuffer(rawEncIv);
               const finalPollKey = forceBuffer(rawPollKey);
-              
+
               console.log(`[POLL] DEBUG CONVERSÃO: Payload é Buffer? ${Buffer.isBuffer(finalEncPayload)}, IV é Buffer? ${Buffer.isBuffer(finalEncIv)}, Key é Buffer? ${Buffer.isBuffer(finalPollKey)}`);
               // -------------------------------------------------------
-              
+
               // Normalizar JIDs para garantir match na descriptografia
               const creatorJidRaw = pollCtx.pollCreatorJid || sock.user?.id || pollJid;
               const creatorJid = jidNormalizedUser ? jidNormalizedUser(creatorJidRaw) : normalizeJidHelper(creatorJidRaw);
               const voterJidNormalized = jidNormalizedUser ? jidNormalizedUser(voterJid) : normalizeJidHelper(voterJid);
-              
+
               console.log(`[POLL] DEBUG JIDS: Creator=${creatorJid}, Voter=${voterJidNormalized}`);
-              
+
               // Descriptografar o voto usando decryptPollVote
               const decryptedVote = decryptPollVote(
                 {
@@ -2814,18 +2926,18 @@ async function start() {
                   voterJid: voterJidNormalized
                 }
               );
-              
+
               log.info(`[POLL] ✅ Voto descriptografado! Dados: ${JSON.stringify(decryptedVote).substring(0, 200)}`);
-              
+
               // Extrair o índice selecionado
               // O voto descriptografado contém selectedOptions que são hashes SHA256 das opções
               // Precisamos comparar com os hashes das opções originais para encontrar o índice
               let selectedOptionIndex = -1;
-              
+
               if (decryptedVote.selectedOptions && decryptedVote.selectedOptions.length > 0) {
                 const selectedHash = Buffer.from(decryptedVote.selectedOptions[0]).toString('hex');
                 log.info(`[POLL] Hash selecionado: ${selectedHash}`);
-                
+
                 // Calcular hash de cada opção e comparar
                 for (let i = 0; i < pollCtx.options.length; i++) {
                   const optionHash = crypto.createHash('sha256').update(pollCtx.options[i]).digest('hex');
@@ -2836,7 +2948,7 @@ async function start() {
                   }
                 }
               }
-              
+
               if (selectedOptionIndex === -1) {
                 // Tentar alternativa: usar selectedOptionIndex diretamente se disponível
                 if (typeof decryptedVote.selectedOptionIndex === 'number') {
@@ -2847,11 +2959,11 @@ async function start() {
                   continue;
                 }
               }
-              
+
               // Processar o voto
               log.info(`[POLL] Processando voto: índice ${selectedOptionIndex}`);
               await processPollVote(messageId, voterJid, selectedOptionIndex, pollCtx);
-              
+
             } catch (decryptError) {
               log.error(`[POLL] ❌ Erro ao descriptografar voto: ${decryptError.message}`);
               if (decryptError.stack) {
@@ -2859,8 +2971,8 @@ async function start() {
               }
               // Fallback: informar usuário
               try {
-                await safeSendMessage(sock,voterJid, { 
-                  text: `❌ Erro ao processar seu voto. Por favor, digite o comando manualmente (ex: !saldo, !receita, etc.)` 
+                await safeSendMessage(sock, voterJid, {
+                  text: `❌ Erro ao processar seu voto. Por favor, digite o comando manualmente (ex: !saldo, !receita, etc.)`
                 });
               } catch (sendError) {
                 log.error(`[POLL] Erro ao enviar mensagem de fallback: ${sendError.message}`);
@@ -2876,9 +2988,9 @@ async function start() {
     // Tratamento de atualizações de polls (quando usuário vota)
     sock.ev.on('messages.update', async (updates) => {
       if (!isReady || !sock) return;
-      
+
       if (!Array.isArray(updates)) return;
-      
+
       for (const update of updates) {
         try {
           // DEBUG: Log completo quando há atualizações para identificar padrões
@@ -2889,12 +3001,12 @@ async function start() {
               log.info(`[POLL] Update recebido - keys: ${updateKeys.join(', ')}`);
             }
           }
-          
+
           // Verificar se é uma atualização de poll - múltiplas formas
           if (!update || !update.update) {
             continue;
           }
-          
+
           // Tentar diferentes formatos de pollUpdate
           let pollUpdate = null;
           if (update.update.pollUpdate) {
@@ -2904,52 +3016,52 @@ async function start() {
           } else if (update.update.message?.pollUpdateMessage) {
             pollUpdate = update.update.message.pollUpdateMessage;
           }
-          
+
           if (!pollUpdate) {
             continue;
           }
-          
+
           log.info(`[POLL] ✅ PollUpdate detectado!`);
           log.info(`[POLL] pollUpdate keys: ${Object.keys(pollUpdate).join(', ')}`);
           log.info(`[POLL] pollUpdate completo: ${JSON.stringify(pollUpdate).substring(0, 500)}`);
-          
+
           // Tentar diferentes formas de obter a chave da mensagem
           const pollMessage = pollUpdate.pollCreationMessageKey || pollUpdate.pollCreationMessage || pollUpdate.messageKey;
-          
+
           // Validações para evitar crashes
           if (!pollMessage || !pollMessage.id) {
             log.warn(`[POLL] pollCreationMessageKey ou ID não encontrado`);
             continue;
           }
-          
+
           const messageId = pollMessage.id;
           const jid = pollMessage.remoteJid || update.key?.remoteJid;
-          
+
           log.info(`[POLL] messageId: ${messageId}, jid: ${jid}`);
-          
+
           if (!jid || typeof jid !== 'string' || isGroupJid(jid)) {
             log.warn(`[POLL] JID inválido, grupo ou comunidade: ${jid}`);
             continue; // Ignorar grupos, comunidades e JIDs inválidos
           }
-          
+
           const phoneNumber = jid.split('@')[0];
           if (!phoneNumber || phoneNumber.length < 10) {
             log.warn(`[POLL] Número de telefone inválido: ${phoneNumber}`);
             continue; // Ignorar números inválidos
           }
-          
+
           // Obter informações do voto
           const pollVote = pollUpdate.vote;
           log.info(`[POLL] pollVote: ${pollVote ? JSON.stringify(pollVote).substring(0, 200) : 'null'}`);
-          
+
           if (!pollVote) {
             log.warn(`[POLL] pollVote não encontrado no pollUpdate`);
             continue;
           }
-          
+
           // Tentar diferentes formatos de selectedOptions
           let selectedOptionIndex = null;
-          
+
           if (pollVote.selectedOptions && Array.isArray(pollVote.selectedOptions) && pollVote.selectedOptions.length > 0) {
             selectedOptionIndex = pollVote.selectedOptions[0];
           } else if (pollVote.selectedOption !== undefined) {
@@ -2960,23 +3072,23 @@ async function start() {
             log.warn(`[POLL] Formato de voto não reconhecido: ${JSON.stringify(pollVote)}`);
             continue;
           }
-          
+
           // Validar índice selecionado
           if (typeof selectedOptionIndex !== 'number' || selectedOptionIndex < 0 || selectedOptionIndex > 11) {
             log.warn(`[POLL] Índice de voto inválido: ${selectedOptionIndex}`);
             continue;
           }
-          
+
           // ANTI-LOOP: Verificar se já processamos este voto
           const voteKey = `${messageId}-${selectedOptionIndex}-${jid}`;
           if (processedVotes.has(voteKey)) {
             log.info(`[POLL] Voto já processado, ignorando duplicado: ${voteKey}`);
             continue;
           }
-          
+
           // ANTI-LOOP: Marcar voto como processado
           processedVotes.set(voteKey, Date.now());
-          
+
           // STATE MANAGEMENT: Buscar contexto da poll (tentar do contexto ou do voto pendente)
           let pollCtx = pollContext.get(messageId);
           if (!pollCtx) {
@@ -3002,14 +3114,14 @@ async function start() {
               };
             }
           }
-          
+
           // Remover voto pendente se encontramos o contexto
           if (pendingPollVotes.has(messageId)) {
             pendingPollVotes.delete(messageId);
           }
-          
+
           log.info(`[POLL] ✅ Usuário ${phoneNumber} votou na opção ${selectedOptionIndex} (poll: ${pollCtx.type})`);
-          
+
           // Mapear opção para comando usando o contexto
           const command = pollCtx.commandMap && pollCtx.commandMap[selectedOptionIndex];
           if (!command) {
@@ -3017,9 +3129,9 @@ async function start() {
             log.warn(`[POLL] commandMap disponível: ${JSON.stringify(pollCtx.commandMap)}`);
             continue;
           }
-          
+
           log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
-          
+
           // Processar comando automaticamente
           try {
             const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
@@ -3038,11 +3150,11 @@ async function start() {
               },
               timeout: 30000
             });
-            
+
             log.info(`[POLL] Resposta da API recebida: ${JSON.stringify(apiResponse.data).substring(0, 200)}`);
-            
+
             if (apiResponse && apiResponse.data && apiResponse.data.message) {
-              await safeSendMessage(sock,jid, { text: apiResponse.data.message });
+              await safeSendMessage(sock, jid, { text: apiResponse.data.message });
               log.success(`[POLL] ✅ Comando ${command} executado via poll (${pollCtx.type})`);
             } else {
               log.warn(`[POLL] API não retornou mensagem na resposta`);
@@ -3053,8 +3165,8 @@ async function start() {
               log.error(`[POLL] Resposta de erro: ${JSON.stringify(apiError.response.data)}`);
             }
             try {
-              await safeSendMessage(sock,jid, { 
-                text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.` 
+              await safeSendMessage(sock, jid, {
+                text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.`
               });
             } catch (sendError) {
               log.error(`[POLL] Erro ao enviar mensagem de erro: ${sendError.message}`);
@@ -3078,7 +3190,7 @@ async function start() {
         qrcode.generate(qr, { small: true });
         log.info(`QR Code gerado - Acesse http://localhost:${PORT}/qr`);
       }
-      
+
       // Log de estados intermediários para debug
       if (connection === 'connecting') {
         log.info('🔄 Reconectando...');
@@ -3093,13 +3205,13 @@ async function start() {
         connectionStartTime = Date.now();
         lastHeartbeat = Date.now();
         lastQR = null;              // Limpar QR antigo
-        
+
         log.success('✅ Conectado ao WhatsApp com sucesso!');
-        log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL/1000}s | Ping: ${PING_INTERVAL/1000}s`);
-        
+        log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL / 1000}s | Ping: ${PING_INTERVAL / 1000}s`);
+
         startHeartbeat();
         startPing();
-        
+
         // Carregar automações e configurações
         log.info('[AUTOMATIONS] Carregando automações e configurações...');
         loadBotSettings().then(() => {
@@ -3107,14 +3219,14 @@ async function start() {
         }).catch(err => {
           log.warn(`[AUTOMATIONS] Erro ao carregar configurações: ${err.message}`);
         });
-        
+
         // Carregar configurações de grupos (antilink, automações por grupo)
         loadGroupSettings().then(() => {
           log.success('[GROUP SETTINGS] Configurações de grupos carregadas!');
         }).catch(err => {
           log.warn(`[GROUP SETTINGS] Erro ao carregar: ${err.message}`);
         });
-        
+
         loadAutomations().then(autos => {
           log.success(`[AUTOMATIONS] ${autos.length} automações prontas!`);
         }).catch(err => {
@@ -3125,47 +3237,47 @@ async function start() {
       if (connection === 'close') {
         isReady = false;
         stopHeartbeat();
-        
+
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const errorMessage = lastDisconnect?.error?.message || '';
-        const shouldReconnect = statusCode !== DisconnectReason.loggedOut && 
-                                statusCode !== 401 && 
-                                statusCode !== 405;
-        
+        const shouldReconnect = statusCode !== DisconnectReason.loggedOut &&
+          statusCode !== 401 &&
+          statusCode !== 405;
+
         let reason = '';
         switch (statusCode) {
           case DisconnectReason.loggedOut:
-          case 401: 
-            reason = 'Sessão deslogada. Apague ./auth e escaneie QR novamente.'; 
+          case 401:
+            reason = 'Sessão deslogada. Apague ./auth e escaneie QR novamente.';
             break;
-          case 405: 
-            reason = 'Sessão inválida. Apague ./auth e refaça login.'; 
+          case 405:
+            reason = 'Sessão inválida. Apague ./auth e refaça login.';
             break;
           case DisconnectReason.connectionReplaced:
-          case 409: 
-            reason = 'Outra sessão aberta substituiu esta conexão.'; 
+          case 409:
+            reason = 'Outra sessão aberta substituiu esta conexão.';
             break;
           case DisconnectReason.connectionClosed:
-          case 428: 
-            reason = 'Conexão fechada pelo servidor.'; 
+          case 428:
+            reason = 'Conexão fechada pelo servidor.';
             break;
           case DisconnectReason.connectionLost:
-          case 408: 
-            reason = 'Conexão perdida (timeout ou rede).'; 
+          case 408:
+            reason = 'Conexão perdida (timeout ou rede).';
             break;
           case DisconnectReason.timedOut:
-          case 440: 
-            reason = 'Timeout de conexão.'; 
+          case 440:
+            reason = 'Timeout de conexão.';
             break;
           case DisconnectReason.restartRequired:
-          case 410: 
-            reason = 'Reinício necessário pelo WhatsApp.'; 
+          case 410:
+            reason = 'Reinício necessário pelo WhatsApp.';
             break;
           case DisconnectReason.multideviceMismatch:
-          case 411: 
-            reason = 'Conflito de multi-dispositivo.'; 
+          case 411:
+            reason = 'Conflito de multi-dispositivo.';
             break;
-          default: 
+          default:
             reason = `Código: ${statusCode || 'desconhecido'}`;
         }
 
@@ -3177,7 +3289,7 @@ async function start() {
           log.warn(`   Erro: ${errorMessage}`);
         }
         const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
-        log.warn(`   Uptime antes da desconexão: ${Math.floor(uptime/60)}m ${uptime%60}s`);
+        log.warn(`   Uptime antes da desconexão: ${Math.floor(uptime / 60)}m ${uptime % 60}s`);
 
         if (shouldReconnect) {
           log.warn(`🔄 Tentando reconectar automaticamente...`);
@@ -3193,40 +3305,40 @@ async function start() {
       try {
         const msg = m.messages?.[0];
         if (!msg?.message) return;
-        
+
         // Verificar se é mensagem antiga (mais de 2 minutos) - ignorar para evitar processar mensagens antigas
         const messageTimestamp = msg.messageTimestamp ? msg.messageTimestamp * 1000 : Date.now();
         const now = Date.now();
         const messageAge = now - messageTimestamp;
         const MAX_MESSAGE_AGE = 120000; // 2 minutos em milissegundos
-        
+
         if (messageAge > MAX_MESSAGE_AGE && !msg.key.fromMe) {
           log.info(`[MESSAGE] Ignorando mensagem antiga (${Math.round(messageAge / 1000)}s atrás) de ${msg.key.remoteJid?.split('@')[0]}`);
           return; // Ignorar mensagens antigas
         }
-        
+
         const remoteJid = msg.key.remoteJid;
         // Extrair texto de várias formas (mensagem normal, respondida, etc)
-        let text = msg.message.conversation || 
-                   msg.message.extendedTextMessage?.text || 
-                   msg.message.imageMessage?.caption ||
-                   msg.message.videoMessage?.caption ||
-                   '';
-        
+        let text = msg.message.conversation ||
+          msg.message.extendedTextMessage?.text ||
+          msg.message.imageMessage?.caption ||
+          msg.message.videoMessage?.caption ||
+          '';
+
         // Se for mensagem respondida, pegar o texto da mensagem original também
         // MAS: se o texto atual for um comando ($, /, !), manter o comando e não sobrescrever
         const isCommand = text.trim().startsWith('$') || text.trim().startsWith('/') || text.trim().startsWith('!');
         let quotedText = '';
-        
+
         if (msg.message.extendedTextMessage?.contextInfo?.quotedMessage) {
           const quoted = msg.message.extendedTextMessage.contextInfo.quotedMessage;
-          quotedText = quoted.conversation || 
-                       quoted.extendedTextMessage?.text ||
-                       quoted.imageMessage?.caption ||
-                       quoted.videoMessage?.caption ||
-                       '';
+          quotedText = quoted.conversation ||
+            quoted.extendedTextMessage?.text ||
+            quoted.imageMessage?.caption ||
+            quoted.videoMessage?.caption ||
+            '';
         }
-        
+
         // Se não for comando, usar o texto da mensagem original quando respondida (para anti-link)
         if (quotedText && !isCommand) {
           text = quotedText; // Usar texto da mensagem original quando respondida
@@ -3235,15 +3347,15 @@ async function start() {
           // Se for comando, manter o texto do comando atual
           log.info(`[COMMAND] Comando detectado em resposta, mantendo comando: "${text.substring(0, 50)}"`);
         }
-        
+
         const isFromMe = msg.key.fromMe;
-        
+
         // DEBUG: Log de todas as mensagens recebidas
         log.info(`📩 Mensagem recebida de ${remoteJid.split('@')[0]}: "${text.substring(0, 50)}" | fromMe=${isFromMe}`);
-        
+
         // Atualizar heartbeat em qualquer mensagem recebida
         lastHeartbeat = Date.now();
-        
+
         // Aceitar comandos com / (rastreamento), ! (financeiro) ou $ (comandos de grupo)
         // Para comandos, aceitar também mensagens próprias (para testes)
         if (text.startsWith('/') || text.startsWith('!') || text.startsWith('$')) {
@@ -3253,82 +3365,82 @@ async function start() {
           if (result && !result.pollSent && result.message) {
             // Verificar se precisa enviar com mentions
             if (result.mentions && result.mentions.length > 0) {
-              await safeSendMessage(sock,remoteJid, { 
-                text: result.message, 
-                mentions: result.mentions 
+              await safeSendMessage(sock, remoteJid, {
+                text: result.message,
+                mentions: result.mentions
               });
             } else {
-              await safeSendMessage(sock,remoteJid, { text: result.message });
+              await safeSendMessage(sock, remoteJid, { text: result.message });
             }
           }
           return;
         }
-        
+
         // Para outras mensagens, ignorar se forem mensagens próprias
         if (isFromMe) {
           return;
         }
-        
+
         // ===== VERIFICAR ANTI-LINK =====
         const isGroup = isGroupJid(remoteJid);
         if (isGroup && text) {
           const antilinkConfig = antilinkGroups.get(remoteJid);
-          
+
           // Debug: mostrar se antilink está ativo
           log.info(`[ANTILINK] Grupo: ${remoteJid.split('@')[0]}, Config: ${JSON.stringify(antilinkConfig || 'não configurado')}`);
-          
+
           if (antilinkConfig?.enabled) {
             // Regex melhorado para detectar links (mais abrangente)
             const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.(com|net|org|br|io|me|tv|info|co|app|dev|xyz|site|online|store|shop|link|click|ly|bit\.ly|wa\.me|chat\.whatsapp\.com|gg|gg\.gg|tinyurl|t\.co|goo\.gl|youtu\.be|youtube\.com|instagram\.com|facebook\.com|twitter\.com|tiktok\.com)[^\s]*)/gi;
-            
+
             // Testar o regex
             const matches = text.match(linkRegex);
             const hasLink = matches && matches.length > 0;
-            
+
             log.info(`[ANTILINK] Texto: "${text.substring(0, 100)}"`);
             log.info(`[ANTILINK] Contém link: ${hasLink}, Matches: ${matches ? JSON.stringify(matches) : 'nenhum'}`);
-            
+
             if (hasLink) {
               // Pegar JID do sender - pode vir de várias formas
               let senderJid = msg.key.participant || msg.key.remoteJid;
-              
+
               // Se for mensagem respondida, pegar o participant da mensagem original
               if (msg.message.extendedTextMessage?.contextInfo?.participant) {
                 senderJid = msg.message.extendedTextMessage.contextInfo.participant;
                 log.info(`[ANTILINK] Sender da mensagem original (respondida): ${senderJid}`);
               }
-              
+
               log.info(`[ANTILINK] Sender JID: ${senderJid}, RemoteJid: ${remoteJid}`);
-              
+
               // Verificar se o sender é admin (admins podem enviar links)
               try {
                 const groupMetadata = await sock.groupMetadata(remoteJid);
-                
+
                 // Verificar se o sender é admin
                 const senderIsAdmin = groupMetadata.participants.some(p => {
                   const senderNumber = senderJid.split('@')[0].split(':')[0];
                   const participantNumber = p.id.split('@')[0].split(':')[0];
-                  const match = p.id === senderJid || 
-                                participantNumber === senderNumber ||
-                                p.id.includes(senderNumber);
+                  const match = p.id === senderJid ||
+                    participantNumber === senderNumber ||
+                    p.id.includes(senderNumber);
                   const isAdmin = match && (p.admin === 'admin' || p.admin === 'superadmin');
                   if (isAdmin) {
                     log.info(`[ANTILINK] Sender é admin, permitindo link`);
                   }
                   return isAdmin;
                 });
-                
+
                 log.info(`[ANTILINK] Sender é admin? ${senderIsAdmin}`);
-                
+
                 if (!senderIsAdmin) {
                   // Remover o membro que enviou link
                   log.warn(`[ANTILINK] Link detectado de ${senderJid.split('@')[0]} no grupo ${groupMetadata.subject}`);
-                  
+
                   try {
                     // Tentar remover usando o JID completo
                     await sock.groupParticipantsUpdate(remoteJid, [senderJid], 'remove');
                     const senderNumber = senderJid.split('@')[0];
-                    await safeSendMessage(sock,remoteJid, { 
+                    await safeSendMessage(sock, remoteJid, {
                       text: `🚫 *Anti-Link*\n\n@${senderNumber} foi removido por enviar link.\n\n_Links não são permitidos neste grupo._`,
                       mentions: [senderJid]
                     });
@@ -3337,7 +3449,7 @@ async function start() {
                     log.error(`[ANTILINK] ❌ Erro ao remover usuário: ${removeError.message}`);
                     log.error(`[ANTILINK] Stack: ${removeError.stack}`);
                     // Se não conseguir remover, apenas avisar
-                    await safeSendMessage(sock,remoteJid, { 
+                    await safeSendMessage(sock, remoteJid, {
                       text: `⚠️ Link detectado! Não foi possível remover o usuário.\n\n_Erro: ${removeError.message}_`
                     });
                   }
@@ -3354,13 +3466,13 @@ async function start() {
             }
           }
         }
-        
+
         // Verificar se está aguardando foto (rastreamento ou financeiro)
         if ((msg.message.imageMessage || msg.message.documentMessage) && waitingPhoto.has(remoteJid)) {
           await processPhotoUpload(remoteJid, msg);
           return;
         }
-        
+
         // ===== PROCESSAR AUTOMAÇÕES =====
         // Verificar se a mensagem corresponde a alguma automação configurada
         if (text && text.trim()) {
@@ -3368,7 +3480,7 @@ async function start() {
           if (automationProcessed) {
             return; // Automação respondeu, não continuar
           }
-          
+
           // ===== PROCESSAR IA (Chat Inteligente) =====
           // Se nenhuma automação respondeu, tentar IA (principalmente para chats privados)
           const isPrivateChat = !isGroupJid(remoteJid);
@@ -3378,9 +3490,9 @@ async function start() {
             if (!lowerText.startsWith('/') && !lowerText.startsWith('$') && !lowerText.startsWith('!') && text.length >= 2) {
               const senderNumber = msg.key.participant ? msg.key.participant.split('@')[0] : remoteJid.split('@')[0];
               const iaResult = await processIAChat(remoteJid, text, senderNumber);
-              
+
               if (iaResult && iaResult.success && iaResult.response) {
-                await safeSendMessage(sock,remoteJid, { text: iaResult.response });
+                await safeSendMessage(sock, remoteJid, { text: iaResult.response });
                 log.success(`[IA] Respondeu para ${senderNumber}`);
                 return; // IA respondeu
               }
@@ -3394,18 +3506,18 @@ async function start() {
           if (now - last > AUTO_REPLY_WINDOW_MS) {
             const lower = (text || '').toLowerCase();
             if (lower.includes('oi') || lower.includes('olá') || lower.includes('ola')) {
-              await safeSendMessage(sock,remoteJid, { 
-                text: 'Olá! Como posso ajudar?\n\nDigite */menu* para ver os comandos disponíveis.' 
+              await safeSendMessage(sock, remoteJid, {
+                text: 'Olá! Como posso ajudar?\n\nDigite */menu* para ver os comandos disponíveis.'
               });
               lastReplyAt.set(remoteJid, now);
             }
           }
         }
-      } catch (e) { 
+      } catch (e) {
         log.error(`Erro ao processar mensagem: ${e.message}`);
       }
     });
-    
+
     // Evento de erro geral
     sock.ev.on('error', (error) => {
       log.error(`Erro do socket: ${error.message}`);
@@ -3424,15 +3536,15 @@ async function start() {
 // ===== MIDDLEWARE DE AUTENTICAÇÃO =====
 function auth(req, res, next) {
   // Tentar ler o token de várias formas (case-insensitive)
-  const tokenRaw = req.headers['x-api-token'] || 
-                   req.headers['X-Api-Token'] || 
-                   req.headers['X-API-Token'] ||
-                   req.headers['X-API-TOKEN'];
-  
+  const tokenRaw = req.headers['x-api-token'] ||
+    req.headers['X-Api-Token'] ||
+    req.headers['X-API-Token'] ||
+    req.headers['X-API-TOKEN'];
+
   // Limpar token recebido (remover espaços e caracteres invisíveis)
   const token = tokenRaw ? String(tokenRaw).trim() : null;
   const expectedToken = API_TOKEN ? String(API_TOKEN).trim() : null;
-  
+
   // Debug log detalhado
   if (!token || token !== expectedToken) {
     const receivedToken = token ? `${token.substring(0, 4)}***${token.length > 8 ? token.substring(token.length - 4) : ''}` : 'null';
@@ -3443,10 +3555,10 @@ function auth(req, res, next) {
     log.warn(`   Token recebido (raw): "${tokenRaw}"`);
     log.warn(`   Token esperado (raw): "${API_TOKEN}"`);
   }
-  
+
   if (!expectedToken || !token || token !== expectedToken) {
-    return res.status(401).json({ 
-      ok: false, 
+    return res.status(401).json({
+      ok: false,
       error: 'unauthorized',
       debug: {
         received_token: token ? `${token.substring(0, 4)}***${token.length > 8 ? token.substring(token.length - 4) : ''}` : 'null',
@@ -3469,13 +3581,13 @@ function auth(req, res, next) {
 app.get('/status', (req, res) => {
   const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
   const memUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
-  
-  res.json({ 
-    ok: !isInLoopState, 
+
+  res.json({
+    ok: !isInLoopState,
     ready: isReady,
     loopState: isInLoopState,
     uptime: uptime,
-    uptimeFormatted: `${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m ${uptime%60}s`,
+    uptimeFormatted: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${uptime % 60}s`,
     reconnectAttempts: reconnectAttempts,
     recentDisconnects: disconnectTimestamps.length,
     memoryMB: memUsed,
@@ -3551,24 +3663,24 @@ app.post('/send', auth, async (req, res) => {
 
     const digits = formatBrazilNumber(to);
     const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
-    
+
     if (!exists) {
       return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
     }
 
     await safeSendMessage(sock, mappedJid, { text });
     lastHeartbeat = Date.now();
-    
+
     log.info(`Mensagem enviada para ${digits}`);
     return res.json({ ok: true, to: digits, jid: mappedJid });
-    
+
   } catch (err) {
     log.error(`Erro ao enviar: ${err.message}`);
-    
+
     if (err?.output?.statusCode === 400 || err?.message?.includes('not a WhatsApp user')) {
       return res.status(400).json({ ok: false, error: 'number_not_registered' });
     }
-    
+
     return res.status(500).json({ ok: false, error: err.message || 'unknown_error' });
   }
 });
@@ -3583,11 +3695,11 @@ app.post('/check', auth, async (req, res) => {
 
     const digits = formatBrazilNumber(to);
     const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
-    
+
     if (!exists) {
       return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
     }
-    
+
     return res.json({ ok: true, to: digits, jid: mappedJid });
   } catch (e) {
     log.error(`Erro ao verificar: ${e.message}`);
@@ -3598,8 +3710,8 @@ app.post('/check', auth, async (req, res) => {
 // Forçar reconexão (admin)
 app.post('/reconnect', auth, async (req, res) => {
   if (isInLoopState) {
-    return res.json({ 
-      ok: false, 
+    return res.json({
+      ok: false,
       message: 'Bot está em estado de loop. Delete a pasta ./auth e reinicie.',
       loopState: true
     });
@@ -3624,12 +3736,12 @@ app.post('/reload-automations', auth, async (req, res) => {
   try {
     // Forçar reload limpando cache
     lastAutomationsLoad = 0;
-    
+
     const settings = await loadBotSettings();
     const automations = await loadAutomations();
-    
-    res.json({ 
-      ok: true, 
+
+    res.json({
+      ok: true,
       message: 'Automações recarregadas!',
       count: automations.length,
       settings_loaded: Object.keys(settings).length > 0
@@ -3660,33 +3772,33 @@ app.get('/automations', auth, (req, res) => {
 app.post('/send-poll', auth, async (req, res) => {
   try {
     if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
-    
+
     const { to, question, options } = req.body || {};
-    
+
     if (!to || !question || !options || !Array.isArray(options)) {
-      return res.status(400).json({ 
-        ok: false, 
-        error: 'to, question e options (array) são obrigatórios. Options deve ter entre 2 e 12 itens.' 
+      return res.status(400).json({
+        ok: false,
+        error: 'to, question e options (array) são obrigatórios. Options deve ter entre 2 e 12 itens.'
       });
     }
-    
+
     if (options.length < 2 || options.length > 12) {
-      return res.status(400).json({ 
-        ok: false, 
-        error: 'Poll deve ter entre 2 e 12 opções' 
+      return res.status(400).json({
+        ok: false,
+        error: 'Poll deve ter entre 2 e 12 opções'
       });
     }
 
     const digits = formatBrazilNumber(to);
     const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
-    
+
     if (!exists) {
       return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
     }
 
     const result = await sendPoll(sock, mappedJid, question, options);
     lastHeartbeat = Date.now();
-    
+
     log.info(`Poll enviada para ${digits}`);
     return res.json({ ok: true, ...result, to: digits, jid: mappedJid });
   } catch (e) {
@@ -3714,32 +3826,32 @@ setInterval(checkMemory, MEMORY_CHECK_INTERVAL);
 setInterval(() => {
   const now = Date.now();
   const fiveMinutesAgo = now - 300000;
-  
+
   // Limpar caches que crescem rapidamente
   for (const [key, value] of lastReplyAt.entries()) {
     if (now - value > AUTO_REPLY_WINDOW_MS) {
       lastReplyAt.delete(key);
     }
   }
-  
+
   for (const [key, value] of waitingPhoto.entries()) {
     if (now - value.timestamp > 5 * 60 * 1000) {
       waitingPhoto.delete(key);
     }
   }
-  
+
   // Limpar votos pendentes antigos
   for (const [key, value] of pendingPollVotes.entries()) {
     if (!value.timestamp || value.timestamp < fiveMinutesAgo) {
       pendingPollVotes.delete(key);
     }
   }
-  
+
   // Enforçar limites (mais agressivos)
   enforceCacheLimit(lastReplyAt, 50);
   enforceCacheLimit(waitingPhoto, 30);
   enforceCacheLimit(pendingPollVotes, 30);
-  
+
   // Limpar store preventivamente (apenas se habilitado)
   if (ENABLE_STORE) {
     const allJids = Object.keys(store.messages);
@@ -3753,7 +3865,7 @@ setInterval(() => {
         return { jid, lastMsg };
       });
       jidsWithTime.sort((a, b) => b.lastMsg - a.lastMsg);
-      
+
       for (let i = MAX_STORE_CHATS_MEMORY; i < jidsWithTime.length; i++) {
         delete store.messages[jidsWithTime[i].jid];
       }
@@ -3776,7 +3888,7 @@ process.on('SIGINT', async () => {
   log.warn('Recebido SIGINT, encerrando...');
   stopHeartbeat();
   if (sock) {
-    try { sock.end(); } catch (e) {}
+    try { sock.end(); } catch (e) { }
   }
   process.exit(0);
 });
@@ -3785,10 +3897,10 @@ process.on('SIGTERM', async () => {
   log.warn('Recebido SIGTERM, encerrando...');
   stopHeartbeat();
   if (sock) {
-    try { sock.end(); } catch (e) {}
+    try { sock.end(); } catch (e) { }
   }
   process.exit(0);
 });
 
 log.info('Bot WhatsApp iniciado com sistema de estabilidade ativo');
-log.info(`Heartbeat: ${HEARTBEAT_INTERVAL/1000}s | Ping: ${PING_INTERVAL/1000}s | Timeout: ${CONNECTION_TIMEOUT/1000}s | Max reconexões: ${MAX_RECONNECT_ATTEMPTS}`);
+log.info(`Heartbeat: ${HEARTBEAT_INTERVAL / 1000}s | Ping: ${PING_INTERVAL / 1000}s | Timeout: ${CONNECTION_TIMEOUT / 1000}s | Max reconexões: ${MAX_RECONNECT_ATTEMPTS}`);
