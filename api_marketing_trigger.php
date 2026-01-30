@@ -4,12 +4,9 @@ require_once 'includes/whatsapp_helper.php'; // Pode ter helpers de config
 
 header('Content-Type: application/json');
 
-// Verificar sessão auth
-session_start();
-if (!isset($_SESSION['logado'])) {
-    http_response_code(401);
-    die(json_encode(['success' => false, 'message' => 'Não autorizado']));
-}
+// Verificar sessão auth (usando helper)
+require_once 'includes/auth_helper.php';
+requireLogin(true); // true = retorna JSON 401 se falhar
 
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? '';

@@ -317,6 +317,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 break;
 
+            case 'get_marketing_msgs':
+                $msgs = fetchData($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 ORDER BY ordem ASC");
+                $response = ['success' => true, 'data' => $msgs];
+                break;
+
             // ===== MESSAGES CONFIG LOGIC =====
             case 'save_messages':
                 $etapas = [
@@ -2002,7 +2007,8 @@ foreach ($msgEtapas as $k => $v) {
                 const data = await res.json();
                 if (data.success) {
                     showToast(data.message, 'success');
-                    setTimeout(() => location.reload(), 1000); // Reload simples para atualizar lista
+                    form.reset(); // Limpa o formulário
+                    await loadMarketingMsgs(); // Recarrega lista sem refresh
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -2022,11 +2028,114 @@ foreach ($msgEtapas as $k => $v) {
                 const data = await res.json();
                 if (data.success) {
                     showToast(data.message, 'success');
-                    setTimeout(() => location.reload(), 500);
+                    await loadMarketingMsgs(); // Recarrega lista sem refresh
                 }
             } catch (err) {
                 showToast('Erro: ' + err.message, 'error');
             }
+        }
+
+        async function loadMarketingMsgs() {
+            const formData = new FormData();
+            formData.append('action', 'get_marketing_msgs');
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    renderMarketingMsgs(data.data);
+                }
+            } catch (err) {
+                console.error('Erro ao recarregar mensagens:', err);
+            }
+        }
+
+        function renderMarketingMsgs(msgs) {
+            // Encontrar o container da lista nas abas
+            // O container é o div com class "space-y-3" dentro da section marketing
+            // Vamos precisar adicionar um ID ao container no PHP ou usar seletor robusto
+            // Como não posso editar o HTML do PHP aqui facilmente sem ver o código, vou usar seletor relativo ao form
+            // O form é addMktMsgForm. O container de msgs está acima dele.
+            
+            // Mas espera, eu tenho acesso ao container via DOM se eu der um ID pra ele.
+            // Vou assumir que o usuário pode atualizar o PHP container.
+            // Melhor: Vou recriar o container no JS.
+            
+            // Mas espera, o HTML atual é:
+            /*
+            <div class="p-4 space-y-4">
+                <?php if (empty($mktMensagens)): ?>
+                    ...
+                <?php else: ?>
+                    <div class="space-y-3">
+                        ... loop ...
+                    </div>
+                <?php endif; ?>
+                <hr ...>
+                <form ...>
+            */
+            
+            // Eu preciso identificar o pai dos items.
+            // Vou usar o seletor: #section-marketing .card:nth-child(2) .p-4
+            
+            const container = document.querySelector('#section-marketing .card:nth-child(2) .p-4');
+            if(!container) return;
+            
+            // Remover conteúdo antes do HR
+            // A estrutura é complexa. O ideal é ter um container explícito.
+            // Como não tenho ID, vou limpar tudo exceto o form e o HR e recriar.
+            
+            // Pegar o form e o hr para preservar
+            const form = document.getElementById('addMktMsgForm');
+            const hr = container.querySelector('hr');
+            
+            // Limpar container
+            container.innerHTML = '';
+            
+            // Recriar lista
+            if (!msgs || msgs.length === 0) {
+                container.innerHTML = `
+                    <div id="mktMsgsList" class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
+                        Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
+                    </div>
+                `;
+            } else {
+                const listDiv = document.createElement('div');
+                listDiv.className = 'space-y-3';
+                listDiv.id = 'mktMsgsList';
+                
+                msgs.forEach(msg => {
+                    const item = document.createElement('div');
+                    item.className = 'bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group';
+                    
+                    // Escapar conteúdo HTML para segurança
+                    const conteudoEscapado = escapeHtml(msg.conteudo);
+                    const delayText = msg.delay_apos_anterior_minutos == 0 ? 'Imediato (1º msg)' : `Aguarda ${msg.delay_apos_anterior_minutos} min após anterior`;
+                    
+                    item.innerHTML = `
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                            <button onclick="deleteMarketingMsg(${msg.id})" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#${msg.ordem}</span>
+                            <span class="text-xs text-zinc-500">${delayText}</span>
+                        </div>
+                        <p class="text-sm text-zinc-300 whitespace-pre-line">${conteudoEscapado}</p>
+                    `;
+                    listDiv.appendChild(item);
+                });
+                
+                container.appendChild(listDiv);
+            }
+            
+            // Re-adicionar HR e Form
+            container.appendChild(hr);
+            container.appendChild(form);
+            
+            // Atualizar contador no header do card se possível
+            const counter = document.querySelector('#section-marketing .card:nth-child(2) .card-header span');
+            if(counter) counter.textContent = `${msgs.length} msgs`;
         }
 
         async function syncMembers() {
