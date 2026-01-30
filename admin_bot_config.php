@@ -1152,16 +1152,19 @@ foreach ($msgEtapas as $k => $v) {
                                         <div class="text-xs text-zinc-600 mt-1">Mínimo</div>
                                     </div>
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120 ?>" placeholder="Max" class="input-field w-full">
-                                        <div class="text-xs text-zinc-600 mt-1">Máximo</div>
+                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120 ?>" min="5" class="input-field w-full">
+                                        <p class="text-xs text-zinc-600 mt-1">Máximo</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="flex gap-3">
-                                <button type="submit" class="btn btn-primary flex-1">Salvar Configurações</button>
-                                <button type="button" onclick="syncMembers()" class="btn btn-secondary flex-1">🔄 Sync Membros</button>
-                            </div>
+                            <button type="submit" class="w-full btn btn-primary justify-center mb-3">
+                                Salvar Configurações
+                            </button>
+                            
+                            <button type="button" onclick="resetDailyLimit()" class="w-full btn btn-secondary justify-center text-sm">
+                                <i class="fas fa-undo mr-2"></i> Zerar Limite Hoje (Emergência)
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -1562,18 +1565,7 @@ foreach ($msgEtapas as $k => $v) {
                     </button>
                 </div>
             </form>
-            <!-- Campaign Configuration Card - Assuming this is where the user wants to add the buttons -->
-            <!-- This div is placed outside the form but inside the modal-content, as per the user's snippet structure -->
-            <div class="p-6 pt-0">
-                <div class="mt-4 pt-4 border-t border-zinc-800">
-                    <button onclick="saveCampaignConfig()" class="w-full btn btn-primary justify-center mb-3">
-                        Salvar Configurações
-                    </button>
-                    <button onclick="resetDailyLimit()" class="w-full btn btn-secondary justify-center text-sm">
-                        <i class="fas fa-undo mr-2"></i> Zerar Limite Hoje (Emergência)
-                    </button>
-                </div>
-            </div>
+
         </div>
     </div>
     
