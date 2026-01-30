@@ -959,7 +959,7 @@ foreach ($msgEtapas as $k => $v) {
         <nav class="flex-1 py-4">
             <div class="px-4 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Menu</div>
             
-            <a href="admin_bot_config.php" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="admin_bot_config.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
                 <i class="fas fa-chart-line w-5"></i>
                 <span>Dashboard</span>
             </a>
@@ -969,7 +969,7 @@ foreach ($msgEtapas as $k => $v) {
                 <span>Automações</span>
             </a>
             
-            <a href="admin_bot_settings.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="admin_bot_settings.php" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-zinc-300" >
                 <i class="fas fa-cog w-5"></i>
                 <span>Configurações</span>
             </a>
@@ -1609,7 +1609,7 @@ foreach ($msgEtapas as $k => $v) {
                     setTimeout(() => showSection(initialHash), 50);
                 } else {
                      // Default para dashboard se não tiver hash
-                     showSection('dashboard');
+                     showSection('settings');
                 }
                 
                 // Escutar mudanças de hash (caso o usuário use botões voltar/avançar)
