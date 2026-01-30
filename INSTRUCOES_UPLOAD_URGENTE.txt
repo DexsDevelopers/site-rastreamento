@@ -1,0 +1,17 @@
+🔴 AÇÃO NECESSÁRIA PARA CORRIGIR O LOOP DE MENSAGENS
+
+O problema dos números inválidos ("não está no WhatsApp") foi corrigido no código, mas para funcionar, você precisa atualizar o servidor.
+
+1. Localize o arquivo:
+   /home/johan/Desktop/Link to Johan 7K/Documents/GitHub/site-rastreamento/api_marketing.php
+
+2. Faça UPLOAD deste arquivo para a sua hospedagem (Hostinger):
+   - Pasta de destino: /public_html/
+   - Substitua o arquivo existente.
+
+POR QUE ISSO É NECESSÁRIO?
+O bot local agora avisa: "Ei, esse número não existe!".
+Mas o arquivo antigo que está na Hostinger não entende esse aviso e apenas diz: "Ok, vou tentar de novo daqui a 1 hora".
+O novo arquivo `api_marketing.php` vai entender o aviso e bloquear o número para sempre, parando o ciclo de erros.
+
+Faça o upload assim que possível. O bot pode continuar rodando enquanto isso, ele apenas continuará tentando até que o arquivo seja atualizado.

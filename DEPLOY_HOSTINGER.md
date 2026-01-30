@@ -7,6 +7,7 @@
 2. `includes/whatsapp_helper.php` - Melhorias no envio
 3. `config.json` - URL atualizada para localhost:3000
 4. `test_whatsapp_manual.php` - Script de teste (NOVO)
+5. `api_marketing.php` - Correção de bloqueio de números inválidos (URGENTE)
 
 ## 📤 Métodos de Upload
 
