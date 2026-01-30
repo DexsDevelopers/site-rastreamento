@@ -279,6 +279,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => false, 'message' => 'Erro ao salvar arquivo'];
                 }
                 break;
+
+            // ===== MARKETING LOGIC =====
+            case 'save_campaign':
+                $ativo = isset($_POST['ativo']) ? 1 : 0;
+                $membros_dia = (int)$_POST['membros_dia'];
+                $intervalo_min = (int)$_POST['intervalo_min'];
+                $intervalo_max = (int)$_POST['intervalo_max'];
+                
+                $sql = "UPDATE marketing_campanhas SET ativo = ?, membros_por_dia_grupo = ?, intervalo_min_minutos = ?, intervalo_max_minutos = ? WHERE id = 1";
+                executeQuery($pdo, $sql, [$ativo, $membros_dia, $intervalo_min, $intervalo_max]);
+                
+                $response = ['success' => true, 'message' => 'Configurações de campanha salvas!'];
+                break;
+                
+            case 'add_marketing_msg':
+                $conteudo = trim($_POST['conteudo']);
+                $delay = (int)$_POST['delay'];
+                
+                $lastOrder = fetchOne($pdo, "SELECT MAX(ordem) as max_ordem FROM marketing_mensagens WHERE campanha_id = 1");
+                $ordem = ($lastOrder['max_ordem'] ?? 0) + 1;
+                
+                if (!empty($conteudo)) {
+                    $sql = "INSERT INTO marketing_mensagens (campanha_id, ordem, conteudo, delay_apos_anterior_minutos) VALUES (1, ?, ?, ?)";
+                    executeQuery($pdo, $sql, [$ordem, $conteudo, $delay]);
+                    $response = ['success' => true, 'message' => 'Mensagem adicionada com sucesso!'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Conteúdo não pode ser vazio'];
+                }
+                break;
+            
+            case 'delete_marketing_msg':
+                $id = (int)$_POST['id'];
+                if ($id > 0) {
+                    executeQuery($pdo, "DELETE FROM marketing_mensagens WHERE id = ?", [$id]);
+                    $response = ['success' => true, 'message' => 'Mensagem removida!'];
+                }
+                break;
+
+            // ===== MESSAGES CONFIG LOGIC =====
+            case 'save_messages':
+                $etapas = [
+                    'postado' => 'WHATSAPP_MSG_POSTADO',
+                    'transito' => 'WHATSAPP_MSG_TRANSITO',
+                    'distribuicao' => 'WHATSAPP_MSG_DISTRIBUICAO',
+                    'entrega' => 'WHATSAPP_MSG_ENTREGA',
+                    'entregue' => 'WHATSAPP_MSG_ENTREGUE',
+                    'taxa' => 'WHATSAPP_MSG_TAXA'
+                ];
+                
+                $saved = 0;
+                foreach ($etapas as $key => $configKey) {
+                    if (isset($_POST[$configKey])) {
+                        if (setDynamicConfig($configKey, $_POST[$configKey])) {
+                            $saved++;
+                        }
+                    }
+                }
+                
+                // Limpar cache local se necessário
+                if (function_exists('opcache_reset')) opcache_reset();
+                clearstatcache(true, __DIR__ . '/config_custom.json');
+                
+                $response = ['success' => true, 'message' => "{$saved} mensagens salvas com sucesso!"];
+                break;
         }
     } catch (Exception $e) {
         $response = ['success' => false, 'message' => $e->getMessage()];
@@ -288,12 +352,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     exit;
 }
 
-// Carregar dados iniciais
+// Carregar dados iniciais (Automações)
 $automations = fetchData($pdo, "SELECT * FROM bot_automations ORDER BY prioridade DESC, criado_em DESC");
 $settings = fetchData($pdo, "SELECT * FROM bot_settings");
 $settingsObj = [];
 foreach ($settings as $s) {
     $settingsObj[$s['chave']] = $s['valor'];
+}
+
+// Carregar dados (Marketing)
+try {
+    // Check tables first to avoid crashes
+    $pdo->exec("CREATE TABLE IF NOT EXISTS marketing_campanhas (id INT PRIMARY KEY AUTO_INCREMENT, nome VARCHAR(100), ativo BOOLEAN DEFAULT 0, membros_por_dia_grupo INT DEFAULT 5, intervalo_min_minutos INT DEFAULT 30, intervalo_max_minutos INT DEFAULT 120, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS marketing_mensagens (id INT PRIMARY KEY AUTO_INCREMENT, campanha_id INT, ordem INT, tipo ENUM('texto', 'imagem', 'audio') DEFAULT 'texto', conteudo TEXT, delay_apos_anterior_minutos INT DEFAULT 0, FOREIGN KEY (campanha_id) REFERENCES marketing_campanhas(id) ON DELETE CASCADE)");
+    // Ensure default campaign exists
+    $pdo->exec("INSERT IGNORE INTO marketing_campanhas (id, nome, ativo, membros_por_dia_grupo) VALUES (1, 'Campanha Grupos', 0, 5)");
+
+    $mktCampanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1");
+    $mktMensagens = fetchData($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 ORDER BY ordem ASC");
+    $mktStats = fetchOne($pdo, "SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'novo' THEN 1 ELSE 0 END) as novos,
+        SUM(CASE WHEN status = 'em_progresso' THEN 1 ELSE 0 END) as progresso,
+        SUM(CASE WHEN status = 'concluido' THEN 1 ELSE 0 END) as concluidos
+        FROM marketing_membros") ?: ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
+} catch (Exception $e) {
+    // Silently fail or log (tables might not exist yet if setup wasnt run)
+    $mktCampanha = ['ativo'=>0, 'membros_por_dia_grupo'=>5, 'intervalo_min_minutos'=>30, 'intervalo_max_minutos'=>120];
+    $mktMensagens = [];
+    $mktStats = ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
+}
+
+// Carregar dados (Mensagens Personalizadas)
+$msgEtapas = [
+    'postado' => ['nome' => 'Objeto Postado', 'icon' => '📦', 'key' => 'WHATSAPP_MSG_POSTADO', 'default' => "Olá {nome}!\n\n📦 *Objeto Postado*\n\nSeu pedido *{codigo}* foi postado e está em processamento.\n\n{link}"],
+    'transito' => ['nome' => 'Em Trânsito', 'icon' => '🚚', 'key' => 'WHATSAPP_MSG_TRANSITO', 'default' => "Olá {nome}!\n\n🚚 *Em Trânsito*\n\nSeu pedido *{codigo}* está a caminho do centro de distribuição.\n\n{link}"],
+    'distribuicao' => ['nome' => 'No Centro de Distribuição', 'icon' => '🏢', 'key' => 'WHATSAPP_MSG_DISTRIBUICAO', 'default' => "Olá {nome}!\n\n🏢 *No Centro de Distribuição*\n\nSeu pedido *{codigo}* chegou ao centro de distribuição e está sendo processado.\n\n{link}"],
+    'entrega' => ['nome' => 'Saiu para Entrega', 'icon' => '🚀', 'key' => 'WHATSAPP_MSG_ENTREGA', 'default' => "Olá {nome}!\n\n🚀 *Saiu para Entrega*\n\nSeu pedido *{codigo}* saiu para entrega e chegará em breve!\n\n{link}"],
+    'entregue' => ['nome' => 'Entregue', 'icon' => '✅', 'key' => 'WHATSAPP_MSG_ENTREGUE', 'default' => "Olá {nome}!\n\n✅ *Pedido Entregue*\n\nSeu pedido *{codigo}* foi entregue com sucesso!\n\nObrigado pela preferência! 🎉"],
+    'taxa' => ['nome' => 'Taxa Pendente', 'icon' => '💰', 'key' => 'WHATSAPP_MSG_TAXA', 'default' => "Olá {nome}!\n\n💰 *Taxa de Distribuição Nacional*\n\nSeu pedido *{codigo}* precisa de uma taxa de R$ {taxa_valor} para seguir para entrega.\n\nFaça o pagamento via PIX:\n`{taxa_pix}`\n\nApós o pagamento, a liberação acontece rapidamente.\n\n{link}"]
+];
+$msgConfig = [];
+foreach ($msgEtapas as $k => $v) {
+    // Assuming getDynamicConfig is available via config.php included at top
+    $msgConfig[$k] = getDynamicConfig($v['key'], $v['default']);
 }
 
 ?>
@@ -881,6 +983,16 @@ foreach ($settings as $s) {
                 <i class="fas fa-brain w-5" style="color: #8B5CF6;"></i>
                 <span>IA do Bot</span>
             </a>
+
+            <a href="#marketing" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="marketing">
+                <i class="fas fa-bullhorn w-5"></i>
+                <span>Marketing</span>
+            </a>
+
+            <a href="#messages" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="messages">
+                <i class="fas fa-comment-dots w-5"></i>
+                <span>Mensagens</span>
+            </a>
             
             <div class="px-4 mt-6 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Links</div>
             
@@ -974,6 +1086,168 @@ foreach ($settings as $s) {
                     <div id="recentAutomations" class="space-y-3">
                         <p class="text-zinc-500 text-center py-8">Carregando...</p>
                     </div>
+                </div>
+            </div>
+        </section>
+        
+        </section>
+
+        <!-- Marketing Section -->
+        <section id="section-marketing" class="section hidden">
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="stat-card p-4">
+                    <div class="text-xs text-zinc-400 mb-1">Total Leads</div>
+                    <div class="text-xl font-bold text-white"><?= $mktStats['total'] ?? 0 ?></div>
+                </div>
+                <div class="stat-card p-4">
+                    <div class="text-xs text-zinc-400 mb-1">Na Fila</div>
+                    <div class="text-xl font-bold text-yellow-500"><?= $mktStats['novos'] ?? 0 ?></div>
+                </div>
+                <div class="stat-card p-4">
+                    <div class="text-xs text-zinc-400 mb-1">Em Andamento</div>
+                    <div class="text-xl font-bold text-blue-500"><?= $mktStats['progresso'] ?? 0 ?></div>
+                </div>
+                <div class="stat-card p-4">
+                    <div class="text-xs text-zinc-400 mb-1">Finalizados</div>
+                    <div class="text-xl font-bold text-green-500"><?= $mktStats['concluidos'] ?? 0 ?></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Configuração -->
+                <div class="card h-fit">
+                    <div class="card-header">
+                        <h3 class="font-semibold">⚙️ Configuração da Campanha</h3>
+                    </div>
+                    <div class="p-6">
+                        <form id="marketingConfigForm" onsubmit="saveMarketingConfig(event)">
+                            <div class="flex items-center justify-between mb-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                                <div>
+                                    <h4 class="font-medium">Campanha Ativa</h4>
+                                    <p class="text-sm text-zinc-500">O bot enviará mensagens automáticas</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="ativo" <?= ($mktCampanha['ativo'] ?? 0) ? 'checked' : '' ?>>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-zinc-400 mb-2">Membros por Dia (por Grupo)</label>
+                                <input type="number" name="membros_dia" value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?>" min="1" max="50" class="input-field w-full">
+                                <p class="text-xs text-zinc-600 mt-1">Recomendado: 5-10 para evitar banimento.</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-zinc-400 mb-2">Intervalo entre Envios (Minutos)</label>
+                                <div class="flex gap-4">
+                                    <div class="flex-1">
+                                        <input type="number" name="intervalo_min" value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30 ?>" placeholder="Min" class="input-field w-full">
+                                        <div class="text-xs text-zinc-600 mt-1">Mínimo</div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120 ?>" placeholder="Max" class="input-field w-full">
+                                        <div class="text-xs text-zinc-600 mt-1">Máximo</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button type="submit" class="btn btn-primary flex-1">Salvar Configurações</button>
+                                <button type="button" onclick="syncMembers()" class="btn btn-secondary flex-1">🔄 Sync Membros</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Funil -->
+                <div class="card h-fit">
+                    <div class="card-header flex justify-between items-center">
+                        <h3 class="font-semibold">💬 Funil de Mensagens</h3>
+                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400"><?= count($mktMensagens) ?> msgs</span>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <?php if (empty($mktMensagens)): ?>
+                            <div class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
+                                Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
+                            </div>
+                        <?php else: ?>
+                            <div class="space-y-3">
+                                <?php foreach ($mktMensagens as $msg): ?>
+                                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group">
+                                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                                            <button onclick="deleteMarketingMsg(<?= $msg['id'] ?>)" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#<?= $msg['ordem'] ?></span>
+                                            <span class="text-xs text-zinc-500">
+                                                <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior' ?>
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-zinc-300 whitespace-pre-line"><?= htmlspecialchars($msg['conteudo']) ?></p>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <hr class="border-zinc-800">
+
+                        <form id="addMktMsgForm" onsubmit="addMarketingMsg(event)">
+                            <div class="mb-3">
+                                <label class="block text-xs font-medium text-zinc-500 mb-1">Nova Mensagem</label>
+                                <textarea name="conteudo" rows="3" required placeholder="Digite a mensagem..." class="input-field w-full text-sm"></textarea>
+                            </div>
+                            <div class="flex gap-3 items-end">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Delay (min)</label>
+                                    <input type="number" name="delay" value="60" required class="input-field w-full text-sm">
+                                </div>
+                                <button type="submit" class="btn btn-secondary text-sm h-[42px]">
+                                    <i class="fas fa-plus mr-1"></i> Adicionar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Personalized Messages Section -->
+        <section id="section-messages" class="section hidden">
+            <div class="card mb-6">
+                <div class="p-4 bg-zinc-900/50 border-b border-zinc-800">
+                    <p class="text-sm text-zinc-400"><i class="fas fa-info-circle mr-2"></i>Estas são as mensagens enviadas automaticamente quando o status de um rastreio é atualizado.</p>
+                </div>
+                <div class="p-6">
+                    <form id="messagesConfigForm" onsubmit="saveMessagesConfig(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <?php foreach ($msgEtapas as $k => $v): ?>
+                                <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="text-xl"><?= $v['icon'] ?></span>
+                                        <h4 class="font-medium text-zinc-200"><?= $v['nome'] ?></h4>
+                                    </div>
+                                    <textarea name="<?= $v['key'] ?>" rows="5" class="input-field w-full text-sm font-mono leading-relaxed" spellcheck="false"><?= htmlspecialchars($msgConfig[$k]) ?></textarea>
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{nome}</span>
+                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{codigo}</span>
+                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{link}</span>
+                                        <?php if ($k === 'taxa'): ?>
+                                            <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_valor}</span>
+                                            <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_pix}</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div class="mt-8 flex justify-end sticky bottom-4">
+                            <button type="submit" class="btn btn-primary shadow-lg shadow-red-900/20">
+                                <i class="fas fa-save mr-2"></i> Salvar Todas as Mensagens
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </section>
@@ -1694,6 +1968,106 @@ foreach ($settings as $s) {
                 }
             } catch (err) {
                 showToast('Erro ao limpar: ' + err.message, 'error');
+            }
+        }
+        
+        // ===== MARKETING JS =====
+        async function saveMarketingConfig(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('action', 'save_campaign');
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao salvar: ' + err.message, 'error');
+            }
+        }
+
+        async function addMarketingMsg(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('action', 'add_marketing_msg');
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1000); // Reload simples para atualizar lista
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteMarketingMsg(id) {
+            if(!confirm('Tem certeza?')) return;
+            const formData = new FormData();
+            formData.append('action', 'delete_marketing_msg');
+            formData.append('id', id);
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 500);
+                }
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        async function syncMembers() {
+            if(!confirm('Isso ordenará ao Bot varrer os grupos. Continuar?')) return;
+            showToast('Enviando comando...', 'warning');
+            try {
+                const res = await fetch('api_marketing_trigger.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'sync_groups'})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast('Comando enviado! Bot está processando em background.', 'success');
+                } else {
+                    showToast('Erro: ' + data.message, 'error');
+                }
+            } catch(err) {
+                showToast('Falha na requisição: ' + err.message, 'error');
+            }
+        }
+
+        // ===== MESSAGES CONFIG JS =====
+        async function saveMessagesConfig(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('action', 'save_messages');
+            
+            showToast('Salvando...', 'warning');
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao salvar: ' + err.message, 'error');
             }
         }
         
