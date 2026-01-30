@@ -4059,6 +4059,135 @@ app.post('/send-poll', auth, async (req, res) => {
   }
 });
 
+// ===== MARKETING ENDPOINTS =====
+
+// Sincronizar membros de grupos (background)
+app.post('/sync-members', auth, async (req, res) => {
+  res.json({ ok: true, message: 'Sincronização iniciada em background' });
+
+  // Executar em background (sem await)
+  (async () => {
+    try {
+      if (!isReady || !sock) return;
+
+      log.info('[MARKETING] Iniciando sincronização de membros de grupos...');
+
+      // Obter todos os grupos
+      const groups = await sock.groupFetchAllParticipating();
+      const groupJids = Object.keys(groups);
+
+      log.info(`[MARKETING] Encontrados ${groupJids.length} grupos.`);
+
+      for (const jid of groupJids) {
+        try {
+          const metadata = await sock.groupMetadata(jid);
+          const participants = metadata.participants.map(p => p.id.split('@')[0]); // Apenas números
+
+          // Enviar para API PHP salvar
+          await axios.post(`${RASTREAMENTO_API_URL}/api_marketing.php?action=save_members`, {
+            group_jid: jid,
+            members: participants
+          }, {
+            headers: { 'x-api-token': RASTREAMENTO_TOKEN }
+          });
+
+          log.info(`[MARKETING] Salvos ${participants.length} membros do grupo ${metadata.subject}`);
+
+          // Delay para não sobrecarregar
+          await new Promise(r => setTimeout(r, 2000));
+        } catch (err) {
+          log.error(`[MARKETING] Erro ao processar grupo ${jid}: ${err.message}`);
+        }
+      }
+
+      log.success('[MARKETING] Sincronização concluída!');
+    } catch (e) {
+      log.error(`[MARKETING] Falha geral na sync: ${e.message}`);
+    }
+  })();
+});
+
+// ===== MARKETING LOOP SYSTEM =====
+let marketingTimer = null;
+
+function startMarketingLoop() {
+  if (marketingTimer) clearInterval(marketingTimer);
+
+  // Rodar a cada 60 segundos
+  marketingTimer = setInterval(async () => {
+    try {
+      // 1. Chamar API para processar a lógica diária e pegar tarefas pendentes
+      const response = await axios.get(`${RASTREAMENTO_API_URL}/api_marketing.php?action=cron_process&token=${RASTREAMENTO_TOKEN}`);
+
+      if (response.data && response.data.success && response.data.tasks) {
+        const tasks = response.data.tasks;
+
+        if (tasks.length > 0) {
+          log.info(`[MARKETING] Processando ${tasks.length} tarefas de envio...`);
+
+          for (const task of tasks) {
+            // Executar envio
+            const result = await sendMarketingMessage(task);
+
+            // Reportar resultado
+            await axios.post(`${RASTREAMENTO_API_URL}/api_marketing.php?action=update_task`, {
+              member_id: task.member_id,
+              step_order: task.step_order,
+              success: result
+            }, {
+              headers: { 'x-api-token': RASTREAMENTO_TOKEN }
+            });
+
+            // Delay aleatório entre envios (safety)
+            await new Promise(r => setTimeout(r, rand(5000, 15000)));
+          }
+        }
+      }
+    } catch (e) {
+      // Silencioso se der erro de conexão
+      // log.error(`[MARKETING-LOOP] Erro: ${e.message}`);
+    }
+  }, 60000);
+
+  log.info('[MARKETING] Loop iniciado (60s)');
+}
+
+async function sendMarketingMessage(task) {
+  try {
+    if (!isReady || !sock) return false;
+
+    // Formatar número
+    const jid = formatBrazilNumber(task.phone) + '@s.whatsapp.net';
+
+    // Verificar se existe (Safety)
+    const exists = await checkContactExists(sock, jid);
+    if (!exists) return false;
+
+    // Setup da mensagem
+    let msgContent = {};
+    if (task.message_type === 'texto') {
+      msgContent = { text: task.message };
+    } else {
+      // Suporte futuro a imagem/audio
+      msgContent = { text: task.message };
+    }
+
+    // Enviar mensagem segura
+    await safeSendMessage(sock, jid, msgContent);
+    log.success(`[MARKETING] Mensagem enviada para ${task.phone}`);
+
+    return true;
+  } catch (e) {
+    log.error(`[MARKETING] Erro ao enviar para ${task.phone}: ${e.message}`);
+    return false;
+  }
+}
+
+// Helper random
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 // ===== INICIALIZAÇÃO =====
 app.listen(PORT, () => {
   log.success(`API WhatsApp rodando em http://localhost:${PORT}`);
@@ -4156,3 +4285,6 @@ process.on('SIGTERM', async () => {
 
 log.info('Bot WhatsApp iniciado com sistema de estabilidade ativo');
 log.info(`Heartbeat: ${HEARTBEAT_INTERVAL / 1000}s | Ping: ${PING_INTERVAL / 1000}s | Timeout: ${CONNECTION_TIMEOUT / 1000}s | Max reconexões: ${MAX_RECONNECT_ATTEMPTS}`);
+
+// Iniciar Loops Extras
+startMarketingLoop();
