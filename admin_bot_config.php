@@ -1985,16 +1985,28 @@ foreach ($msgEtapas as $k => $v) {
             if (!confirm('Tem certeza? Isso vai zerar a contagem do dia e o bot enviará mensagens para MAIS PESSOAS hoje, ignorando o limite já atingido.')) return;
             
             try {
-                const response = await fetch('api_marketing.php?action=reset_daily_limit');
+                // Tentativa de obter o token (se disponível globalmente ou via PHP inject)
+                // Assumindo que o PHP define um JS var ou precisamos passar via GET se for mais fácil
+                // Vamos tentar enviar via header e GET para garantir
+                const token = '<?= API_TOKEN ?>'; // PHP injection of token
+                
+                const response = await fetch('api_marketing.php?action=reset_daily_limit&token=' + token, {
+                    method: 'GET',
+                    headers: {
+                        'x-api-token': token
+                    }
+                });
+                
                 const result = await response.json();
                 
                 if (result.success) {
                     showToast(result.message, 'success');
                 } else {
-                    showToast('Erro ao resetar: ' + result.message, 'error');
+                    showToast('Erro ao resetar: ' + (result.message || 'Erro desconhecido'), 'error');
                 }
             } catch (error) {
-                showToast('Erro de conexão', 'error');
+                console.error(error);
+                showToast('Erro de conexão ou resposta inválida', 'error');
             }
         }
 
