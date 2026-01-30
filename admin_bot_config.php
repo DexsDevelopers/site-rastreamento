@@ -1617,7 +1617,11 @@ foreach ($msgEtapas as $k => $v) {
                 dashboard: ['Dashboard', 'Visão geral do bot e automações'],
                 automations: ['Automações', 'Gerencie respostas automáticas'],
                 settings: ['Configurações', 'Ajuste o comportamento do bot'],
-                logs: ['Logs', 'Histórico de execuções']
+                logs: ['Logs', 'Histórico de execuções'],
+                marketing: ['Marketing', 'Disparos e campanhas'],
+                licencas: ['Licenças', 'Gerencie acesso de grupos'],
+                ai: ['IA do Bot', 'Configuração de inteligência'],
+                mensagens: ['Mensagens', 'Personalize textos de rastreamento']
             };
             
             document.getElementById('pageTitle').textContent = titles[section]?.[0] || section;
