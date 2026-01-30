@@ -4164,12 +4164,28 @@ function startMarketingLoop() {
   log.info('[MARKETING] Loop iniciado (60s)');
 }
 
+// Cache para evitar envios duplicados em curto período (Dedup)
+const marketingCache = new Map();
+const MARKETING_CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+
 async function sendMarketingMessage(task) {
   try {
     if (!isReady || !sock) return { success: false, reason: 'not_ready' };
 
+    const phone = task.phone;
+
+    // VERIFICAÇÃO DE DEDUPLICAÇÃO (Cache Local)
+    // Se enviamos para esse número nos últimos 10 min, ignorar e fingir sucesso
+    // Isso protege contra falha de update na API que causa loop
+    const lastSend = marketingCache.get(phone);
+    if (lastSend && (Date.now() - lastSend < MARKETING_CACHE_TTL)) {
+      log.warn(`[MARKETING] Bloqueando envio duplicado para ${phone} (Protect Loop)`);
+      // Retorna sucesso para a API parar de tentar mandar
+      return { success: true, reason: 'deduplicated' };
+    }
+
     // Tratamento especial para LIDs (Device IDs) e JIDs longos
-    const cleanPhone = formatBrazilNumber(task.phone);
+    const cleanPhone = formatBrazilNumber(phone);
     let jid = cleanPhone + '@s.whatsapp.net';
     let isLid = false;
 
@@ -4204,6 +4220,18 @@ async function sendMarketingMessage(task) {
 
     // Enviar mensagem segura
     await safeSendMessage(sock, jid, msgContent);
+
+    // MARCAR NO CACHE (Sucesso)
+    marketingCache.set(phone, Date.now());
+
+    // Limpar cache antigo de vez em quando
+    if (marketingCache.size > 5000) {
+      const now = Date.now();
+      for (const [k, v] of marketingCache) {
+        if (now - v > MARKETING_CACHE_TTL) marketingCache.delete(k);
+      }
+    }
+
     log.success(`[MARKETING] Mensagem enviada para ${task.phone}`);
 
     return { success: true };

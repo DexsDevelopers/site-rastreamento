@@ -1579,6 +1579,7 @@ foreach ($msgEtapas as $k => $v) {
         let automations = <?= json_encode($automations) ?>;
         let settings = <?= json_encode($settingsObj) ?>;
         let grupos = [];
+        const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? '' ?>';
         
         // ===== INICIALIZAÇÃO =====
         document.addEventListener('DOMContentLoaded', () => {
@@ -1621,7 +1622,7 @@ foreach ($msgEtapas as $k => $v) {
                 marketing: ['Marketing', 'Disparos e campanhas'],
                 licencas: ['Licenças', 'Gerencie acesso de grupos'],
                 ai: ['IA do Bot', 'Configuração de inteligência'],
-                mensagens: ['Mensagens', 'Personalize textos de rastreamento']
+                messages: ['Mensagens', 'Personalize textos de rastreamento']
             };
             
             document.getElementById('pageTitle').textContent = titles[section]?.[0] || section;
@@ -1983,21 +1984,15 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao limpar: ' + err.message, 'error');
             }
         }
-        
         // ===== MARKETING JS =====
         async function resetDailyLimit() {
             if (!confirm('Tem certeza? Isso vai zerar a contagem do dia e o bot enviará mensagens para MAIS PESSOAS hoje, ignorando o limite já atingido.')) return;
             
             try {
-                // Tentativa de obter o token (se disponível globalmente ou via PHP inject)
-                // Assumindo que o PHP define um JS var ou precisamos passar via GET se for mais fácil
-                // Vamos tentar enviar via header e GET para garantir
-                const token = '<?= API_TOKEN ?>'; // PHP injection of token
-                
-                const response = await fetch('api_marketing.php?action=reset_daily_limit&token=' + token, {
+                const response = await fetch('api_marketing.php?action=reset_daily_limit&token=' + API_TOKEN, {
                     method: 'GET',
                     headers: {
-                        'x-api-token': token
+                        'x-api-token': API_TOKEN
                     }
                 });
                 
@@ -2013,6 +2008,25 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro de conexão ou resposta inválida', 'error');
             }
         }
+        
+    // ...
+
+        function showSection(section) {
+            // ...
+            
+            // Update header
+            const titles = {
+                dashboard: ['Dashboard', 'Visão geral do bot e automações'],
+                automations: ['Automações', 'Gerencie respostas automáticas'],
+                settings: ['Configurações', 'Ajuste o comportamento do bot'],
+                logs: ['Logs', 'Histórico de execuções'],
+                marketing: ['Marketing', 'Disparos e campanhas'],
+                licencas: ['Licenças', 'Gerencie acesso de grupos'],
+                ai: ['IA do Bot', 'Configuração de inteligência'],
+                messages: ['Mensagens', 'Personalize textos de rastreamento'] // Corrigido de 'mensagens' para 'messages' para bater com o data-section
+            };
+            
+            // ...
 
         async function saveMarketingConfig(e) {
             e.preventDefault();
