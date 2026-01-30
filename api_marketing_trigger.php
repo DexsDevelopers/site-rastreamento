@@ -13,11 +13,10 @@ $action = $input['action'] ?? '';
 
 if ($action === 'sync_groups') {
     // URL do Bot
-    $botUrl = getDynamicConfig('BOT_API_URL', 'http://127.0.0.1:3001');
+    $botUrl = getDynamicConfig('BOT_API_URL', 'http://192.168.2.111:3001');
     
-    // Hack: Forçar IP 127.0.0.1 e porta 3001
-    // Substitui localhost por 127.0.0.1 para evitar problemas de resolução IPv6
-    $botUrl = str_replace('localhost', '127.0.0.1', $botUrl);
+    // Hack: Forçar IP LAN 192.168.2.111 para bypass de problemas com localhost/loopback
+    $botUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $botUrl);
     
     // Forçar porta 3001 se estiver 3000
     if (strpos($botUrl, ':3000') !== false) {

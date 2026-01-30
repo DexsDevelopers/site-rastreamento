@@ -47,10 +47,10 @@ function normalizePhoneToDigits(?string $input): ?string {
 }
 
 function whatsappApiConfig(): array {
-    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', 'http://127.0.0.1:3001'), '/');
+    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', 'http://192.168.2.111:3001'), '/');
     
-    // Fix: Force 127.0.0.1 to avoid IPv6 issues
-    $baseUrl = str_replace('localhost', '127.0.0.1', $baseUrl);
+    // Fix: Force LAN IP to avoid loopback issues in Docker/VM envs
+    $baseUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $baseUrl);
     
     // Fix: Force port 3001 if 3000 is detected (Bot runs on 3001)
     if (strpos($baseUrl, ':3000') !== false) {
