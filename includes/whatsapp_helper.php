@@ -47,15 +47,11 @@ function normalizePhoneToDigits(?string $input): ?string {
 }
 
 function whatsappApiConfig(): array {
-    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', 'http://192.168.2.111:3001'), '/');
+    // URL do Bot via Ngrok
+    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', 'https://leola-formulable-iridescently.ngrok-free.dev'), '/');
     
-    // Fix: Force LAN IP to avoid loopback issues in Docker/VM envs
-    $baseUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $baseUrl);
-    
-    // Fix: Force port 3001 if 3000 is detected (Bot runs on 3001)
-    if (strpos($baseUrl, ':3000') !== false) {
-        $baseUrl = str_replace(':3000', ':3001', $baseUrl);
-    }
+    // Remover hacks de localhost/IP, usar URL direta
+    // $baseUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $baseUrl);
     
     $token = trim((string) getDynamicConfig('WHATSAPP_API_TOKEN', 'lucastav8012')); // Limpar espaços do token
     $enabled = filter_var(getDynamicConfig('WHATSAPP_API_ENABLED', true), FILTER_VALIDATE_BOOLEAN);

@@ -12,16 +12,14 @@ $input = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? '';
 
 if ($action === 'sync_groups') {
-    // URL do Bot
-    $botUrl = getDynamicConfig('BOT_API_URL', 'http://192.168.2.111:3001');
+    // URL do Bot (Tunel Ngrok para acesso externo)
+    $botUrl = getDynamicConfig('BOT_API_URL', 'https://leola-formulable-iridescently.ngrok-free.dev');
     
-    // Hack: Forçar IP LAN 192.168.2.111 para bypass de problemas com localhost/loopback
-    $botUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $botUrl);
+    // Remover hacks de localhost/192.168, pois agora estamos usando Ngrok
+    // $botUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $botUrl);
     
-    // Forçar porta 3001 se estiver 3000
-    if (strpos($botUrl, ':3000') !== false) {
-        $botUrl = str_replace(':3000', ':3001', $botUrl);
-    }
+    // Garantir que não tenha barra no final
+    $botUrl = rtrim($botUrl, '/');
 
     $token = getDynamicConfig('WHATSAPP_API_TOKEN', 'lucastav8012');
     
