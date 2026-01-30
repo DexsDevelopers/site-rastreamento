@@ -1800,9 +1800,19 @@ foreach ($msgEtapas as $k => $v) {
         }
         // ===== MARKETING JS =====
         async function resetDailyLimit() {
-            if (!confirm('Tem certeza? Isso vai zerar a contagem do dia e o bot enviará mensagens para MAIS PESSOAS hoje, ignorando o limite já atingido.')) return;
+            console.log('BotMarketing: Clicou em reset daily limit');
+            
+            if (typeof API_TOKEN === 'undefined' || !API_TOKEN) {
+                alert('ERRO TÉCNICO: Token da API não definido no Javascript. Recarregue a página.');
+                return;
+            }
+
+            if (!confirm('ATENÇÃO: Isso vai ZERAR o contador de envios de hoje.\nO bot voltará a enviar mensagens imediatamente para contatos que já atingiram o limite global.\n\nDeseja continuar?')) return;
             
             try {
+                showToast('Resetando limite...', 'warning');
+                
+                // Usando url absoluta relativa pra garantir
                 const response = await fetch('api_marketing.php?action=reset_daily_limit&token=' + API_TOKEN, {
                     method: 'GET',
                     headers: {
@@ -1811,6 +1821,7 @@ foreach ($msgEtapas as $k => $v) {
                 });
                 
                 const result = await response.json();
+                console.log('BotMarketing: Resultado reset:', result);
                 
                 if (result.success) {
                     showToast(result.message, 'success');
@@ -1819,7 +1830,8 @@ foreach ($msgEtapas as $k => $v) {
                 }
             } catch (error) {
                 console.error(error);
-                showToast('Erro de conexão ou resposta inválida', 'error');
+                showToast('Erro de conexão: ' + error.message, 'error');
+                alert('Erro de conexão ao tentar resetar. Verifique o console.');
             }
         }
         
