@@ -1583,6 +1583,21 @@ foreach ($msgEtapas as $k => $v) {
         
         // ===== INICIALIZAÇÃO =====
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('BotConfig: Inicializando...');
+            
+            // Setup Navegação (Dentro do DOMContentLoaded para segurança)
+            const navItems = document.querySelectorAll('.sidebar-item[data-section]');
+            console.log('BotConfig: Itens de menu encontrados:', navItems.length);
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = item.dataset.section;
+                    console.log('BotConfig: Navegando para', section);
+                    showSection(section);
+                });
+            });
+
             loadStats();
             loadSettings();
             loadGrupos();
@@ -1591,15 +1606,6 @@ foreach ($msgEtapas as $k => $v) {
             
             // Auto-refresh status a cada 30s
             setInterval(checkBotStatus, 30000);
-        });
-        
-        // ===== NAVEGAÇÃO =====
-        document.querySelectorAll('.sidebar-item[data-section]').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = item.dataset.section;
-                showSection(section);
-            });
         });
         
         function showSection(section) {
