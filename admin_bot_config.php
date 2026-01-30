@@ -1582,30 +1582,41 @@ foreach ($msgEtapas as $k => $v) {
         const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? '' ?>';
         
         // ===== INICIALIZAÇÃO =====
-        document.addEventListener('DOMContentLoaded', () => {
+        // ===== INICIALIZAÇÃO =====
+        document.addEventListener('DOMContentLoaded', async () => {
             console.log('BotConfig: Inicializando...');
             
-            // Setup Navegação (Dentro do DOMContentLoaded para segurança)
-            const navItems = document.querySelectorAll('.sidebar-item[data-section]');
-            console.log('BotConfig: Itens de menu encontrados:', navItems.length);
+            // 1. Setup Navegação (PRIORIDADE MÁXIMA)
+            try {
+                const navItems = document.querySelectorAll('.sidebar-item[data-section]');
+                console.log('BotConfig: Itens de menu encontrados:', navItems.length);
 
-            navItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const section = item.dataset.section;
-                    console.log('BotConfig: Navegando para', section);
-                    showSection(section);
+                navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const section = item.dataset.section;
+                        console.log('BotConfig: Navegando para', section);
+                        showSection(section);
+                    });
                 });
-            });
+            } catch (err) {
+                console.error('CRITICO: Erro ao iniciar menu:', err);
+            }
 
-            loadStats();
-            loadSettings();
-            loadGrupos();
-            renderAutomations();
-            checkBotStatus();
+            // 2. Carregar dados de forma segura (Independentes)
+            // Usamos setTimeout para não travar a thread principal imediatamente
+            setTimeout(async () => {
+                try { await loadStats(); } catch(e) { console.error('Erro loadStats:', e); }
+                try { await loadSettings(); } catch(e) { console.error('Erro loadSettings:', e); }
+                try { await loadGrupos(); } catch(e) { console.error('Erro loadGrupos:', e); }
+                try { renderAutomations(); } catch(e) { console.error('Erro renderAutomations:', e); }
+                try { checkBotStatus(); } catch(e) { console.error('Erro checkBotStatus:', e); }
+            }, 100);
             
             // Auto-refresh status a cada 30s
-            setInterval(checkBotStatus, 30000);
+            setInterval(() => {
+                try { checkBotStatus(); } catch(e) { console.error('Erro intervalo status:', e); }
+            }, 30000);
         });
         
         function showSection(section) {
