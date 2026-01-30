@@ -28,7 +28,7 @@ if ($action === 'save_members') {
     $members = $input['members'];
     $added = 0;
 
-    $stmt = $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, group_jid, status) VALUES (?, ?, 'novo')");
+    $stmt = $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, grupo_origem_jid, status) VALUES (?, ?, 'novo')");
 
     foreach ($members as $phone) {
         // Sanitize phone
@@ -37,25 +37,10 @@ if ($action === 'save_members') {
         if (strlen($phone) < 10) continue;
 
         try {
-            // Using logic to avoid duplicates across groups? 
-            // The schema has UNIQUE(telefone, grupo_origem_jid). 
-            // Wait, if a user is in Group A and Group B, do we spam them twice?
-            // Ideally no, but for now let's respect the user's request "5 members of EACH group".
-            // So we allow them to be in the list multiple times if unique key allows, 
-            // BUT schema says `grupo_origem_jid` column is `grupo_origem_jid`.
-            
-            // Correction: My previous schema `setup_marketing_db.php` had:
-            // UNIQUE KEY (telefone, grupo_origem_jid)
-            // So yes, same person in diff groups = multiple entries. 
-            // To prevent spamming the same person multiple times a day from diff groups, 
-            // we might need a centralized check, but let's stick to the request.
-            
-            // Note: Schema column is `grupo_origem_jid`, not `group_jid`.
-            $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, grupo_origem_jid, status) VALUES (?, ?, 'novo')")
-                ->execute([$phone, $groupJid]);
+            $stmt->execute([$phone, $groupJid]);
             $added++;
         } catch (Exception $e) {
-            // Ignore duplicates
+            // Ignore duplicates or specific insert errors
         }
     }
 
