@@ -160,10 +160,18 @@ if ($action === 'save_members') {
             executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ?, status = 'concluido' WHERE id = ?", [$stepOrder, $memberId]);
         }
     } else {
-        // Failed? Retry later or block?
-        // For now, retry in 1 hour
-        $retryTime = date('Y-m-d H:i:s', strtotime("+60 minutes"));
-        executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = ? WHERE id = ?", [$retryTime, $memberId]);
+        // Failed
+        $reason = $input['reason'] ?? '';
+
+        if ($reason === 'invalid_number') {
+            // Block invalid number to prevent loops
+            executeQuery($pdo, "UPDATE marketing_membros SET status = 'bloqueado' WHERE id = ?", [$memberId]);
+        } else {
+            // Other failures: Retry later
+            // For now, retry in 1 hour
+            $retryTime = date('Y-m-d H:i:s', strtotime("+60 minutes"));
+            executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = ? WHERE id = ?", [$retryTime, $memberId]);
+        }
     }
     
     echo json_encode(['success' => true]);

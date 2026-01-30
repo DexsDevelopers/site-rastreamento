@@ -4133,7 +4133,8 @@ function startMarketingLoop() {
             await axios.post(`${RASTREAMENTO_API_URL}/api_marketing.php?action=update_task`, {
               member_id: task.member_id,
               step_order: task.step_order,
-              success: result
+              success: result.success,
+              reason: result.reason
             }, {
               headers: { 'x-api-token': RASTREAMENTO_TOKEN }
             });
@@ -4154,14 +4155,14 @@ function startMarketingLoop() {
 
 async function sendMarketingMessage(task) {
   try {
-    if (!isReady || !sock) return false;
+    if (!isReady || !sock) return { success: false, reason: 'not_ready' };
 
     // Formatar número
     const jid = formatBrazilNumber(task.phone) + '@s.whatsapp.net';
 
     // Verificar se existe (Safety)
     const exists = await checkContactExists(sock, jid);
-    if (!exists) return false;
+    if (!exists) return { success: false, reason: 'invalid_number' };
 
     // Setup da mensagem
     let msgContent = {};
@@ -4176,10 +4177,10 @@ async function sendMarketingMessage(task) {
     await safeSendMessage(sock, jid, msgContent);
     log.success(`[MARKETING] Mensagem enviada para ${task.phone}`);
 
-    return true;
+    return { success: true };
   } catch (e) {
     log.error(`[MARKETING] Erro ao enviar para ${task.phone}: ${e.message}`);
-    return false;
+    return { success: false, reason: 'error: ' + e.message };
   }
 }
 
