@@ -29,7 +29,9 @@ if ($action === 'sync_groups') {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['background' => true]));
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json',
-        "x-api-token: $token"
+        "x-api-token: $token",
+        'ngrok-skip-browser-warning: true',
+        'User-Agent: Bot-Rastreamento'
     ]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5); // Timeout curto, bot roda em background
