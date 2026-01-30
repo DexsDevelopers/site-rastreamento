@@ -347,33 +347,44 @@ function registerMessageSent(jid) {
 
 // Função para verificar se contato existe antes de enviar
 async function checkContactExists(sock, jid) {
+  // Ignorar verificação se desabilitada
   if (!CHECK_CONTACT_BEFORE_SEND || !SAFETY_ENABLED) return true;
 
   try {
-    // Verificar se é grupo ou comunidade (sempre existem se o bot está neles)
+    // 1. Grupos e Comunidades sempre existem (se estamos neles)
     if (isGroupJid(jid)) {
       return true;
     }
 
-    // Números com @lid são válidos (device ID) - aceitar diretamente
+    // 2. LIDs (Identificadores de Dispositivo)
+    // Eles não respondem ao 'onWhatsApp' tradicional da mesma forma.
+    // Se o JID termina em @lid, assumimos que é válido se o formato estiver correto (apenas números).
     if (jid.includes('@lid')) {
-      return true;
+      const userPart = jid.split('@')[0];
+      // Verificação simples: se tem só números, é um LID "potencialmente" válido.
+      // Infelizmente a Baileys não tem um check confiável para LIDs sem tentar enviar.
+      // Vamos assumir TRUE para LIDs para não bloquear envios legítimos.
+      if (/^\d+$/.test(userPart)) {
+        return true;
+      }
+      return false;
     }
 
-    // Normalizar JID para verificação (remover device ID se houver)
+    // 3. Normalização para @s.whatsapp.net
     let normalizedJid = jid;
     if (jid.includes(':')) {
-      // Remover device ID (parte após :)
       normalizedJid = jid.split(':')[0] + '@' + jid.split('@')[1];
     }
 
-    // Garantir que tem @s.whatsapp.net
+    // Garantir sufixo correto
     if (!normalizedJid.includes('@s.whatsapp.net')) {
+      // Se não tem sufixo nenhum, adiciona o padrão
       normalizedJid = normalizedJid.replace(/@.*$/, '') + '@s.whatsapp.net';
     }
 
-    // Para chats privados, verificar se o número existe no WhatsApp
+    // 4. Verificação Real na API do WhatsApp
     const onWhatsApp = await sock.onWhatsApp(normalizedJid);
+
     if (!onWhatsApp || onWhatsApp.length === 0) {
       log.warn(`[SAFETY] Número ${normalizedJid} não está no WhatsApp`);
       return false;
@@ -382,11 +393,7 @@ async function checkContactExists(sock, jid) {
     return onWhatsApp[0].exists || onWhatsApp[0].isBusiness || onWhatsApp[0].isEnterprise;
   } catch (error) {
     log.error(`[SAFETY] Erro ao verificar contato: ${error.message}`);
-    // Em caso de erro, permitir (fail-open para não bloquear tudo)
-    // Números com @lid são válidos mesmo se a verificação falhar
-    if (jid.includes('@lid')) {
-      return true;
-    }
+    // Fail-open: na dúvida (erro de rede, etc), permite o envio para não travar filas
     return true;
   }
 }
