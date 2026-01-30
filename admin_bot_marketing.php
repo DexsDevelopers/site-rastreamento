@@ -1041,64 +1041,11 @@ foreach ($msgEtapas as $k => $v) {
         </header>
         
         <!-- Dashboard Section -->
-        <section id="section-dashboard" class="section">
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-zinc-400 text-sm">Automações</span>
-                        <i class="fas fa-bolt" style="color: #FF3333;"></i>
-                    </div>
-                    <div class="stat-value" id="statTotal">0</div>
-                    <p class="text-xs text-zinc-500 mt-1"><span id="statActive">0</span> ativas</p>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-zinc-400 text-sm">Usos Total</span>
-                        <i class="fas fa-chart-bar text-blue-500"></i>
-                    </div>
-                    <div class="stat-value" id="statUsos">0</div>
-                    <p class="text-xs text-zinc-500 mt-1">desde o início</p>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-zinc-400 text-sm">Hoje</span>
-                        <i class="fas fa-calendar-day text-yellow-500"></i>
-                    </div>
-                    <div class="stat-value" id="statHoje">0</div>
-                    <p class="text-xs text-zinc-500 mt-1">execuções</p>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-zinc-400 text-sm">Status Bot</span>
-                        <i class="fas fa-robot" style="color: #FF3333;"></i>
-                    </div>
-                    <div id="statBotStatus" class="text-2xl font-bold" style="color: #FF3333;">--</div>
-                    <p class="text-xs text-zinc-500 mt-1" id="statUptime">uptime: --</p>
-                </div>
-            </div>
-            
-            <!-- Recent Automations -->
-            <div class="card">
-                <div class="card-header flex items-center justify-between">
-                    <h3 class="font-semibold">Automações Recentes</h3>
-                    <a href="admin_bot_automations.php" class="text-sm hover:underline" style="color: #FF3333;" >Ver todas</a>
-                </div>
-                <div class="p-4">
-                    <div id="recentAutomations" class="space-y-3">
-                        <p class="text-zinc-500 text-center py-8">Carregando...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
         
         </section>
 
         <!-- Marketing Section -->
-        <section id="section-marketing" class="section hidden">
+        <section id="section-marketing" class="section">
             <!-- Stats -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="stat-card p-4">
@@ -1222,181 +1169,12 @@ foreach ($msgEtapas as $k => $v) {
         </section>
 
         <!-- Personalized Messages Section -->
-        <section id="section-messages" class="section hidden">
-            <div class="card mb-6">
-                <div class="p-4 bg-zinc-900/50 border-b border-zinc-800">
-                    <p class="text-sm text-zinc-400"><i class="fas fa-info-circle mr-2"></i>Estas são as mensagens enviadas automaticamente quando o status de um rastreio é atualizado.</p>
-                </div>
-                <div class="p-6">
-                    <form id="messagesConfigForm" onsubmit="saveMessagesConfig(event)">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <?php foreach ($msgEtapas as $k => $v): ?>
-                                <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-xl"><?= $v['icon'] ?></span>
-                                        <h4 class="font-medium text-zinc-200"><?= $v['nome'] ?></h4>
-                                    </div>
-                                    <textarea name="<?= $v['key'] ?>" rows="5" class="input-field w-full text-sm font-mono leading-relaxed" spellcheck="false"><?= htmlspecialchars($msgConfig[$k]) ?></textarea>
-                                    <div class="mt-2 flex flex-wrap gap-1">
-                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{nome}</span>
-                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{codigo}</span>
-                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{link}</span>
-                                        <?php if ($k === 'taxa'): ?>
-                                            <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_valor}</span>
-                                            <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_pix}</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <div class="mt-8 flex justify-end sticky bottom-4">
-                            <button type="submit" class="btn btn-primary shadow-lg shadow-red-900/20">
-                                <i class="fas fa-save mr-2"></i> Salvar Todas as Mensagens
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </section>
         
         <!-- Automations Section -->
-        <section id="section-automations" class="section hidden">
-            <div id="automationsList" class="grid gap-4">
-                <p class="text-zinc-500 text-center py-12">Carregando automações...</p>
-            </div>
-        </section>
         
         <!-- Settings Section -->
-        <section id="section-settings" class="section hidden">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="font-semibold">Configurações Gerais do Bot</h3>
-                </div>
-                <div class="p-6 space-y-6">
-                    <!-- Bot Enabled -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium">Bot Ativo</h4>
-                            <p class="text-sm text-zinc-500">Ativar ou desativar o bot completamente</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting_bot_enabled" onchange="saveSetting('bot_enabled', this.checked ? '1' : '0')">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <!-- Automations Enabled -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium">Automações Ativas</h4>
-                            <p class="text-sm text-zinc-500">Ativar ou desativar todas as automações</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting_automations_enabled" onchange="saveSetting('automations_enabled', this.checked ? '1' : '0')">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <!-- Auto Reply -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium">Resposta Automática</h4>
-                            <p class="text-sm text-zinc-500">Responder automaticamente a saudações</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting_auto_reply_enabled" onchange="saveSetting('auto_reply_enabled', this.checked ? '1' : '0')">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <!-- Log Automations -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium">Registrar Logs</h4>
-                            <p class="text-sm text-zinc-500">Salvar histórico de execução das automações</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting_log_automations" onchange="saveSetting('log_automations', this.checked ? '1' : '0')">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <!-- Auto Join Groups -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium">Entrar Automaticamente em Grupos</h4>
-                            <p class="text-sm text-zinc-500">Entrar em grupos quando receber link no privado (após validação)</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting_auto_join_groups" onchange="saveSetting('auto_join_groups', this.checked ? '1' : '0')">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <!-- Warming Mode -->
-                    <div class="flex items-center justify-between mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                        <div>
-                            <h4 class="font-medium text-orange-400">🔥 Modo Aquecimento</h4>
-                            <p class="text-sm text-zinc-400">Simula comportamento humano (digita, varia tempo) para evitar banimento.</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting_warming_mode" onchange="saveSetting('warming_mode', this.checked ? '1' : '0')">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    
-                    <hr class="border-zinc-800">
-                    
-                    <!-- Welcome Message -->
-                    <div>
-                        <h4 class="font-medium mb-2">Mensagem de Boas-Vindas</h4>
-                        <textarea id="setting_welcome_message" class="input-field w-full h-24" 
-                            placeholder="Olá! Como posso ajudar?"
-                            onblur="saveSetting('welcome_message', this.value)"></textarea>
-                    </div>
-                    
-                    <!-- Rate Limit -->
-                    <div>
-                        <h4 class="font-medium mb-2">Limite de Automações por Minuto (por usuário)</h4>
-                        <input type="number" id="setting_max_automations_per_minute" class="input-field w-32"
-                            min="1" max="100" value="10"
-                            onblur="saveSetting('max_automations_per_minute', this.value)">
-                    </div>
-                </div>
-            </div>
-        </section>
         
         <!-- Logs Section -->
-        <section id="section-logs" class="section hidden">
-            <div class="card">
-                <div class="card-header flex items-center justify-between">
-                    <h3 class="font-semibold">Histórico de Execuções</h3>
-                    <button onclick="loadLogs()" class="btn btn-secondary text-sm">
-                        <i class="fas fa-sync-alt"></i>
-                        Atualizar
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="border-b border-zinc-800">
-                            <tr class="text-left text-zinc-500 text-sm">
-                                <th class="px-4 py-3">Data</th>
-                                <th class="px-4 py-3">Automação</th>
-                                <th class="px-4 py-3">Origem</th>
-                                <th class="px-4 py-3">Mensagem</th>
-                                <th class="px-4 py-3">Grupo</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logsTable" class="text-sm">
-                            <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-zinc-500">Carregando...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
     </main>
     
     <!-- Modal -->
@@ -1594,7 +1372,7 @@ foreach ($msgEtapas as $k => $v) {
                 navItems.forEach(item => {
                     item.addEventListener('click', (e) => {
                         // Não prevenir default completamente para permitir atualização da URL
-                        // e.preventDefault(); 
+                        //  
                         const section = item.dataset.section;
                         console.log('BotConfig: Clicou menu ->', section);
                         showSection(section);
@@ -1870,7 +1648,7 @@ foreach ($msgEtapas as $k => $v) {
         }
         
         async function saveAutomation(e) {
-            e.preventDefault();
+            
             const form = document.getElementById('automationForm');
             const formData = new FormData(form);
             formData.append('action', 'save_automation');
@@ -2065,7 +1843,7 @@ foreach ($msgEtapas as $k => $v) {
             // ...
 
         async function saveMarketingConfig(e) {
-            e.preventDefault();
+            
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_campaign');
@@ -2084,7 +1862,7 @@ foreach ($msgEtapas as $k => $v) {
         }
 
         async function addMarketingMsg(e) {
-            e.preventDefault();
+            
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'add_marketing_msg');
@@ -2247,7 +2025,7 @@ foreach ($msgEtapas as $k => $v) {
 
         // ===== MESSAGES CONFIG JS =====
         async function saveMessagesConfig(e) {
-            e.preventDefault();
+            
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_messages');
@@ -2512,12 +2290,12 @@ foreach ($msgEtapas as $k => $v) {
                 closeSidebar();
             }
             if (e.key === 'n' && e.ctrlKey) {
-                e.preventDefault();
+                
                 openModal();
             }
             // Prevenir zoom com teclado (Ctrl + / Ctrl -)
             if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.keyCode === 187 || e.keyCode === 189)) {
-                e.preventDefault();
+                
             }
         });
         
@@ -2534,15 +2312,15 @@ foreach ($msgEtapas as $k => $v) {
         
         // Prevenir zoom com gestos de pinça (iOS)
         document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
+            
         });
         
         document.addEventListener('gesturechange', function(e) {
-            e.preventDefault();
+            
         });
         
         document.addEventListener('gestureend', function(e) {
-            e.preventDefault();
+            
         });
         
         // Prevenir zoom com duplo toque
@@ -2558,7 +2336,7 @@ foreach ($msgEtapas as $k => $v) {
         // Prevenir zoom com wheel (alguns navegadores)
         document.addEventListener('wheel', function(e) {
             if (e.ctrlKey) {
-                e.preventDefault();
+                
             }
         }, { passive: false });
         
