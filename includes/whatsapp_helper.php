@@ -47,8 +47,17 @@ function normalizePhoneToDigits(?string $input): ?string {
 }
 
 function whatsappApiConfig(): array {
-    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', ''), '/');
-    $token = trim((string) getDynamicConfig('WHATSAPP_API_TOKEN', '')); // Limpar espaços do token
+    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', 'http://127.0.0.1:3001'), '/');
+    
+    // Fix: Force 127.0.0.1 to avoid IPv6 issues
+    $baseUrl = str_replace('localhost', '127.0.0.1', $baseUrl);
+    
+    // Fix: Force port 3001 if 3000 is detected (Bot runs on 3001)
+    if (strpos($baseUrl, ':3000') !== false) {
+        $baseUrl = str_replace(':3000', ':3001', $baseUrl);
+    }
+    
+    $token = trim((string) getDynamicConfig('WHATSAPP_API_TOKEN', 'lucastav8012')); // Limpar espaços do token
     $enabled = filter_var(getDynamicConfig('WHATSAPP_API_ENABLED', true), FILTER_VALIDATE_BOOLEAN);
 
     return [
