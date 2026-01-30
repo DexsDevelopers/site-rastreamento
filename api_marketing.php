@@ -9,13 +9,80 @@ require_once 'includes/db_connect.php';
 
 header('Content-Type: application/json');
 
+// Set Timezone to Brazil/Sao Paulo to ensure daily limits work correctly
+date_default_timezone_set('America/Sao_Paulo');
+
 // Security check (Basic)
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $token = $_SERVER['HTTP_X_API_TOKEN'] ?? $_GET['token'] ?? '';
-// Validate token if needed, usually matches config
-// $expectedToken = ...; 
 
-if ($action === 'save_members') {
+// ... (existing token validation)
+
+if ($action === 'cron_process') {
+    // 1. Load Campaign Settings
+    $campanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1 AND ativo = 1");
+    if (!$campanha) {
+        echo json_encode(['success' => true, 'tasks' => [], 'message' => 'Campanha inativa']);
+        exit;
+    }
+
+    $tasks = [];
+    $membrosPorDiaLimit = intval($campanha['membros_por_dia_grupo']); // Treating as GLOBAL limit for safety
+    
+    // SAFETY CHECK: Verify Global Daily Usage across ALL groups
+    // Counts everyone processed today (Active or Concluded)
+    $globalStats = fetchOne($pdo, "
+        SELECT COUNT(*) as c 
+        FROM marketing_membros 
+        WHERE (status = 'em_progresso' OR status = 'concluido')
+        AND DATE(data_proximo_envio) = CURDATE()
+    ");
+    
+    $globalTotalToday = intval($globalStats['c']);
+    
+    // If we already hit the global limit, do NOT select new members anywhere
+    if ($globalTotalToday >= $membrosPorDiaLimit) {
+        // Just process existing active tasks, but don't add new ones
+        error_log("Limite diário global atingido: $globalTotalToday / $membrosPorDiaLimit");
+        // We set a flag to prevent adding NEW members inside the loop
+        $canAddNew = false;
+    } else {
+        $canAddNew = true;
+    }
+
+    // 2. DAILY SELECTION (Select new members for today)
+    if ($canAddNew) {
+        $groups = fetchData($pdo, "SELECT DISTINCT grupo_origem_jid FROM marketing_membros WHERE status = 'novo'");
+        
+        foreach ($groups as $g) {
+            // Re-check global limit inside loop to preventing over-filling
+            $currentGlobal = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido') AND DATE(data_proximo_envio) = CURDATE()");
+            if ($currentGlobal['c'] >= $membrosPorDiaLimit) break;
+            
+            $gj = $g['grupo_origem_jid'];
+            
+            // For now, we simply fill the GLOBAL quota from available groups
+            // If you want per-group distribution, we'd need more complex logic.
+            // This FIFO approach is safer to respect the absolute limit.
+            
+            $slotsAvailable = $membrosPorDiaLimit - $currentGlobal['c'];
+            if ($slotsAvailable <= 0) break;
+            
+            // Select random 'novo' from this group up to the global slots available
+            $candidates = fetchData($pdo, "SELECT id FROM marketing_membros WHERE grupo_origem_jid = ? AND status = 'novo' ORDER BY RAND() LIMIT $slotsAvailable", [$gj]);
+            
+            foreach ($candidates as $c) {
+                // Activate them
+                $delayMinutes = rand($campanha['intervalo_min_minutos'], $campanha['intervalo_max_minutos']);
+                $sendTime = date('Y-m-d H:i:s', strtotime("+$delayMinutes minutes"));
+                
+                executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0 WHERE id = ?", [$sendTime, $c['id']]);
+                
+                // Decrement slots locally to avoid re-querying every widely
+                $slotsAvailable--;
+            }
+        }
+    }
     // Input: JSON { "group_jid": "...", "members": ["5511999...", "5511888..."] }
     $input = json_decode(file_get_contents('php://input'), true);
     
@@ -46,57 +113,7 @@ if ($action === 'save_members') {
 
     echo json_encode(['success' => true, 'added' => $added]);
 
-} elseif ($action === 'cron_process') {
-    // 1. Load Campaign Settings
-    $campanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1 AND ativo = 1");
-    if (!$campanha) {
-        echo json_encode(['success' => true, 'tasks' => [], 'message' => 'Campanha inativa']);
-        exit;
-    }
 
-    $tasks = [];
-    $now = date('Y-m-d H:i:s');
-    $membrosPorDia = $campanha['membros_por_dia_grupo'];
-    
-    // 2. DAILY SELECTION (Select new members for today)
-    // Check if we need to select for this group-day
-    // Strategy: We can't easily check "did we select for Group X today?" without a log table.
-    // Alternative: Check members in 'em_progresso' created/updated recently?
-    // Robust approach: A standard "last_run" log or just checking counts.
-    
-    // Simplification: Run selection every time, but LIMIT 5 WHERE date(data_proximo_envio) != today?
-    // No, 'novo' members have NULL data_proximo_envio.
-    
-    // Let's iterate all distinct groups in marketing_membros
-    $groups = fetchData($pdo, "SELECT DISTINCT grupo_origem_jid FROM marketing_membros");
-    
-    foreach ($groups as $g) {
-        $gj = $g['grupo_origem_jid'];
-        
-        // Count how many are already 'em_progresso' or 'concluido' (or converted today) for this group
-        // This logic is tricky without a separate 'campaign_runs' table.
-        // Let's assume 'em_progresso' means currently active.
-        
-        // Count active for today:
-        $activeCount = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE grupo_origem_jid = ? AND status = 'em_progresso' AND DATE(data_proximo_envio) = CURDATE()", [$gj]);
-        $count = $activeCount['c'];
-
-        if ($count < $membrosPorDia) {
-            $needed = $membrosPorDia - $count;
-            // Select random 'novo'
-            $candidates = fetchData($pdo, "SELECT id FROM marketing_membros WHERE grupo_origem_jid = ? AND status = 'novo' ORDER BY RAND() LIMIT $needed", [$gj]);
-            
-            foreach ($candidates as $c) {
-                // Activate them
-                // Set first send time: NOW + random delay (minutes)
-                // Random start time between now and +interval_max
-                $delayMinutes = rand($campanha['intervalo_min_minutos'], $campanha['intervalo_max_minutos']);
-                $sendTime = date('Y-m-d H:i:s', strtotime("+$delayMinutes minutes"));
-                
-                executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0 WHERE id = ?", [$sendTime, $c['id']]);
-            }
-        }
-    }
 
     // 3. GET PENDING TASKS
     // Select members ready to receive
