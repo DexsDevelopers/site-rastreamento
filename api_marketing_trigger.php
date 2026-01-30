@@ -13,7 +13,13 @@ $action = $input['action'] ?? '';
 
 if ($action === 'sync_groups') {
     // URL do Bot
-    $botUrl = getDynamicConfig('BOT_API_URL', 'http://localhost:3000');
+    $botUrl = getDynamicConfig('BOT_API_URL', 'http://localhost:3001');
+    
+    // Hack: Forçar porta 3001 se estiver 3000, pois detectamos que o bot roda na 3001
+    if (strpos($botUrl, ':3000') !== false) {
+        $botUrl = str_replace(':3000', ':3001', $botUrl);
+    }
+
     $token = getDynamicConfig('WHATSAPP_API_TOKEN', 'lucastav8012');
     
     // Chamar endpoint do bot para iniciar sincronização
@@ -29,12 +35,19 @@ if ($action === 'sync_groups') {
     
     $result = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    $curlErrno = curl_errno($ch);
     curl_close($ch);
     
     if ($httpCode === 200) {
         echo json_encode(['success' => true, 'message' => 'Sincronização iniciada']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Bot retornou erro: ' . $httpCode]);
+        $msg = $httpCode ? "Bot retornou erro: $httpCode" : "Erro de conexão ($curlErrno): $curlError";
+        // Tentar sugerir porta correta se falhar na 3001
+        if (!$httpCode && strpos($botUrl, '3001') !== false) {
+             $msg .= " - Verifique se o bot está rodando na porta 3001.";
+        }
+        echo json_encode(['success' => false, 'message' => $msg]);
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Ação inválida']);
