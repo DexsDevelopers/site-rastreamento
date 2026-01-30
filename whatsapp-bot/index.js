@@ -30,6 +30,10 @@ dotenv.config();
 function formatBrazilNumber(raw) {
   let digits = String(raw).replace(/\D+/g, '');
   if (digits.startsWith('0')) digits = digits.slice(1);
+
+  // Se for muito longo (provável LID ou JID), não adicionar 55
+  if (digits.length > 13) return digits;
+
   if (!digits.startsWith('55')) digits = '55' + digits;
   return digits;
 }
@@ -4157,11 +4161,29 @@ async function sendMarketingMessage(task) {
   try {
     if (!isReady || !sock) return { success: false, reason: 'not_ready' };
 
-    // Formatar número
-    const jid = formatBrazilNumber(task.phone) + '@s.whatsapp.net';
+    // Tratamento especial para LIDs (Device IDs) e JIDs longos
+    const cleanPhone = formatBrazilNumber(task.phone);
+    let jid = cleanPhone + '@s.whatsapp.net';
+    let isLid = false;
+
+    // Se for muito longo (>= 15), provavelmente é um LID
+    if (cleanPhone.length >= 15) {
+      log.info(`[MARKETING] Número longo detectado (${cleanPhone.length} dígitos). Tentando como LID...`);
+      jid = cleanPhone + '@lid';
+      isLid = true;
+    }
 
     // Verificar se existe (Safety)
-    const exists = await checkContactExists(sock, jid);
+    // Se for LID, checkContactExists pode falhar ou retornar true direto, vamos testar
+    let exists = await checkContactExists(sock, jid);
+
+    // Se falhou como LID, tenta como user normal (vai que é um número gringo longo)
+    if (!exists && isLid) {
+      log.warn(`[MARKETING] Falha ao verificar LID ${jid}. Tentando fallback para @s.whatsapp.net`);
+      jid = cleanPhone + '@s.whatsapp.net';
+      exists = await checkContactExists(sock, jid);
+    }
+
     if (!exists) return { success: false, reason: 'invalid_number' };
 
     // Setup da mensagem

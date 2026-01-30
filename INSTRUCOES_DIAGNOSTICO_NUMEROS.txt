@@ -1,0 +1,24 @@
+🔴 ATENÇÃO: NÚMEROS PODEM ESTAR FORMATADOS INCORRETAMENTE
+
+Identifiquei nos logs do seu bot que os números que estão falhando possuem muitos dígitos (16 ou 17 dígitos), o que não é normal para um número de WhatsApp brasileiro (que tem 12 ou 13 dígitos).
+
+Exemplo dos logs:
+- `5553911067050093` (16 dígitos)
+- `55202688264462357` (17 dígitos)
+
+Se o número for brasileiro (código 55), ele deveria se parecer com: `5511999998888`.
+
+CAUSA PROVÁVEL:
+Parece que houve um erro na importação desses contatos para o banco de dados. Talvez algum ID interno ou informação extra foi anexada ao final do número.
+
+COMO VERIFICAR:
+Criei um script chamado `analisar_numeros_invalidos.php` na sua pasta.
+Por favor, faça UPLOAD dele para a sua hospedagem (Hostinger), na pasta `public_html/`.
+
+Depois, acesse no navegador:
+https://cornflowerblue-fly-883408.hostingersite.com/analisar_numeros_invalidos.php
+
+Ele vai te mostrar uma lista dos números suspeitos. Se você confirmar que eles estão "sujos" (com números extras no final), poderei criar um script para limpá-los automaticamente.
+
+IMPORTANTE:
+Não apague o arquivo `api_marketing.php` modificado que pedi para subir antes. Suba ele TAMBÉM. Ele protege seu sistema de tentar enviar para esses números errados repetidamente.
