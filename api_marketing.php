@@ -193,4 +193,22 @@ if ($action === 'cron_process') {
     
     echo json_encode(['success' => true]);
 }
+} elseif ($action === 'reset_daily_limit') {
+    // Ação Manual: Resetar contagem diária
+    // Truque: Voltamos a data de "proximo envio" dos que rodaram hoje para "ontem"
+    // Assim o contador (WHERE DATE = CURDATE) vai dar zero, liberando o limite.
+    
+    // Atualiza apenas quem rodou hoje para ontem, liberando a cota
+    $ontem = date('Y-m-d H:i:s', strtotime('-1 day'));
+    
+    // Impacta quem está em progresso ou concluiu hoje
+    $sql = "UPDATE marketing_membros 
+            SET data_proximo_envio = ? 
+            WHERE (status = 'em_progresso' OR status = 'concluido') 
+            AND DATE(data_proximo_envio) = CURDATE()";
+            
+    executeQuery($pdo, $sql, [$ontem]);
+    
+    echo json_encode(['success' => true, 'message' => 'Limite diário resetado com sucesso! Agora você pode enviar mais.']);
+}
 ?>
