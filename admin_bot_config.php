@@ -1593,12 +1593,31 @@ foreach ($msgEtapas as $k => $v) {
 
                 navItems.forEach(item => {
                     item.addEventListener('click', (e) => {
-                        e.preventDefault();
+                        // Não prevenir default completamente para permitir atualização da URL
+                        // e.preventDefault(); 
                         const section = item.dataset.section;
-                        console.log('BotConfig: Navegando para', section);
+                        console.log('BotConfig: Clicou menu ->', section);
                         showSection(section);
                     });
                 });
+                
+                // Verificar hash inicial (ex: #marketing) e navegar
+                const initialHash = window.location.hash.replace('#', '');
+                if (initialHash) {
+                    console.log('BotConfig: Hash inicial detectado ->', initialHash);
+                    // Pequeno delay para garantir que o DOM renderizou
+                    setTimeout(() => showSection(initialHash), 50);
+                } else {
+                     // Default para dashboard se não tiver hash
+                     showSection('dashboard');
+                }
+                
+                // Escutar mudanças de hash (caso o usuário use botões voltar/avançar)
+                window.addEventListener('hashchange', () => {
+                    const hash = window.location.hash.replace('#', '');
+                    if (hash) showSection(hash);
+                });
+
             } catch (err) {
                 console.error('CRITICO: Erro ao iniciar menu:', err);
             }
