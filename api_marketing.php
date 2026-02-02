@@ -12,6 +12,15 @@ header('Content-Type: application/json');
 // Set Timezone to Brazil/Sao Paulo to ensure daily limits work correctly
 date_default_timezone_set('America/Sao_Paulo');
 
+// Sync MySQL Timezone with PHP
+try {
+    $offset = date('P');
+    $pdo->exec("SET time_zone = '$offset'");
+} catch (Exception $e) {
+    // Fallback or ignore if permission denied, but log it
+    error_log("Failed to set MySQL timezone: " . $e->getMessage());
+}
+
 // Security check (Basic)
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $token = $_SERVER['HTTP_X_API_TOKEN'] ?? $_GET['token'] ?? '';
@@ -103,9 +112,13 @@ if ($action === 'save_members') {
         AND m.data_proximo_envio <= NOW() 
         LIMIT 20"); 
 
+    if (!empty($readyMembers)) {
+        error_log("[Marketing Cron] Found " . count($readyMembers) . " ready members.");
+    } 
+
     foreach ($readyMembers as $member) {
-        $nextStep = $member['ultimo_passo_id'] + 1;
-        $msg = fetchOne($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 AND ordem = ?", [$nextStep]);
+        // Find next message strictly after current step (handles gaps)
+        $msg = fetchOne($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 AND ordem > ? ORDER BY ordem ASC LIMIT 1", [$member['ultimo_passo_id']]);
         
         if ($msg) {
             // Task found
@@ -115,8 +128,8 @@ if ($action === 'save_members') {
                 'message' => $msg['conteudo'],
                 'message_type' => $msg['tipo'],
                 'member_id' => $member['id'],
-                'step_order' => $nextStep,
-                'next_delay' => $msg['delay_apos_anterior_minutos'] // To calculate next schedule
+                'step_order' => $msg['ordem'], // Use actual message order
+                'next_delay' => $msg['delay_apos_anterior_minutos'] 
             ];
         } else {
             // No more messages -> Mark as Concluded
@@ -136,7 +149,7 @@ if ($action === 'save_members') {
     if ($success) {
         // Schedule next
         // Get the NEXT message to see its delay requirement
-        $nextMsg = fetchOne($pdo, "SELECT delay_apos_anterior_minutos FROM marketing_mensagens WHERE campanha_id = 1 AND ordem = ?", [$stepOrder + 1]);
+        $nextMsg = fetchOne($pdo, "SELECT delay_apos_anterior_minutos FROM marketing_mensagens WHERE campanha_id = 1 AND ordem > ? ORDER BY ordem ASC LIMIT 1", [$stepOrder]);
         
         if ($nextMsg) {
             $delay = $nextMsg['delay_apos_anterior_minutos'];

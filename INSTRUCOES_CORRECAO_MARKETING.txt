@@ -1,0 +1,20 @@
+🔴 CORREÇÃO DO FUNIL DE MARKETING (PERDA DE MENSAGENS)
+
+Eu apliquei duas correções críticas no arquivo `api_marketing.php`:
+
+1. **Correção de "Pulo" de Mensagens**:
+   - Antes: O sistema buscava sempre a "Próxima Mensagem" como sendo "Passo Atual + 1".
+   - Problema: Se você apagou alguma mensagem no meio do funil (ex: apagou a msg 2), o sistema tentava achar a 2, não achava, e marcava o cliente como "CONCLUÍDO", parando o envio.
+   - Solução: Agora o sistema busca a "Próxima Mensagem Disponível" (ex: se apagou a 2, ele vai para a 3).
+
+2. **Sincronização de Fuso Horário**:
+   - O Bot e o Banco de Dados poderiam estar em fusos diferentes, fazendo com que o envio programado para "Daqui a 10 min" fosse entendido pelo banco como "Daqui a 4 horas" (ou vice-versa), travando o envio.
+   - Forcei a sincronização do horário do banco com o horário do sistema (Brasil).
+
+✅ AÇÃO NECESSÁRIA:
+Faça o UPLOAD do arquivo abaixo para sua hospedagem (Hostinger) na pasta `/public_html/`:
+
+- `api_marketing.php`
+
+Após o upload, o funil deve voltar a funcionar para os **novos** envios ou para os que ainda estão em progresso.
+Para quem já foi marcado como "concluído" erroneamente, você precisará reiniciá-los ou resetá-los manualmente (ou alterar o status no banco de dados de 'concluido' para 'em_progresso' e 'ultimo_passo_id' para o último que receberam).
