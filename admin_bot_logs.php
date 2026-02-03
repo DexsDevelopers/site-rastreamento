@@ -2045,25 +2045,6 @@ foreach ($msgEtapas as $k => $v) {
             }
         }
         
-    // ...
-
-        function showSection(section) {
-            // ...
-            
-            // Update header
-            const titles = {
-                dashboard: ['Dashboard', 'Visão geral do bot e automações'],
-                automations: ['Automações', 'Gerencie respostas automáticas'],
-                settings: ['Configurações', 'Ajuste o comportamento do bot'],
-                logs: ['Logs', 'Histórico de execuções'],
-                marketing: ['Marketing', 'Disparos e campanhas'],
-                licencas: ['Licenças', 'Gerencie acesso de grupos'],
-                ai: ['IA do Bot', 'Configuração de inteligência'],
-                messages: ['Mensagens', 'Personalize textos de rastreamento'] // Corrigido de 'mensagens' para 'messages' para bater com o data-section
-            };
-            
-            // ...
-
         async function saveMarketingConfig(e) {
             e.preventDefault();
             const form = e.target;
