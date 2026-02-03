@@ -2,13 +2,11 @@
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
 
-try {
-    $columns = fetchData($pdo, "SHOW COLUMNS FROM marketing_membros");
-    echo "Columns in marketing_membros:\n";
-    foreach ($columns as $c) {
-        echo "- " . $c['Field'] . "\n";
-    }
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
-}
+echo "Table: bot_automation_logs\n";
+$cols = fetchData($pdo, "DESCRIBE bot_automation_logs");
+print_r($cols);
+
+echo "\nTable: bot_automations\n";
+$cols2 = fetchData($pdo, "DESCRIBE bot_automations");
+print_r($cols2);
 ?>
