@@ -69,7 +69,6 @@ if ($action === 'save_members') {
     $globalStats = fetchOne($pdo, "
         SELECT COUNT(*) as c 
         FROM marketing_membros 
-        FROM marketing_membros 
         WHERE (status = 'em_progresso' OR status = 'concluido')
         AND DATE(data_proximo_envio) = CURDATE()
     ");
