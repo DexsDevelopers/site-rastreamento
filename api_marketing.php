@@ -172,12 +172,51 @@ if ($action === 'save_members') {
             // Block invalid number to prevent loops
             executeQuery($pdo, "UPDATE marketing_membros SET status = 'bloqueado' WHERE id = ?", [$memberId]);
         } else {
+    } else {
             // Other failures: Retry later & Reset status to 'em_progresso'
             // For now, retry in 1 hour
             $retryTime = date('Y-m-d H:i:s', strtotime("+60 minutes"));
             executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = ?, status = 'em_progresso' WHERE id = ?", [$retryTime, $memberId]);
         }
     }
+
+    // --- LOGGING FOR ADMIN PANEL ---
+    if ($success) {
+        try {
+            // 1. Get Member Phone & Group
+            $member = fetchOne($pdo, "SELECT telefone, grupo_origem_jid FROM marketing_membros WHERE id = ?", [$memberId]);
+            
+            // 2. Get Message Content
+            $msgContent = fetchOne($pdo, "SELECT conteudo FROM marketing_mensagens WHERE campanha_id = 1 AND ordem = ?", [$stepOrder]);
+            $actualContent = $msgContent['conteudo'] ?? 'Mensagem de Marketing';
+
+            // 3. Get Automation ID (Create if not exists)
+            $auto = fetchOne($pdo, "SELECT id FROM bot_automations WHERE nome = 'Campanha Marketing' LIMIT 1");
+            if (!$auto) {
+                executeQuery($pdo, "INSERT INTO bot_automations (nome, descricao, ativo, tipo, gatilho, resposta, prioridade) VALUES ('Campanha Marketing', 'Logs automáticos de marketing', 1, 'mensagem_especifica', 'SYSTEM_MARKETING', 'Dinâmico', -1)");
+                $autoId = $pdo->lastInsertId();
+            } else {
+                $autoId = $auto['id'];
+            }
+
+            // 4. Update Usage Counter
+            executeQuery($pdo, "UPDATE bot_automations SET contador_uso = contador_uso + 1, ultimo_uso = NOW() WHERE id = ?", [$autoId]);
+
+            // 5. Insert Log
+            $phone = $member['telefone'];
+            $jid = $phone . '@s.whatsapp.net';
+            
+            executeQuery($pdo, "INSERT INTO bot_automation_logs 
+                (automation_id, jid_origem, numero_origem, mensagem_recebida, resposta_enviada, grupo_id, grupo_nome) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                [$autoId, $jid, $phone, 'DISPARO_MARKETING', $actualContent, $member['grupo_origem_jid'], 'Marketing Campaign']
+            );
+
+        } catch (Exception $e) {
+            error_log("Erro ao salvar log de marketing: " . $e->getMessage());
+        }
+    }
+    // --- END LOGGING ---
     
     echo json_encode(['success' => true]);
 

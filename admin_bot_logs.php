@@ -2372,8 +2372,17 @@ foreach ($msgEtapas as $k => $v) {
                 `).join('');
             } catch (err) {
                 console.error('Erro ao carregar logs:', err);
+                const tbody = document.getElementById('logsTable');
+                if(tbody) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Erro ao carregar logs. Tente recarregar.</td></tr>';
             }
         }
+        
+        // Auto-refresh logs every 10s if on logs section
+        setInterval(() => {
+            if(!document.getElementById('section-logs').classList.contains('hidden')) {
+                loadLogs();
+            }
+        }, 10000);
         
         // ===== GRUPOS =====
         async function loadGrupos() {
