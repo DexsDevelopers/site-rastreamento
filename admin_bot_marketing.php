@@ -1836,7 +1836,7 @@ foreach ($msgEtapas as $k => $v) {
         }
         
         async function saveMarketingConfig(e) {
-            
+            e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_campaign');
