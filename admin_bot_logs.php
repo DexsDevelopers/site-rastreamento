@@ -959,42 +959,42 @@ foreach ($msgEtapas as $k => $v) {
         <nav class="flex-1 py-4">
             <div class="px-4 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Menu</div>
             
-            <a href="admin_bot_config.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="dashboard">
                 <i class="fas fa-chart-line w-5"></i>
                 <span>Dashboard</span>
             </a>
             
-            <a href="admin_bot_automations.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="automations">
                 <i class="fas fa-bolt w-5"></i>
                 <span>Automações</span>
             </a>
             
-            <a href="admin_bot_settings.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="settings">
                 <i class="fas fa-cog w-5"></i>
                 <span>Configurações</span>
             </a>
             
-            <a href="admin_bot_logs.php" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="logs">
                 <i class="fas fa-history w-5"></i>
                 <span>Logs</span>
             </a>
             
-            <a href="admin_bot_licenses.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="licencas" style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
                 <i class="fas fa-key w-5" style="color: #FF3333;"></i>
                 <span>Licenças de Grupos</span>
             </a>
             
-            <a href="admin_bot_ia.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="ai" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
                 <i class="fas fa-brain w-5" style="color: #8B5CF6;"></i>
                 <span>IA do Bot</span>
             </a>
 
-            <a href="admin_bot_marketing.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="marketing">
                 <i class="fas fa-bullhorn w-5"></i>
                 <span>Marketing</span>
             </a>
 
-            <a href="admin_bot_messages.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="messages">
                 <i class="fas fa-comment-dots w-5"></i>
                 <span>Mensagens</span>
             </a>
@@ -1085,7 +1085,7 @@ foreach ($msgEtapas as $k => $v) {
             <div class="card">
                 <div class="card-header flex items-center justify-between">
                     <h3 class="font-semibold">Automações Recentes</h3>
-                    <a href="admin_bot_automations.php" class="text-sm hover:underline" style="color: #FF3333;" >Ver todas</a>
+                    <a href="#" onclick="showSection('automations')" class="text-sm hover:underline" style="color: #FF3333;">Ver todas</a>
                 </div>
                 <div class="p-4">
                     <div id="recentAutomations" class="space-y-3">
