@@ -1,0 +1,20 @@
+⚠️ IMPORTANTE: PARA CORRIGIR O ERRO, VOCÊ PRECISA SUBIR ESTES ARQUIVOS ⚠️
+
+Eu corrigi o código no seu computador, mas o seu site (Hostinger) ainda está usando o código antigo. Por isso o bot não obedece ou repete mensagens.
+
+Você deve fazer upload dos seguintes arquivos para a pasta 'public_html' do seu servidor Hostinger, substituindo os existentes:
+
+LOCALIZAÇÃO NO SEU PC:
+1. /home/johan/Desktop/Link to Johan 7K/Documents/GitHub/site-rastreamento/api_marketing.php
+   -> Este corrige o envio duplo, o limite diário e o travamento. É O MAIS IMPORTANTE.
+
+2. /home/johan/Desktop/Link to Johan 7K/Documents/GitHub/site-rastreamento/admin_bot_marketing.php
+   -> Este corrige o bug do botão "Salvar" que ativava a campanha sozinho.
+
+PASSO A PASSO:
+1. Abra o Gerenciador de Arquivos da Hostinger.
+2. Vá na pasta onde está o site (geralmente public_html).
+3. Arraste e solte o arquivo 'api_marketing.php' do seu PC para lá. Confirme a substituição.
+4. Arraste e solte o arquivo 'admin_bot_marketing.php' do seu PC para lá. Confirme a substituição.
+
+Assim que subir, me avise para testarmos! O bot já está pronto esperando o código novo no site.
