@@ -9,6 +9,13 @@ require_once 'includes/db_connect.php';
 require_once 'includes/whatsapp_helper.php';
 require_once 'includes/auth_helper.php';
 
+// Configurar timezone para o Brasil
+date_default_timezone_set('America/Sao_Paulo');
+try {
+    $offset = date('P');
+    if (isset($pdo)) $pdo->exec("SET time_zone = '$offset'");
+} catch (Exception $e) {}
+
 // Verificar autenticação
 requireLogin();
 
@@ -2327,6 +2334,9 @@ foreach ($msgEtapas as $k => $v) {
         
         // ===== LOGS =====
         async function loadLogs() {
+            const tbody = document.getElementById('logsTable');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-zinc-500"><i class="fas fa-spinner fa-spin mr-2"></i>Carregando logs...</td></tr>';
+
             const formData = new FormData();
             formData.append('action', 'get_logs');
             formData.append('limit', 50);
@@ -2335,7 +2345,7 @@ foreach ($msgEtapas as $k => $v) {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
                 
-                const tbody = document.getElementById('logsTable');
+                if (!tbody) return;
                 
                 if (!data.success || !data.data.length) {
                     tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-zinc-500">Nenhum log encontrado</td></tr>';
@@ -2345,15 +2355,23 @@ foreach ($msgEtapas as $k => $v) {
                 tbody.innerHTML = data.data.map(log => `
                     <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                         <td class="px-4 py-3 text-zinc-400">${formatDate(log.criado_em)}</td>
-                        <td class="px-4 py-3 font-medium">${escapeHtml(log.automation_nome || '--')}</td>
+                        <td class="px-4 py-3 font-medium">
+                            ${log.automation_nome ? `<span class="badge ${log.automation_nome.includes('Marketing') ? 'badge-yellow' : 'badge-blue'}">${escapeHtml(log.automation_nome)}</span>` : '<span class="text-zinc-600">--</span>'}
+                        </td>
                         <td class="px-4 py-3 mono text-xs">${escapeHtml(log.numero_origem || log.jid_origem)}</td>
-                        <td class="px-4 py-3 text-zinc-400 max-w-xs truncate">${escapeHtml(log.mensagem_recebida || '--')}</td>
+                        <td class="px-4 py-3 text-zinc-400 max-w-xs truncate" title="${escapeHtml(log.mensagem_recebida || '')}">
+                            ${log.mensagem_recebida ? (log.mensagem_recebida.startsWith('FALHA') ? `<span class="text-red-400">${escapeHtml(log.mensagem_recebida)}</span>` : escapeHtml(log.mensagem_recebida)) : '--'}
+                        </td>
                         <td class="px-4 py-3 text-zinc-500">${escapeHtml(log.grupo_nome || 'Privado')}</td>
                     </tr>
                 `).join('');
+
+                // Update stats too
+                loadStats();
+                showToast('Logs atualizados!', 'success');
+                
             } catch (err) {
                 console.error('Erro ao carregar logs:', err);
-                const tbody = document.getElementById('logsTable');
                 if(tbody) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Erro ao carregar logs. Tente recarregar.</td></tr>';
             }
         }
