@@ -69,8 +69,9 @@ if ($action === 'save_members') {
     $globalStats = fetchOne($pdo, "
         SELECT COUNT(*) as c 
         FROM marketing_membros 
-        WHERE (status = 'em_progresso' OR status = 'concluido')
-        AND DATE(data_proximo_envio) = CURDATE()
+        FROM marketing_membros 
+        WHERE (status = 'em_progresso' OR status = 'concluido' OR status = 'enviando')
+        AND (DATE(data_proximo_envio) = CURDATE() OR DATE(created_at) = CURDATE())
     ");
     
     $globalTotalToday = intval($globalStats['c']);
@@ -86,7 +87,7 @@ if ($action === 'save_members') {
         $groups = fetchData($pdo, "SELECT DISTINCT grupo_origem_jid FROM marketing_membros WHERE status = 'novo'");
         
         foreach ($groups as $g) {
-            $currentGlobal = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido') AND DATE(data_proximo_envio) = CURDATE()");
+            $currentGlobal = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido' OR status = 'enviando') AND DATE(data_proximo_envio) = CURDATE()");
             if ($currentGlobal['c'] >= $membrosPorDiaLimit) break;
             
             $gj = $g['grupo_origem_jid'];
@@ -108,7 +109,7 @@ if ($action === 'save_members') {
     $readyMembers = fetchData($pdo, "SELECT m.*, c.nome as camp_nome 
         FROM marketing_membros m 
         JOIN marketing_campanhas c ON c.id = 1 
-        WHERE m.status = 'em_progresso' 
+        WHERE (m.status = 'em_progresso' OR m.status = 'enviando') 
         AND m.data_proximo_envio <= NOW() 
         LIMIT 20"); 
 
@@ -121,6 +122,10 @@ if ($action === 'save_members') {
         $msg = fetchOne($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 AND ordem > ? ORDER BY ordem ASC LIMIT 1", [$member['ultimo_passo_id']]);
         
         if ($msg) {
+            // LOCK TASK IMMEDIATELY (Set status to 'enviando' and bump time by 5 min to prevent race condition)
+            $tempLockTime = date('Y-m-d H:i:s', strtotime("+5 minutes"));
+            executeQuery($pdo, "UPDATE marketing_membros SET status = 'enviando', data_proximo_envio = ? WHERE id = ?", [$tempLockTime, $member['id']]);
+
             // Task found
             $tasks[] = [
                 'type' => 'send_message',
@@ -155,7 +160,7 @@ if ($action === 'save_members') {
             $delay = $nextMsg['delay_apos_anterior_minutos'];
             $nextTime = date('Y-m-d H:i:s', strtotime("+$delay minutes"));
             
-            executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ?, data_proximo_envio = ? WHERE id = ?", [$stepOrder, $nextTime, $memberId]);
+            executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ?, data_proximo_envio = ?, status = 'em_progresso' WHERE id = ?", [$stepOrder, $nextTime, $memberId]);
         } else {
             // No next message, finish
             executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ?, status = 'concluido' WHERE id = ?", [$stepOrder, $memberId]);
@@ -168,10 +173,10 @@ if ($action === 'save_members') {
             // Block invalid number to prevent loops
             executeQuery($pdo, "UPDATE marketing_membros SET status = 'bloqueado' WHERE id = ?", [$memberId]);
         } else {
-            // Other failures: Retry later
+            // Other failures: Retry later & Reset status to 'em_progresso'
             // For now, retry in 1 hour
             $retryTime = date('Y-m-d H:i:s', strtotime("+60 minutes"));
-            executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = ? WHERE id = ?", [$retryTime, $memberId]);
+            executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = ?, status = 'em_progresso' WHERE id = ?", [$retryTime, $memberId]);
         }
     }
     
