@@ -4150,8 +4150,8 @@ function startMarketingLoop() {
               headers: { 'x-api-token': RASTREAMENTO_TOKEN }
             });
 
-            // Delay aleatório entre envios (safety)
-            await new Promise(r => setTimeout(r, rand(5000, 15000)));
+            // Delay aleatório entre envios (safety - aumentado para evitar ban)
+            await new Promise(r => setTimeout(r, rand(30000, 120000))); // 30s a 2min
           }
         }
       }
