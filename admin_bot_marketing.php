@@ -2087,21 +2087,44 @@ foreach ($msgEtapas as $k => $v) {
         }
 
         
-        async function editMarketingMsg(id, currentContent, currentDelay) {
+        let currentEditMsgId = null;
+
+        function editMarketingMsg(id, currentContent, currentDelay) {
             // Decode HTML entities
             const textarea = document.createElement('textarea');
             textarea.innerHTML = currentContent;
             const decodedContent = textarea.value;
             
-            const newContent = prompt('Editar mensagem:', decodedContent);
-            if (newContent === null || newContent.trim() === '') return;
+            // Store ID for later
+            currentEditMsgId = id;
             
-            const newDelay = prompt('Delay (minutos após anterior):', currentDelay);
-            if (newDelay === null) return;
+            // Populate modal
+            document.getElementById('editMsgContent').value = decodedContent;
+            document.getElementById('editMsgDelay').value = currentDelay;
+            
+            // Show modal
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditMsgId = null;
+        }
+
+        async function saveEditMsg(e) {
+            e.preventDefault();
+            
+            if (!currentEditMsgId) {
+                showToast('Erro: ID da mensagem não encontrado', 'error');
+                return;
+            }
+            
+            const newContent = document.getElementById('editMsgContent').value;
+            const newDelay = document.getElementById('editMsgDelay').value;
             
             const formData = new FormData();
             formData.append('action', 'edit_marketing_msg');
-            formData.append('id', id);
+            formData.append('id', currentEditMsgId);
             formData.append('conteudo', newContent);
             formData.append('delay', parseInt(newDelay) || 0);
             
@@ -2110,6 +2133,7 @@ foreach ($msgEtapas as $k => $v) {
                 const data = await res.json();
                 if (data.success) {
                     showToast(data.message, 'success');
+                    closeEditModal();
                     setTimeout(() => location.reload(), 800);
                 } else {
                     showToast(data.message || 'Erro ao editar', 'error');
