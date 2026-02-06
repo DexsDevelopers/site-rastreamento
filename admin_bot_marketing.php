@@ -2273,28 +2273,28 @@ foreach ($msgEtapas as $k => $v) {
             } catch(e) { showToast('Erro: '+e, 'error'); }
         }
 
+        // ===== MARKETING STATS =====
+        async function loadMarketingStats() {
+            try {
+                const res = await fetch('api_marketing_ajax.php?action=get_marketing_stats');
+                const data = await res.json();
+                
+                if (data.success && data.stats) {
+                    // Stats are already rendered in PHP, no need to update
+                    // This function can be used for auto-refresh if needed
+                    console.log('Marketing stats loaded:', data.stats);
+                }
+            } catch (err) {
+                console.error('Erro ao carregar marketing stats:', err);
+            }
+        }
+
         async function syncFunnel() {
             if(!confirm('Isso vai reordenar as mensagens (1, 2, 3...) e corrigir clientes perdidos. Usar apenas se o funil estiver bagunçado. Continuar?')) return;
             showToast('Sincronizando...', 'warning');
             try {
-                const res = await fetch('admin_bot_marketing.php?action=sync_funnel');
-                const text = await res.text(); // Get raw text first
-                
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    // JSON sujo? Tentar extrair apenas o objeto JSON
-                    console.log('JSON Parse falhou, tentando limpar...', text);
-                    const jsonStart = text.indexOf('{');
-                    const jsonEnd = text.lastIndexOf('}');
-                    if (jsonStart !== -1 && jsonEnd !== -1) {
-                        const cleanJson = text.substring(jsonStart, jsonEnd + 1);
-                        data = JSON.parse(cleanJson);
-                    } else {
-                        throw new Error('Resposta inválida do servidor: ' + text.substring(0, 50));
-                    }
-                }
+                const res = await fetch('api_marketing_ajax.php?action=sync_funnel');
+                const data = await res.json();
 
                 if(data.success) {
                     showToast(data.message, 'success');
@@ -2302,7 +2302,10 @@ foreach ($msgEtapas as $k => $v) {
                 } else {
                     showToast(data.message, 'error');
                 }
-            } catch(e) { showToast('Erro: '+e, 'error'); }
+            } catch(e) { 
+                console.error('Erro sync:', e);
+                showToast('Erro: '+e.message, 'error'); 
+            }
         }
 
         // ===== MESSAGES CONFIG JS =====
