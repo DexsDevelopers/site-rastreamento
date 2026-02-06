@@ -63,4 +63,3 @@ function getLoginTime() {
     return $_SESSION['login_time'] ?? 0;
 }
 ?>
-

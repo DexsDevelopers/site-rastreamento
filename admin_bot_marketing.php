@@ -1105,49 +1105,94 @@ foreach ($msgEtapas as $k => $v) {
         <!-- Marketing Section -->
         <section id="section-marketing" class="section">
             <!-- Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="stat-card p-4">
-                    <div class="text-xs text-zinc-400 mb-1">Total Leads</div>
-                    <div class="text-xl font-bold text-white"><?= $mktStats['total'] ?? 0 ?></div>
-                </div>
-                <div class="stat-card p-4">
-                    <div class="text-xs text-zinc-400 mb-1">Na Fila / Próximo Lote</div>
-                    <div class="text-xl font-bold text-yellow-500">
-                        <?= $mktStats['novos'] ?? 0 ?>
-                        <?php if(!empty($mktStats['proximo_envio'])): ?>
-                            <div class="text-[10px] text-zinc-500 mt-1 font-normal">
-                                Próx: <?= date('H:i', strtotime($mktStats['proximo_envio'])) ?>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <!-- META DO DIA (VIPs) -->
+                <div class="stat-card p-4 border-l-4 border-blue-500 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Meta do Dia</div>
+                            <div class="text-2xl font-bold text-white mt-1">
+                                <?= $mktStats['hoje_iniciados'] ?? 0 ?> <span class="text-sm text-zinc-500 font-normal">/ <?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?></span>
                             </div>
-                        <?php endif; ?>
+                        </div>
+                        <div class="bg-blue-500/10 p-2 rounded-lg">
+                            <i class="fas fa-users text-blue-500"></i>
+                        </div>
+                    </div>
+                    
+                    <?php 
+                        $meta = $mktCampanha['membros_por_dia_grupo'] ?? 5;
+                        $percent = min(100, (($mktStats['hoje_iniciados'] ?? 0) / $meta) * 100);
+                    ?>
+                    <div class="w-full bg-zinc-800 rounded-full h-1.5 mt-2">
+                        <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $percent ?>%"></div>
+                    </div>
+                    <div class="text-[10px] text-zinc-500 mt-2">
+                        <?= ($mktStats['hoje_iniciados'] ?? 0) >= $meta ? 
+                            '<span class="text-green-500"><i class="fas fa-check-circle"></i> Meta batida! Focando em entregar.</span>' : 
+                            '<span class="text-yellow-500"><i class="fas fa-play-circle"></i> Recrutando novos...</span>' ?>
                     </div>
                 </div>
-                <div class="stat-card p-4">
-                    <div class="text-xs text-zinc-400 mb-1">Em Andamento</div>
-                    <div class="text-xl font-bold text-blue-500"><?= $mktStats['progresso'] ?? 0 ?></div>
-                </div>
-                <div class="stat-card p-4 bg-green-900/10 border-green-500/30">
-                     <div class="text-xs text-zinc-400 mb-1">Disparos Hoje (Total)</div>
-                     <div class="text-xl font-bold text-green-400">
-                        <?= $mktStats['envios_hoje'] ?? 0 ?>
-                        <span class="text-[10px] text-zinc-500 font-normal block mt-1">Inclui msg 1, 2, 3...</span>
-                     </div>
-                </div>
-                <div class="stat-card p-4">
-                    <div class="text-xs text-zinc-400 mb-1">Finalizados</div>
-                    <div class="text-xl font-bold text-green-500"><?= $mktStats['concluidos'] ?? 0 ?></div>
-                </div>
-                <div class="stat-card p-4 border-yellow-500/30">
-                    <div class="text-xs text-zinc-400 mb-1">Hoje / Limite Global</div>
-                    <div class="text-xl font-bold" style="color: #FF3333;">
-                        <?= $mktStats['hoje'] ?? 0 ?> 
-                        <span class="text-sm text-zinc-500 font-normal">/ <?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?></span>
+
+                <!-- PROGRESSO DO FUNIL HOJE -->
+                <div class="stat-card p-4 border-l-4 border-purple-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">VIPs em Andamento</div>
+                             <div class="text-2xl font-bold text-white mt-1">
+                                <?= $mktStats['hoje_andamento'] ?? 0 ?> <span class="text-xs text-zinc-500">pessoas</span>
+                            </div>
+                        </div>
+                        <div class="bg-purple-500/10 p-2 rounded-lg">
+                            <i class="fas fa-running text-purple-500"></i>
+                        </div>
                     </div>
-                    <?php if (($mktStats['hoje'] ?? 0) >= ($mktCampanha['membros_por_dia_grupo'] ?? 5)): ?>
-                        <div class="text-[10px] text-red-500 mt-1 uppercase font-bold tracking-wider">Meta Diária Atingida!</div>
-                        <div class="text-[9px] text-zinc-500">Novos contatos pausam. Fila continua.</div>
+                     <div class="text-[10px] text-zinc-400 mt-2">
+                        Em média na Msg #<?= $mktStats['passo_medio'] ?? 0 ?> de <?= $mktStats['total_msgs_funil'] ?? 0 ?>
+                    </div>
+                    <?php if(!empty($mktStats['proximo_envio'])): ?>
+                         <div class="text-[10px] text-green-400 mt-1">
+                            <i class="fas fa-clock mr-1"></i> Próx: <?= date('H:i', strtotime($mktStats['proximo_envio'])) ?>
+                        </div>
                     <?php else: ?>
-                        <div class="text-[10px] text-green-500 mt-1 uppercase tracking-wider">Recrutando...</div>
+                        <div class="text-[10px] text-zinc-600 mt-1">Nenhum envio agendado</div>
                     <?php endif; ?>
+                </div>
+
+                <!-- CONCLUÍDOS HOJE -->
+                <div class="stat-card p-4 border-l-4 border-green-500">
+                      <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Concluídos Hoje</div>
+                             <div class="text-2xl font-bold text-green-500 mt-1">
+                                <?= $mktStats['hoje_concluidos'] ?? 0 ?>
+                            </div>
+                        </div>
+                        <div class="bg-green-500/10 p-2 rounded-lg">
+                            <i class="fas fa-flag-checkered text-green-500"></i>
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-zinc-500 mt-2">
+                        Receberam todas as mensagens do funil hoje.
+                    </div>
+                </div>
+
+                <!-- TOTAL DE MENSAGENS -->
+                <div class="stat-card p-4 border-l-4 border-zinc-500">
+                      <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Disparos Hoje</div>
+                             <div class="text-2xl font-bold text-white mt-1">
+                                <?= $mktStats['hoje_disparos'] ?? 0 ?>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-700/30 p-2 rounded-lg">
+                            <i class="fas fa-envelope text-zinc-400"></i>
+                        </div>
+                    </div>
+                     <div class="text-[10px] text-zinc-500 mt-2">
+                        Soma de todas msgs (1, 2, 3...) enviadas pelo bot.
+                    </div>
                 </div>
             </div>
 
