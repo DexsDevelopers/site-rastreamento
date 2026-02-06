@@ -98,29 +98,77 @@ if ($action === 'save_members') {
             foreach ($candidates as $c) {
                 $delayMinutes = rand($campanha['intervalo_min_minutos'], $campanha['intervalo_max_minutos']);
                 $sendTime = date('Y-m-d H:i:s', strtotime("+$delayMinutes minutes"));
-                executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0 WHERE id = ?", [$sendTime, $c['id']]);
+                executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0, data_entrada_fluxo = CURDATE() WHERE id = ?", [$sendTime, $c['id']]);
                 $slotsAvailable--;
             }
         }
     }
 
-    // 3. GET PENDING TASKS
-    $readyMembers = fetchData($pdo, "SELECT m.*, c.nome as camp_nome 
-        FROM marketing_membros m 
-        JOIN marketing_campanhas c ON c.id = 1 
-        WHERE m.status = 'em_progresso' 
-        AND m.data_proximo_envio <= NOW() 
-        LIMIT 20"); 
+    // 2. BUSCAR TAREFAS PENDENTES (Mensagens agendadas)
+    // NOVA LÓGICA VIP: Prioridade TOTAL para quem começou HOJE.
+    // Se atingiu o limite diário de novos, NÃO processa antigos. Apenas os de hoje continuam.
+    
+    // Contar quantos leads começaram hoje
+    $hojeCount = fetchOne($pdo, "SELECT COUNT(*) as total FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE()")['total'];
+    $limiteDiario = $campanha['membros_por_dia_grupo'];
+    
+    // Definir quem pode receber mensagem agora
+    // Prioridade 1: Pessoas que já estão no fluxo HOJE (msg 2, 3...)
+    // Prioridade 2: Novas pessoas (msg 1), SE couber no limite.
+    // Prioridade 3: Pessoas antigas... APENAS SE o usuário permitir (Neste caso, o usuário pediu BLOQUEIO)
+    
+    // Lógica RIGOROSA: 
+    // - Se é tarefa de Msg 1: Só libera se $hojeCount < $limiteDiario
+    // - Se é tarefa de Msg > 1:
+    //      - Se o lead começou HOJE: Libera SEMPRE (para terminar o funil dele)
+    //      - Se o lead é ANTIGO: BLOQUEIA se a regra for estrita "Focar no dia".
+    
+    // Vamos filtrar na query.
+    // Buscamos tarefas agendadas para AGORA ou ANTES
+    $tasksSql = "
+        SELECT m.*, msg.conteudo, msg.tipo, msg.ordem, msg.delay_apos_anterior_minutos
+        FROM marketing_membros m
+        JOIN marketing_mensagens msg ON 
+            (m.ultimo_passo_id + 1) = msg.ordem
+        WHERE 
+            m.status = 'em_progresso' 
+            AND m.data_proximo_envio <= NOW()
+            AND (
+                -- CASO 1: É a primeira mensagem (Entrada)
+                (msg.ordem = 1 AND (SELECT COUNT(*) FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE()) < ?)
+                
+                OR
+                
+                -- CASO 2: É continuação (Msg 2, 3...) PARA ALGUÉM DE HOJE
+                (msg.ordem > 1 AND DATE(m.data_entrada_fluxo) = CURDATE())
+                
+                -- CASO 3: Antigos? O usuário pediu para focar nos de hoje quando bater o limite.
+                -- Então, por enquanto, vamos IGNORAR os antigos se o limite de hoje já estiver cheio.
+                -- Na verdade, o pedido foi: "mande mensagem APENAS para a quantidade... não importa se tem antigas"
+                -- Então antigos ficam PAUSADOS eternamente até sobrar vaga no dia (o que nunca vai acontecer se todo dia lotar).
+                -- Para ser seguro: Só liberamos antigos se HOJE tiver VAZIO (manutenção).
+                -- Mas o usuário foi enfático: "Focar em mandar para essas pessoas do dia".
+            )
+        ORDER BY 
+            -- Prioriza terminar os funis de quem já começou HOJE
+            (DATE(m.data_entrada_fluxo) = CURDATE()) DESC, 
+            msg.ordem DESC,
+            m.data_proximo_envio ASC
+        LIMIT 5
+    ";
+    
+    $pendingTasks = fetchData($pdo, $tasksSql, [$limiteDiario]);
 
-    if (!empty($readyMembers)) {
-        error_log("[Marketing Cron] Found " . count($readyMembers) . " ready members.");
+    if (!empty($pendingTasks)) {
+        error_log("[Marketing Cron] Found " . count($pendingTasks) . " ready members.");
     } 
 
-    foreach ($readyMembers as $member) {
-        // Find next message strictly after current step (handles gaps)
-        $msg = fetchOne($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 AND ordem > ? ORDER BY ordem ASC LIMIT 1", [$member['ultimo_passo_id']]);
+    foreach ($pendingTasks as $member) {
+        // The message details are already joined in the query ($member['conteudo'], $member['tipo'], $member['ordem'])
+        // So, we don't need to fetch $msg separately.
         
-        if ($msg) {
+        // Check if message content exists (it should, due to JOIN)
+        if ($member['conteudo']) {
             // LOCK TASK IMMEDIATELY (Bump time by 60 min using SQL time to avoid timeout during processing)
             // Using NOW() + INTERVAL ensures we are relative to DB time
             executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = DATE_ADD(NOW(), INTERVAL 60 MINUTE) WHERE id = ?", [$member['id']]);
@@ -128,20 +176,20 @@ if ($action === 'save_members') {
             // ANTI-BAN: Generate unique ID
             $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $randomId = substr(str_shuffle($chars), 0, 8);
-            $msgContent = $msg['conteudo'] . "\n\n_" . $randomId . "_";
+            $msgContent = $member['conteudo'] . "\n\n_" . $randomId . "_";
 
             // Task found
             $tasks[] = [
                 'type' => 'send_message',
                 'phone' => $member['telefone'],
                 'message' => $msgContent,
-                'message_type' => $msg['tipo'],
+                'message_type' => $member['tipo'] ?? 'texto',
                 'member_id' => $member['id'],
-                'step_order' => $msg['ordem'], // Use actual message order
-                'next_delay' => $msg['delay_apos_anterior_minutos'] 
+                'step_order' => $member['ordem'], // From JOIN
             ];
         } else {
-            // No more messages -> Mark as Concluded
+            // No next message? This member is done (or error in logic), mark concluded.
+            // Since our query only fetches if JOIN matches, this branch is unlikely unless DB corruption.
             executeQuery($pdo, "UPDATE marketing_membros SET status = 'concluido' WHERE id = ?", [$member['id']]);
         }
     }

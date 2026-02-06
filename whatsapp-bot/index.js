@@ -3711,7 +3711,7 @@ async function start() {
           const isPrivateChat = !isGroupJid(remoteJid);
 
           // ===== MODO AQUECIMENTO (RESPOSTA PASSIVA) =====
-          if (!automationProcessed && automationsSettings.warming_mode && isPrivateChat) {
+          if (false && !automationProcessed && automationsSettings.warming_mode && isPrivateChat) {
             const lowerText = text.toLowerCase().trim();
             // Não responder comandos
             if (!lowerText.startsWith('/') && !lowerText.startsWith('$') && !lowerText.startsWith('!') && text.length >= 2) {

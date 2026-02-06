@@ -1194,9 +1194,14 @@ foreach ($msgEtapas as $k => $v) {
                                 Salvar Configurações
                             </button>
                             
-                            <button type="button" onclick="resetDailyLimit()" class="w-full btn btn-secondary justify-center text-sm">
-                                <i class="fas fa-undo mr-2"></i> Zerar Limite Hoje (Emergência)
-                            </button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="syncFunnel()" class="btn btn-secondary justify-center text-sm" title="Corrige ordens e força bot a reler">
+                                    <i class="fas fa-sync mr-2"></i> Sync Funil
+                                </button>
+                                <button type="button" onclick="resetDailyLimit()" class="btn btn-secondary justify-center text-sm" title="Zerar contagem de limite hoje">
+                                    <i class="fas fa-undo mr-2"></i> Zerar Limite
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -2127,6 +2132,34 @@ foreach ($msgEtapas as $k => $v) {
             } catch(err) {
                 showToast('Falha na requisição: ' + err.message, 'error');
             }
+        }
+
+        async function resetDailyLimit() {
+            if(!confirm('Isso vai liberar o envio para mais pessoas hoje. Continuar?')) return;
+            showToast('Resetando...', 'warning');
+            try {
+                const res = await fetch('admin_bot_marketing.php?action=reset_daily_limit');
+                const data = await res.json();
+                if(data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(location.reload.bind(location), 1500);
+                }
+            } catch(e) { showToast('Erro: '+e, 'error'); }
+        }
+
+        async function syncFunnel() {
+            if(!confirm('Isso vai reordenar as mensagens (1, 2, 3...) e corrigir clientes perdidos. Usar apenas se o funil estiver bagunçado. Continuar?')) return;
+            showToast('Sincronizando...', 'warning');
+            try {
+                const res = await fetch('admin_bot_marketing.php?action=sync_funnel');
+                const data = await res.json();
+                if(data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(location.reload.bind(location), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch(e) { showToast('Erro: '+e, 'error'); }
         }
 
         // ===== MESSAGES CONFIG JS =====
