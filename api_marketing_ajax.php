@@ -15,7 +15,8 @@ require_once 'includes/auth_helper.php';
 requireLogin();
 
 // Clean any previous output
-if (ob_get_length()) ob_clean();
+if (ob_get_length())
+    ob_clean();
 
 // Set JSON header
 header('Content-Type: application/json; charset=utf-8');
@@ -33,13 +34,13 @@ try {
                 executeQuery($pdo, "UPDATE marketing_mensagens SET ordem = ? WHERE id = ?", [$i, $msg['id']]);
                 $i++;
             }
-            
+
             // 2. Destravar membros presos em passos inexistentes
             $maxStep = $i - 1;
             if ($maxStep > 0) {
                 executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ? WHERE ultimo_passo_id > ?", [$maxStep, $maxStep]);
             }
-            
+
             $response = ['success' => true, 'message' => 'Funil reordenado e sincronizado!'];
             break;
 
@@ -47,15 +48,15 @@ try {
             // Estatísticas Gerais
             $total = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros")['c'] ?? 0;
             $novos = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE status = 'novo'")['c'] ?? 0;
-            
+
             // --- ESTATÍSTICAS DO DIA (VIPs) ---
             $hojeTotal = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE()")['c'] ?? 0;
             $hojeConcluidos = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'concluido'")['c'] ?? 0;
             $hojeAndamento = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'em_progresso'")['c'] ?? 0;
-            
+
             // Progresso global do funil
             $totalFunilMsgs = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_mensagens")['c'] ?? 0;
-            
+
             // Média de passo dos VIPs ativos
             $passoMedio = 0;
             if ($hojeAndamento > 0) {
@@ -65,7 +66,7 @@ try {
 
             // Disparos Reais Hoje
             $disparosHoje = fetchOne($pdo, "SELECT COUNT(*) as c FROM bot_automation_logs WHERE tipo_automacao = 'marketing' AND DATE(data_envio) = CURDATE()")['c'] ?? 0;
-            
+
             // Próximo envio agendado
             $proxEnvio = fetchOne($pdo, "SELECT data_proximo_envio FROM marketing_membros WHERE status = 'em_progresso' AND data_proximo_envio IS NOT NULL ORDER BY data_proximo_envio ASC LIMIT 1");
 
@@ -73,7 +74,7 @@ try {
             $campanha = fetchOne($pdo, "SELECT membros_por_dia_grupo FROM marketing_campanhas WHERE id = 1");
 
             $response = [
-                'success' => true, 
+                'success' => true,
                 'stats' => [
                     'total_leads' => $total,
                     'fila_espera' => $novos,
@@ -95,15 +96,145 @@ try {
             $response = ['success' => true, 'message' => 'Limite diário resetado!'];
             break;
 
+        case 'get_disparos_tasks':
+            // 1. Resetar cota do dia para permitir novos disparos
+            executeQuery($pdo, "UPDATE marketing_membros SET data_entrada_fluxo = NULL WHERE DATE(data_entrada_fluxo) = CURDATE()");
+
+            // 2. Carregar Campanha
+            $campanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1 AND ativo = 1");
+            if (!$campanha) {
+                $response = ['success' => false, 'message' => 'Campanha inativa ou não encontrada'];
+                break;
+            }
+
+            $membrosPorDiaLimit = intval($campanha['membros_por_dia_grupo']);
+
+            // 3. Selecionar NOVOS se houver espaço (Simular lógica de seleção do cron)
+            $novosCount = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE status = 'novo'")['c'];
+            if ($novosCount > 0) {
+                // Tenta puxar novos leads até atingir o limite da campanha
+                $groups = fetchData($pdo, "SELECT DISTINCT grupo_origem_jid FROM marketing_membros WHERE status = 'novo'");
+                foreach ($groups as $g) {
+                    $candidates = fetchData($pdo, "SELECT id FROM marketing_membros WHERE grupo_origem_jid = ? AND status = 'novo' ORDER BY id ASC LIMIT ?", [$g['grupo_origem_jid'], $membrosPorDiaLimit]);
+                    foreach ($candidates as $c) {
+                        $sendTime = date('Y-m-d H:i:s'); // Imediato para o botão start
+                        executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0, data_entrada_fluxo = CURDATE() WHERE id = ?", [$sendTime, $c['id']]);
+                    }
+                }
+            }
+
+            // 4. Buscar FILA de tarefas prontas
+            // Pegamos todos que estão 'em_progresso' e com data <= NOW
+            // Prioridade para os de HOJE ou os que o cron travou
+            $tasksSql = "
+                SELECT m.id, m.telefone, m.ultimo_passo_id, msg.conteudo, msg.tipo, msg.ordem
+                FROM marketing_membros m
+                JOIN marketing_mensagens msg ON (m.ultimo_passo_id + 1) = msg.ordem
+                WHERE m.status = 'em_progresso' 
+                AND m.data_proximo_envio <= NOW()
+                ORDER BY msg.ordem ASC, m.data_proximo_envio ASC
+                LIMIT 50
+            ";
+            $pendingTasks = fetchData($pdo, $tasksSql);
+
+            $tasks = [];
+            foreach ($pendingTasks as $t) {
+                // Anti-ban id
+                $chars = '0123456789abcdef';
+                $randomId = substr(str_shuffle($chars), 0, 5);
+
+                $tasks[] = [
+                    'member_id' => $t['id'],
+                    'phone' => $t['telefone'],
+                    'message' => $t['conteudo'] . "\n\n_" . $randomId . "_",
+                    'step_order' => $t['ordem'],
+                    'type' => $t['tipo']
+                ];
+            }
+
+            $response = [
+                'success' => true,
+                'tasks' => $tasks,
+                'message' => count($tasks) . ' tarefas encontradas.'
+            ];
+            break;
+
+        case 'execute_disparo_task':
+            require_once 'includes/whatsapp_helper.php';
+
+            $memberId = (int)$_POST['member_id'];
+            $stepOrder = (int)$_POST['step_order'];
+            $phone = $_POST['phone'];
+            $message = $_POST['message'];
+
+            if (!$memberId || !$phone) {
+                $response = ['success' => false, 'message' => 'Dados incompletos'];
+                break;
+            }
+
+            // 1. Marcar como "Enviando" (Trava)
+            executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE id = ?", [$memberId]);
+
+            // 2. Enviar via Helper
+            $result = sendWhatsappMessage($phone, $message);
+
+            // 3. Processar Resultado (Mesma lógica do update_task da api_marketing.php)
+            if ($result['success']) {
+                $nextMsg = fetchOne($pdo, "SELECT delay_apos_anterior_minutos FROM marketing_mensagens WHERE campanha_id = 1 AND ordem > ? ORDER BY ordem ASC LIMIT 1", [$stepOrder]);
+                if ($nextMsg) {
+                    $delay = $nextMsg['delay_apos_anterior_minutos'];
+                    $nextTime = date('Y-m-d H:i:s', strtotime("+$delay minutes"));
+                    executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ?, data_proximo_envio = ?, status = 'em_progresso' WHERE id = ?", [$stepOrder, $nextTime, $memberId]);
+                }
+                else {
+                    executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ?, status = 'concluido' WHERE id = ?", [$stepOrder, $memberId]);
+                }
+            }
+            else {
+                // Falha
+                $error = $result['error'] ?? 'Erro desconhecido';
+                if ($error === 'invalid_number') {
+                    executeQuery($pdo, "UPDATE marketing_membros SET status = 'bloqueado' WHERE id = ?", [$memberId]);
+                }
+                else {
+                    $retryTime = date('Y-m-d H:i:s', strtotime("+10 minutes"));
+                    executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = ?, status = 'em_progresso' WHERE id = ?", [$retryTime, $memberId]);
+                }
+            }
+
+            // 4. Log Automático
+            try {
+                $auto = fetchOne($pdo, "SELECT id FROM bot_automations WHERE nome = 'Campanha Marketing' LIMIT 1");
+                $autoId = $auto ? $auto['id'] : 0;
+                $statusMsg = $result['success'] ? 'SUCESSO_ENVIO (Manual)' : 'FALHA_ENVIO (Manual): ' . ($result['error'] ?? '');
+
+                executeQuery($pdo, "INSERT INTO bot_automation_logs 
+                    (automation_id, jid_origem, numero_origem, mensagem_recebida, resposta_enviada, grupo_id, grupo_nome) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [$autoId, $phone . '@s.whatsapp.net', $phone, $statusMsg, $message, 'manual', 'Marketing Campaign']
+                );
+            }
+            catch (Exception $e) {
+            }
+
+            $response = [
+                'success' => $result['success'],
+                'message' => $result['success'] ? 'Mensagem enviada!' : 'Erro: ' . ($result['error'] ?? 'cURL fail'),
+                'result' => $result
+            ];
+            break;
+
         default:
             $response = ['success' => false, 'message' => 'Ação não reconhecida: ' . $action];
     }
-} catch (Exception $e) {
+}
+catch (Exception $e) {
     $response = ['success' => false, 'message' => 'Erro: ' . $e->getMessage()];
 }
 
 // Clean buffer one more time before output
-if (ob_get_length()) ob_clean();
+if (ob_get_length())
+    ob_clean();
 
 echo json_encode($response);
 exit;

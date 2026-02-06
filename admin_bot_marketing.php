@@ -20,7 +20,8 @@ if (!isset($pdo) || $pdo === null) {
 // Verificar se tabelas existem
 try {
     $pdo->query("SELECT 1 FROM bot_automations LIMIT 1");
-} catch (PDOException $e) {
+}
+catch (PDOException $e) {
     header('Location: setup_bot_automations.php');
     exit;
 }
@@ -28,17 +29,17 @@ try {
 // ===== PROCESSAMENTO AJAX =====
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json; charset=utf-8');
-    
+
     $action = $_POST['action'];
     $response = ['success' => false, 'message' => 'Ação não reconhecida'];
-    
+
     try {
         switch ($action) {
             case 'get_automations':
                 $automations = fetchData($pdo, "SELECT * FROM bot_automations ORDER BY prioridade DESC, criado_em DESC");
                 $response = ['success' => true, 'data' => $automations];
                 break;
-                
+
             case 'save_automation':
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
                 $nome = sanitizeInput($_POST['nome'] ?? '');
@@ -51,27 +52,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 if (is_array($grupoIdData)) {
                     $grupoIdData = array_filter($grupoIdData); // Remove vazios
                     $grupoId = !empty($grupoIdData) ? implode(',', $grupoIdData) : null;
-                } else {
+                }
+                else {
                     $grupoId = sanitizeInput($grupoIdData) ?: null;
                 }
-                
+
                 $grupoNome = sanitizeInput($_POST['grupo_nome'] ?? '') ?: null;
                 $apenasPrivado = isset($_POST['apenas_privado']) ? 1 : 0;
                 $apenasGrupo = isset($_POST['apenas_grupo']) ? 1 : 0;
                 // Delay - já vem em milissegundos do select
                 $delayMs = (int)($_POST['delay_ms'] ?? 0);
-                
+
                 // Cooldown - já vem em segundos do select
                 $cooldown = (int)($_POST['cooldown_segundos'] ?? 0);
-                
+
                 $prioridade = (int)($_POST['prioridade'] ?? 0);
                 $ativo = isset($_POST['ativo']) ? 1 : 0;
-                
+
                 if (empty($nome) || empty($gatilho) || empty($resposta)) {
                     $response = ['success' => false, 'message' => 'Preencha todos os campos obrigatórios'];
                     break;
                 }
-                
+
                 if ($id > 0) {
                     // Atualizar
                     $sql = "UPDATE bot_automations SET 
@@ -80,23 +82,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             delay_ms = ?, cooldown_segundos = ?, prioridade = ?, ativo = ?
                             WHERE id = ?";
                     executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
-                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
+                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo,
                         $delayMs, $cooldown, $prioridade, $ativo, $id]);
                     $response = ['success' => true, 'message' => 'Automação atualizada!', 'id' => $id];
-                } else {
+                }
+                else {
                     // Inserir
                     $sql = "INSERT INTO bot_automations 
                             (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                              apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
-                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
+                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo,
                         $delayMs, $cooldown, $prioridade, $ativo]);
                     $newId = $pdo->lastInsertId();
                     $response = ['success' => true, 'message' => 'Automação criada!', 'id' => $newId];
                 }
                 break;
-                
+
             case 'delete_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 if ($id > 0) {
@@ -104,22 +107,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => true, 'message' => 'Automação excluída!'];
                 }
                 break;
-                
+
             case 'clone_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 if ($id > 0) {
                     // Buscar automação original
                     $original = fetchOne($pdo, "SELECT * FROM bot_automations WHERE id = ?", [$id]);
-                    
+
                     if ($original) {
                         // Criar cópia com nome modificado
                         $novoNome = $original['nome'] . ' (Cópia)';
-                        
+
                         $sql = "INSERT INTO bot_automations 
                                 (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                                  apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                        
+
                         executeQuery($pdo, $sql, [
                             $novoNome,
                             $original['descricao'],
@@ -134,17 +137,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $original['delay_ms'],
                             $original['cooldown_segundos'],
                             $original['prioridade'],
-                            0  // Deixar inativa por padrão
+                            0 // Deixar inativa por padrão
                         ]);
-                        
+
                         $newId = $pdo->lastInsertId();
                         $response = ['success' => true, 'message' => 'Automação clonada com sucesso!', 'id' => $newId];
-                    } else {
+                    }
+                    else {
                         $response = ['success' => false, 'message' => 'Automação não encontrada'];
                     }
                 }
                 break;
-                
+
             case 'toggle_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 $ativo = (int)($_POST['ativo'] ?? 0);
@@ -153,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => true, 'message' => $ativo ? 'Automação ativada!' : 'Automação desativada!'];
                 }
                 break;
-                
+
             case 'get_settings':
                 $settings = fetchData($pdo, "SELECT * FROM bot_settings ORDER BY chave");
                 $settingsObj = [];
@@ -162,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 $response = ['success' => true, 'data' => $settingsObj];
                 break;
-                
+
             case 'save_setting':
                 $chave = sanitizeInput($_POST['chave'] ?? '');
                 $valor = $_POST['valor'] ?? '';
@@ -171,10 +175,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => true, 'message' => 'Configuração salva!'];
                 }
                 break;
-                
+
             case 'get_logs':
                 $limit = (int)($_POST['limit'] ?? 50);
-                $logs = fetchData($pdo, 
+                $logs = fetchData($pdo,
                     "SELECT l.*, a.nome as automation_nome 
                      FROM bot_automation_logs l 
                      LEFT JOIN bot_automations a ON l.automation_id = a.id 
@@ -182,25 +186,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                      LIMIT ?", [$limit]);
                 $response = ['success' => true, 'data' => $logs];
                 break;
-                
+
             case 'get_stats':
                 $totalAutomations = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations")['total'];
                 $activeAutomations = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations WHERE ativo = 1")['total'];
                 $totalUsos = fetchOne($pdo, "SELECT SUM(contador_uso) as total FROM bot_automations")['total'] ?? 0;
                 $logsHoje = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE DATE(criado_em) = CURDATE()")['total'];
-                
+
                 $response = ['success' => true, 'data' => [
-                    'total_automations' => $totalAutomations,
-                    'active_automations' => $activeAutomations,
-                    'total_usos' => $totalUsos,
-                    'logs_hoje' => $logsHoje
-                ]];
+                        'total_automations' => $totalAutomations,
+                        'active_automations' => $activeAutomations,
+                        'total_usos' => $totalUsos,
+                        'logs_hoje' => $logsHoje
+                    ]];
                 break;
-                
+
             case 'get_bot_status':
                 $apiConfig = whatsappApiConfig();
                 $status = ['online' => false, 'ready' => false, 'uptime' => 0];
-                
+
                 if ($apiConfig['enabled']) {
                     try {
                         $ch = curl_init($apiConfig['base_url'] . '/status');
@@ -213,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $result = curl_exec($ch);
                         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                         curl_close($ch);
-                        
+
                         if ($httpCode === 200 && $result) {
                             $data = json_decode($result, true);
                             $status = [
@@ -224,58 +228,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 'reconnects' => $data['reconnectAttempts'] ?? 0
                             ];
                         }
-                    } catch (Exception $e) {
-                        // Bot offline
+                    }
+                    catch (Exception $e) {
+                    // Bot offline
                     }
                 }
-                
+
                 $response = ['success' => true, 'data' => $status];
                 break;
-                
+
             case 'get_grupos':
                 $grupos = fetchData($pdo, "SELECT * FROM bot_grupos ORDER BY nome");
                 $response = ['success' => true, 'data' => $grupos];
                 break;
-                
+
             case 'upload_image':
                 // Upload de imagem para automação
                 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
                     $response = ['success' => false, 'message' => 'Nenhuma imagem enviada'];
                     break;
                 }
-                
+
                 $file = $_FILES['image'];
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                
+
                 if (!in_array($file['type'], $allowedTypes)) {
                     $response = ['success' => false, 'message' => 'Tipo de arquivo não permitido'];
                     break;
                 }
-                
+
                 if ($file['size'] > 5 * 1024 * 1024) {
                     $response = ['success' => false, 'message' => 'Arquivo muito grande (máx 5MB)'];
                     break;
                 }
-                
+
                 // Criar diretório se não existir
                 $uploadDir = 'uploads/bot_images/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
-                
+
                 // Gerar nome único
                 $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
                 $filename = 'auto_' . uniqid() . '_' . time() . '.' . $ext;
                 $filepath = $uploadDir . $filename;
-                
+
                 if (move_uploaded_file($file['tmp_name'], $filepath)) {
                     // Gerar URL completa
                     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
                     $baseUrl = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/';
                     $imageUrl = $baseUrl . $filepath;
-                    
+
                     $response = ['success' => true, 'url' => $imageUrl, 'path' => $filepath];
-                } else {
+                }
+                else {
                     $response = ['success' => false, 'message' => 'Erro ao salvar arquivo'];
                 }
                 break;
@@ -286,50 +292,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $membros_dia = (int)$_POST['membros_dia'];
                 $intervalo_min = (int)$_POST['intervalo_min'];
                 $intervalo_max = (int)$_POST['intervalo_max'];
-                
+
                 $sql = "UPDATE marketing_campanhas SET ativo = ?, membros_por_dia_grupo = ?, intervalo_min_minutos = ?, intervalo_max_minutos = ? WHERE id = 1";
                 executeQuery($pdo, $sql, [$ativo, $membros_dia, $intervalo_min, $intervalo_max]);
-                
+
                 $response = ['success' => true, 'message' => 'Configurações de campanha salvas!'];
                 break;
-                
+
             case 'add_marketing_msg':
                 $conteudo = trim($_POST['conteudo']);
                 $delay = (int)$_POST['delay'];
-                
+
                 $lastOrder = fetchOne($pdo, "SELECT MAX(ordem) as max_ordem FROM marketing_mensagens WHERE campanha_id = 1");
                 $ordem = ($lastOrder['max_ordem'] ?? 0) + 1;
-                
+
                 if (!empty($conteudo)) {
                     $sql = "INSERT INTO marketing_mensagens (campanha_id, ordem, conteudo, delay_apos_anterior_minutos) VALUES (1, ?, ?, ?)";
                     executeQuery($pdo, $sql, [$ordem, $conteudo, $delay]);
                     $response = ['success' => true, 'message' => 'Mensagem adicionada com sucesso!'];
-                } else {
+                }
+                else {
                     $response = ['success' => false, 'message' => 'Conteúdo não pode ser vazio'];
                 }
                 break;
-            
+
             case 'delete_marketing_msg':
                 $id = (int)$_POST['id'];
                 if ($id > 0) {
                     // 1. Get order of message to be deleted
                     $msg = fetchOne($pdo, "SELECT ordem FROM marketing_mensagens WHERE id = ?", [$id]);
-                    
+
                     if ($msg) {
                         $deletedOrdem = $msg['ordem'];
-                        
+
                         // 2. Delete message
                         executeQuery($pdo, "DELETE FROM marketing_mensagens WHERE id = ?", [$id]);
-                        
+
                         // 3. Shift down orders of subsequent messages
                         executeQuery($pdo, "UPDATE marketing_mensagens SET ordem = ordem - 1 WHERE ordem > ?", [$deletedOrdem]);
-                        
+
                         // 4. Adjust members' progress so they don't skip the "new" message that took this place
                         // Everyone who was past this point (or at this point) needs to step back 1
                         executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ultimo_passo_id - 1 WHERE ultimo_passo_id >= ?", [$deletedOrdem]);
-                        
+
                         $response = ['success' => true, 'message' => 'Mensagem removida e fila reordenada!'];
-                    } else {
+                    }
+                    else {
                         $response = ['success' => false, 'message' => 'Mensagem não encontrada.'];
                     }
                 }
@@ -339,11 +347,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $id = (int)$_POST['id'];
                 $conteudo = trim($_POST['conteudo']);
                 $delay = (int)$_POST['delay'];
-                
+
                 if ($id > 0 && !empty($conteudo)) {
                     executeQuery($pdo, "UPDATE marketing_mensagens SET conteudo = ?, delay_apos_anterior_minutos = ? WHERE id = ?", [$conteudo, $delay, $id]);
                     $response = ['success' => true, 'message' => 'Mensagem atualizada!'];
-                } else {
+                }
+                else {
                     $response = ['success' => false, 'message' => 'ID inválido ou conteúdo vazio'];
                 }
                 break;
@@ -357,19 +366,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 // Estatísticas Gerais
                 $total = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros")['c'];
                 $novos = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE status = 'novo'")['c'];
-                
+
                 // --- ESTATÍSTICAS DO DIA (VIPs) ---
                 $hojeTotal = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE()")['c'];
-                
+
                 // Dos que entraram HOJE, quantos já concluíram?
                 $hojeConcluidos = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'concluido'")['c'];
-                
+
                 // Dos que entraram HOJE, quantos estão em andamento?
                 $hojeAndamento = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'em_progresso'")['c'];
-                
+
                 // Progresso global do funil para os VIPs de hoje
                 $totalFunilMsgs = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_mensagens")['c'];
-                
+
                 // Média de passo dos VIPs ativos
                 $passoMedio = 0;
                 if ($hojeAndamento > 0) {
@@ -379,7 +388,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 // Disparos Reais Hoje (Log Geral)
                 $disparosHoje = fetchOne($pdo, "SELECT COUNT(*) as c FROM bot_automation_logs WHERE tipo_automacao = 'marketing' AND DATE(data_envio) = CURDATE()")['c'];
-                
+
                 // Próximo envio agendado (Geral)
                 $proxEnvio = fetchOne($pdo, "SELECT data_proximo_envio FROM marketing_membros WHERE status = 'em_progresso' AND data_proximo_envio IS NOT NULL ORDER BY data_proximo_envio ASC LIMIT 1");
 
@@ -387,21 +396,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $campanha = fetchOne($pdo, "SELECT membros_por_dia_grupo FROM marketing_campanhas WHERE id = 1");
 
                 $response = [
-                    'success' => true, 
+                    'success' => true,
                     'stats' => [
                         'total_leads' => $total,
                         'fila_espera' => $novos,
-                        
+
                         // VIP TODAY
                         'hoje_iniciados' => $hojeTotal,
                         'hoje_concluidos' => $hojeConcluidos,
                         'hoje_andamento' => $hojeAndamento,
                         'hoje_disparos' => $disparosHoje,
-                        
+
                         'passo_medio' => $passoMedio,
                         'total_msgs_funil' => $totalFunilMsgs,
                         'meta_diaria' => $campanha['membros_por_dia_grupo'] ?? 10,
-                        
+
                         'proximo_envio' => $proxEnvio ? $proxEnvio['data_proximo_envio'] : null
                     ]
                 ];
@@ -410,7 +419,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             // ===== MESSAGES CONFIG LOGIC =====
             case 'sync_funnel':
                 // PREVENT JSON ERRORS: Clean buffer
-                if (ob_get_length()) ob_clean();
+                if (ob_get_length())
+                    ob_clean();
                 header('Content-Type: application/json');
 
                 // Ação: Reordenar mensagens e destravar
@@ -422,16 +432,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         executeQuery($pdo, "UPDATE marketing_mensagens SET ordem = ? WHERE id = ?", [$i, $msg['id']]);
                         $i++;
                     }
-                    
+
                     // 2. Destravar membros presos em passos inexistentes
                     $maxStep = $i - 1;
                     if ($maxStep > 0) {
                         // Se estava no passo 5 mas só tem 3 mensagens, volta pro 3
                         executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ? WHERE ultimo_passo_id > ?", [$maxStep, $maxStep]);
                     }
-                    
+
                     echo json_encode(['success' => true, 'message' => 'Funil reordenado e sincronizado!']);
-                } catch (Exception $e) {
+                }
+                catch (Exception $e) {
                     echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
                 }
                 exit;
@@ -444,7 +455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     'entregue' => 'WHATSAPP_MSG_ENTREGUE',
                     'taxa' => 'WHATSAPP_MSG_TAXA'
                 ];
-                
+
                 $saved = 0;
                 foreach ($etapas as $key => $configKey) {
                     if (isset($_POST[$configKey])) {
@@ -453,18 +464,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         }
                     }
                 }
-                
+
                 // Limpar cache local se necessário
-                if (function_exists('opcache_reset')) opcache_reset();
+                if (function_exists('opcache_reset'))
+                    opcache_reset();
                 clearstatcache(true, __DIR__ . '/config_custom.json');
-                
+
                 $response = ['success' => true, 'message' => "{$saved} mensagens salvas com sucesso!"];
                 break;
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $response = ['success' => false, 'message' => $e->getMessage()];
     }
-    
+
     echo json_encode($response);
     exit;
 }
@@ -492,37 +505,38 @@ try {
         SUM(CASE WHEN status = 'novo' THEN 1 ELSE 0 END) as novos,
         SUM(CASE WHEN status = 'em_progresso' THEN 1 ELSE 0 END) as progresso,
         SUM(CASE WHEN status = 'concluido' THEN 1 ELSE 0 END) as concluidos
-        FROM marketing_membros") ?: ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
+        FROM marketing_membros") ?: ['total' => 0, 'novos' => 0, 'progresso' => 0, 'concluidos' => 0];
 
     // ADDED: Daily Usage Stats (Global)
-    $dailyStats = fetchOne($pdo, "SELECT COUNT(*) as hoje FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido') AND DATE(data_proximo_envio) = CURDATE()") ?: ['hoje'=>0];
+    $dailyStats = fetchOne($pdo, "SELECT COUNT(*) as hoje FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido') AND DATE(data_proximo_envio) = CURDATE()") ?: ['hoje' => 0];
     $mktStats['hoje'] = $dailyStats['hoje'];
-    
+
     // ADDED: Real Success Sends Today
-    $successToday = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%'") ?: ['total'=>0];
+    $successToday = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%'") ?: ['total' => 0];
     $mktStats['envios_hoje'] = $successToday['total'];
-    
+
     // ADDED: Next Scheduled Time
     $nextSchedule = fetchOne($pdo, "SELECT MIN(data_proximo_envio) as next FROM marketing_membros WHERE status = 'em_progresso' AND data_proximo_envio > NOW()");
     $mktStats['proximo_envio'] = $nextSchedule['next'] ?? null;
 
     // ADDED: New Contacts Started Today (Msg #1 only)
-    $newContactsToday = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%' AND resposta_enviada LIKE 'Olá, Tudo bem?%'") ?: ['total'=>0];
-    
+    $newContactsToday = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%' AND resposta_enviada LIKE 'Olá, Tudo bem?%'") ?: ['total' => 0];
+
     // Fallback: If message content changed, count by unique numbers
     if ($newContactsToday['total'] == 0) {
-         $newContactsToday = fetchOne($pdo, "SELECT COUNT(DISTINCT numero_origem) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%'");
-         // This is an approximation if content check fails, but better to be specific if possible
-         // Let's stick to the 'Envios Hoje' separation in UI
+        $newContactsToday = fetchOne($pdo, "SELECT COUNT(DISTINCT numero_origem) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%'");
+    // This is an approximation if content check fails, but better to be specific if possible
+    // Let's stick to the 'Envios Hoje' separation in UI
     }
 
     $mktStats['novos_hoje'] = $dailyStats['hoje']; // Actually 'hoje' from mkt_membros tracks active people, not sends.
-    // Let's use the UI to clarify "Disparos Totais" vs "Novos"
-} catch (Exception $e) {
+// Let's use the UI to clarify "Disparos Totais" vs "Novos"
+}
+catch (Exception $e) {
     // Silently fail or log (tables might not exist yet if setup wasnt run)
-    $mktCampanha = ['ativo'=>0, 'membros_por_dia_grupo'=>5, 'intervalo_min_minutos'=>30, 'intervalo_max_minutos'=>120];
+    $mktCampanha = ['ativo' => 0, 'membros_por_dia_grupo' => 5, 'intervalo_min_minutos' => 30, 'intervalo_max_minutos' => 120];
     $mktMensagens = [];
-    $mktStats = ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
+    $mktStats = ['total' => 0, 'novos' => 0, 'progresso' => 0, 'concluidos' => 0];
 }
 
 // Carregar dados (Mensagens Personalizadas)
@@ -543,9 +557,11 @@ foreach ($msgEtapas as $k => $v) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Configuração do Bot | Helmer Logistics</title>
     <meta name="theme-color" content="#FF3333">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -569,9 +585,11 @@ foreach ($msgEtapas as $k => $v) {
             --text: #FFFFFF;
             --text-muted: rgba(255, 255, 255, 0.7);
         }
-        
-        * { box-sizing: border-box; }
-        
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-dark);
@@ -580,29 +598,32 @@ foreach ($msgEtapas as $k => $v) {
             margin: 0;
             padding: 0;
         }
-        
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         /* Sidebar */
         .sidebar {
             background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
             border-right: 1px solid var(--border);
         }
-        
+
         .sidebar-item {
             transition: all 0.2s;
             border-left: 3px solid transparent;
         }
-        
-        .sidebar-item:hover, .sidebar-item.active {
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
             background: rgba(255, 51, 51, 0.1);
             border-left-color: var(--primary);
         }
-        
+
         .sidebar-item.active {
             background: rgba(255, 51, 51, 0.15);
         }
-        
+
         /* Cards */
         .card {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
@@ -611,17 +632,17 @@ foreach ($msgEtapas as $k => $v) {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             transition: all 0.2s;
         }
-        
+
         .card:hover {
             border-color: rgba(255, 51, 51, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
-        
+
         .card-header {
             border-bottom: 1px solid var(--border);
             padding: 16px 20px;
         }
-        
+
         /* Inputs */
         .input-field {
             background: var(--bg-input);
@@ -631,17 +652,17 @@ foreach ($msgEtapas as $k => $v) {
             color: var(--text);
             transition: all 0.2s;
         }
-        
+
         .input-field:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
-        
+
         .input-field::placeholder {
             color: var(--text-muted);
         }
-        
+
         /* Buttons */
         .btn {
             padding: 14px 24px;
@@ -653,54 +674,54 @@ foreach ($msgEtapas as $k => $v) {
             gap: 8px;
             min-height: 44px;
         }
-        
+
         .btn-primary {
             background: var(--primary-gradient);
             color: white;
             box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 51, 51, 0.5);
         }
-        
+
         .btn-primary:active {
             transform: scale(0.97);
         }
-        
+
         .btn-secondary {
             background: var(--bg-input);
             border: 1px solid var(--border);
             color: var(--text);
         }
-        
+
         .btn-secondary:hover {
             background: #3f3f46;
         }
-        
+
         .btn-danger {
             background: #dc2626;
             color: white;
         }
-        
+
         .btn-danger:hover {
             background: #b91c1c;
         }
-        
+
         /* Toggle Switch */
         .toggle-switch {
             position: relative;
             width: 48px;
             height: 26px;
         }
-        
+
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-        
+
         .toggle-slider {
             position: absolute;
             cursor: pointer;
@@ -710,7 +731,7 @@ foreach ($msgEtapas as $k => $v) {
             border-radius: 26px;
             transition: 0.3s;
         }
-        
+
         .toggle-slider:before {
             position: absolute;
             content: "";
@@ -722,16 +743,16 @@ foreach ($msgEtapas as $k => $v) {
             border-radius: 50%;
             transition: 0.3s;
         }
-        
-        .toggle-switch input:checked + .toggle-slider {
+
+        .toggle-switch input:checked+.toggle-slider {
             background: var(--primary);
             border-color: var(--primary);
         }
-        
-        .toggle-switch input:checked + .toggle-slider:before {
+
+        .toggle-switch input:checked+.toggle-slider:before {
             transform: translateX(22px);
         }
-        
+
         /* Automation Card */
         .automation-card {
             background: var(--bg-card);
@@ -740,15 +761,15 @@ foreach ($msgEtapas as $k => $v) {
             padding: 16px;
             transition: all 0.2s;
         }
-        
+
         .automation-card:hover {
             border-color: var(--primary);
         }
-        
+
         .automation-card.inactive {
             opacity: 0.6;
         }
-        
+
         /* Badge */
         .badge {
             padding: 4px 10px;
@@ -756,27 +777,27 @@ foreach ($msgEtapas as $k => $v) {
             font-size: 12px;
             font-weight: 500;
         }
-        
+
         .badge-green {
             background: rgba(16, 185, 129, 0.15);
             color: #34d399;
         }
-        
+
         .badge-yellow {
             background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
         }
-        
+
         .badge-red {
             background: rgba(220, 38, 38, 0.15);
             color: #f87171;
         }
-        
+
         .badge-blue {
             background: rgba(59, 130, 246, 0.15);
             color: #60a5fa;
         }
-        
+
         /* Status Indicator */
         .status-dot {
             width: 10px;
@@ -784,22 +805,29 @@ foreach ($msgEtapas as $k => $v) {
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        
+
         .status-online {
             background: #22c55e;
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
-        
+
         .status-offline {
             background: #ef4444;
             animation: none;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
-        
+
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -813,12 +841,12 @@ foreach ($msgEtapas as $k => $v) {
             visibility: hidden;
             transition: all 0.3s;
         }
-        
+
         .modal-overlay.active {
             opacity: 1;
             visibility: visible;
         }
-        
+
         .modal-content {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -830,11 +858,11 @@ foreach ($msgEtapas as $k => $v) {
             transform: scale(0.9);
             transition: all 0.3s;
         }
-        
+
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
-        
+
         /* Tab Navigation */
         .tab-btn {
             padding: 12px 24px;
@@ -842,16 +870,16 @@ foreach ($msgEtapas as $k => $v) {
             color: var(--text-muted);
             transition: all 0.2s;
         }
-        
+
         .tab-btn:hover {
             color: var(--text);
         }
-        
+
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
         }
-        
+
         /* Stat Card */
         .stat-card {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 51, 51, 0.05) 100%);
@@ -860,12 +888,12 @@ foreach ($msgEtapas as $k => $v) {
             padding: 20px;
             transition: all 0.2s;
         }
-        
+
         .stat-card:hover {
             border-color: rgba(255, 51, 51, 0.3);
             transform: translateY(-2px);
         }
-        
+
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
@@ -874,26 +902,26 @@ foreach ($msgEtapas as $k => $v) {
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: var(--bg-dark);
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 4px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: #52525b;
         }
-        
+
         /* Toast */
         .toast {
             position: fixed;
@@ -909,18 +937,27 @@ foreach ($msgEtapas as $k => $v) {
             transition: all 0.3s;
             z-index: 1001;
         }
-        
+
         .toast.show {
             transform: translateY(0);
             opacity: 1;
         }
-        
-        .toast.success { border-left: 4px solid #22c55e; }
-        .toast.error { border-left: 4px solid #ef4444; }
-        .toast.warning { border-left: 4px solid #f59e0b; }
-        
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
         /* ===== RESPONSIVO MOBILE ===== */
         @media screen and (max-width: 768px) {
+
             /* Menu Hambúrguer */
             .menu-toggle {
                 display: flex !important;
@@ -941,7 +978,7 @@ foreach ($msgEtapas as $k => $v) {
                 gap: 5px !important;
                 padding: 0 !important;
             }
-            
+
             .menu-toggle span {
                 display: block !important;
                 width: 26px !important;
@@ -950,7 +987,7 @@ foreach ($msgEtapas as $k => $v) {
                 border-radius: 3px !important;
                 transition: all 0.2s !important;
             }
-            
+
             /* Sidebar Mobile */
             .sidebar {
                 position: fixed !important;
@@ -964,11 +1001,11 @@ foreach ($msgEtapas as $k => $v) {
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6) !important;
             }
-            
+
             .sidebar.active {
                 left: 0 !important;
             }
-            
+
             /* Overlay */
             .sidebar-overlay {
                 display: none;
@@ -981,19 +1018,19 @@ foreach ($msgEtapas as $k => $v) {
                 opacity: 0;
                 transition: opacity 0.3s;
             }
-            
+
             .sidebar-overlay.active {
                 display: block;
                 opacity: 1;
             }
-            
+
             /* Main Content Mobile */
             main {
                 margin-left: 0 !important;
                 padding: 16px !important;
                 padding-top: 80px !important;
             }
-            
+
             /* Header Mobile */
             header {
                 flex-direction: column !important;
@@ -1001,25 +1038,25 @@ foreach ($msgEtapas as $k => $v) {
                 gap: 16px !important;
                 margin-bottom: 20px !important;
             }
-            
+
             /* Stats Grid Mobile */
             .grid {
                 grid-template-columns: 1fr !important;
                 gap: 16px !important;
             }
-            
+
             /* Cards Mobile */
             .card {
                 margin-bottom: 16px !important;
             }
-            
+
             /* Buttons Mobile */
             .btn {
                 width: 100% !important;
                 justify-content: center !important;
                 margin-bottom: 12px !important;
             }
-            
+
             /* Modal Mobile */
             .modal-content {
                 width: 95% !important;
@@ -1027,23 +1064,23 @@ foreach ($msgEtapas as $k => $v) {
                 margin: 10px !important;
                 max-height: 90vh !important;
             }
-            
+
             /* Form Grid Mobile */
             .grid.grid-cols-2,
             .grid.grid-cols-3 {
                 grid-template-columns: 1fr !important;
             }
-            
+
             /* Table Mobile */
             .overflow-x-auto {
                 -webkit-overflow-scrolling: touch;
             }
-            
+
             table {
                 font-size: 0.875rem !important;
                 min-width: 600px;
             }
-            
+
             /* Toast Mobile */
             .toast {
                 left: 16px !important;
@@ -1052,19 +1089,20 @@ foreach ($msgEtapas as $k => $v) {
                 width: auto !important;
             }
         }
-        
+
         /* Desktop - manter sidebar visível */
         @media (min-width: 769px) {
             .menu-toggle {
                 display: none !important;
             }
-            
+
             .sidebar-overlay {
                 display: none !important;
             }
         }
     </style>
 </head>
+
 <body class="flex">
     <!-- Menu Hambúrguer Mobile -->
     <button class="menu-toggle hidden" id="menuToggle" onclick="toggleSidebar()" aria-label="Toggle menu">
@@ -1072,14 +1110,15 @@ foreach ($msgEtapas as $k => $v) {
         <span></span>
         <span></span>
     </button>
-    
+
     <!-- Overlay para fechar sidebar -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <!-- Sidebar -->
     <aside class="sidebar w-64 min-h-screen flex flex-col fixed left-0 top-0" id="sidebar">
         <div class="p-6 border-b border-zinc-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--primary-gradient);">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style="background: var(--primary-gradient);">
                     <i class="fas fa-robot text-white"></i>
                 </div>
                 <div>
@@ -1092,65 +1131,68 @@ foreach ($msgEtapas as $k => $v) {
                 </button>
             </div>
         </div>
-        
+
         <nav class="flex-1 py-4">
             <div class="px-4 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Menu</div>
-            
-            <a href="admin_bot_config.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+
+            <a href="admin_bot_config.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-chart-line w-5"></i>
                 <span>Dashboard</span>
             </a>
-            
-            <a href="admin_bot_automations.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+
+            <a href="admin_bot_automations.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-bolt w-5"></i>
                 <span>Automações</span>
             </a>
-            
-            <a href="admin_bot_settings.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+
+            <a href="admin_bot_settings.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-cog w-5"></i>
                 <span>Configurações</span>
             </a>
-            
+
             <a href="admin_bot_logs.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-history w-5"></i>
                 <span>Logs</span>
             </a>
-                <span>Logs</span>
+            <span>Logs</span>
             </a>
-            
-            <a href="admin_bot_licenses.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
+
+            <a href="admin_bot_licenses.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300"
+                style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
                 <i class="fas fa-key w-5" style="color: #FF3333;"></i>
                 <span>Licenças de Grupos</span>
             </a>
-            
-            <a href="admin_bot_ia.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
+
+            <a href="admin_bot_ia.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300"
+                style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
                 <i class="fas fa-brain w-5" style="color: #8B5CF6;"></i>
                 <span>IA do Bot</span>
             </a>
 
-            <a href="admin_bot_marketing.php" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="admin_bot_marketing.php"
+                class="sidebar-item active flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-bullhorn w-5"></i>
                 <span>Marketing</span>
             </a>
 
-            <a href="admin_bot_messages.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="admin_bot_messages.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-comment-dots w-5"></i>
                 <span>Mensagens</span>
             </a>
-            
+
             <div class="px-4 mt-6 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Links</div>
-            
+
             <a href="dashboard.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-home w-5"></i>
                 <span>Dashboard</span>
             </a>
-            
+
             <a href="admin.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-arrow-left w-5"></i>
                 <span>Painel Rastreamento</span>
             </a>
         </nav>
-        
+
         <!-- Bot Status -->
         <div class="p-4 border-t border-zinc-800">
             <div class="flex items-center justify-between">
@@ -1164,7 +1206,7 @@ foreach ($msgEtapas as $k => $v) {
             </div>
         </div>
     </aside>
-    
+
     <!-- Main Content -->
     <main class="flex-1 ml-64 p-8">
         <!-- Header -->
@@ -1178,9 +1220,9 @@ foreach ($msgEtapas as $k => $v) {
                 Nova Automação
             </button>
         </header>
-        
+
         <!-- Dashboard Section -->
-        
+
         </section>
 
         <!-- Marketing Section -->
@@ -1193,25 +1235,28 @@ foreach ($msgEtapas as $k => $v) {
                         <div>
                             <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Meta do Dia</div>
                             <div class="text-2xl font-bold text-white mt-1">
-                                <?= $mktStats['hoje_iniciados'] ?? 0 ?> <span class="text-sm text-zinc-500 font-normal">/ <?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?></span>
+                                <?= $mktStats['hoje_iniciados'] ?? 0?> <span class="text-sm text-zinc-500 font-normal">/
+                                    <?= $mktCampanha['membros_por_dia_grupo'] ?? 5?>
+                                </span>
                             </div>
                         </div>
                         <div class="bg-blue-500/10 p-2 rounded-lg">
                             <i class="fas fa-users text-blue-500"></i>
                         </div>
                     </div>
-                    
-                    <?php 
-                        $meta = $mktCampanha['membros_por_dia_grupo'] ?? 5;
-                        $percent = min(100, (($mktStats['hoje_iniciados'] ?? 0) / $meta) * 100);
-                    ?>
+
+                    <?php
+$meta = $mktCampanha['membros_por_dia_grupo'] ?? 5;
+$percent = min(100, (($mktStats['hoje_iniciados'] ?? 0) / $meta) * 100);
+?>
                     <div class="w-full bg-zinc-800 rounded-full h-1.5 mt-2">
-                        <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $percent ?>%"></div>
+                        <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+                            style="width: <?= $percent?>%"></div>
                     </div>
                     <div class="text-[10px] text-zinc-500 mt-2">
-                        <?= ($mktStats['hoje_iniciados'] ?? 0) >= $meta ? 
-                            '<span class="text-green-500"><i class="fas fa-check-circle"></i> Meta batida! Focando em entregar.</span>' : 
-                            '<span class="text-yellow-500"><i class="fas fa-play-circle"></i> Recrutando novos...</span>' ?>
+                        <?=($mktStats['hoje_iniciados'] ?? 0) >= $meta ? 
+    '<span class="text-green-500"><i class="fas fa-check-circle"></i> Meta batida! Focando em entregar.</span>' :
+    '<span class="text-yellow-500"><i class="fas fa-play-circle"></i> Recrutando novos...</span>'?>
                     </div>
                 </div>
 
@@ -1219,34 +1264,41 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="stat-card p-4 border-l-4 border-purple-500">
                     <div class="flex justify-between items-start">
                         <div>
-                            <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">VIPs em Andamento</div>
-                             <div class="text-2xl font-bold text-white mt-1">
-                                <?= $mktStats['hoje_andamento'] ?? 0 ?> <span class="text-xs text-zinc-500">pessoas</span>
+                            <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">VIPs em Andamento
+                            </div>
+                            <div class="text-2xl font-bold text-white mt-1">
+                                <?= $mktStats['hoje_andamento'] ?? 0?> <span
+                                    class="text-xs text-zinc-500">pessoas</span>
                             </div>
                         </div>
                         <div class="bg-purple-500/10 p-2 rounded-lg">
                             <i class="fas fa-running text-purple-500"></i>
                         </div>
                     </div>
-                     <div class="text-[10px] text-zinc-400 mt-2">
-                        Em média na Msg #<?= $mktStats['passo_medio'] ?? 0 ?> de <?= $mktStats['total_msgs_funil'] ?? 0 ?>
+                    <div class="text-[10px] text-zinc-400 mt-2">
+                        Em média na Msg #
+                        <?= $mktStats['passo_medio'] ?? 0?> de
+                        <?= $mktStats['total_msgs_funil'] ?? 0?>
                     </div>
-                    <?php if(!empty($mktStats['proximo_envio'])): ?>
-                         <div class="text-[10px] text-green-400 mt-1">
-                            <i class="fas fa-clock mr-1"></i> Próx: <?= date('H:i', strtotime($mktStats['proximo_envio'])) ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-[10px] text-zinc-600 mt-1">Nenhum envio agendado</div>
-                    <?php endif; ?>
+                    <?php if (!empty($mktStats['proximo_envio'])): ?>
+                    <div class="text-[10px] text-green-400 mt-1">
+                        <i class="fas fa-clock mr-1"></i> Próx:
+                        <?= date('H:i', strtotime($mktStats['proximo_envio']))?>
+                    </div>
+                    <?php
+else: ?>
+                    <div class="text-[10px] text-zinc-600 mt-1">Nenhum envio agendado</div>
+                    <?php
+endif; ?>
                 </div>
 
                 <!-- CONCLUÍDOS HOJE -->
                 <div class="stat-card p-4 border-l-4 border-green-500">
-                      <div class="flex justify-between items-start">
+                    <div class="flex justify-between items-start">
                         <div>
                             <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Concluídos Hoje</div>
-                             <div class="text-2xl font-bold text-green-500 mt-1">
-                                <?= $mktStats['hoje_concluidos'] ?? 0 ?>
+                            <div class="text-2xl font-bold text-green-500 mt-1">
+                                <?= $mktStats['hoje_concluidos'] ?? 0?>
                             </div>
                         </div>
                         <div class="bg-green-500/10 p-2 rounded-lg">
@@ -1260,18 +1312,18 @@ foreach ($msgEtapas as $k => $v) {
 
                 <!-- TOTAL DE MENSAGENS -->
                 <div class="stat-card p-4 border-l-4 border-zinc-500">
-                      <div class="flex justify-between items-start">
+                    <div class="flex justify-between items-start">
                         <div>
                             <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Disparos Hoje</div>
-                             <div class="text-2xl font-bold text-white mt-1">
-                                <?= $mktStats['hoje_disparos'] ?? 0 ?>
+                            <div class="text-2xl font-bold text-white mt-1">
+                                <?= $mktStats['hoje_disparos'] ?? 0?>
                             </div>
                         </div>
                         <div class="bg-zinc-700/30 p-2 rounded-lg">
                             <i class="fas fa-envelope text-zinc-400"></i>
                         </div>
                     </div>
-                     <div class="text-[10px] text-zinc-500 mt-2">
+                    <div class="text-[10px] text-zinc-500 mt-2">
                         Soma de todas msgs (1, 2, 3...) enviadas pelo bot.
                     </div>
                 </div>
@@ -1285,32 +1337,42 @@ foreach ($msgEtapas as $k => $v) {
                     </div>
                     <div class="p-6">
                         <form id="marketingConfigForm" onsubmit="saveMarketingConfig(event)">
-                            <div class="flex items-center justify-between mb-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                            <div
+                                class="flex items-center justify-between mb-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
                                 <div>
                                     <h4 class="font-medium">Campanha Ativa</h4>
                                     <p class="text-sm text-zinc-500">O bot enviará mensagens automáticas</p>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" name="ativo" <?= ($mktCampanha['ativo'] ?? 0) ? 'checked' : '' ?>>
+                                    <input type="checkbox" name="ativo" <?=($mktCampanha['ativo'] ?? 0) ? 'checked' : ''
+                                        ?>>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
 
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-zinc-400 mb-2">Membros por Dia (por Grupo)</label>
-                                <input type="number" name="membros_dia" value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?>" min="1" max="50" class="input-field w-full">
+                                <label class="block text-sm font-medium text-zinc-400 mb-2">Membros por Dia (por
+                                    Grupo)</label>
+                                <input type="number" name="membros_dia"
+                                    value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5?>" min="1" max="50"
+                                    class="input-field w-full">
                                 <p class="text-xs text-zinc-600 mt-1">Recomendado: 5-10 para evitar banimento.</p>
                             </div>
 
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-zinc-400 mb-2">Intervalo entre Envios (Minutos)</label>
+                                <label class="block text-sm font-medium text-zinc-400 mb-2">Intervalo entre Envios
+                                    (Minutos)</label>
                                 <div class="flex gap-4">
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_min" value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30 ?>" placeholder="Min" class="input-field w-full">
+                                        <input type="number" name="intervalo_min"
+                                            value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30?>" placeholder="Min"
+                                            class="input-field w-full">
                                         <div class="text-xs text-zinc-600 mt-1">Mínimo</div>
                                     </div>
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120 ?>" min="5" class="input-field w-full">
+                                        <input type="number" name="intervalo_max"
+                                            value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120?>" min="5"
+                                            class="input-field w-full">
                                         <p class="text-xs text-zinc-600 mt-1">Máximo</p>
                                     </div>
                                 </div>
@@ -1319,12 +1381,40 @@ foreach ($msgEtapas as $k => $v) {
                             <button type="submit" class="w-full btn btn-primary justify-center mb-3">
                                 Salvar Configurações
                             </button>
-                            
+
+                            <!-- Botão Iniciar Disparos (Manual) -->
+                            <div class="mb-4 p-4 bg-zinc-900 border border-blue-500/30 rounded-xl">
+                                <h4 class="text-sm font-bold text-blue-400 mb-2 uppercase"><i
+                                        class="fas fa-rocket mr-2"></i>Controle Manual</h4>
+                                <button type="button" onclick="startMarketingDisparos()" id="btnStartDisparos"
+                                    class="w-full btn bg-blue-600 hover:bg-blue-500 text-white justify-center shadow-lg shadow-blue-900/20 mb-3">
+                                    <i class="fas fa-play mr-2"></i> Iniciar Disparos Agora
+                                </button>
+                                <p class="text-[10px] text-zinc-500 text-center">Isso ignora o limite diário e envia
+                                    mensagens para a fila atual imediatamente.</p>
+                            </div>
+
+                            <!-- Console de Status -->
+                            <div id="marketingConsole"
+                                class="hidden mb-4 p-3 bg-black border border-zinc-800 rounded-lg max-h-48 overflow-y-auto font-mono text-[10px] space-y-1">
+                                <div class="text-blue-400 border-b border-zinc-800 pb-1 mb-1 flex justify-between">
+                                    <span>CONSOLE DE DISPAROS</span>
+                                    <span id="consoleProgress">0%</span>
+                                </div>
+                                <div id="consoleLogs" class="space-y-0.5">
+                                    <div class="text-zinc-500">Aguardando início...</div>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-2 gap-2">
-                                <button type="button" onclick="syncFunnel()" class="btn btn-secondary justify-center text-sm" title="Corrige ordens e força bot a reler">
+                                <button type="button" onclick="syncFunnel()"
+                                    class="btn btn-secondary justify-center text-sm"
+                                    title="Corrige ordens e força bot a reler">
                                     <i class="fas fa-sync mr-2"></i> Sync Funil
                                 </button>
-                                <button type="button" onclick="resetDailyLimit()" class="btn btn-secondary justify-center text-sm" title="Zerar contagem de limite hoje">
+                                <button type="button" onclick="resetDailyLimit()"
+                                    class="btn btn-secondary justify-center text-sm"
+                                    title="Zerar contagem de limite hoje">
                                     <i class="fas fa-undo mr-2"></i> Zerar Limite
                                 </button>
                             </div>
@@ -1336,48 +1426,66 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="card h-fit">
                     <div class="card-header flex justify-between items-center">
                         <h3 class="font-semibold">💬 Funil de Mensagens</h3>
-                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400"><?= count($mktMensagens) ?> msgs</span>
+                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400">
+                            <?= count($mktMensagens)?> msgs
+                        </span>
                     </div>
                     <div class="p-4 space-y-4">
                         <?php if (empty($mktMensagens)): ?>
-                            <div class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
-                                Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
+                        <div class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
+                            Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
+                        </div>
+                        <?php
+else: ?>
+                        <div class="space-y-3">
+                            <?php foreach ($mktMensagens as $msg): ?>
+                            <div
+                                class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group hover:border-zinc-700 transition">
+                                <div
+                                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                                    <button
+                                        onclick="editMarketingMsg(<?= $msg['id']?>, '<?= htmlspecialchars(addslashes($msg['conteudo']), ENT_QUOTES)?>', <?= $msg['delay_apos_anterior_minutos']?>)"
+                                        class="text-zinc-500 hover:text-blue-400 p-1 transition"
+                                        title="Editar mensagem">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="deleteMarketingMsg(<?= $msg['id']?>)"
+                                        class="text-zinc-500 hover:text-red-500 p-1 transition"
+                                        title="Deletar mensagem">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#
+                                        <?= $msg['ordem']?>
+                                    </span>
+                                    <span class="text-xs text-zinc-500">
+                                        <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior'?>
+                                    </span>
+                                </div>
+                                <p class="text-sm text-zinc-300 whitespace-pre-line">
+                                    <?= htmlspecialchars($msg['conteudo'])?>
+                                </p>
                             </div>
-                        <?php else: ?>
-                            <div class="space-y-3">
-                                <?php foreach ($mktMensagens as $msg): ?>
-                                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group hover:border-zinc-700 transition">
-                                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
-                                            <button onclick="editMarketingMsg(<?= $msg['id'] ?>, '<?= htmlspecialchars(addslashes($msg['conteudo']), ENT_QUOTES) ?>', <?= $msg['delay_apos_anterior_minutos'] ?>)" class="text-zinc-500 hover:text-blue-400 p-1 transition" title="Editar mensagem">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button onclick="deleteMarketingMsg(<?= $msg['id'] ?>)" class="text-zinc-500 hover:text-red-500 p-1 transition" title="Deletar mensagem">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                        <div class="flex items-center gap-2 mb-2">
-                                            <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#<?= $msg['ordem'] ?></span>
-                                            <span class="text-xs text-zinc-500">
-                                                <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior' ?>
-                                            </span>
-                                        </div>
-                                        <p class="text-sm text-zinc-300 whitespace-pre-line"><?= htmlspecialchars($msg['conteudo']) ?></p>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
+                            <?php
+    endforeach; ?>
+                        </div>
+                        <?php
+endif; ?>
 
                         <hr class="border-zinc-800">
 
                         <form id="addMktMsgForm" onsubmit="addMarketingMsg(event)">
                             <div class="mb-3">
                                 <label class="block text-xs font-medium text-zinc-500 mb-1">Nova Mensagem</label>
-                                <textarea name="conteudo" rows="3" required placeholder="Digite a mensagem..." class="input-field w-full text-sm"></textarea>
+                                <textarea name="conteudo" rows="3" required placeholder="Digite a mensagem..."
+                                    class="input-field w-full text-sm"></textarea>
                             </div>
                             <div class="flex gap-3 items-end">
                                 <div class="flex-1">
                                     <label class="block text-xs font-medium text-zinc-500 mb-1">Delay (min)</label>
-                                    <input type="number" name="delay" value="60" required class="input-field w-full text-sm">
+                                    <input type="number" name="delay" value="60" required
+                                        class="input-field w-full text-sm">
                                 </div>
                                 <button type="submit" class="btn btn-secondary text-sm h-[42px]">
                                     <i class="fas fa-plus mr-1"></i> Adicionar
@@ -1390,14 +1498,14 @@ foreach ($msgEtapas as $k => $v) {
         </section>
 
         <!-- Personalized Messages Section -->
-        
+
         <!-- Automations Section -->
-        
+
         <!-- Settings Section -->
-        
+
         <!-- Logs Section -->
     </main>
-    
+
     <!-- Modal Automação -->
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -1407,10 +1515,10 @@ foreach ($msgEtapas as $k => $v) {
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
+
             <form id="automationForm" class="p-6 space-y-5" onsubmit="saveAutomation(event)">
                 <input type="hidden" id="automationId" name="id" value="">
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Nome *</label>
@@ -1426,13 +1534,13 @@ foreach ($msgEtapas as $k => $v) {
                         </select>
                     </div>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Descrição</label>
                     <input type="text" name="descricao" id="autoDescricao" class="input-field w-full"
                         placeholder="Breve descrição da automação">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Gatilho (Texto que ativa) *</label>
                     <input type="text" name="gatilho" id="autoGatilho" class="input-field w-full mono" required
@@ -1441,7 +1549,7 @@ foreach ($msgEtapas as $k => $v) {
                         <span class="text-yellow-500">Dica:</span> Use | para múltiplas palavras. Ex: oi|olá|hey
                     </p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Resposta *</label>
                     <textarea name="resposta" id="autoResposta" class="input-field w-full h-32" required
@@ -1450,7 +1558,7 @@ foreach ($msgEtapas as $k => $v) {
                         Suporta formatação WhatsApp: *negrito*, _itálico_, ~tachado~, ```código```
                     </p>
                 </div>
-                
+
                 <!-- Campo de Imagem -->
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">
@@ -1458,9 +1566,8 @@ foreach ($msgEtapas as $k => $v) {
                     </label>
                     <div class="flex gap-3">
                         <input type="text" name="imagem_url" id="autoImagemUrl" class="input-field flex-1"
-                            placeholder="https://exemplo.com/imagem.jpg" 
-                            onchange="previewImage(this.value)">
-                        <button type="button" onclick="document.getElementById('imageUpload').click()" 
+                            placeholder="https://exemplo.com/imagem.jpg" onchange="previewImage(this.value)">
+                        <button type="button" onclick="document.getElementById('imageUpload').click()"
                             class="btn btn-secondary" title="Upload de imagem">
                             <i class="fas fa-upload"></i>
                         </button>
@@ -1472,35 +1579,38 @@ foreach ($msgEtapas as $k => $v) {
                     <!-- Preview da imagem -->
                     <div id="imagePreview" class="mt-3 hidden">
                         <div class="relative inline-block">
-                            <img id="imagePreviewImg" src="" alt="Preview" 
+                            <img id="imagePreviewImg" src="" alt="Preview"
                                 class="max-h-32 rounded-lg border border-zinc-700">
-                            <button type="button" onclick="clearImage()" 
+                            <button type="button" onclick="clearImage()"
                                 class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600">
                                 <i class="fas fa-times text-xs text-white"></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-sm text-zinc-400">Grupos Específicos (opcional)</label>
-                            <a href="#" onclick="purgeGroups(); return false;" class="text-xs text-red-500 hover:text-red-400" title="Limpar lista antiga">Limpar cache</a>
+                            <a href="#" onclick="purgeGroups(); return false;"
+                                class="text-xs text-red-500 hover:text-red-400" title="Limpar lista antiga">Limpar
+                                cache</a>
                         </div>
                         <div class="text-xs text-zinc-500 mb-1">Segure Ctrl (ou Cmd) para selecionar vários</div>
-                        <select name="grupo_id[]" id="autoGrupoId" class="input-field w-full" multiple size="4" onchange="updateGrupoNome()">
+                        <select name="grupo_id[]" id="autoGrupoId" class="input-field w-full" multiple size="4"
+                            onchange="updateGrupoNome()">
                             <option value="">Todos os chats</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Prioridade</label>
-                        <input type="number" name="prioridade" id="autoPrioridade" class="input-field w-full"
-                            value="0" min="0" max="100">
+                        <input type="number" name="prioridade" id="autoPrioridade" class="input-field w-full" value="0"
+                            min="0" max="100">
                     </div>
                 </div>
                 <input type="hidden" name="grupo_nome" id="autoGrupoNome">
-                
+
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Delay antes de responder</label>
@@ -1547,7 +1657,7 @@ foreach ($msgEtapas as $k => $v) {
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="flex items-center gap-3">
                     <label class="toggle-switch">
                         <input type="checkbox" name="ativo" id="autoAtivo" checked>
@@ -1555,7 +1665,7 @@ foreach ($msgEtapas as $k => $v) {
                     </label>
                     <span>Automação Ativa</span>
                 </div>
-                
+
                 <div class="flex justify-end gap-3 pt-4 border-t border-zinc-800">
                     <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
@@ -1593,24 +1703,24 @@ foreach ($msgEtapas as $k => $v) {
             </form>
         </div>
     </div>
-    
+
     <!-- Toast -->
     <div id="toast" class="toast">
         <span id="toastMessage"></span>
     </div>
-    
+
     <script>
         // ===== VARIÁVEIS GLOBAIS =====
         let automations = <?= json_encode($automations) ?>;
         let settings = <?= json_encode($settingsObj) ?>;
         let grupos = [];
-        const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? '' ?>';
-        
+        const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? ''?>';
+
         // ===== INICIALIZAÇÃO =====
         // ===== INICIALIZAÇÃO =====
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('BotConfig: Inicializando...');
-            
+
             // 1. Setup Navegação (PRIORIDADE MÁXIMA)
             try {
                 const navItems = document.querySelectorAll('.sidebar-item[data-section]');
@@ -1625,7 +1735,7 @@ foreach ($msgEtapas as $k => $v) {
                         showSection(section);
                     });
                 });
-                
+
                 // Verificar hash inicial (ex: #marketing) e navegar
                 const initialHash = window.location.hash.replace('#', '');
                 if (initialHash) {
@@ -1633,10 +1743,10 @@ foreach ($msgEtapas as $k => $v) {
                     // Pequeno delay para garantir que o DOM renderizou
                     setTimeout(() => showSection(initialHash), 50);
                 } else {
-                     // Default para dashboard se não tiver hash
-                     showSection('marketing');
+                    // Default para dashboard se não tiver hash
+                    showSection('marketing');
                 }
-                
+
                 // Escutar mudanças de hash (caso o usuário use botões voltar/avançar)
                 window.addEventListener('hashchange', () => {
                     const hash = window.location.hash.replace('#', '');
@@ -1650,30 +1760,30 @@ foreach ($msgEtapas as $k => $v) {
             // 2. Carregar dados de forma segura (Independentes)
             // Usamos setTimeout para não travar a thread principal imediatamente
             setTimeout(async () => {
-                try { await loadStats(); } catch(e) { console.error('Erro loadStats:', e); }
-                try { await loadSettings(); } catch(e) { console.error('Erro loadSettings:', e); }
-                try { await loadGrupos(); } catch(e) { console.error('Erro loadGrupos:', e); }
-                try { renderAutomations(); } catch(e) { console.error('Erro renderAutomations:', e); }
-                try { checkBotStatus(); } catch(e) { console.error('Erro checkBotStatus:', e); }
+                try { await loadStats(); } catch (e) { console.error('Erro loadStats:', e); }
+                try { await loadSettings(); } catch (e) { console.error('Erro loadSettings:', e); }
+                try { await loadGrupos(); } catch (e) { console.error('Erro loadGrupos:', e); }
+                try { renderAutomations(); } catch (e) { console.error('Erro renderAutomations:', e); }
+                try { checkBotStatus(); } catch (e) { console.error('Erro checkBotStatus:', e); }
             }, 100);
-            
+
             // Auto-refresh status a cada 30s
             setInterval(() => {
-                try { checkBotStatus(); } catch(e) { console.error('Erro intervalo status:', e); }
+                try { checkBotStatus(); } catch (e) { console.error('Erro intervalo status:', e); }
             }, 30000);
         });
-        
+
         function showSection(section) {
             // Update sidebar
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
             document.querySelector(`.sidebar-item[data-section="${section}"]`)?.classList.add('active');
-            
+
             // Update sections
             document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
             document.getElementById(`section-${section}`)?.classList.remove('hidden');
-            
+
             // Update header
             const titles = {
                 dashboard: ['Dashboard', 'Visão geral do bot e automações'],
@@ -1685,23 +1795,23 @@ foreach ($msgEtapas as $k => $v) {
                 ai: ['IA do Bot', 'Configuração de inteligência'],
                 messages: ['Mensagens', 'Personalize textos de rastreamento']
             };
-            
+
             document.getElementById('pageTitle').textContent = titles[section]?.[0] || section;
             document.getElementById('pageSubtitle').textContent = titles[section]?.[1] || '';
-            
+
             // Show/hide new automation button
-            document.getElementById('btnNewAutomation').style.display = 
+            document.getElementById('btnNewAutomation').style.display =
                 section === 'automations' ? 'flex' : 'none';
-            
+
             // Load section data
             if (section === 'logs') loadLogs();
         }
-        
+
         // ===== MODAL =====
         function openModal(automation = null) {
             const modal = document.getElementById('modal');
             const form = document.getElementById('automationForm');
-            
+
             if (automation) {
                 document.getElementById('modalTitle').textContent = 'Editar Automação';
                 document.getElementById('automationId').value = automation.id;
@@ -1718,7 +1828,7 @@ foreach ($msgEtapas as $k => $v) {
                 });
                 document.getElementById('autoGrupoNome').value = automation.grupo_nome || '';
                 document.getElementById('autoPrioridade').value = automation.prioridade || 0;
-                
+
                 // Delay - selecionar a opção mais próxima
                 const delayMs = parseInt(automation.delay_ms || 0);
                 const delaySelect = document.getElementById('autoDelay');
@@ -1735,7 +1845,7 @@ foreach ($msgEtapas as $k => $v) {
                     }
                     delaySelect.value = selectedDelay;
                 }
-                
+
                 // Cooldown - selecionar a opção exata ou mais próxima
                 const cooldownSegundos = parseInt(automation.cooldown_segundos || 0);
                 const cooldownSelect = document.getElementById('autoCooldown');
@@ -1752,11 +1862,11 @@ foreach ($msgEtapas as $k => $v) {
                     }
                     cooldownSelect.value = selectedCooldown;
                 }
-                
+
                 document.getElementById('autoApenasPrivado').checked = automation.apenas_privado == 1;
                 document.getElementById('autoApenasGrupo').checked = automation.apenas_grupo == 1;
                 document.getElementById('autoAtivo').checked = automation.ativo == 1;
-                
+
                 // Preview da imagem se existir
                 if (automation.imagem_url) {
                     previewImage(automation.imagem_url);
@@ -1769,30 +1879,30 @@ foreach ($msgEtapas as $k => $v) {
                 document.getElementById('automationId').value = '';
                 document.getElementById('autoAtivo').checked = true;
                 document.getElementById('imagePreview').classList.add('hidden');
-                
+
                 // Resetar campos
                 document.getElementById('autoDelay').value = '0';
                 document.getElementById('autoCooldown').value = '0';
                 document.getElementById('autoPrioridade').value = '0';
-                
+
                 // Clear group selection
                 const grupoSelect = document.getElementById('autoGrupoId');
                 Array.from(grupoSelect.options).forEach(opt => opt.selected = false);
             }
-            
+
             modal.classList.add('active');
         }
-        
+
         function closeModal(event) {
             if (event && event.target !== event.currentTarget) return;
             document.getElementById('modal').classList.remove('active');
         }
-        
+
         // ===== AUTOMAÇÕES =====
         function renderAutomations() {
             const container = document.getElementById('automationsList');
             const recent = document.getElementById('recentAutomations');
-            
+
             if (!automations.length) {
                 container.innerHTML = `
                     <div class="text-center py-12">
@@ -1807,14 +1917,14 @@ foreach ($msgEtapas as $k => $v) {
                 recent.innerHTML = container.innerHTML;
                 return;
             }
-            
+
             // Full list
             container.innerHTML = automations.map(a => automationCard(a)).join('');
-            
+
             // Recent (top 5)
             recent.innerHTML = automations.slice(0, 5).map(a => automationCardMini(a)).join('');
         }
-        
+
         function automationCard(a) {
             const tipoLabels = {
                 'mensagem_especifica': { text: 'Mensagem', class: 'badge-blue' },
@@ -1822,7 +1932,7 @@ foreach ($msgEtapas as $k => $v) {
                 'regex': { text: 'Regex', class: 'badge-red' }
             };
             const tipo = tipoLabels[a.tipo] || { text: a.tipo, class: 'badge-blue' };
-            
+
             return `
                 <div class="automation-card ${a.ativo == 0 ? 'inactive' : ''}" id="auto-${a.id}">
                     <div class="flex items-start justify-between mb-3">
@@ -1876,7 +1986,7 @@ foreach ($msgEtapas as $k => $v) {
                 </div>
             `;
         }
-        
+
         function automationCardMini(a) {
             return `
                 <div class="flex items-center justify-between p-3 bg-zinc-900 rounded-lg">
@@ -1893,17 +2003,17 @@ foreach ($msgEtapas as $k => $v) {
                 </div>
             `;
         }
-        
+
         async function saveAutomation(e) {
-            
+
             const form = document.getElementById('automationForm');
             const formData = new FormData(form);
             formData.append('action', 'save_automation');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     closeModal();
@@ -1915,17 +2025,17 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao salvar: ' + err.message, 'error');
             }
         }
-        
+
         async function toggleAutomation(id, ativo) {
             const formData = new FormData();
             formData.append('action', 'toggle_automation');
             formData.append('id', id);
             formData.append('ativo', ativo ? 1 : 0);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     await loadAutomations();
@@ -1934,22 +2044,22 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro: ' + err.message, 'error');
             }
         }
-        
+
         async function cloneAutomation(id, nome) {
             if (!confirm(`Clonar a automação "${nome}"?\n\nUma cópia será criada com o nome "${nome} (Cópia)" e ficará INATIVA por padrão.`)) return;
-            
+
             const formData = new FormData();
             formData.append('action', 'clone_automation');
             formData.append('id', id);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message + ' Edite para personalizar.', 'success');
                     await loadAutomations();
-                    
+
                     // Abrir modal de edição da nova automação clonada
                     if (data.id) {
                         // Aguardar lista carregar e então abrir o modal
@@ -1968,18 +2078,18 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao clonar: ' + err.message, 'error');
             }
         }
-        
+
         async function deleteAutomation(id, nome) {
             if (!confirm(`Excluir a automação "${nome}"?`)) return;
-            
+
             const formData = new FormData();
             formData.append('action', 'delete_automation');
             formData.append('id', id);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     await loadAutomations();
@@ -1990,20 +2100,20 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro: ' + err.message, 'error');
             }
         }
-        
+
         async function fetchAutomations() {
             const formData = new FormData();
             formData.append('action', 'get_automations');
-            
+
             const res = await fetch('', { method: 'POST', body: formData });
             const data = await res.json();
-            
+
             if (data.success) {
                 return data.data;
             }
             return [];
         }
-        
+
         async function loadAutomations() {
             try {
                 automations = await fetchAutomations();
@@ -2013,7 +2123,7 @@ foreach ($msgEtapas as $k => $v) {
                 console.error('Erro ao carregar automações:', err);
             }
         }
-        
+
         // ===== CONFIGURAÇÕES =====
         function loadSettings() {
             document.getElementById('setting_bot_enabled').checked = settings.bot_enabled === '1';
@@ -2028,7 +2138,7 @@ foreach ($msgEtapas as $k => $v) {
 
         async function purgeGroups() {
             if (!confirm('Tem certeza? Isso apagará a lista de grupos do banco. O bot precisará ser reiniciado para sincronizar novamente.')) return;
-            
+
             try {
                 // Usando o script separado que criamos
                 const res = await fetch('limpar_grupos.php');
@@ -2045,13 +2155,13 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao limpar: ' + err.message, 'error');
             }
         }
-        
+
         async function saveMarketingConfig(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_campaign');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2066,11 +2176,11 @@ foreach ($msgEtapas as $k => $v) {
         }
 
         async function addMarketingMsg(e) {
-            
+
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'add_marketing_msg');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2086,7 +2196,7 @@ foreach ($msgEtapas as $k => $v) {
             }
         }
 
-        
+
         let currentEditMsgId = null;
 
         function editMarketingMsg(id, currentContent, currentDelay) {
@@ -2094,14 +2204,14 @@ foreach ($msgEtapas as $k => $v) {
             const textarea = document.createElement('textarea');
             textarea.innerHTML = currentContent;
             const decodedContent = textarea.value;
-            
+
             // Store ID for later
             currentEditMsgId = id;
-            
+
             // Populate modal
             document.getElementById('editMsgContent').value = decodedContent;
             document.getElementById('editMsgDelay').value = currentDelay;
-            
+
             // Show modal
             document.getElementById('editModal').classList.add('active');
         }
@@ -2113,21 +2223,21 @@ foreach ($msgEtapas as $k => $v) {
 
         async function saveEditMsg(e) {
             e.preventDefault();
-            
+
             if (!currentEditMsgId) {
                 showToast('Erro: ID da mensagem não encontrado', 'error');
                 return;
             }
-            
+
             const newContent = document.getElementById('editMsgContent').value;
             const newDelay = document.getElementById('editMsgDelay').value;
-            
+
             const formData = new FormData();
             formData.append('action', 'edit_marketing_msg');
             formData.append('id', currentEditMsgId);
             formData.append('conteudo', newContent);
             formData.append('delay', parseInt(newDelay) || 0);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2144,11 +2254,11 @@ foreach ($msgEtapas as $k => $v) {
         }
 
         async function deleteMarketingMsg(id) {
-            if(!confirm('Tem certeza?')) return;
+            if (!confirm('Tem certeza?')) return;
             const formData = new FormData();
             formData.append('action', 'delete_marketing_msg');
             formData.append('id', id);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2164,11 +2274,11 @@ foreach ($msgEtapas as $k => $v) {
         async function loadMarketingMsgs() {
             const formData = new FormData();
             formData.append('action', 'get_marketing_msgs');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     renderMarketingMsgs(data.data);
                 }
@@ -2183,42 +2293,44 @@ foreach ($msgEtapas as $k => $v) {
             // Vamos precisar adicionar um ID ao container no PHP ou usar seletor robusto
             // Como não posso editar o HTML do PHP aqui facilmente sem ver o código, vou usar seletor relativo ao form
             // O form é addMktMsgForm. O container de msgs está acima dele.
-            
+
             // Mas espera, eu tenho acesso ao container via DOM se eu der um ID pra ele.
             // Vou assumir que o usuário pode atualizar o PHP container.
             // Melhor: Vou recriar o container no JS.
-            
+
             // Mas espera, o HTML atual é:
             /*
             <div class="p-4 space-y-4">
                 <?php if (empty($mktMensagens)): ?>
                     ...
-                <?php else: ?>
+                <?php
+else: ?>
                     <div class="space-y-3">
                         ... loop ...
                     </div>
-                <?php endif; ?>
+                <?php
+endif; ?>
                 <hr ...>
                 <form ...>
             */
-            
+
             // Eu preciso identificar o pai dos items.
             // Vou usar o seletor: #section-marketing .card:nth-child(2) .p-4
-            
+
             const container = document.querySelector('#section-marketing .card:nth-child(2) .p-4');
-            if(!container) return;
-            
+            if (!container) return;
+
             // Remover conteúdo antes do HR
             // A estrutura é complexa. O ideal é ter um container explícito.
             // Como não tenho ID, vou limpar tudo exceto o form e o HR e recriar.
-            
+
             // Pegar o form e o hr para preservar
             const form = document.getElementById('addMktMsgForm');
             const hr = container.querySelector('hr');
-            
+
             // Limpar container
             container.innerHTML = '';
-            
+
             // Recriar lista
             if (!msgs || msgs.length === 0) {
                 container.innerHTML = `
@@ -2230,15 +2342,15 @@ foreach ($msgEtapas as $k => $v) {
                 const listDiv = document.createElement('div');
                 listDiv.className = 'space-y-3';
                 listDiv.id = 'mktMsgsList';
-                
+
                 msgs.forEach(msg => {
                     const item = document.createElement('div');
                     item.className = 'bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group';
-                    
+
                     // Escapar conteúdo HTML para segurança
                     const conteudoEscapado = escapeHtml(msg.conteudo);
                     const delayText = msg.delay_apos_anterior_minutos == 0 ? 'Imediato (1º msg)' : `Aguarda ${msg.delay_apos_anterior_minutos} min após anterior`;
-                    
+
                     item.innerHTML = `
                         <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
                             <button onclick="openEditModal(${msg.id}, '${encodeURIComponent(msg.conteudo)}', ${msg.delay_apos_anterior_minutos})" class="text-zinc-500 hover:text-blue-500 p-1"><i class="fas fa-pen"></i></button>
@@ -2252,54 +2364,54 @@ foreach ($msgEtapas as $k => $v) {
                     `;
                     listDiv.appendChild(item);
                 });
-                
+
                 container.appendChild(listDiv);
             }
-            
+
             // Re-adicionar HR e Form
             container.appendChild(hr);
             container.appendChild(form);
-            
+
             // Atualizar contador no header do card se possível
             const counter = document.querySelector('#section-marketing .card:nth-child(2) .card-header span');
-            if(counter) counter.textContent = `${msgs.length} msgs`;
+            if (counter) counter.textContent = `${msgs.length} msgs`;
         }
 
         async function syncMembers() {
-            if(!confirm('Isso ordenará ao Bot varrer os grupos. Continuar?')) return;
+            if (!confirm('Isso ordenará ao Bot varrer os grupos. Continuar?')) return;
             showToast('Enviando comando...', 'warning');
             try {
                 const res = await fetch('api_marketing_trigger.php', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'sync_groups'})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'sync_groups' })
                 });
                 const data = await res.json();
-                if(data.success) {
+                if (data.success) {
                     showToast('Comando enviado! Bot está processando em background.', 'success');
                 } else {
                     showToast('Erro: ' + data.message, 'error');
                 }
-            } catch(err) {
+            } catch (err) {
                 showToast('Falha na requisição: ' + err.message, 'error');
             }
         }
 
         async function resetDailyLimit() {
-            if(!confirm('Isso vai liberar o envio para mais pessoas hoje. Continuar?')) return;
+            if (!confirm('Isso vai liberar o envio para mais pessoas hoje. Continuar?')) return;
             showToast('Resetando...', 'warning');
             try {
                 const res = await fetch('api_marketing_ajax.php?action=reset_daily_limit');
                 const data = await res.json();
-                if(data.success) {
+                if (data.success) {
                     showToast(data.message, 'success');
                     setTimeout(location.reload.bind(location), 1500);
                 } else {
                     showToast(data.message || 'Erro ao resetar', 'error');
                 }
-            } catch(e) { 
+            } catch (e) {
                 console.error('Erro reset:', e);
-                showToast('Erro: '+e.message, 'error'); 
+                showToast('Erro: ' + e.message, 'error');
             }
         }
 
@@ -2308,7 +2420,7 @@ foreach ($msgEtapas as $k => $v) {
             try {
                 const res = await fetch('api_marketing_ajax.php?action=get_marketing_stats');
                 const data = await res.json();
-                
+
                 if (data.success && data.stats) {
                     // Stats are already rendered in PHP, no need to update
                     // This function can be used for auto-refresh if needed
@@ -2320,33 +2432,150 @@ foreach ($msgEtapas as $k => $v) {
         }
 
         async function syncFunnel() {
-            if(!confirm('Isso vai reordenar as mensagens (1, 2, 3...) e corrigir clientes perdidos. Usar apenas se o funil estiver bagunçado. Continuar?')) return;
+            if (!confirm('Isso vai reordenar as mensagens (1, 2, 3...) e corrigir clientes perdidos. Usar apenas se o funil estiver bagunçado. Continuar?')) return;
             showToast('Sincronizando...', 'warning');
             try {
                 const res = await fetch('api_marketing_ajax.php?action=sync_funnel');
                 const data = await res.json();
 
-                if(data.success) {
+                if (data.success) {
                     showToast(data.message, 'success');
                     setTimeout(location.reload.bind(location), 1500);
                 } else {
                     showToast(data.message, 'error');
                 }
-            } catch(e) { 
+            } catch (e) {
                 console.error('Erro sync:', e);
-                showToast('Erro: '+e.message, 'error'); 
+                showToast('Erro: ' + e.message, 'error');
+            }
+        }
+
+        // ===== MANUAL DISPAROS JS =====
+        let isSendingMarketing = false;
+
+        async function startMarketingDisparos() {
+            if (isSendingMarketing) return;
+            if (!confirm('Deseja iniciar os disparos manuais agora? Isso vai ignorar os limites diários.')) return;
+
+            const btn = document.getElementById('btnStartDisparos');
+            const console = document.getElementById('marketingConsole');
+            const logs = document.getElementById('consoleLogs');
+            const progressSpan = document.getElementById('consoleProgress');
+
+            isSendingMarketing = true;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processando...';
+            console.classList.remove('hidden');
+            logs.innerHTML = '<div class="text-blue-400"># Iniciando processo...</div>';
+            progressSpan.textContent = '0%';
+
+            try {
+                // 1. Buscar Tarefas
+                addLog('Buscando tarefas e resetando limites...', 'info');
+                const res = await fetch('api_marketing_ajax.php?action=get_disparos_tasks');
+                const data = await res.json();
+
+                if (!data.success) {
+                    addLog('Erro ao buscar tarefas: ' + (data.message || 'Erro desconhecido'), 'error');
+                    stopDisparos();
+                    return;
+                }
+
+                const tasks = data.tasks || [];
+                if (tasks.length === 0) {
+                    addLog('Nenhuma tarefa pendente na fila.', 'warning');
+                    stopDisparos();
+                    return;
+                }
+
+                addLog(`Encontradas ${tasks.length} tarefas. Iniciando envios...`, 'success');
+
+                // 2. Executar uma a uma
+                let successCount = 0;
+                for (let i = 0; i < tasks.length; i++) {
+                    const task = tasks[i];
+                    addLog(`Enviando para ${task.phone} (${i + 1}/${tasks.length})...`, 'info');
+
+                    const result = await executeSingleTask(task);
+
+                    if (result.success) {
+                        successCount++;
+                        addLog(`✓ Sucesso para ${task.phone}`, 'success');
+                    } else {
+                        addLog(`✗ Falha para ${task.phone}: ${result.message}`, 'error');
+                    }
+
+                    // Atualizar progresso
+                    const percent = Math.round(((i + 1) / tasks.length) * 100);
+                    progressSpan.textContent = percent + '%';
+
+                    // Delay entre mensagens para evitar bloqueio excessivo mesmo no manual
+                    if (i < tasks.length - 1) {
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                }
+
+                addLog(`Processo concluído! ${successCount} enviadas com sucesso.`, 'success');
+                showToast(`Processo concluído! ${successCount} mensagens enviadas.`, 'success');
+
+            } catch (err) {
+                addLog('Erro crítico: ' + err.message, 'error');
+                showToast('Erro no processo de disparos', 'error');
+            } finally {
+                stopDisparos();
+                // Recarregar os cards de estatísticas
+                setTimeout(() => location.reload(), 2000);
+            }
+
+            function addLog(msg, type = 'info') {
+                const div = document.createElement('div');
+                const colors = {
+                    'info': 'text-zinc-400',
+                    'success': 'text-green-400',
+                    'error': 'text-red-400',
+                    'warning': 'text-yellow-400'
+                };
+                div.className = colors[type];
+                div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                logs.appendChild(div);
+                console.scrollTop = console.scrollHeight;
+            }
+
+            function stopDisparos() {
+                isSendingMarketing = false;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play mr-2"></i> Iniciar Disparos Agora';
+            }
+        }
+
+        async function executeSingleTask(task) {
+            const formData = new FormData();
+            formData.append('action', 'execute_disparo_task');
+            formData.append('member_id', task.member_id);
+            formData.append('phone', task.phone);
+            formData.append('message', task.message);
+            formData.append('step_order', task.step_order);
+
+            try {
+                const res = await fetch('api_marketing_ajax.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                return await res.json();
+            } catch (err) {
+                return { success: false, message: err.message };
             }
         }
 
         // ===== MESSAGES CONFIG JS =====
         async function saveMessagesConfig(e) {
-            
+
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_messages');
-            
+
             showToast('Salvando...', 'warning');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2359,17 +2588,17 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao salvar: ' + err.message, 'error');
             }
         }
-        
+
         async function saveSetting(chave, valor) {
             const formData = new FormData();
             formData.append('action', 'save_setting');
             formData.append('chave', chave);
             formData.append('valor', valor);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     settings[chave] = valor;
                     showToast('Configuração salva!', 'success');
@@ -2378,16 +2607,16 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro: ' + err.message, 'error');
             }
         }
-        
+
         // ===== ESTATÍSTICAS =====
         async function loadStats() {
             const formData = new FormData();
             formData.append('action', 'get_stats');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     document.getElementById('statTotal').textContent = data.data.total_automations;
                     document.getElementById('statActive').textContent = data.data.active_automations;
@@ -2398,21 +2627,21 @@ foreach ($msgEtapas as $k => $v) {
                 console.error('Erro ao carregar stats:', err);
             }
         }
-        
+
         // ===== BOT STATUS =====
         async function checkBotStatus() {
             const formData = new FormData();
             formData.append('action', 'get_bot_status');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 const dot = document.getElementById('botStatusDot');
                 const text = document.getElementById('botStatusText');
                 const statStatus = document.getElementById('statBotStatus');
                 const statUptime = document.getElementById('statUptime');
-                
+
                 if (data.success && data.data.ready) {
                     dot.className = 'status-dot status-online';
                     text.textContent = 'Online';
@@ -2436,24 +2665,24 @@ foreach ($msgEtapas as $k => $v) {
                 console.error('Erro ao verificar status:', err);
             }
         }
-        
+
         // ===== LOGS =====
         async function loadLogs() {
             const formData = new FormData();
             formData.append('action', 'get_logs');
             formData.append('limit', 50);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 const tbody = document.getElementById('logsTable');
-                
+
                 if (!data.success || !data.data.length) {
                     tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-zinc-500">Nenhum log encontrado</td></tr>';
                     return;
                 }
-                
+
                 tbody.innerHTML = data.data.map(log => `
                     <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                         <td class="px-4 py-3 text-zinc-400">${formatDate(log.criado_em)}</td>
@@ -2467,23 +2696,23 @@ foreach ($msgEtapas as $k => $v) {
                 console.error('Erro ao carregar logs:', err);
             }
         }
-        
+
         // ===== GRUPOS =====
         async function loadGrupos() {
             const formData = new FormData();
             formData.append('action', 'get_grupos');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     grupos = data.data;
                     const select = document.getElementById('autoGrupoId');
-                    
+
                     // Manter primeira opção (todos os chats)
                     select.innerHTML = '<option value="">Todos os chats</option>';
-                    
+
                     grupos.forEach(g => {
                         select.innerHTML += `<option value="${escapeHtml(g.jid)}">${escapeHtml(g.nome || g.jid)}</option>`;
                     });
@@ -2492,13 +2721,13 @@ foreach ($msgEtapas as $k => $v) {
                 console.error('Erro ao carregar grupos:', err);
             }
         }
-        
+
         function updateGrupoNome() {
             const select = document.getElementById('autoGrupoId');
             const nomeInput = document.getElementById('autoGrupoNome');
-            
+
             const selectedOptions = Array.from(select.selectedOptions);
-            
+
             if (selectedOptions.length === 0 || (selectedOptions.length === 1 && selectedOptions[0].value === '')) {
                 nomeInput.value = ''; // Todos os chats
             } else if (selectedOptions.length === 1) {
@@ -2507,12 +2736,12 @@ foreach ($msgEtapas as $k => $v) {
                 nomeInput.value = selectedOptions.length + ' grupos selecionados';
             }
         }
-        
+
         // ===== FUNÇÕES DE IMAGEM =====
         function previewImage(url) {
             const preview = document.getElementById('imagePreview');
             const img = document.getElementById('imagePreviewImg');
-            
+
             if (url && url.trim()) {
                 img.src = url;
                 img.onload = () => preview.classList.remove('hidden');
@@ -2524,38 +2753,38 @@ foreach ($msgEtapas as $k => $v) {
                 preview.classList.add('hidden');
             }
         }
-        
+
         function clearImage() {
             document.getElementById('autoImagemUrl').value = '';
             document.getElementById('imagePreview').classList.add('hidden');
         }
-        
+
         async function uploadImage(input) {
             const file = input.files[0];
             if (!file) return;
-            
+
             // Validar tamanho (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 showToast('Imagem muito grande! Máximo 5MB', 'error');
                 return;
             }
-            
+
             // Validar tipo
             if (!file.type.startsWith('image/')) {
                 showToast('Arquivo deve ser uma imagem', 'error');
                 return;
             }
-            
+
             showToast('Fazendo upload...', 'warning');
-            
+
             const formData = new FormData();
             formData.append('action', 'upload_image');
             formData.append('image', file);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success && data.url) {
                     document.getElementById('autoImagemUrl').value = data.url;
                     previewImage(data.url);
@@ -2566,7 +2795,7 @@ foreach ($msgEtapas as $k => $v) {
             } catch (err) {
                 showToast('Erro: ' + err.message, 'error');
             }
-            
+
             // Limpar input
             input.value = '';
         }
@@ -2581,10 +2810,10 @@ foreach ($msgEtapas as $k => $v) {
             // Since we pass it raw in onclick, we need to be careful with quotes.
             // Better approach: fetch or use data attribute.
             // For now, let's trust the value passed (we will update render to pass encoded)
-            
+
             document.getElementById('editMsgContent').value = decodeURIComponent(content);
             document.getElementById('editMsgDelay').value = delay;
-            
+
             const modal = document.getElementById('editModal');
             modal.classList.add('active');
         }
@@ -2612,7 +2841,7 @@ foreach ($msgEtapas as $k => $v) {
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast('Mensagem atualizada!', 'success');
                     closeEditModal();
@@ -2624,7 +2853,7 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao salvar: ' + err.message, 'error');
             }
         }
-        
+
         // ===== UTILIDADES =====
         function escapeHtml(text) {
             if (!text) return '';
@@ -2632,26 +2861,26 @@ foreach ($msgEtapas as $k => $v) {
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function formatDate(dateStr) {
             const date = new Date(dateStr);
-            return date.toLocaleString('pt-BR', { 
+            return date.toLocaleString('pt-BR', {
                 day: '2-digit', month: '2-digit', year: '2-digit',
                 hour: '2-digit', minute: '2-digit'
             });
         }
-        
+
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
-            
+
             toast.className = `toast ${type}`;
             toastMessage.textContent = message;
             toast.classList.add('show');
-            
+
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
-        
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -2659,68 +2888,68 @@ foreach ($msgEtapas as $k => $v) {
                 closeSidebar();
             }
             if (e.key === 'n' && e.ctrlKey) {
-                
+
                 openModal();
             }
             // Prevenir zoom com teclado (Ctrl + / Ctrl -)
             if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.keyCode === 187 || e.keyCode === 189)) {
-                
+
             }
         });
-        
+
         // ===== PREVENIR ZOOM COMPLETAMENTE =====
         // Prevenir zoom com gestos de pinça
         let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
+        document.addEventListener('touchend', function (event) {
             const now = Date.now();
             if (now - lastTouchEnd <= 300) {
                 event.preventDefault();
             }
             lastTouchEnd = now;
         }, false);
-        
+
         // Prevenir zoom com gestos de pinça (iOS)
-        document.addEventListener('gesturestart', function(e) {
-            
+        document.addEventListener('gesturestart', function (e) {
+
         });
-        
-        document.addEventListener('gesturechange', function(e) {
-            
+
+        document.addEventListener('gesturechange', function (e) {
+
         });
-        
-        document.addEventListener('gestureend', function(e) {
-            
+
+        document.addEventListener('gestureend', function (e) {
+
         });
-        
+
         // Prevenir zoom com duplo toque
         let lastTouch = 0;
-        document.addEventListener('touchstart', function(event) {
+        document.addEventListener('touchstart', function (event) {
             const now = Date.now();
             if (now - lastTouch <= 300) {
                 event.preventDefault();
             }
             lastTouch = now;
         }, { passive: false });
-        
+
         // Prevenir zoom com wheel (alguns navegadores)
-        document.addEventListener('wheel', function(e) {
+        document.addEventListener('wheel', function (e) {
             if (e.ctrlKey) {
-                
+
             }
         }, { passive: false });
-        
+
         // Forçar viewport scale
         const viewport = document.querySelector('meta[name="viewport"]');
         if (viewport) {
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
         }
-        
+
         // ===== SIDEBAR MOBILE =====
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             const isActive = sidebar.classList.contains('active');
-            
+
             if (isActive) {
                 closeSidebar();
             } else {
@@ -2729,7 +2958,7 @@ foreach ($msgEtapas as $k => $v) {
                 document.body.style.overflow = 'hidden';
             }
         }
-        
+
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2737,7 +2966,7 @@ foreach ($msgEtapas as $k => $v) {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
         }
-        
+
         // Fechar sidebar ao clicar em um link
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -2746,7 +2975,7 @@ foreach ($msgEtapas as $k => $v) {
                 }
             });
         });
-        
+
         // Mostrar menu hambúrguer no mobile
         function updateMenuVisibility() {
             const menuToggle = document.getElementById('menuToggle');
@@ -2757,10 +2986,10 @@ foreach ($msgEtapas as $k => $v) {
                 closeSidebar();
             }
         }
-        
+
         window.addEventListener('resize', updateMenuVisibility);
         updateMenuVisibility();
     </script>
 </body>
-</html>
 
+</html>
