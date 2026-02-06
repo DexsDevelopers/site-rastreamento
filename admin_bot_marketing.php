@@ -1346,9 +1346,14 @@ foreach ($msgEtapas as $k => $v) {
                         <?php else: ?>
                             <div class="space-y-3">
                                 <?php foreach ($mktMensagens as $msg): ?>
-                                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group">
-                                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                                            <button onclick="deleteMarketingMsg(<?= $msg['id'] ?>)" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
+                                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group hover:border-zinc-700 transition">
+                                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                                            <button onclick="editMarketingMsg(<?= $msg['id'] ?>, '<?= htmlspecialchars(addslashes($msg['conteudo']), ENT_QUOTES) ?>', <?= $msg['delay_apos_anterior_minutos'] ?>)" class="text-zinc-500 hover:text-blue-400 p-1 transition" title="Editar mensagem">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="deleteMarketingMsg(<?= $msg['id'] ?>)" class="text-zinc-500 hover:text-red-500 p-1 transition" title="Deletar mensagem">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#<?= $msg['ordem'] ?></span>
@@ -2040,43 +2045,6 @@ foreach ($msgEtapas as $k => $v) {
                 showToast('Erro ao limpar: ' + err.message, 'error');
             }
         }
-        // ===== MARKETING JS =====
-        async function resetDailyLimit() {
-            console.log('BotMarketing: Clicou em reset daily limit');
-            
-            if (typeof API_TOKEN === 'undefined' || !API_TOKEN) {
-                alert('ERRO TÉCNICO: Token da API não definido no Javascript. Recarregue a página.');
-                return;
-            }
-
-            if (!confirm('ATENÇÃO: Isso vai ZERAR o contador de envios de hoje.\nO bot voltará a enviar mensagens imediatamente para contatos que já atingiram o limite global.\n\nDeseja continuar?')) return;
-            
-            try {
-                showToast('Resetando limite...', 'warning');
-                
-                // Usando url absoluta relativa pra garantir
-                const response = await fetch('api_marketing.php?action=reset_daily_limit&token=' + API_TOKEN, {
-                    method: 'GET',
-                    headers: {
-                        'x-api-token': API_TOKEN
-                    }
-                });
-                
-                const result = await response.json();
-                console.log('BotMarketing: Resultado reset:', result);
-                
-                if (result.success) {
-                    showToast(result.message, 'success');
-                    setTimeout(() => window.location.reload(), 1500); // Reload to show updated stats
-                } else {
-                    showToast('Erro ao resetar: ' + (result.message || 'Erro desconhecido'), 'error');
-                }
-            } catch (error) {
-                console.error(error);
-                showToast('Erro de conexão: ' + error.message, 'error');
-                alert('Erro de conexão ao tentar resetar. Verifique o console.');
-            }
-        }
         
         async function saveMarketingConfig(e) {
             e.preventDefault();
@@ -2112,6 +2080,39 @@ foreach ($msgEtapas as $k => $v) {
                     await loadMarketingMsgs(); // Recarrega lista sem refresh
                 } else {
                     showToast(data.message, 'error');
+                }
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        
+        async function editMarketingMsg(id, currentContent, currentDelay) {
+            // Decode HTML entities
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = currentContent;
+            const decodedContent = textarea.value;
+            
+            const newContent = prompt('Editar mensagem:', decodedContent);
+            if (newContent === null || newContent.trim() === '') return;
+            
+            const newDelay = prompt('Delay (minutos após anterior):', currentDelay);
+            if (newDelay === null) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'edit_marketing_msg');
+            formData.append('id', id);
+            formData.append('conteudo', newContent);
+            formData.append('delay', parseInt(newDelay) || 0);
+            
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.message || 'Erro ao editar', 'error');
                 }
             } catch (err) {
                 showToast('Erro: ' + err.message, 'error');
@@ -2264,13 +2265,18 @@ foreach ($msgEtapas as $k => $v) {
             if(!confirm('Isso vai liberar o envio para mais pessoas hoje. Continuar?')) return;
             showToast('Resetando...', 'warning');
             try {
-                const res = await fetch('admin_bot_marketing.php?action=reset_daily_limit');
+                const res = await fetch('api_marketing_ajax.php?action=reset_daily_limit');
                 const data = await res.json();
                 if(data.success) {
                     showToast(data.message, 'success');
                     setTimeout(location.reload.bind(location), 1500);
+                } else {
+                    showToast(data.message || 'Erro ao resetar', 'error');
                 }
-            } catch(e) { showToast('Erro: '+e, 'error'); }
+            } catch(e) { 
+                console.error('Erro reset:', e);
+                showToast('Erro: '+e.message, 'error'); 
+            }
         }
 
         // ===== MARKETING STATS =====
