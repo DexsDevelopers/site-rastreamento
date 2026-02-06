@@ -353,6 +353,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $response = ['success' => true, 'data' => $msgs];
                 break;
 
+            case 'get_marketing_stats':
+                // Estatísticas Gerais
+                $total = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros")['c'];
+                $novos = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE status = 'novo'")['c'];
+                
+                // --- ESTATÍSTICAS DO DIA (VIPs) ---
+                $hojeTotal = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE()")['c'];
+                
+                // Dos que entraram HOJE, quantos já concluíram?
+                $hojeConcluidos = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'concluido'")['c'];
+                
+                // Dos que entraram HOJE, quantos estão em andamento?
+                $hojeAndamento = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'em_progresso'")['c'];
+                
+                // Progresso global do funil para os VIPs de hoje
+                $totalFunilMsgs = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_mensagens")['c'];
+                
+                // Média de passo dos VIPs ativos
+                $passoMedio = 0;
+                if ($hojeAndamento > 0) {
+                    $somaPassos = fetchOne($pdo, "SELECT SUM(ultimo_passo_id) as s FROM marketing_membros WHERE DATE(data_entrada_fluxo) = CURDATE() AND status = 'em_progresso'")['s'];
+                    $passoMedio = round($somaPassos / $hojeAndamento, 1);
+                }
+
+                // Disparos Reais Hoje (Log Geral)
+                $disparosHoje = fetchOne($pdo, "SELECT COUNT(*) as c FROM bot_automation_logs WHERE tipo_automacao = 'marketing' AND DATE(data_envio) = CURDATE()")['c'];
+                
+                // Próximo envio agendado (Geral)
+                $proxEnvio = fetchOne($pdo, "SELECT data_proximo_envio FROM marketing_membros WHERE status = 'em_progresso' AND data_proximo_envio IS NOT NULL ORDER BY data_proximo_envio ASC LIMIT 1");
+
+                // Get campaign settings for meta
+                $campanha = fetchOne($pdo, "SELECT membros_por_dia_grupo FROM marketing_campanhas WHERE id = 1");
+
+                $response = [
+                    'success' => true, 
+                    'stats' => [
+                        'total_leads' => $total,
+                        'fila_espera' => $novos,
+                        
+                        // VIP TODAY
+                        'hoje_iniciados' => $hojeTotal,
+                        'hoje_concluidos' => $hojeConcluidos,
+                        'hoje_andamento' => $hojeAndamento,
+                        'hoje_disparos' => $disparosHoje,
+                        
+                        'passo_medio' => $passoMedio,
+                        'total_msgs_funil' => $totalFunilMsgs,
+                        'meta_diaria' => $campanha['membros_por_dia_grupo'] ?? 10,
+                        
+                        'proximo_envio' => $proxEnvio ? $proxEnvio['data_proximo_envio'] : null
+                    ]
+                ];
+                break;
+
             // ===== MESSAGES CONFIG LOGIC =====
             case 'sync_funnel':
                 // PREVENT JSON ERRORS: Clean buffer
@@ -1133,6 +1187,9 @@ foreach ($msgEtapas as $k => $v) {
         <section id="section-marketing" class="section">
             <!-- Stats -->
             <div id="mktStatsContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <!-- META DO DIA (VIPs) -->
+                <div class="stat-card p-4 border-l-4 border-blue-500 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-xs text-zinc-400 uppercase tracking-wider font-bold">Meta do Dia</div>
                             <div class="text-2xl font-bold text-white mt-1">
