@@ -226,10 +226,84 @@ switch ($action) {
         // 2. Extrair fatos da mensagem (Aprendizado Passivo)
         extractFactsRuleBased($pdo, $phone, $message);
         
-        // 3. Buscar no Cérebro Local
+        // 3. Buscar no Cérebro Local (RAG - Contexto)
         $result = findBestMatch($pdo, $message);
-        $match = $result['match'];
-        $score = $result['score'];
+        $localContext = $result['match']; // Pode ser null
+        $localScore = $result['score'];
+
+        // 4. Carregar Histórico de Conversa (Contexto)
+        $stmt = $pdo->prepare("SELECT role, message FROM bot_ia_conversations WHERE phone_number = ? ORDER BY id DESC LIMIT 6");
+        $stmt->execute([$phone]);
+        $history = array_reverse($stmt->fetchAll(PDO::FETCH_ASSOC));
+
+        // 5. Carregar Fatos do Usuário
+        $stmt = $pdo->prepare("SELECT fact_key, fact_value FROM bot_ia_user_facts WHERE phone_number = ?");
+        $stmt->execute([$phone]);
+        $userFacts = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        $userName = $userFacts['nome_usuario'] ?? 'Cliente';
+        $userCity = $userFacts['cidade'] ?? 'Não informada';
+
+        // 6. ANÁLISE AVANÇADA LOCAL (Sem API Externa)
+        // O "Cérebro Local" analisa histórico e contexto para decidir a melhor resposta
+
+        // A. Verificar Filtro de Silêncio (Anti-Spam / Irrelevância)
+        // Se a mensagem for muito curta ou sem sentido, ignorar
+        $ignoredPatterns = ['/^(ok|tá|ta|blz|beleza|👍|👋|kkk|rsrs)$/i', '/^(\?|\.)$/'];
+        foreach ($ignoredPatterns as $pattern) {
+            if (preg_match($pattern, $message)) {
+                // Silêncio estratégico: não responde a interações vazias
+                echo json_encode(['success' => true, 'response' => null, 'source' => 'local_filter_silence']);
+                exit;
+            }
+        }
+
+        // B. Análise de Sentimento (Básica)
+        $isAngry = preg_match('/(porra|caralho|merda|lixo|inútil|idiota|burro|atrasado)/i', $message);
+        $isHappy = preg_match('/(obrigado|valeu|top|ótimo|perfeito|excelente|bom trabalho)/i', $message);
+
+        // C. Tentar entender o contexto da conversa anterior
+        $lastTopic = 'geral';
+        if (!empty($history)) {
+            $lastUserMsg = $history[0]['message'] ?? '';
+            // Tentar inferir sobre o que estavam falando
+            if (stripos($lastUserMsg, 'rastreio') !== false || stripos($lastUserMsg, 'pedido') !== false) {
+                $lastTopic = 'rastreamento';
+            } elseif (stripos($lastUserMsg, 'preço') !== false || stripos($lastUserMsg, 'valor') !== false) {
+                $lastTopic = 'financeiro';
+            }
+        }
+
+        // D. Melhorar o Score baseado no contexto
+        // Se a pergunta atual for curta (ex: "e o preço?"), tentar combinar com o tópico anterior
+        if (str_word_count($message) < 4 && $lastTopic !== 'geral') {
+             $contextualQuery = $lastTopic . " " . $message;
+             $contextResult = findBestMatch($pdo, $contextualQuery);
+             
+             // Se a busca contextual der um resultado melhor, usa ela
+             if ($contextResult['score'] > $localScore + 10) {
+                 $localContext = $contextResult['match'];
+                 $localScore = $contextResult['score'];
+                 error_log("[IA_LOCAL] Contexto aplicado: '{$lastTopic}' melhorou o entendimento.");
+             }
+        }
+
+        // E. Resposta Específica para Xingamentos (Modo Profissional)
+        if ($isAngry) {
+            echo json_encode([
+                'success' => true, 
+                'response' => "Sinto muito que você esteja insatisfeito. 😔\nMeu objetivo é ajudar. Por favor, me diga o número do seu pedido para que eu possa verificar o que houve.", 
+                'source' => 'local_sentiment_angry',
+                'confidence' => 100
+            ]);
+            exit;
+        }
+
+        // === MODO LOCAL (FALLBACK) ===
+        // Continua com a lógica antiga se o Gemini falhar ou não estiver configurado
+        
+        $match = $localContext;
+        $score = $localScore;
         
         // SCORE MÍNIMO DE CONFIANÇA (Ajustável)
         $MIN_CONFIDENCE = 45; // Se for menor que isso, ele assume que não sabe

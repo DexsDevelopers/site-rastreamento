@@ -941,6 +941,12 @@ async function processIAChat(remoteJid, text, senderNumber) {
       timeout: 30000
     });
 
+    // Tratamento para respostas filtradas (Silêncio intencional)
+    if (response.data && response.data.success && (response.data.source === 'gemini_filtered' || response.data.source === 'local_filter_silence')) {
+      log.info(`[IA] Mensagem ignorada pelo filtro inteligente (${response.data.source})`);
+      return null;
+    }
+
     if (response.data && response.data.success && response.data.response) {
       const source = response.data.source || 'unknown';
       const error = response.data.error;
