@@ -252,10 +252,15 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         }
         echo '</div>'; // timeline
         if (!$temTaxa && !$isExpress) {
-            echo '<div class="pix-box express-offer" style="margin-top: 1rem;">';
-            echo '<p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$ ' . number_format($expressValor, 2, ',', '.') . '.</p>';
-            echo '<p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>';
-            echo '<button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação" onclick=\'solicitarExpress(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', this)\'>⚡ Quero entrega em 3 dias</button>';
+            echo '<div style="margin-top: 1.5rem;">';
+            echo '<button class="promo-banner-button" onclick=\'openExpressOffer(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', "' . number_format($expressValor, 2, ',', '.') . '")\'>';
+            echo '  <div class="promo-content">';
+            echo '    <span class="promo-tag">Oferta Relâmpago</span>';
+            echo '    <span class="promo-title">⚡ Antecipe sua entrega para 3 dias</span>';
+            echo '    <span class="promo-subtitle">Clique para ver detalhes e solicitar</span>';
+            echo '  </div>';
+            echo '  <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>';
+            echo '</button>';
             echo '</div>';
         }
         if ($fotoPedido && $fotoPedidoSrc) {
@@ -383,14 +388,15 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                                 <?php endforeach; ?>
                             </div>
                             <?php if (!$temTaxa && !$isExpress): ?>
-                                <div class="pix-box express-offer" style="margin-top: 1rem;">
-                                    <p><b>Entrega Expressa (3 dias)</b> — antecipe sua entrega por apenas R$
-                                        <?= number_format($expressValor, 2, ',', '.') ?>.
-                                    </p>
-                                    <p>Efetue o pagamento via PIX após solicitar. Confirmação rápida.</p>
-                                    <button class="btn-cta-express" data-tooltip="Entrega em 3 dias após confirmação"
-                                        onclick='solicitarExpress(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, this)'>⚡
-                                        Quero entrega em 3 dias</button>
+                                <div style="margin-top: 1.5rem;">
+                                    <button class="promo-banner-button" onclick='openExpressOffer(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, "<?= number_format($expressValor, 2, ',', '.') ?>")'>
+                                        <div class="promo-content">
+                                            <span class="promo-tag">Oferta Relâmpago</span>
+                                            <span class="promo-title">⚡ Antecipe sua entrega para 3 dias</span>
+                                            <span class="promo-subtitle">Clique para ver detalhes e solicitar</span>
+                                        </div>
+                                        <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>
+                                    </button>
                                 </div>
                             <?php endif; ?>
                             <?php if ($fotoPedido && $fotoPedidoSrc): ?>
@@ -603,6 +609,80 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <?php endif; ?>
 
     <script>
+        // Modal Moderno de Entrega Expressa
+        function openExpressOffer(codigo, cidade, valor) {
+            const modal = document.createElement('div');
+            modal.className = 'custom-overlay-modal animate-fade-in';
+            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.95); z-index: 10000; display: flex; justify-content: center;
+                align-items: center; padding: 20px; backdrop-filter: blur(10px);`;
+
+            modal.innerHTML = `
+                <div style="background: #0d0d0d; padding: 40px; border-radius: 24px; max-width: 500px; width: 100%; 
+                    border: 1px solid rgba(255, 51, 51, 0.3); box-shadow: 0 0 50px rgba(255, 51, 51, 0.2); position: relative;">
+                    
+                    <button onclick="closeModalFromChild(this)" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #666; cursor: pointer; font-size: 1.5rem;">
+                        <i class="fas fa-times"></i>
+                    </button>
+
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="width: 80px; height: 80px; background: rgba(255, 51, 51, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                            <i class="fas fa-bolt" style="font-size: 2.5rem; color: #ff3333; filter: drop-shadow(0 0 10px #ff3333);"></i>
+                        </div>
+                        <h2 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 10px;">Entrega Expressa</h2>
+                        <p style="color: var(--text-muted);">Acelere seu recebimento agora mesmo</p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
+                            <div style="color: #ff3333; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-calendar-check"></i></div>
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 4px;">Prazo reduzido</h4>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">Sua encomenda chegará em apenas <strong>3 dias úteis</strong> após a confirmação.</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
+                            <div style="color: #ff3333; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-shipping-fast"></i></div>
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 4px;">Prioridade Total</h4>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">Seu pacote entra no lote de despacho prioritário da categoria especial.</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <div style="color: #ff3333; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-qrcode"></i></div>
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 4px;">Pagamento via PIX</h4>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">Confirmação instantânea do serviço de antecipação.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-muted); display: block; margin-bottom: 5px; font-size: 0.9rem;">Valor Único de Antecipação</span>
+                        <span style="color: #fff; font-size: 2rem; font-weight: 800;">R$ ${valor}</span>
+                    </div>
+
+                    <button id="btnConfirmExpress" onclick='confirmExpressModal(this, "${codigo}", "${cidade}")' class="btn-cta-express">
+                        <i class="fas fa-check-circle"></i> Sim, quero antecipar!
+                    </button>
+                    
+                    <p style="text-align: center; margin-top: 15px; color: var(--text-dim); font-size: 0.8rem;">
+                        <i class="fas fa-lock"></i> Transação 100% segura e garantida
+                    </p>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        }
+
+        // Função de ponte do Modal para a Solicitação Real
+        function confirmExpressModal(btnModal, codigo, cidade) {
+            closeModalFromChild(btnModal);
+            solicitarExpress(codigo, cidade, null);
+        }
+    </script>
+
+    <script>
         // Valor global para inicialização de contagem no fluxo AJAX
         window.TEMPO_LIMITE_HORAS = <?= (int) $tempoLimite ?>;
 
@@ -779,38 +859,10 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     </script>
 
     <script>
-        // Solicitar upgrade express (3 dias)
         async function solicitarExpress(codigo, cidade, btn) {
             // Prevenir chamadas múltiplas
             if (window.__expressRequesting) {
                 return;
-            }
-
-            // CONFIRMAÇÃO OBRIGATÓRIA antes de solicitar
-            const expressValor = '<?= number_format($expressValor, 2, ',', '.') ?>';
-            const confirmMsg = `Você está solicitando a entrega expressa em 3 dias por R$ ${expressValor}.\n\n` +
-                `Após a confirmação do pagamento PIX, sua entrega será acelerada.\n\n` +
-                `Deseja continuar?`;
-
-            // Usar ConfirmManager se disponível, senão usar confirm nativo
-            let confirmed = false;
-            if (typeof ConfirmManager !== 'undefined') {
-                confirmed = await ConfirmManager.show(
-                    `Você está solicitando a entrega expressa em 3 dias por R$ ${expressValor}.\n\n` +
-                    `Após a confirmação do pagamento PIX, sua entrega será acelerada.\n\n` +
-                    `Deseja continuar?`,
-                    {
-                        title: 'Confirmar Entrega Expressa',
-                        confirmText: 'Sim, quero entrega expressa',
-                        cancelText: 'Cancelar'
-                    }
-                );
-            } else {
-                confirmed = confirm(confirmMsg);
-            }
-
-            if (!confirmed) {
-                return; // Usuário cancelou
             }
 
             try {
