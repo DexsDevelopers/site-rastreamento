@@ -125,11 +125,16 @@ if ($action === 'save_members') {
             // Using NOW() + INTERVAL ensures we are relative to DB time
             executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = DATE_ADD(NOW(), INTERVAL 60 MINUTE) WHERE id = ?", [$member['id']]);
 
+            // ANTI-BAN: Generate unique ID
+            $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $randomId = substr(str_shuffle($chars), 0, 8);
+            $msgContent = $msg['conteudo'] . "\n\n_" . $randomId . "_";
+
             // Task found
             $tasks[] = [
                 'type' => 'send_message',
                 'phone' => $member['telefone'],
-                'message' => $msg['conteudo'],
+                'message' => $msgContent,
                 'message_type' => $msg['tipo'],
                 'member_id' => $member['id'],
                 'step_order' => $msg['ordem'], // Use actual message order
