@@ -381,6 +381,10 @@ try {
         SUM(CASE WHEN status = 'em_progresso' THEN 1 ELSE 0 END) as progresso,
         SUM(CASE WHEN status = 'concluido' THEN 1 ELSE 0 END) as concluidos
         FROM marketing_membros") ?: ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
+
+    // ADDED: Daily Usage Stats (Global)
+    $dailyStats = fetchOne($pdo, "SELECT COUNT(*) as hoje FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido') AND DATE(data_proximo_envio) = CURDATE()") ?: ['hoje'=>0];
+    $mktStats['hoje'] = $dailyStats['hoje'];
 } catch (Exception $e) {
     // Silently fail or log (tables might not exist yet if setup wasnt run)
     $mktCampanha = ['ativo'=>0, 'membros_por_dia_grupo'=>5, 'intervalo_min_minutos'=>30, 'intervalo_max_minutos'=>120];
@@ -1063,6 +1067,18 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Finalizados</div>
                     <div class="text-xl font-bold text-green-500"><?= $mktStats['concluidos'] ?? 0 ?></div>
+                </div>
+                <div class="stat-card p-4 border-yellow-500/30">
+                    <div class="text-xs text-zinc-400 mb-1">Hoje / Limite Global</div>
+                    <div class="text-xl font-bold" style="color: #FF3333;">
+                        <?= $mktStats['hoje'] ?? 0 ?> 
+                        <span class="text-sm text-zinc-500 font-normal">/ <?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?></span>
+                    </div>
+                    <?php if (($mktStats['hoje'] ?? 0) >= ($mktCampanha['membros_por_dia_grupo'] ?? 5)): ?>
+                        <div class="text-[10px] text-red-500 mt-1 uppercase font-bold tracking-wider">Limite Atingido!</div>
+                    <?php else: ?>
+                        <div class="text-[10px] text-green-500 mt-1 uppercase tracking-wider">Enviando...</div>
+                    <?php endif; ?>
                 </div>
             </div>
 
