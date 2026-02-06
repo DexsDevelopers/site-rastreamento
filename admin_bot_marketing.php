@@ -312,8 +312,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             case 'delete_marketing_msg':
                 $id = (int)$_POST['id'];
                 if ($id > 0) {
-                    executeQuery($pdo, "DELETE FROM marketing_mensagens WHERE id = ?", [$id]);
-                    $response = ['success' => true, 'message' => 'Mensagem removida!'];
+                    // 1. Get order of message to be deleted
+                    $msg = fetchOne($pdo, "SELECT ordem FROM marketing_mensagens WHERE id = ?", [$id]);
+                    
+                    if ($msg) {
+                        $deletedOrdem = $msg['ordem'];
+                        
+                        // 2. Delete message
+                        executeQuery($pdo, "DELETE FROM marketing_mensagens WHERE id = ?", [$id]);
+                        
+                        // 3. Shift down orders of subsequent messages
+                        executeQuery($pdo, "UPDATE marketing_mensagens SET ordem = ordem - 1 WHERE ordem > ?", [$deletedOrdem]);
+                        
+                        // 4. Adjust members' progress so they don't skip the "new" message that took this place
+                        // Everyone who was past this point (or at this point) needs to step back 1
+                        executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ultimo_passo_id - 1 WHERE ultimo_passo_id >= ?", [$deletedOrdem]);
+                        
+                        $response = ['success' => true, 'message' => 'Mensagem removida e fila reordenada!'];
+                    } else {
+                        $response = ['success' => false, 'message' => 'Mensagem não encontrada.'];
+                    }
+                }
+                break;
+
+            case 'edit_marketing_msg':
+                $id = (int)$_POST['id'];
+                $conteudo = trim($_POST['conteudo']);
+                $delay = (int)$_POST['delay'];
+                
+                if ($id > 0 && !empty($conteudo)) {
+                    executeQuery($pdo, "UPDATE marketing_mensagens SET conteudo = ?, delay_apos_anterior_minutos = ? WHERE id = ?", [$conteudo, $delay, $id]);
+                    $response = ['success' => true, 'message' => 'Mensagem atualizada!'];
+                } else {
+                    $response = ['success' => false, 'message' => 'ID inválido ou conteúdo vazio'];
                 }
                 break;
 
@@ -1231,9 +1262,38 @@ foreach ($msgEtapas as $k => $v) {
         <!-- Logs Section -->
     </main>
     
-    <!-- Modal -->
+    <!-- Modal Automação -->
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
+            <!-- ... -->
+        </div>
+    </div>
+
+    <!-- Modal Editar Mensagem Funil -->
+    <div id="editModal" class="modal-overlay" onclick="closeEditModal()">
+        <div class="modal-content relative" onclick="event.stopPropagation()">
+            <div class="p-4 border-b border-zinc-800 flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Editar Mensagem</h3>
+                <button onclick="closeEditModal()" class="text-zinc-500 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="p-4 space-y-4" onsubmit="saveEditMsg(event)">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-1">Mensagem</label>
+                    <textarea id="editMsgContent" class="input-field w-full h-32 text-sm" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-1">Delay (minutos após anterior)</label>
+                    <input type="number" id="editMsgDelay" class="input-field w-full text-sm" required>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary text-sm">Cancelar</button>
+                    <button type="submit" class="btn btn-primary text-sm">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
             <div class="p-6 border-b border-zinc-800 flex items-center justify-between">
                 <h3 id="modalTitle" class="text-xl font-semibold">Nova Automação</h3>
                 <button onclick="closeModal()" class="text-zinc-500 hover:text-white">
@@ -2027,7 +2087,8 @@ foreach ($msgEtapas as $k => $v) {
                     const delayText = msg.delay_apos_anterior_minutos == 0 ? 'Imediato (1º msg)' : `Aguarda ${msg.delay_apos_anterior_minutos} min após anterior`;
                     
                     item.innerHTML = `
-                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                            <button onclick="openEditModal(${msg.id}, '${encodeURIComponent(msg.conteudo)}', ${msg.delay_apos_anterior_minutos})" class="text-zinc-500 hover:text-blue-500 p-1"><i class="fas fa-pen"></i></button>
                             <button onclick="deleteMarketingMsg(${msg.id})" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
                         </div>
                         <div class="flex items-center gap-2 mb-2">
@@ -2302,6 +2363,60 @@ foreach ($msgEtapas as $k => $v) {
             
             // Limpar input
             input.value = '';
+        }
+
+        // ===== EDIT MARKETING MSG =====
+        let currentEditId = null;
+
+        function openEditModal(id, content, delay) {
+            currentEditId = id;
+            // Decode html entities if needed or just use
+            // decodeURIComponent if it was encoded.
+            // Since we pass it raw in onclick, we need to be careful with quotes.
+            // Better approach: fetch or use data attribute.
+            // For now, let's trust the value passed (we will update render to pass encoded)
+            
+            document.getElementById('editMsgContent').value = decodeURIComponent(content);
+            document.getElementById('editMsgDelay').value = delay;
+            
+            const modal = document.getElementById('editModal');
+            modal.classList.add('active');
+        }
+
+        function closeEditModal() {
+            currentEditId = null;
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        async function saveEditMsg(e) {
+            e.preventDefault();
+            if (!currentEditId) return;
+
+            const content = document.getElementById('editMsgContent').value;
+            const delay = document.getElementById('editMsgDelay').value;
+
+            const formData = new FormData();
+            formData.append('action', 'edit_marketing_msg');
+            formData.append('id', currentEditId);
+            formData.append('conteudo', content);
+            formData.append('delay', delay);
+
+            showToast('Salvando...', 'warning');
+
+            try {
+                const res = await fetch('', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast('Mensagem atualizada!', 'success');
+                    closeEditModal();
+                    loadMarketingMsgs();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao salvar: ' + err.message, 'error');
+            }
         }
         
         // ===== UTILIDADES =====
