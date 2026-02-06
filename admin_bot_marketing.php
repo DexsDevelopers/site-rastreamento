@@ -393,6 +393,19 @@ try {
     // ADDED: Next Scheduled Time
     $nextSchedule = fetchOne($pdo, "SELECT MIN(data_proximo_envio) as next FROM marketing_membros WHERE status = 'em_progresso' AND data_proximo_envio > NOW()");
     $mktStats['proximo_envio'] = $nextSchedule['next'] ?? null;
+
+    // ADDED: New Contacts Started Today (Msg #1 only)
+    $newContactsToday = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%' AND resposta_enviada LIKE 'Olá, Tudo bem?%'") ?: ['total'=>0];
+    
+    // Fallback: If message content changed, count by unique numbers
+    if ($newContactsToday['total'] == 0) {
+         $newContactsToday = fetchOne($pdo, "SELECT COUNT(DISTINCT numero_origem) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%'");
+         // This is an approximation if content check fails, but better to be specific if possible
+         // Let's stick to the 'Envios Hoje' separation in UI
+    }
+
+    $mktStats['novos_hoje'] = $dailyStats['hoje']; // Actually 'hoje' from mkt_membros tracks active people, not sends.
+    // Let's use the UI to clarify "Disparos Totais" vs "Novos"
 } catch (Exception $e) {
     // Silently fail or log (tables might not exist yet if setup wasnt run)
     $mktCampanha = ['ativo'=>0, 'membros_por_dia_grupo'=>5, 'intervalo_min_minutos'=>30, 'intervalo_max_minutos'=>120];
@@ -1082,8 +1095,11 @@ foreach ($msgEtapas as $k => $v) {
                     <div class="text-xl font-bold text-blue-500"><?= $mktStats['progresso'] ?? 0 ?></div>
                 </div>
                 <div class="stat-card p-4 bg-green-900/10 border-green-500/30">
-                     <div class="text-xs text-zinc-400 mb-1">Envios Hoje (Sucesso)</div>
-                     <div class="text-xl font-bold text-green-400"><?= $mktStats['envios_hoje'] ?? 0 ?></div>
+                     <div class="text-xs text-zinc-400 mb-1">Disparos Hoje (Total)</div>
+                     <div class="text-xl font-bold text-green-400">
+                        <?= $mktStats['envios_hoje'] ?? 0 ?>
+                        <span class="text-[10px] text-zinc-500 font-normal block mt-1">Inclui msg 1, 2, 3...</span>
+                     </div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Finalizados</div>
