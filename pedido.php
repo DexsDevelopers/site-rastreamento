@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Validar e sanitizar dados
         $nome = sanitizeInput($_POST['nome'] ?? '');
+        $cpf = sanitizeInput($_POST['cpf'] ?? '');
         $telefone = sanitizeInput($_POST['telefone'] ?? '');
         $email = sanitizeInput($_POST['email'] ?? '');
         $cep = sanitizeInput($_POST['cep'] ?? '');
@@ -30,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Validações básicas
         if (
-            empty($nome) || empty($telefone) || empty($cep) || empty($estado) ||
+            empty($nome) || empty($cpf) || empty($telefone) || empty($cep) || empty($estado) ||
             empty($cidade) || empty($bairro) || empty($rua) || empty($numero)
         ) {
             throw new Exception('Por favor, preencha todos os campos obrigatórios.');
@@ -43,6 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Telefone inválido.');
         }
 
+        // Validar CPF
+        $cpfLimpo = preg_replace('/[^0-9]/', '', $cpf);
+        if (strlen($cpfLimpo) !== 11) {
+            throw new Exception('CPF inválido. Deve conter 11 dígitos.');
+        }
+
         // Validar CEP
         $cep = preg_replace('/[^0-9]/', '', $cep);
         if (strlen($cep) !== 8) {
@@ -51,12 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Inserir pedido pendente
         $sql = "INSERT INTO pedidos_pendentes 
-                (nome, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')";
+                (nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $nome,
+            $cpfLimpo,
             $telefone,
             $email,
             $cep,
@@ -118,20 +126,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary: #EF4444;
-            /* Vermelho vibrante */
-            --primary-dark: #DC2626;
-            --surface: #18181B;
-            /* Zinco 900 */
-            --surface-hover: #27272A;
-            /* Zinco 800 */
-            --background: #09090B;
-            /* Zinco 950 */
-            --text-main: #FFFFFF;
-            --text-muted: #A1A1AA;
-            /* Zinco 400 */
-            --border: #27272A;
-            --focus-ring: rgba(239, 68, 68, 0.5);
+            --primary: #FF3333;
+            --primary-glow: rgba(255, 51, 51, 0.4);
+            --secondary: #2563EB;
+            --surface: #121214;
+            --surface-secondary: #202024;
+            --background: #09090A;
+            --border: #29292E;
+            --text-main: #E1E1E6;
+            --text-muted: #A8A8B3;
+            --success: #04D361;
+            --error: #F75A68;
+            --font-main: 'Inter', sans-serif;
         }
 
         * {
@@ -143,55 +149,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         body {
             background-color: var(--background);
-            background-image:
-                radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 100%, rgba(239, 68, 68, 0.05) 0%, transparent 30%);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 51, 51, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
             color: var(--text-main);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-main);
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 2rem 1rem;
-            line-height: 1.5;
+            padding: 40px 20px;
         }
 
         .container {
-            width: 100%;
             max-width: 600px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .header-brand {
             text-align: center;
-            margin-bottom: 2.5rem;
-            animation: fadeInDown 0.6s ease;
+            margin-bottom: 48px;
+        }
+
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary-glow);
         }
 
         .header-brand h1 {
-            font-size: 2rem;
+            font-size: 2.25rem;
             font-weight: 800;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #FFF 0%, #A1A1AA 100%);
+            letter-spacing: -1px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #A8A8B3 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .header-brand p {
             color: var(--text-muted);
-            font-size: 1rem;
+            font-size: 1.125rem;
         }
 
         .checkout-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeInUp 0.6s ease;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
             position: relative;
             overflow: hidden;
+        }
+
+        .checkout-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 24px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .input-group label span {
+            color: var(--primary);
+        }
+
+        .input-control {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            background: var(--surface-secondary);
+        }
+
+        .input-control::placeholder {
+            color: #505059;
+        }
+
+        select.input-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A8A8B3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 18px;
+            padding-right: 48px;
         }
 
         .checkout-card::before {
@@ -283,21 +387,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .btn-submit {
             background: var(--primary);
-            color: white;
+            color: #FFFFFF;
             border: none;
-            width: 100%;
-            padding: 1rem;
             border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            margin-top: 2rem;
+            padding: 16px 24px;
+            font-size: 1.125rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            gap: 12px;
+            margin-top: 32px;
+            width: 100%;
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--primary-glow);
+            filter: brightness(1.1);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit.loading {
+            pointer-events: none;
+            opacity: 0.8;
+            position: relative;
+        }
+
+        .btn-submit.loading::after {
+            content: "";
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .trust-item i {
+            color: var(--success);
         }
 
         /* Premium Reference Section */
@@ -486,50 +640,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container">
         <header class="header-brand">
+            <div class="logo-container">
+                <i class="fas fa-truck-fast logo-icon"></i>
+            </div>
             <h1>Finalizar Pedido</h1>
-            <p>Entrega rápida e segura para todo o Brasil</p>
+            <p>Complete seus dados para envio imediato</p>
         </header>
 
         <div class="checkout-card">
-            <form method="POST" id="pedidoForm" onsubmit="handleSubmit(event)">
+            <?php if ($error): ?>
+                <div style="background: rgba(247, 90, 104, 0.1); border: 1px solid var(--error); color: var(--error); padding: 16px; border-radius: 12px; margin-bottom: 24px; font-size: 0.875rem;">
+                    <i class="fas fa-exclamation-circle"></i> <?= $error ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" id="pedidoForm" onsubmit="return handleSubmit(event)">
 
                 <div class="section-title">
-                    <i class="fas fa-user-circle"></i> Dados Pessoais
+                    <i class="fas fa-user-shield"></i> Dados Pessoais
                 </div>
 
                 <div class="form-grid">
                     <div class="input-group">
                         <label>Nome Completo <span>*</span></label>
-                        <input type="text" name="nome" required autocomplete="name" placeholder="Ex: Maria Silva">
+                        <input type="text" name="nome" class="input-control" required autocomplete="name" placeholder="Ex: Maria da Silva Santos">
                     </div>
 
                     <div class="form-row">
                         <div class="input-group">
-                            <label>WhatsApp <span>*</span></label>
-                            <input type="tel" name="telefone" required placeholder="(11) 99999-9999" autocomplete="tel">
+                            <label>CPF <span>*</span></label>
+                            <input type="text" name="cpf" id="cpf" class="input-control" required placeholder="000.000.000-00" inputmode="numeric">
                         </div>
 
                         <div class="input-group">
-                            <label>E-mail (Opcional)</label>
-                            <input type="email" name="email" placeholder="email@exemplo.com" autocomplete="email">
+                            <label>WhatsApp <span>*</span></label>
+                            <input type="tel" name="telefone" class="input-control" required placeholder="(11) 99999-9999" autocomplete="tel">
                         </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>E-mail (Opcional)</label>
+                        <input type="email" name="email" class="input-control" placeholder="seuemail@exemplo.com" autocomplete="email">
                     </div>
                 </div>
 
-                <div class="section-title" style="margin-top: 2rem;">
-                    <i class="fas fa-map-marker-alt"></i> Endereço
+                <div class="section-title" style="margin-top: 40px;">
+                    <i class="fas fa-map-location-dot"></i> Endereço de Entrega
                 </div>
 
                 <div class="form-grid">
                     <div class="form-row">
                         <div class="input-group">
                             <label>CEP <span>*</span></label>
-                            <input type="text" name="cep" id="cep" required maxlength="9" placeholder="00000-000">
+                            <input type="text" name="cep" id="cep" class="input-control" required maxlength="9" placeholder="00000-000" inputmode="numeric">
                         </div>
 
                         <div class="input-group">
                             <label>Estado <span>*</span></label>
-                            <select name="estado" id="estado" required>
+                            <select name="estado" id="estado" class="input-control" required>
                                 <option value="" disabled selected>UF</option>
                                 <option value="AC">AC</option>
                                 <option value="AL">AL</option>
@@ -562,52 +730,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
 
-                    <div class="input-group">
-                        <label>Cidade <span>*</span></label>
-                        <input type="text" name="cidade" id="cidade" required autocomplete="address-level2">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Bairro <span>*</span></label>
-                        <input type="text" name="bairro" id="bairro" required autocomplete="address-level3">
-                    </div>
-
-                    <div class="form-row-3">
+                    <div class="form-row">
                         <div class="input-group">
-                            <label>Rua/Avenida <span>*</span></label>
-                            <input type="text" name="rua" id="rua" required autocomplete="street-address">
+                            <label>Cidade <span>*</span></label>
+                            <input type="text" name="cidade" id="cidade" class="input-control" required autocomplete="address-level2">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Bairro <span>*</span></label>
+                            <input type="text" name="bairro" id="bairro" class="input-control" required autocomplete="address-level3">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                        <div class="input-group">
+                            <label>Logradouro (Rua/Av) <span>*</span></label>
+                            <input type="text" name="rua" id="rua" class="input-control" required autocomplete="street-address" placeholder="Ex: Rua das Flores">
                         </div>
 
                         <div class="input-group">
                             <label>Número <span>*</span></label>
-                            <input type="text" name="numero" required>
+                            <input type="text" name="numero" class="input-control" required placeholder="123">
                         </div>
                     </div>
 
                     <div class="input-group">
-                        <label>Complemento</label>
-                        <input type="text" name="complemento" placeholder="Apto, Bloco, etc">
+                        <label>Complemento (Opcional)</label>
+                        <input type="text" name="complemento" class="input-control" placeholder="Apto 101, Bloco A...">
                     </div>
 
                     <div class="input-group">
-                        <label>Observações de entrega</label>
-                        <textarea name="observacoes" rows="2" placeholder="Ponto de referência, etc..."></textarea>
+                        <label>Observações para o Entregador</label>
+                        <textarea name="observacoes" class="input-control" rows="2" style="resize: none;" placeholder="Ex: Portão azul, próximo ao mercado..."></textarea>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-submit" id="submitBtn">
-                    <i class="fas fa-check-circle"></i> Confirmar Pedido
+                    <i class="fas fa-shield-check"></i> Finalizar e Receber Rastreio
                 </button>
 
             </form>
         </div>
 
         <div class="trust-badges">
-            <div class="trust-item"><i class="fas fa-lock"></i> Dados Seguros</div>
-            <div class="trust-item"><i class="fas fa-check-circle"></i> Loja Verificada</div>
+            <div class="trust-item"><i class="fas fa-lock"></i> Conexão Segura</div>
+            <div class="trust-item"><i class="fas fa-check-circle"></i> Dados Criptografados</div>
+            <div class="trust-item"><i class="fas fa-shield-halved"></i> Compra Protegida</div>
         </div>
-
-    </div> <!-- Close .container -->
+    </div>
 
     <section class="referencias-section">
         <div class="section-header">
@@ -730,6 +900,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 btn.innerHTML = '<span style="opacity: 0;">Enviando...</span>';
             }
         }
+
+        // Máscara de CPF
+        document.getElementById('cpf').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = value;
+            }
+        });
 
         // Máscara de telefone
         document.querySelector('input[name="telefone"]').addEventListener('input', function (e) {

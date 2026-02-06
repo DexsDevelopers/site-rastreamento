@@ -252,6 +252,9 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
                                                 <?php endif; ?>
 
                                             </div>
+                                            <?php if(!empty($pedido['cpf'])): ?>
+                                                <div><i class="fas fa-id-card fa-fw"></i> <strong>CPF:</strong> <?= htmlspecialchars($pedido['cpf']) ?></div>
+                                            <?php endif; ?>
                                             <?php if($pedido['email']): ?>
                                                 <div><i class="fas fa-envelope fa-fw"></i> <?= htmlspecialchars($pedido['email']) ?></div>
                                             <?php endif; ?>
