@@ -1841,6 +1841,7 @@ foreach ($msgEtapas as $k => $v) {
                 
                 if (result.success) {
                     showToast(result.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500); // Reload to show updated stats
                 } else {
                     showToast('Erro ao resetar: ' + (result.message || 'Erro desconhecido'), 'error');
                 }
