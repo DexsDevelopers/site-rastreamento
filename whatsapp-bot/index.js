@@ -4127,6 +4127,7 @@ app.post('/sync-members', auth, async (req, res) => {
 
 // ===== MARKETING LOOP SYSTEM =====
 // Flag para evitar sobreposição de execuções
+let marketingTimer = null;
 let isProcessingMarketing = false;
 
 function startMarketingLoop() {
