@@ -105,7 +105,7 @@ const LICENSE_CACHE_TTL = 300000; // 5 minutos de cache
 const groupLicenseCache = new Map(); // key: groupJid, value: { valid: boolean, expires: timestamp, data: object }
 
 // ===== SISTEMA DE IA PARA CHAT PRIVADO =====
-const IA_ENABLED = String(process.env.IA_ENABLED || 'true').toLowerCase() === 'true';
+const IA_ENABLED = String(process.env.IA_ENABLED || 'false').toLowerCase() === 'true';
 const IA_ONLY_PRIVATE = String(process.env.IA_ONLY_PRIVATE || 'true').toLowerCase() === 'true'; // Só responde no privado
 
 // ===== SISTEMA DE SEGURANÇA ANTI-BAN =====
