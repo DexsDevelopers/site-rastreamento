@@ -986,8 +986,10 @@ foreach ($msgEtapas as $k => $v) {
                 <span>Configurações</span>
             </a>
             
-            <a href="admin_bot_logs.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" >
+            <a href="admin_bot_logs.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-history w-5"></i>
+                <span>Logs</span>
+            </a>
                 <span>Logs</span>
             </a>
             

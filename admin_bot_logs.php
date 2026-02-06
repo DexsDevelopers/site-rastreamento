@@ -996,7 +996,7 @@ foreach ($msgEtapas as $k => $v) {
                 <span>IA do Bot</span>
             </a>
 
-            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="marketing">
+            <a href="admin_bot_marketing.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-bullhorn w-5"></i>
                 <span>Marketing</span>
             </a>
