@@ -1537,7 +1537,7 @@ foreach ($msgEtapas as $k => $v) {
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`[]`)?.classList.add('active');
+            document.querySelector(`.sidebar-item[data-section="${section}"]`)?.classList.add('active');
             
             // Update sections
             document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
