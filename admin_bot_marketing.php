@@ -2197,7 +2197,24 @@ foreach ($msgEtapas as $k => $v) {
             showToast('Sincronizando...', 'warning');
             try {
                 const res = await fetch('admin_bot_marketing.php?action=sync_funnel');
-                const data = await res.json();
+                const text = await res.text(); // Get raw text first
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    // JSON sujo? Tentar extrair apenas o objeto JSON
+                    console.log('JSON Parse falhou, tentando limpar...', text);
+                    const jsonStart = text.indexOf('{');
+                    const jsonEnd = text.lastIndexOf('}');
+                    if (jsonStart !== -1 && jsonEnd !== -1) {
+                        const cleanJson = text.substring(jsonStart, jsonEnd + 1);
+                        data = JSON.parse(cleanJson);
+                    } else {
+                        throw new Error('Resposta inválida do servidor: ' + text.substring(0, 50));
+                    }
+                }
+
                 if(data.success) {
                     showToast(data.message, 'success');
                     setTimeout(location.reload.bind(location), 1500);
