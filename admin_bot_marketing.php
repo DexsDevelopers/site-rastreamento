@@ -1265,35 +1265,6 @@ foreach ($msgEtapas as $k => $v) {
     <!-- Modal Automação -->
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <!-- ... -->
-        </div>
-    </div>
-
-    <!-- Modal Editar Mensagem Funil -->
-    <div id="editModal" class="modal-overlay" onclick="closeEditModal()">
-        <div class="modal-content relative" onclick="event.stopPropagation()">
-            <div class="p-4 border-b border-zinc-800 flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Editar Mensagem</h3>
-                <button onclick="closeEditModal()" class="text-zinc-500 hover:text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form class="p-4 space-y-4" onsubmit="saveEditMsg(event)">
-                <div>
-                    <label class="block text-xs font-medium text-zinc-500 mb-1">Mensagem</label>
-                    <textarea id="editMsgContent" class="input-field w-full h-32 text-sm" required></textarea>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-zinc-500 mb-1">Delay (minutos após anterior)</label>
-                    <input type="number" id="editMsgDelay" class="input-field w-full text-sm" required>
-                </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary text-sm">Cancelar</button>
-                    <button type="submit" class="btn btn-primary text-sm">Salvar Alterações</button>
-                </div>
-            </form>
-        </div>
-    </div>
             <div class="p-6 border-b border-zinc-800 flex items-center justify-between">
                 <h3 id="modalTitle" class="text-xl font-semibold">Nova Automação</h3>
                 <button onclick="closeModal()" class="text-zinc-500 hover:text-white">
@@ -1458,6 +1429,32 @@ foreach ($msgEtapas as $k => $v) {
                 </div>
             </form>
 
+        </div>
+    </div>
+
+    <!-- Modal Editar Mensagem Funil -->
+    <div id="editModal" class="modal-overlay" onclick="closeEditModal()">
+        <div class="modal-content relative" onclick="event.stopPropagation()">
+            <div class="p-4 border-b border-zinc-800 flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Editar Mensagem</h3>
+                <button onclick="closeEditModal()" class="text-zinc-500 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="p-4 space-y-4" onsubmit="saveEditMsg(event)">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-1">Mensagem</label>
+                    <textarea id="editMsgContent" class="input-field w-full h-32 text-sm" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-1">Delay (minutos após anterior)</label>
+                    <input type="number" id="editMsgDelay" class="input-field w-full text-sm" required>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary text-sm">Cancelar</button>
+                    <button type="submit" class="btn btn-primary text-sm">Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </div>
     
