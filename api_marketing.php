@@ -121,9 +121,9 @@ if ($action === 'save_members') {
         $msg = fetchOne($pdo, "SELECT * FROM marketing_mensagens WHERE campanha_id = 1 AND ordem > ? ORDER BY ordem ASC LIMIT 1", [$member['ultimo_passo_id']]);
         
         if ($msg) {
-            // LOCK TASK IMMEDIATELY (Bump time by 5 min using SQL time to avoid timezone mismatch)
+            // LOCK TASK IMMEDIATELY (Bump time by 60 min using SQL time to avoid timeout during processing)
             // Using NOW() + INTERVAL ensures we are relative to DB time
-            executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE id = ?", [$member['id']]);
+            executeQuery($pdo, "UPDATE marketing_membros SET data_proximo_envio = DATE_ADD(NOW(), INTERVAL 60 MINUTE) WHERE id = ?", [$member['id']]);
 
             // Task found
             $tasks[] = [

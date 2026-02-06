@@ -3545,9 +3545,10 @@ async function start() {
 
         // Aceitar comandos com / (rastreamento), ! (financeiro) ou $ (comandos de grupo)
         // Para comandos, aceitar também mensagens próprias (para testes)
-        if (text.startsWith('/') || text.startsWith('!') || text.startsWith('$')) {
-          log.info(`🎯 Comando detectado: "${text}" de ${remoteJid.split('@')[0]}`);
-          const result = await processAdminCommand(remoteJid, text, msg);
+        const textTrimmed = text.trim();
+        if (textTrimmed.startsWith('/') || textTrimmed.startsWith('!') || textTrimmed.startsWith('$')) {
+          log.info(`🎯 Comando detectado: "${textTrimmed}" de ${remoteJid.split('@')[0]}`);
+          const result = await processAdminCommand(remoteJid, textTrimmed, msg);
           // Se poll foi enviada, não enviar mensagem de texto adicional
           if (result && !result.pollSent && result.message) {
             // Verificar se precisa enviar com mentions
@@ -4125,13 +4126,21 @@ app.post('/sync-members', auth, async (req, res) => {
 });
 
 // ===== MARKETING LOOP SYSTEM =====
-let marketingTimer = null;
+// Flag para evitar sobreposição de execuções
+let isProcessingMarketing = false;
 
 function startMarketingLoop() {
   if (marketingTimer) clearInterval(marketingTimer);
 
   // Rodar a cada 60 segundos
   marketingTimer = setInterval(async () => {
+    if (isProcessingMarketing) {
+      log.info('[MARKETING] Loop anterior ainda em execução, pulando este ciclo.');
+      return;
+    }
+
+    isProcessingMarketing = true;
+
     try {
       // 1. Chamar API para processar a lógica diária e pegar tarefas pendentes
       const response = await axios.get(`${RASTREAMENTO_API_URL}/api_marketing.php?action=cron_process&token=${RASTREAMENTO_TOKEN}`);
@@ -4164,6 +4173,8 @@ function startMarketingLoop() {
     } catch (e) {
       // Silencioso se der erro de conexão
       // log.error(`[MARKETING-LOOP] Erro: ${e.message}`);
+    } finally {
+      isProcessingMarketing = false;
     }
   }, 60000);
 
