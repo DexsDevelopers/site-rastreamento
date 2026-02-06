@@ -354,6 +354,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 break;
 
             // ===== MESSAGES CONFIG LOGIC =====
+            case 'sync_funnel':
+                // PREVENT JSON ERRORS: Clean buffer
+                if (ob_get_length()) ob_clean();
+                header('Content-Type: application/json');
+
+                // Ação: Reordenar mensagens e destravar
+                try {
+                    // 1. Reordenar mensagens (1, 2, 3...)
+                    $msgs = fetchData($pdo, "SELECT id FROM marketing_mensagens ORDER BY ordem ASC, id ASC");
+                    $i = 1;
+                    foreach ($msgs as $msg) {
+                        executeQuery($pdo, "UPDATE marketing_mensagens SET ordem = ? WHERE id = ?", [$i, $msg['id']]);
+                        $i++;
+                    }
+                    
+                    // 2. Destravar membros presos em passos inexistentes
+                    $maxStep = $i - 1;
+                    if ($maxStep > 0) {
+                        // Se estava no passo 5 mas só tem 3 mensagens, volta pro 3
+                        executeQuery($pdo, "UPDATE marketing_membros SET ultimo_passo_id = ? WHERE ultimo_passo_id > ?", [$maxStep, $maxStep]);
+                    }
+                    
+                    echo json_encode(['success' => true, 'message' => 'Funil reordenado e sincronizado!']);
+                } catch (Exception $e) {
+                    echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
+                }
+                exit;
             case 'save_messages':
                 $etapas = [
                     'postado' => 'WHATSAPP_MSG_POSTADO',
