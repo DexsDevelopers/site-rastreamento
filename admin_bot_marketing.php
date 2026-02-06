@@ -389,6 +389,10 @@ try {
     // ADDED: Real Success Sends Today
     $successToday = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE grupo_nome = 'Marketing Campaign' AND DATE(criado_em) = CURDATE() AND mensagem_recebida LIKE 'SUCESSO%'") ?: ['total'=>0];
     $mktStats['envios_hoje'] = $successToday['total'];
+    
+    // ADDED: Next Scheduled Time
+    $nextSchedule = fetchOne($pdo, "SELECT MIN(data_proximo_envio) as next FROM marketing_membros WHERE status = 'em_progresso' AND data_proximo_envio > NOW()");
+    $mktStats['proximo_envio'] = $nextSchedule['next'] ?? null;
 } catch (Exception $e) {
     // Silently fail or log (tables might not exist yet if setup wasnt run)
     $mktCampanha = ['ativo'=>0, 'membros_por_dia_grupo'=>5, 'intervalo_min_minutos'=>30, 'intervalo_max_minutos'=>120];
@@ -1061,8 +1065,15 @@ foreach ($msgEtapas as $k => $v) {
                     <div class="text-xl font-bold text-white"><?= $mktStats['total'] ?? 0 ?></div>
                 </div>
                 <div class="stat-card p-4">
-                    <div class="text-xs text-zinc-400 mb-1">Na Fila</div>
-                    <div class="text-xl font-bold text-yellow-500"><?= $mktStats['novos'] ?? 0 ?></div>
+                    <div class="text-xs text-zinc-400 mb-1">Na Fila / Próximo Lote</div>
+                    <div class="text-xl font-bold text-yellow-500">
+                        <?= $mktStats['novos'] ?? 0 ?>
+                        <?php if(!empty($mktStats['proximo_envio'])): ?>
+                            <div class="text-[10px] text-zinc-500 mt-1 font-normal">
+                                Próx: <?= date('H:i', strtotime($mktStats['proximo_envio'])) ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Em Andamento</div>
@@ -1083,9 +1094,10 @@ foreach ($msgEtapas as $k => $v) {
                         <span class="text-sm text-zinc-500 font-normal">/ <?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?></span>
                     </div>
                     <?php if (($mktStats['hoje'] ?? 0) >= ($mktCampanha['membros_por_dia_grupo'] ?? 5)): ?>
-                        <div class="text-[10px] text-red-500 mt-1 uppercase font-bold tracking-wider">Limite Atingido!</div>
+                        <div class="text-[10px] text-red-500 mt-1 uppercase font-bold tracking-wider">Meta Diária Atingida!</div>
+                        <div class="text-[9px] text-zinc-500">Novos contatos pausam. Fila continua.</div>
                     <?php else: ?>
-                        <div class="text-[10px] text-green-500 mt-1 uppercase tracking-wider">Enviando...</div>
+                        <div class="text-[10px] text-green-500 mt-1 uppercase tracking-wider">Recrutando...</div>
                     <?php endif; ?>
                 </div>
             </div>
