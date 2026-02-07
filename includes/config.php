@@ -256,4 +256,3 @@ foreach ($directories as $dir) {
         mkdir($dir, 0755, true);
     }
 }
-?>
