@@ -1345,7 +1345,7 @@ endif; ?>
                                 </div>
                                 <label class="toggle-switch">
                                     <input type="checkbox" name="ativo" <?=($mktCampanha['ativo'] ?? 0) ? 'checked' : ''
-                                        ?>>
+    ?>>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -1406,7 +1406,7 @@ endif; ?>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 gap-2 mb-2">
                                 <button type="button" onclick="syncFunnel()"
                                     class="btn btn-secondary justify-center text-sm"
                                     title="Corrige ordens e força bot a reler">
@@ -1416,6 +1416,19 @@ endif; ?>
                                     class="btn btn-secondary justify-center text-sm"
                                     title="Zerar contagem de limite hoje">
                                     <i class="fas fa-undo mr-2"></i> Zerar Limite
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-zinc-800">
+                                <button type="button" onclick="syncMembers()"
+                                    class="btn bg-zinc-800 hover:bg-zinc-700 text-zinc-300 justify-center text-xs"
+                                    title="Rodar varredura de grupos no Bot">
+                                    <i class="fas fa-users mr-2"></i> Sincronizar Grupos
+                                </button>
+                                <button type="button" onclick="clearAllMarketingMembers()"
+                                    class="btn bg-red-900/20 hover:bg-red-900/40 text-red-400 justify-center text-xs border border-red-900/50"
+                                    title="APAGAR todos os contatos da lista">
+                                    <i class="fas fa-trash-alt mr-2"></i> Limpar Lista
                                 </button>
                             </div>
                         </form>
@@ -1711,8 +1724,8 @@ endif; ?>
 
     <script>
         // ===== VARIÁVEIS GLOBAIS =====
-        let automations = <?= json_encode($automations) ?>;
-        let settings = <?= json_encode($settingsObj) ?>;
+        let automations = <?= json_encode($automations)?>;
+        let settings = <?= json_encode($settingsObj)?>;
         let grupos = [];
         const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? ''?>';
 
@@ -2381,6 +2394,9 @@ endif; ?>
             if (!confirm('Isso ordenará ao Bot varrer os grupos. Continuar?')) return;
             showToast('Enviando comando...', 'warning');
             try {
+                // Garantir banco atualizado para JIDs
+                await fetch('api_marketing_ajax.php?action=migrate_db');
+
                 const res = await fetch('api_marketing_trigger.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2411,6 +2427,24 @@ endif; ?>
                 }
             } catch (e) {
                 console.error('Erro reset:', e);
+                showToast('Erro: ' + e.message, 'error');
+            }
+        }
+
+        async function clearAllMarketingMembers() {
+            if (!confirm('ATENÇÃO: Isso apagará TODOS os contatos sincronizados da lista de marketing. Deseja continuar?')) return;
+            showToast('Limpando lista...', 'warning');
+            try {
+                const res = await fetch('api_marketing_ajax.php?action=clear_all_members');
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(location.reload.bind(location), 1500);
+                } else {
+                    showToast(data.message || 'Erro ao limpar', 'error');
+                }
+            } catch (e) {
+                console.error('Erro clear:', e);
                 showToast('Erro: ' + e.message, 'error');
             }
         }
@@ -2494,15 +2528,17 @@ endif; ?>
                 let successCount = 0;
                 for (let i = 0; i < tasks.length; i++) {
                     const task = tasks[i];
-                    addLog(`Enviando para ${task.phone} (${i + 1}/${tasks.length})...`, 'info');
+                    const displayPhone = task.phone.includes('@') ? task.phone.split('@')[0] : task.phone;
+                    
+                    addLog(`Enviando para ${displayPhone} (${i + 1}/${tasks.length})...`, 'info');
 
                     const result = await executeSingleTask(task);
 
                     if (result.success) {
                         successCount++;
-                        addLog(`✓ Sucesso para ${task.phone}`, 'success');
+                        addLog(`✓ Sucesso para ${displayPhone}`, 'success');
                     } else {
-                        addLog(`✗ Falha para ${task.phone}: ${result.message}`, 'error');
+                        addLog(`✗ Falha para ${displayPhone}: ${result.message}`, 'error');
                     }
 
                     // Atualizar progresso

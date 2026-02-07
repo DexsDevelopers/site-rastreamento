@@ -96,6 +96,23 @@ try {
             $response = ['success' => true, 'message' => 'Limite diário resetado!'];
             break;
 
+        case 'clear_all_members':
+            // Limpar todos os contatos
+            executeQuery($pdo, "DELETE FROM marketing_membros");
+            $response = ['success' => true, 'message' => 'Todos os contatos foram removidos com sucesso!'];
+            break;
+
+        case 'migrate_db':
+            // Migração de banco de dados para suportar JIDs
+            try {
+                $pdo->exec("ALTER TABLE marketing_membros MODIFY COLUMN telefone VARCHAR(100) NOT NULL");
+                $response = ['success' => true, 'message' => 'Banco de dados atualizado para suportar JIDs completos!'];
+            }
+            catch (Exception $e) {
+                $response = ['success' => false, 'message' => 'Erro na migração: ' . $e->getMessage()];
+            }
+            break;
+
         case 'get_disparos_tasks':
             // 1. Resetar cota do dia para permitir novos disparos
             executeQuery($pdo, "UPDATE marketing_membros SET data_entrada_fluxo = NULL WHERE DATE(data_entrada_fluxo) = CURDATE()");
