@@ -13,14 +13,21 @@ header('Content-Type: text/html; charset=utf-8');
 $ngrokUrl = 'https://lazaro-enforceable-finley.ngrok-free.dev';
 
 try {
-    // Atualizar no banco de dados
-    $sql = "INSERT INTO bot_settings (chave, valor) VALUES 
-        ('WHATSAPP_API_URL', :url),
-        ('BOT_API_URL', :url)
-        ON DUPLICATE KEY UPDATE valor = :url";
+    // Atualizar no banco de dados - WHATSAPP_API_URL
+    $sql1 = "INSERT INTO bot_settings (chave, valor) VALUES 
+        ('WHATSAPP_API_URL', ?)
+        ON DUPLICATE KEY UPDATE valor = ?";
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(['url' => $ngrokUrl]);
+    $stmt1 = $pdo->prepare($sql1);
+    $stmt1->execute([$ngrokUrl, $ngrokUrl]);
+
+    // Atualizar no banco de dados - BOT_API_URL
+    $sql2 = "INSERT INTO bot_settings (chave, valor) VALUES 
+        ('BOT_API_URL', ?)
+        ON DUPLICATE KEY UPDATE valor = ?";
+
+    $stmt2 = $pdo->prepare($sql2);
+    $stmt2->execute([$ngrokUrl, $ngrokUrl]);
 
     // Verificar se foi atualizado
     $check = $pdo->query("SELECT * FROM bot_settings WHERE chave IN ('WHATSAPP_API_URL', 'BOT_API_URL')")->fetchAll();
