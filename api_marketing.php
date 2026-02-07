@@ -25,7 +25,8 @@ try {
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $token = $_SERVER['HTTP_X_API_TOKEN'] ?? $_GET['token'] ?? '';
 
-// ... (existing token validation)
+// Token validation is optional for save_members (bot uses x-api-token header)
+// For other actions, you can add validation here if needed
 
 if ($action === 'save_members') {
     try {
