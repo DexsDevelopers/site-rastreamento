@@ -43,8 +43,11 @@ if ($action === 'save_members') {
     $stmt = $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, grupo_origem_jid, status) VALUES (?, ?, 'novo')");
 
     foreach ($members as $phone) {
-        $phone = preg_replace('/\D/', '', $phone);
-        if (strlen($phone) < 10) continue;
+        // Normalizar apenas se NÃO for um JID
+        if (strpos($phone, '@') === false) {
+            $phone = preg_replace('/\D/', '', $phone);
+            if (strlen($phone) < 10) continue;
+        }
 
         try {
             $stmt->execute([$phone, $groupJid]);

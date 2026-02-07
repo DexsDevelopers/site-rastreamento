@@ -143,12 +143,15 @@ try {
                 $chars = '0123456789abcdef';
                 $randomId = substr(str_shuffle($chars), 0, 5);
 
-                // Normalizar: se for JID, extrair apenas os números
-                $cleanPhone = preg_replace('/\D/', '', $t['telefone']);
+                // Normalizar apenas se NÃO for um JID/LID/Grupo
+                $phone = $t['telefone'];
+                if (strpos($phone, '@') === false) {
+                    $phone = preg_replace('/\D/', '', $phone);
+                }
 
                 $tasks[] = [
                     'member_id' => $t['id'],
-                    'phone' => $cleanPhone,
+                    'phone' => $phone,
                     'message' => $t['conteudo'] . "\n\n_" . $randomId . "_",
                     'step_order' => $t['ordem'],
                     'type' => $t['tipo']

@@ -3930,28 +3930,33 @@ app.post('/send', auth, async (req, res) => {
     let { to, text } = req.body || {};
     if (!to || !text) return res.status(400).json({ ok: false, error: 'missing_params' });
 
+    log.info(`[SEND] Recebido destino: "${to}"`);
+
     let digits = to;
     let mappedJid = to;
 
     // Se NÃO for um JID completo (não contém @), resolver
     if (typeof to === 'string' && !to.includes('@')) {
       digits = formatBrazilNumber(to);
+      log.info(`[SEND] Resolvendo número: ${digits}`);
       const resolution = await resolveJidFromPhone(digits);
       mappedJid = resolution.mappedJid;
 
       if (!resolution.exists) {
-        log.warn(`[SEND] Número não verificado, tentando envio forçado: ${digits} -> ${mappedJid}`);
+        log.warn(`[SEND] Número não verificado via onWhatsApp, tentando envio forçado: ${digits} -> ${mappedJid}`);
+      } else {
+        log.info(`[SEND] Número resolvido com sucesso: ${digits} -> ${mappedJid}`);
       }
     } else {
       // É um JID (ou LID), usar direto
-      log.info(`[SEND] Usando JID/LID direto: ${to}`);
+      log.info(`[SEND] Destino é JID/LID direto. Ignorando resolução: ${to}`);
       digits = String(to).split('@')[0];
     }
 
     await safeSendMessage(sock, mappedJid, { text });
     lastHeartbeat = Date.now();
 
-    log.info(`Mensagem enviada para ${digits}`);
+    log.success(`[SEND] Mensagem enviada para ${digits} (JID: ${mappedJid})`);
     return res.json({ ok: true, to: digits, jid: mappedJid });
 
   } catch (err) {
@@ -4109,7 +4114,7 @@ app.post('/sync-members', auth, async (req, res) => {
       for (const jid of groupJids) {
         try {
           const metadata = await sock.groupMetadata(jid);
-          const participants = metadata.participants.map(p => p.id.split('@')[0]); // Apenas números
+          const participants = metadata.participants.map(p => p.id); // Guardar o JID completo para evitar problemas de 9º dígito
 
           // Enviar para API PHP salvar
           await axios.post(`${RASTREAMENTO_API_URL}/api_marketing.php?action=save_members`, {
