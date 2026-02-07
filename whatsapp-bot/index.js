@@ -3930,12 +3930,22 @@ app.post('/send', auth, async (req, res) => {
     let { to, text } = req.body || {};
     if (!to || !text) return res.status(400).json({ ok: false, error: 'missing_params' });
 
-    const digits = formatBrazilNumber(to);
-    const { exists, pnJid, mappedJid, error } = await resolveJidFromPhone(digits);
+    let digits = to;
+    let mappedJid = to;
 
-    if (!exists) {
-      // return res.status(400).json({ ok: false, error: 'number_not_registered', to: digits, detail: error });
-      log.warn(`[SEND] Número não verificado, tentando envio forçado: ${digits} -> ${mappedJid}`);
+    // Se NÃO for um JID completo (não contém @), resolver
+    if (typeof to === 'string' && !to.includes('@')) {
+      digits = formatBrazilNumber(to);
+      const resolution = await resolveJidFromPhone(digits);
+      mappedJid = resolution.mappedJid;
+
+      if (!resolution.exists) {
+        log.warn(`[SEND] Número não verificado, tentando envio forçado: ${digits} -> ${mappedJid}`);
+      }
+    } else {
+      // É um JID (ou LID), usar direto
+      log.info(`[SEND] Usando JID/LID direto: ${to}`);
+      digits = String(to).split('@')[0];
     }
 
     await safeSendMessage(sock, mappedJid, { text });

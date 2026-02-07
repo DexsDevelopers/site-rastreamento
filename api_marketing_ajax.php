@@ -143,9 +143,12 @@ try {
                 $chars = '0123456789abcdef';
                 $randomId = substr(str_shuffle($chars), 0, 5);
 
+                // Normalizar: se for JID, extrair apenas os números
+                $cleanPhone = preg_replace('/\D/', '', $t['telefone']);
+
                 $tasks[] = [
                     'member_id' => $t['id'],
-                    'phone' => $t['telefone'],
+                    'phone' => $cleanPhone,
                     'message' => $t['conteudo'] . "\n\n_" . $randomId . "_",
                     'step_order' => $t['ordem'],
                     'type' => $t['tipo']
@@ -208,10 +211,13 @@ try {
                 $autoId = $auto ? $auto['id'] : 0;
                 $statusMsg = $result['success'] ? 'SUCESSO_ENVIO (Manual)' : 'FALHA_ENVIO (Manual): ' . ($result['error'] ?? '');
 
+                // Log Automático - Garantir que o JID está correto
+                $logJid = strpos($phone, '@') === false ? $phone . '@s.whatsapp.net' : $phone;
+
                 executeQuery($pdo, "INSERT INTO bot_automation_logs 
                     (automation_id, jid_origem, numero_origem, mensagem_recebida, resposta_enviada, grupo_id, grupo_nome) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [$autoId, $phone . '@s.whatsapp.net', $phone, $statusMsg, $message, 'manual', 'Marketing Campaign']
+                [$autoId, $logJid, $phone, $statusMsg, $message, 'manual', 'Marketing Campaign']
                 );
             }
             catch (Exception $e) {
