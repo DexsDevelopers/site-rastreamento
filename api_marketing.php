@@ -29,12 +29,22 @@ $token = $_SERVER['HTTP_X_API_TOKEN'] ?? $_GET['token'] ?? '';
 // For other actions, you can add validation here if needed
 
 if ($action === 'save_members') {
+    // ---------------------------------------------------------
+    // COPY OF LOGIC FROM test_save_members.php (WHICH WORKS)
+    // ---------------------------------------------------------
     try {
-        // Receive contacts from bot-extension or import
-        $input = json_decode(file_get_contents('php://input'), true);
+        // Receive contacts
+        $rawInput = file_get_contents('php://input');
+        $input = json_decode($rawInput, true);
+        
+        // Debug if needed
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'No input data found']);
+            exit;
+        }
         
         if (empty($input['group_jid']) || empty($input['members'])) {
-            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            echo json_encode(['success' => false, 'message' => 'Invalid data fields']);
             exit;
         }
 
@@ -45,8 +55,9 @@ if ($action === 'save_members') {
         $stmt = $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, grupo_origem_jid, status) VALUES (?, ?, 'novo')");
 
         foreach ($members as $phone) {
-            // Normalizar apenas se NÃO for um JID
+            // Logic to keep JIDs
             if (strpos($phone, '@') === false) {
+                // If it's a raw number, clean it
                 $phone = preg_replace('/\D/', '', $phone);
                 if (strlen($phone) < 10) continue;
             }
@@ -55,15 +66,19 @@ if ($action === 'save_members') {
                 $stmt->execute([$phone, $groupJid]);
                 $added++;
             } catch (Exception $e) {
-                error_log("Erro ao salvar membro: " . $e->getMessage());
+                // Silent error or log
+                error_log("Erro ao salvar membro individual: " . $e->getMessage());
             }
         }
 
         echo json_encode(['success' => true, 'added' => $added]);
+        exit;
+
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        error_log("CRITICAL ERROR in save_members: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Erro interno na API: ' . $e->getMessage()]);
+        exit;
     }
-    exit;
 } elseif ($action === 'cron_process') {
     // 1. Load Campaign Settings
     $campanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1 AND ativo = 1");
