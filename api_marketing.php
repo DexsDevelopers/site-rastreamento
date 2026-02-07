@@ -28,35 +28,41 @@ $token = $_SERVER['HTTP_X_API_TOKEN'] ?? $_GET['token'] ?? '';
 // ... (existing token validation)
 
 if ($action === 'save_members') {
-    // Receive contacts from bot-extension or import
-    $input = json_decode(file_get_contents('php://input'), true);
-    
-    if (empty($input['group_jid']) || empty($input['members'])) {
-        echo json_encode(['success' => false, 'message' => 'Invalid data']);
-        exit;
-    }
-
-    $groupJid = $input['group_jid'];
-    $members = $input['members'];
-    $added = 0;
-
-    $stmt = $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, grupo_origem_jid, status) VALUES (?, ?, 'novo')");
-
-    foreach ($members as $phone) {
-        // Normalizar apenas se NÃO for um JID
-        if (strpos($phone, '@') === false) {
-            $phone = preg_replace('/\D/', '', $phone);
-            if (strlen($phone) < 10) continue;
+    try {
+        // Receive contacts from bot-extension or import
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['group_jid']) || empty($input['members'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            exit;
         }
 
-        try {
-            $stmt->execute([$phone, $groupJid]);
-            $added++;
-        } catch (Exception $e) {}
+        $groupJid = $input['group_jid'];
+        $members = $input['members'];
+        $added = 0;
+
+        $stmt = $pdo->prepare("INSERT IGNORE INTO marketing_membros (telefone, grupo_origem_jid, status) VALUES (?, ?, 'novo')");
+
+        foreach ($members as $phone) {
+            // Normalizar apenas se NÃO for um JID
+            if (strpos($phone, '@') === false) {
+                $phone = preg_replace('/\D/', '', $phone);
+                if (strlen($phone) < 10) continue;
+            }
+
+            try {
+                $stmt->execute([$phone, $groupJid]);
+                $added++;
+            } catch (Exception $e) {
+                error_log("Erro ao salvar membro: " . $e->getMessage());
+            }
+        }
+
+        echo json_encode(['success' => true, 'added' => $added]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
     }
-
-    echo json_encode(['success' => true, 'added' => $added]);
-
+    exit;
 } elseif ($action === 'cron_process') {
     // 1. Load Campaign Settings
     $campanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1 AND ativo = 1");
