@@ -114,10 +114,7 @@ try {
             break;
 
         case 'get_disparos_tasks':
-            // 1. Resetar cota do dia para permitir novos disparos
-            executeQuery($pdo, "UPDATE marketing_membros SET data_entrada_fluxo = NULL WHERE DATE(data_entrada_fluxo) = CURDATE()");
-
-            // 2. Carregar Campanha
+            // 1. Carregar Campanha e Limites
             $campanha = fetchOne($pdo, "SELECT * FROM marketing_campanhas WHERE id = 1 AND ativo = 1");
             if (!$campanha) {
                 $response = ['success' => false, 'message' => 'Campanha inativa ou não encontrada'];
@@ -126,18 +123,36 @@ try {
 
             $membrosPorDiaLimit = intval($campanha['membros_por_dia_grupo']);
 
-            // 3. Selecionar NOVOS se houver espaço (Simular lógica de seleção do cron)
-            $novosCount = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE status = 'novo'")['c'];
-            if ($novosCount > 0) {
-                // Tenta puxar novos leads até atingir o limite da campanha
-                $groups = fetchData($pdo, "SELECT DISTINCT grupo_origem_jid FROM marketing_membros WHERE status = 'novo'");
-                foreach ($groups as $g) {
-                    $candidates = fetchData($pdo, "SELECT id FROM marketing_membros WHERE grupo_origem_jid = ? AND status = 'novo' ORDER BY id ASC LIMIT ?", [$g['grupo_origem_jid'], $membrosPorDiaLimit]);
-                    foreach ($candidates as $c) {
-                        $sendTime = date('Y-m-d H:i:s'); // Imediato para o botão start
-                        executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0, data_entrada_fluxo = CURDATE() WHERE id = ?", [$sendTime, $c['id']]);
+            // 2. Verificar Cotas de Hoje (Quantos JÁ foram processados)
+            $hojeCount = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE (status = 'em_progresso' OR status = 'concluido') AND DATE(data_entrada_fluxo) = CURDATE()")['c'] ?? 0;
+
+            $remainingSlots = $membrosPorDiaLimit - $hojeCount;
+
+            // Se já estourou o limite, não adiciona NINGUÉM novo, mas pode retornar tarefas de quem já está no fluxo de hoje.
+            // O usuário pediu "pare ao atingir 10", então se remaining <= 0, não devemos puxar novos.
+
+            // 3. Selecionar NOVOS apenas se houver espaço
+            if ($remainingSlots > 0) {
+                $novosCount = fetchOne($pdo, "SELECT COUNT(*) as c FROM marketing_membros WHERE status = 'novo'")['c'];
+
+                if ($novosCount > 0) {
+                    $groups = fetchData($pdo, "SELECT DISTINCT grupo_origem_jid FROM marketing_membros WHERE status = 'novo'");
+                    foreach ($groups as $g) {
+                        if ($remainingSlots <= 0)
+                            break;
+
+                        $candidates = fetchData($pdo, "SELECT id FROM marketing_membros WHERE grupo_origem_jid = ? AND status = 'novo' ORDER BY id ASC LIMIT ?", [$g['grupo_origem_jid'], $remainingSlots]);
+
+                        foreach ($candidates as $c) {
+                            $sendTime = date('Y-m-d H:i:s'); // Imediato
+                            executeQuery($pdo, "UPDATE marketing_membros SET status = 'em_progresso', data_proximo_envio = ?, ultimo_passo_id = 0, data_entrada_fluxo = CURDATE() WHERE id = ?", [$sendTime, $c['id']]);
+                            $remainingSlots--;
+                        }
                     }
                 }
+            }
+            else {
+            // Opcional: Avisar no log que limite foi atingido, mas deixar retornar tarefas pendentes de quem JÁ está no fluxo hoje
             }
 
             // 4. Buscar FILA de tarefas prontas
