@@ -23,17 +23,14 @@ if (!isset($pdo) || $pdo === null) {
 function getHomepageConfig($pdo, $chave, $default = '')
 {
     try {
-        // Verificar se a tabela existe
         $stmt = $pdo->query("SHOW TABLES LIKE 'homepage_config'");
         if ($stmt->rowCount() === 0) {
-            return $default; // Tabela não existe ainda
+            return $default;
         }
-
         $result = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chave]);
         return $result && isset($result['valor']) ? $result['valor'] : $default;
     }
     catch (Exception $e) {
-        // Em caso de erro, retornar valor padrão
         return $default;
     }
 }
@@ -45,23 +42,6 @@ $descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Acompanhe seu pedido
 $badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', 'Loggi para você');
 $badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', 'Loggi para empresas');
 $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', 'Ajudar');
-
-// Seção "Como funciona"
-$howItWorksTitle = getHomepageConfig($pdo, 'how_it_works_title', 'A Loggi entrega onde você precisar');
-$feature1Title = getHomepageConfig($pdo, 'feature1_title', 'Para você');
-$feature1Description = getHomepageConfig($pdo, 'feature1_description', 'Envie pacotes para qualquer lugar do Brasil de forma rápida e segura.');
-$feature2Title = getHomepageConfig($pdo, 'feature2_title', 'Para empresas');
-$feature2Description = getHomepageConfig($pdo, 'feature2_description', 'Soluções completas de logística para o seu e-commerce crescer.');
-$feature3Title = getHomepageConfig($pdo, 'feature3_title', 'Entrega Expressa');
-$feature3Description = getHomepageConfig($pdo, 'feature3_description', 'Antecipe para 3 dias com pagamento rápido por PIX, caso precise de urgência.');
-
-// Prova social
-$socialProof1Title = getHomepageConfig($pdo, 'social_proof1_title', 'Entrega em todo o Brasil');
-$socialProof1LinkText = getHomepageConfig($pdo, 'social_proof1_link_text', 'Conheça nossa rede');
-$socialProof2Title = getHomepageConfig($pdo, 'social_proof2_title', 'Envios a partir de R$ 9,90');
-$socialProof2LinkText = getHomepageConfig($pdo, 'social_proof2_link_text', 'Calcular frete');
-$socialProof3Title = getHomepageConfig($pdo, 'social_proof3_title', 'Atendimento rápido');
-$socialProof3LinkText = getHomepageConfig($pdo, 'social_proof3_link_text', 'Fale conosco');
 
 $codigo = $cidade = "";
 $statusList = [];
@@ -84,18 +64,14 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$codigoFromUrl]);
             $row = $stmt->fetch();
-
             if ($row && !empty($row['cidade'])) {
                 $codigo = $codigoFromUrl;
                 $cidade = trim($row['cidade']);
                 $autoLoadFromUrl = true;
-
-                // Executar consulta automaticamente
                 $sql = "SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$codigo]);
                 $results = $stmt->fetchAll();
-
                 if (!empty($results)) {
                     $rows = [];
                     foreach ($results as $row) {
@@ -105,17 +81,14 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
                                 break;
                         }
                     }
-
                     if (!empty($rows)) {
                         if (normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
                             $statusList = $rows;
                             foreach ($rows as $r) {
-                                if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
+                                if (!empty($r['taxa_valor']) && !empty($r['taxa_pix']))
                                     $temTaxa = true;
-                                }
-                                if (!empty($r['prioridade'])) {
+                                if (!empty($r['prioridade']))
                                     $isExpress = true;
-                                }
                             }
                             $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
                             $fotoPedido = getRastreioFoto($pdo, $codigo);
@@ -123,17 +96,12 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
                                 $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
                                 $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
                             }
-                            else {
-                                $fotoPedidoSrc = null;
-                            }
                         }
                         else {
                             $erroCidade = "⚠️ A cidade informada não confere com este código!";
-                            writeLog("City Mismatch (Auto): DB=" . normalizeString($rows[0]['cidade']) . " Input=" . normalizeString($cidade), 'WARNING');
                         }
                     }
                     else {
-                        // Results found in DB but none are visible (future/filtered)
                         $erroCidade = "⏳ Código aguardando liberação no sistema (Horário).";
                     }
                 }
@@ -143,7 +111,6 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
             }
         }
         catch (PDOException $e) {
-            writeLog("Erro ao buscar código da URL: " . $e->getMessage(), 'ERROR');
         }
     }
 }
@@ -151,19 +118,15 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
 if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
     $codigo = strtoupper(trim(sanitizeInput($_POST['codigo'])));
     $cidade = trim(sanitizeInput($_POST['cidade']));
-
     if (empty($codigo) || empty($cidade)) {
         $erroCidade = "❌ Código e cidade são obrigatórios!";
     }
     else {
         try {
-            writeLog("Debug City Check - Input Code: " . $codigo, 'DEBUG');
-            writeLog("Debug City Check - Input City: " . $cidade, 'DEBUG');
             $sql = "SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$codigo]);
             $results = $stmt->fetchAll();
-
             if (!empty($results)) {
                 $rows = [];
                 foreach ($results as $row) {
@@ -173,30 +136,20 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                             break;
                     }
                 }
-
                 if (!empty($rows)) {
-                    $d = normalizeString($rows[0]['cidade']);
-                    $i = normalizeString($cidade);
-                    writeLog("DEBUG POST: DB raw='" . $rows[0]['cidade'] . "' DB norm='$d' | INPUT raw='$cidade' INPUT norm='$i'", 'INFO');
-
-                    if ($d === $i) {
+                    if (normalizeString($rows[0]['cidade']) === normalizeString($cidade)) {
                         $statusList = $rows;
                         foreach ($rows as $r) {
-                            if (!empty($r['taxa_valor']) && !empty($r['taxa_pix'])) {
+                            if (!empty($r['taxa_valor']) && !empty($r['taxa_pix']))
                                 $temTaxa = true;
-                            }
-                            if (!empty($r['prioridade'])) {
+                            if (!empty($r['prioridade']))
                                 $isExpress = true;
-                            }
                         }
                         $statusAtualTopo = $temTaxa ? "⏳ Aguardando pagamento da taxa" : end($statusList)['status_atual'];
                         $fotoPedido = getRastreioFoto($pdo, $codigo);
                         if ($fotoPedido) {
                             $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
                             $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
-                        }
-                        else {
-                            $fotoPedidoSrc = null;
                         }
                     }
                     else {
@@ -212,86 +165,92 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
             }
         }
         catch (PDOException $e) {
-            writeLog("Erro na consulta: " . $e->getMessage(), 'ERROR');
             $erroCidade = "❌ Erro interno. Tente novamente.";
         }
     }
 }
 
-// Resposta AJAX: retorna apenas o bloco de resultados sem recarregar a página
+// Resposta AJAX
 if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     header('Content-Type: text/html; charset=UTF-8');
     if (!empty($erroCidade)) {
-        echo '<div class="results-container"><div class="erro">' . $erroCidade . '</div></div>';
+        echo '<div class="results-container" style="background:white; padding:2rem; border-radius:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.1);"><div class="erro" style="color:#ef4444; font-weight:700;">' . $erroCidade . '</div></div>';
         exit;
     }
     if (!empty($statusList)) {
-        echo '<div class="results-container">';
-        echo '<div class="results-card animate-fade-in">';
-        echo '<div class="status-header">';
-        echo '<span class="status-icon">📦</span>';
-        echo '<h3>' . htmlspecialchars($statusAtualTopo) . '</h3>';
-        echo '<small style="color:var(--text-muted);">' . htmlspecialchars($cidade) . '</small>';
-        if ($isExpress) {
-            echo '<div style="margin-top:0.5rem;"><span class="badge"><i class="fas fa-bolt"></i> Entrega Expressa</span></div>';
-        }
-        echo '</div>';
-
-        echo '<div class="timeline">';
-        foreach ($statusList as $index => $etapa) {
+?>
+<div class="results-container">
+    <div class="results-card animate-fade-in"
+        style="background:white; padding:3rem; border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
+        <div class="status-header" style="text-align:center; margin-bottom:2rem;">
+            <span class="status-icon" style="font-size:3rem; display:block; margin-bottom:1rem;">📦</span>
+            <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:800;">
+                <?= htmlspecialchars($statusAtualTopo)?>
+            </h3>
+            <p style="color:var(--text-muted);">
+                <?= htmlspecialchars($cidade)?>
+            </p>
+        </div>
+        <div class="timeline" style="max-width:600px; margin: 0 auto;">
+            <?php foreach ($statusList as $index => $etapa):
             $isFirst = $index === 0;
             $activeClass = $isFirst ? 'active' : '';
-            echo '<div class="timeline-item ' . $activeClass . '">';
-            echo '<div class="timeline-marker"></div>';
-            echo '<div class="timeline-content">';
-            echo '<h4>' . htmlspecialchars($etapa['titulo']) . '</h4>';
-            echo '<span>' . htmlspecialchars($etapa['subtitulo']) . '</span>';
-            echo '<div class="timeline-date"><i class="far fa-clock"></i> ' . date("d/m/Y H:i", strtotime($etapa['data'])) . '</div>';
+?>
+            <div class="timeline-item <?= $activeClass?>"
+                style="padding-left:30px; border-left:2px solid #EEE; position:relative; margin-bottom:2rem;">
+                <div class="timeline-marker"
+                    style="position:absolute; left:-7px; top:5px; width:12px; height:12px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC'?>;">
+                </div>
+                <div class="timeline-content">
+                    <h4 style="font-weight:800; color:var(--text-main);">
+                        <?= htmlspecialchars($etapa['titulo'])?>
+                    </h4>
+                    <p style="font-size:0.9rem; color:var(--text-muted);">
+                        <?= htmlspecialchars($etapa['subtitulo'])?>
+                    </p>
+                    <small style="color:var(--text-dim);"><i class="far fa-clock"></i>
+                        <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
+                    </small>
 
-            if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])) {
-                echo '<div class="pix-box">';
-                echo '<p>💰 <b>Taxa de distribuição nacional:</b> R$ ' . number_format($etapa['taxa_valor'], 2, ',', '.') . '</p>';
-                echo '<p>Faça o pagamento via PIX:</p>';
-                echo '<textarea readonly>' . htmlspecialchars($etapa['taxa_pix']) . '</textarea>';
-                echo '<button onclick="navigator.clipboard.writeText(\'' . htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) . '\')">📋 Copiar chave PIX</button>';
-                if ($temTaxa) {
-                    echo '<div id="countdown" class="countdown"></div>';
-                }
-                echo '</div>';
-            }
-            echo '</div>'; // content
-            echo '</div>'; // item
-        }
-        echo '</div>'; // timeline
-        if (!$temTaxa && !$isExpress) {
-            echo '<div style="margin-top: 1.5rem;">';
-            echo '<button class="promo-banner-button" onclick=\'openExpressOffer(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', "' . number_format($expressValor, 2, ',', '.') . '")\'>';
-            echo '  <div class="promo-content">';
-            echo '    <span class="promo-tag">Oferta Relâmpago</span>';
-            echo '    <span class="promo-title">⚡ Antecipe para 3 dias</span>';
-            echo '    <span class="promo-subtitle">Frete grátis em até 5 dias. Pague para receber em 3.</span>';
-            echo '  </div>';
-            echo '  <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>';
-            echo '</button>';
-            echo '</div>';
-        }
-        if ($fotoPedido && $fotoPedidoSrc) {
-            echo '<div class="photo-proof">';
-            echo '<p><i class="fas fa-image"></i> Foto do seu pedido</p>';
-            echo '<img src="' . htmlspecialchars($fotoPedidoSrc, ENT_QUOTES, 'UTF-8') . '" alt="Foto do pedido ' . htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') . '">';
-            echo '<small>Imagem enviada pelo time de atendimento para comprovação visual.</small>';
-            echo '</div>';
-        }
-        echo '</div>'; // results-box
-        echo '</div>'; // results
-        if ($temTaxa) {
-            echo '<script>(function () { let tempo = ' . ((int)$tempoLimite) . ' * 60 * 60; function atualizarContagem() { var el = document.getElementById("countdown"); if (!el) { return; } var h = Math.floor(tempo / 3600), m = Math.floor((tempo % 3600) / 60), s = tempo % 60; el.innerHTML = "⏱ Tempo restante: " + String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0"); if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000) } else { el.innerHTML = "❌ Prazo expirado." } } atualizarContagem() })();</script>';
-        }
+                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
+                    <div class="pix-box"
+                        style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:12px; border-left:4px solid var(--primary);">
+                        <p style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">Total a pagar: R$
+                            <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
+                        </p>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Copie a chave PIX
+                            abaixo para realizar o pagamento:</p>
+                        <textarea readonly
+                            style="width:100%; height:80px; padding:0.75rem; border:1px solid #EEE; border-radius:8px; font-family:monospace; font-size:0.8rem; margin-bottom:1rem; resize:none;"><?= htmlspecialchars($etapa['taxa_pix'])?></textarea>
+                        <button
+                            onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>')"
+                            style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
+                            <i class="far fa-copy"></i> Copiar Chave PIX
+                        </button>
+                    </div>
+                    <?php
+            endif; ?>
+                </div>
+            </div>
+            <?php
+        endforeach; ?>
+        </div>
+
+        <?php if ($fotoPedido && $fotoPedidoSrc): ?>
+        <div class="photo-proof"
+            style="margin-top:2rem; padding-top:2rem; border-top:1px solid #EEE; text-align:center;">
+            <p style="font-weight:700; margin-bottom:1rem;"><i class="fas fa-camera"></i> Foto do seu pedido</p>
+            <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido"
+                style="max-width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        </div>
+        <?php
+        endif; ?>
+
+    </div>
+</div>
+<?php
         exit;
     }
-    // Sem erro e sem resultados
-    echo '<div class="results-container"><div class="erro">❌ Código inexistente!</div></div>';
-    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -301,766 +260,307 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loggi - O rastreio do seu envio é prático</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
 </head>
 
 <body>
-    <header class="header">
-        <div class="nav-container">
-            <a href="index.php" class="logo">
-                <i class="fas fa-shipping-fast"></i>
-                Loggi
-            </a>
+    <header class="header" id="mainHeader">
+        <div class="container nav-container">
+            <a href="index.php" class="logo">loggi</a>
             <nav class="nav-links">
                 <a href="index.php">Início</a>
+                <a href="#para-voce">Para você</a>
+                <a href="#para-empresas">Para empresas</a>
                 <a href="sobre.php">Sobre</a>
-            </nav>
-            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="mobile-menu" id="mobileMenu">
-                <a href="index.php">Início</a>
-                <a href="sobre.php">Sobre</a>
+                <a href="login.php" class="btn-login">Entrar</a>
             </nav>
         </div>
     </header>
 
     <section class="hero">
         <div class="container hero-box">
-            <div class="search-card">
-                <h2 style="margin-bottom: 1.5rem; color: var(--text-main);">
-                    <i class="fas fa-search"></i> Rastrear Envio
-                </h2>
-                <form method="POST" action="index.php">
-                    <div class="form-group">
-                        <label for="codigo">Código de Rastreamento</label>
-                        <input type="text" name="codigo" id="codigo" placeholder="Digite o código" maxlength="12"
-                            value="<?= htmlspecialchars($codigo)?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="cidade">Cidade</label>
-                        <input type="text" name="cidade" id="cidade" placeholder="Digite a cidade"
-                            value="<?= htmlspecialchars($cidade)?>" required>
-                    </div>
-                    <button type="submit" class="btn-primary">
-                        Rastrear
-                    </button>
-                </form>
-            </div>
-            <!-- Resultados AJAX sem recarregar -->
-            <div id="ajaxResults">
-                <?php if (!empty($statusList)): ?>
-                <div class="results-container">
-                    <div class="results-card animate-fade-in">
-                        <div class="status-header">
-                            <span class="status-icon">📦</span>
-                            <h3>
-                                <?= htmlspecialchars($statusAtualTopo)?>
-                            </h3>
-                            <small style="color:var(--text-muted);">
-                                <?= htmlspecialchars($cidade)?>
-                            </small>
-                            <?php if ($isExpress): ?>
-                            <div style="margin-top:0.5rem;"><span class="badge"><i class="fas fa-bolt"></i> Entrega
-                                    Expressa</span></div>
-                            <?php
-    endif; ?>
-                        </div>
-                        <div class="timeline">
-                            <?php foreach ($statusList as $index => $etapa):
-        $isFirst = $index === 0;
-        $activeClass = $isFirst ? 'active' : '';
-?>
-                            <div class="timeline-item <?= $activeClass?>">
-                                <div class="timeline-marker"></div>
-                                <div class="timeline-content">
-                                    <h4>
-                                        <?= htmlspecialchars($etapa['titulo'])?>
-                                    </h4>
-                                    <span>
-                                        <?= htmlspecialchars($etapa['subtitulo'])?>
-                                    </span>
-                                    <div class="timeline-date"><i class="far fa-clock"></i>
-                                        <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
-                                    </div>
-
-                                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                                    <div class="pix-box">
-                                        <p>💰 <b>Taxa de distribuição nacional:</b> R$
-                                            <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
-                                        </p>
-                                        <p>Faça o pagamento via PIX:</p>
-                                        <textarea readonly><?= htmlspecialchars($etapa['taxa_pix'])?></textarea>
-                                        <button
-                                            onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>')">
-                                            📋 Copiar chave PIX
-                                        </button>
-                                        <?php if ($temTaxa): ?>
-                                        <div id="countdown" class="countdown"></div>
-                                        <?php
-            endif; ?>
-                                    </div>
-                                    <?php
-        endif; ?>
-                                </div>
-                            </div>
-                            <?php
-    endforeach; ?>
-                        </div>
-                        <?php if (!$temTaxa && !$isExpress): ?>
-                        <div style="margin-top: 1.5rem;">
-                            <button class="promo-banner-button"
-                                onclick='openExpressOffer(<?= json_encode($codigo)?>, <?= json_encode($cidade)?>, "<?= number_format($expressValor, 2, '
-                                ,', '.')?>")'>
-                                <div class="promo-content">
-                                    <span class="promo-tag">Oferta Relâmpago</span>
-                                    <span class="promo-title">⚡ Antecipe para 3 dias</span>
-                                    <span class="promo-subtitle">Frete grátis em até 5 dias. Pague para receber em
-                                        3.</span>
-                                </div>
-                                <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>
-                            </button>
-                        </div>
-                        <?php
-    endif; ?>
-                        <?php if ($fotoPedido && $fotoPedidoSrc): ?>
-                        <div class="photo-proof">
-                            <p><i class="fas fa-image"></i> Foto do seu pedido</p>
-                            <img src="<?= htmlspecialchars($fotoPedidoSrc, ENT_QUOTES, 'UTF-8')?>"
-                                alt="Foto do pedido <?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8')?>">
-                            <small>Imagem anexada ao pedido pelo atendimento Loggi.</small>
-                        </div>
-                        <?php
-    endif; ?>
-                    </div>
-                </div>
-                <?php
-elseif (!empty($erroCidade)): ?>
-                <div class="results-container">
-                    <div class="erro">
-                        <?= htmlspecialchars($erroCidade)?>
-                    </div>
-                </div>
-                <?php
-endif; ?>
-            </div>
-
-            <div class="hero-content">
+            <div class="hero-content reveal-on-scroll">
                 <h1>
                     <?= htmlspecialchars($tituloHero)?>
                 </h1>
                 <p>
-                    Acompanhe seu pedido em tempo real com a Loggi. Frete grátis para todo o Brasil.
+                    <?= htmlspecialchars($descricaoHero)?>
                 </p>
-
-                <div class="hero-actions" style="justify-content: flex-start;">
-                    <a href="cadastro_objetivo.php" class="btn-hero">Enviar agora</a>
-                    <a href="https://www.loggi.com/precos/" class="btn-hero secondary">Calcular frete</a>
+                <div class="hero-actions">
+                    <a href="cadastro_objetivo.php" class="btn-cta primary">Enviar agora</a>
+                    <a href="https://www.loggi.com/precos/" class="btn-cta secondary">Calcular frete</a>
                 </div>
-                <div class="badges">
-                    <span class="badge"><i class="fas fa-check-circle"></i>
-                        <?= htmlspecialchars($badgeSatisfacao)?>
-                    </span>
-                    <span class="badge"><i class="fas fa-truck"></i>
-                        <?= htmlspecialchars($badgeEntregas)?>
-                    </span>
-                    <span class="badge"><i class="fas fa-map-marker-alt"></i>
-                        <?= htmlspecialchars($badgeCidades)?>
-                    </span>
+                <div class="tracking-wrapper">
+                    <form method="POST" action="index.php" class="tracking-form" id="trackForm">
+                        <input type="text" name="codigo" placeholder="Código de rastreio" maxlength="12"
+                            class="tracking-input" required value="<?= htmlspecialchars($codigo)?>">
+                        <input type="text" name="cidade" placeholder="Cidade" class="tracking-input" required
+                            value="<?= htmlspecialchars($cidade)?>">
+                        <button type="submit" class="btn-track">Rastrear</button>
+                    </form>
                 </div>
-
-                <div class="referral-box" style="margin-top: 2rem;">
-                    <i class="fas fa-star" style="font-size: 2rem; color: #0055FF; margin-bottom: 1rem;"></i>
-                    <h3>Sistema de Indicações — Entrega em 2 dias</h3>
-                    <p>O frete é grátis para todo o Brasil (até 5 dias). Indique um amigo e garanta <strong>entrega
-                            prioritária em 2 dias</strong>.</p>
-                    <div class="btn-group">
-                        <a href="indicacao.php" class="btn btn-referral" target="_blank">
-                            <i class="fas fa-users"></i> Indicar Amigo
-                        </a>
-                        <button onclick="showIndicacaoInfo()" class="btn btn-info">
-                            <i class="fas fa-info-circle"></i> Como Funciona
-                        </button>
-                    </div>
-                </div>
+            </div>
+            <div class="hero-image reveal-on-scroll">
+                <img src="assets/images/hero_loggi.png" alt="Loggi Logistics">
             </div>
         </div>
     </section>
 
-    <!-- Por que escolher a Loggi? (Modernized Section) -->
-    <section class="features" style="margin-top: 4rem; position: relative;">
-        <!-- Elemento flutuante decorativo 3D posterior -->
-        <div
-            style="position: absolute; top: 0; left: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: -1;">
-        </div>
-
-        <h2 class="section-title reveal-on-scroll" style="margin-bottom: 4rem;">
-            Por que escolher a Loggi?
-        </h2>
-
-        <div class="features-grid">
-            <div class="feature-card reveal-on-scroll tilt-card">
-                <div class="feature-icon"><i class="fas fa-barcode"></i></div>
-                <h3>Postagem Simples</h3>
-                <p>Gere sua etiqueta em segundos e poste em qualquer um dos nossos milhares de pontos parceiros.</p>
-            </div>
-
-            <div class="feature-card reveal-on-scroll tilt-card">
-                <div class="feature-icon"><i class="fas fa-stream"></i></div>
-                <h3>Rastreio Real-Time</h3>
-                <p>Notificações automáticas via WhatsApp em cada etapa do processo, da coleta à entrega final.</p>
-            </div>
-
-            <div class="feature-card reveal-on-scroll tilt-card">
-                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                <h3>Entrega prioritária</h3>
-                <p>Sua encomenda voa! Processamento expresso que garante a chegada no destino em tempo recorde.</p>
-            </div>
-        </div>
-    </section>
-    <!-- Prova social -->
-    <div class="features-grid" style="margin-top:2rem;">
-        <div class="feature-card reveal-on-scroll tilt-card">
-            <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
-            <h3>
-                <?= htmlspecialchars($socialProof1Title)?>
-            </h3>
-            <p><a href="sobre.php" style="color:inherit; text-decoration:underline;">
-                    <?= htmlspecialchars($socialProof1LinkText)?>
-                </a>
-            </p>
-        </div>
-        <div class="feature-card reveal-on-scroll tilt-card">
-            <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
-            <h3>
-                <?= htmlspecialchars($socialProof2Title)?>
-            </h3>
-            <p><a href="sobre.php" style="color:inherit; text-decoration:underline;">
-                    <?= htmlspecialchars($socialProof2LinkText)?>
-                </a>
-            </p>
-        </div>
-        <div class="feature-card reveal-on-scroll tilt-card">
-            <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
-            <h3>
-                <?= htmlspecialchars($socialProof3Title)?>
-            </h3>
-            <p><a href="sobre.php" style="color:inherit; text-decoration:underline;">
-                    <?= htmlspecialchars($socialProof3LinkText)?>
-                </a>
-            </p>
-        </div>
-        </section>
-
-        <!-- Depoimentos Premium -->
-        <section class="testimonials"
-            style="padding: 8rem 0; background: var(--secondary); position: relative; overflow: hidden;">
-            <!-- Glowing background effect -->
-            <div
-                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: 0;">
-            </div>
-
-            <div class="container" style="position: relative; z-index: 1;">
-                <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF;">O que dizem nossos clientes</h2>
-
-                <div class="features-grid">
-                    <div class="testimonial-card reveal-on-scroll tilt-card">
-                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                        <p>“A facilidade de postagem e o rastreio via WhatsApp me surpreenderam. Experiência de envio
-                            nota
-                            10!”</p>
-                        <div class="client-info">
-                            <strong>Juliana Mendes</strong>
-                            <span>Rio de Janeiro/RJ</span>
-                        </div>
-                    </div>
-
-                    <div class="testimonial-card reveal-on-scroll tilt-card">
-                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                        <p>“Uso a Loggi para minha loja virtual e as entregas sempre chegam antes do prazo. Meus
-                            clientes
-                            adoram!”</p>
-                        <div class="client-info">
-                            <strong>Ricardo Alves</strong>
-                            <span>Curitiba/PR</span>
-                        </div>
-                    </div>
-
-                    <div class="testimonial-card reveal-on-scroll tilt-card">
-                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                        <p>“Sistema super confiável e interface intuitiva. Recomendo para quem busca agilidade e
-                            segurança.”
-                        </p>
-                        <div class="client-info">
-                            <strong>Fernanda Lima</strong>
-                            <span>Fortaleza/CE</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <?php
-// Exibir popup explicativo automaticamente no render completo quando houver taxa
-if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
-    $taxaValorPrimeira = null;
-    foreach ($statusList as $etapa) {
-        if (!empty($etapa['taxa_valor'])) {
-            $taxaValorPrimeira = number_format($etapa['taxa_valor'], 2, ',', '.');
-            break;
-        }
-    }
-    if ($taxaValorPrimeira) {
-        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup('R$ {$taxaValorPrimeira}'); }});</script>";
-    }
-    else {
-        echo "<script>document.addEventListener('DOMContentLoaded', function () { if (typeof showTaxaPopup === 'function') { showTaxaPopup(); } });</script>";
-    }
-}
-?>
-
-        <section class="features">
-            <h2 class="section-title">Por que escolher a Loggi?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-rocket"></i></div>
-                    <h3>Entrega Rápida</h3>
-                    <p>Nossa rede logística garante os prazos mais curtos do mercado.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3>Seguro e Confiável</h3>
-                    <p>Seus pedidos protegidos com a melhor tecnologia do Brasil.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
-                    <h3>Cobertura Nacional</h3>
-                    <p>Chegamos em cada canto do país com eficiência e tecnologia.</p>
-                </div>
-            </div>
-        </section>
-
-        <?php if ($temTaxa): ?>
-        <script>
-            let tempo = <?= $tempoLimite?>  * 60 * 60;
-            function atualizarContagem() {
-                let horas = Math.floor(tempo / 3600);
-                let minutos = Math.floor((tempo % 3600) / 60);
-                let segundos = tempo % 60;
-                document.getElementById("countdown").innerHTML =
-                    "⏱ Tempo restante: " + String(horas).padStart(2, '0') + ":" +
-                    String(minutos).padStart(2, '0') + ":" + String(segundos).padStart(2, '0');
-                if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000); }
-                else { document.getElementById("countdown").innerHTML = "❌ Prazo expirado."; }
-            }
-            atualizarContagem();
-        </script>
-        <?php
-endif; ?>
-
-        <script>
-            // Modal Moderno de Entrega Expressa
-            function openExpressOffer(codigo, cidade, valor) {
-                const modal = document.createElement('div');
-                modal.className = 'custom-overlay-modal animate-fade-in';
-                modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0, 0, 0, 0.95); z-index: 10000; display: flex; justify-content: center;
-                align-items: center; padding: 20px; backdrop-filter: blur(10px);`;
-
-                modal.innerHTML = `
-                <div style="background: #0d0d0d; padding: 40px; border-radius: 24px; max-width: 500px; width: 100%; 
-                    border: 1px solid rgba(0, 85, 255, 0.3); box-shadow: 0 0 50px rgba(0, 85, 255, 0.2); position: relative;">
-                    
-                    <button onclick="closeModalFromChild(this)" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #666; cursor: pointer; font-size: 1.5rem;">
-                        <i class="fas fa-times"></i>
-                    </button>
-
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="width: 80px; height: 80px; background: rgba(0, 85, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                            <i class="fas fa-bolt" style="font-size: 2.5rem; color: #0055FF; filter: drop-shadow(0 0 10px #0055FF);"></i>
-                        </div>
-                        <h2 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 10px;">Entrega Expressa</h2>
-                        <p style="color: var(--text-muted);">Acelere seu recebimento agora mesmo</p>
-                    </div>
-
-                    <div style="margin-bottom: 30px;">
-                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
-                            <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-calendar-check"></i></div>
-                            <div>
-                                <h4 style="color: #fff; margin-bottom: 4px;">Padrão vs Expresso</h4>
-                                <p style="color: var(--text-muted); font-size: 0.9rem;">Frete Grátis: até 5 dias.<br><strong>Expresso (Pago): 3 dias úteis.</strong></p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
-                            <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-shipping-fast"></i></div>
-                            <div>
-                                <h4 style="color: #fff; margin-bottom: 4px;">Prioridade Total</h4>
-                                <p style="color: var(--text-muted); font-size: 0.9rem;">Seu pacote entra no lote de despacho prioritário da categoria especial.</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: flex-start; gap: 15px;">
-                            <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-qrcode"></i></div>
-                            <div>
-                                <h4 style="color: #fff; margin-bottom: 4px;">Pagamento via PIX</h4>
-                                <p style="color: var(--text-muted); font-size: 0.9rem;">Confirmação instantânea do serviço de antecipação.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-muted); display: block; margin-bottom: 5px; font-size: 0.9rem;">Valor Único de Antecipação</span>
-                        <span style="color: #fff; font-size: 2rem; font-weight: 800;">R$ ${valor}</span>
-                    </div>
-
-                    <button id="btnConfirmExpress" onclick='confirmExpressModal(this, "${codigo}", "${cidade}")' class="btn-cta-express">
-                        <i class="fas fa-check-circle"></i> Sim, quero antecipar!
-                    </button>
-                    
-                    <p style="text-align: center; margin-top: 15px; color: var(--text-dim); font-size: 0.8rem;">
-                        <i class="fas fa-lock"></i> Transação 100% segura e garantida
+    <div id="ajaxResults" class="container" style="margin-top: -50px; position: relative; z-index: 100;">
+        <?php if (!empty($statusList)): ?>
+        <div class="results-container">
+            <div class="results-card animate-fade-in"
+                style="background:white; padding:3rem; border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
+                <div class="status-header" style="text-align:center; margin-bottom:2rem;">
+                    <span class="status-icon" style="font-size:3rem; display:block; margin-bottom:1rem;">📦</span>
+                    <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:800;">
+                        <?= htmlspecialchars($statusAtualTopo)?>
+                    </h3>
+                    <p style="color:var(--text-muted);">
+                        <?= htmlspecialchars($cidade)?>
                     </p>
-                </div>
-            `;
-                document.body.appendChild(modal);
-                modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-            }
-
-            // Função de ponte do Modal para a Solicitação Real
-            function confirmExpressModal(btnModal, codigo, cidade) {
-                closeModalFromChild(btnModal);
-                solicitarExpress(codigo, cidade, null);
-            }
-        </script>
-
-        <script>
-            // Valor global para inicialização de contagem no fluxo AJAX
-            window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
-
-            function showIndicacaoInfo() {
-                const modal = document.createElement('div');
-                modal.className = 'custom-overlay-modal';
-                modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
-        align-items: center; padding: 20px; backdrop-filter: blur(5px);`;
-
-                modal.innerHTML = `
-        <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 40px;
-            border-radius: 20px; max-width: 700px; width: 100%; border: 1px solid rgba(0, 85, 255, 0.3);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative;">
-            
-            <button onclick="this.closest('.custom-overlay-modal').remove()" 
-                style="position: absolute; top: 15px; right: 15px; background: none; border: none; 
-                color: #fff; font-size: 1.5rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s;">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <h2 style="color: #0055FF; text-align: center; margin-bottom: 30px; font-size: 2rem;">
-                <i class="fas fa-star"></i> Sistema de Indicação
-            </h2>
-            <div style="background: rgba(0, 85, 255, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <h3 style="color: #0055FF; margin-bottom: 15px;">Como Funciona:</h3>
-                <p style="color: #fff; margin-bottom: 10px;">🚚 <strong>Frete Grátis</strong> para todo Brasil (prazo até 5 dias)</p>
-                <p style="color: #fff; margin-bottom: 10px;">1️⃣ Você indica um amigo</p>
-                <p style="color: #fff; margin-bottom: 10px;">2️⃣ Seu amigo compra no mesmo dia</p>
-                <p style="color: #fff; margin-bottom: 10px;">3️⃣ Sua entrega cai para <strong>2 dias</strong></p>
-                <p style="color: #fff;">4️⃣ Prioridade total no sistema</p>
-            </div>
-            <button onclick="this.closest('.custom-overlay-modal').remove()" style="width: 100%; padding: 15px;
-                background: linear-gradient(135deg, #0055FF 0%, #0033CC 100%); border: none; border-radius: 10px; color: white;
-                font-weight: 600; cursor: pointer; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0, 85, 255, 0.3);">
-                Fechar
-            </button>
-        </div>
-    `;
-                document.body.appendChild(modal);
-                modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-            }
-
-        // --- Premium Visual Experience Controllers ---
-
-   Scroll Reveal Observer
-            const revealObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.15 });
-
-            document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
-
-            // 3D Tilt Effect for Cards
-            document.querySelectorAll('.tilt-card').forEach(card => {
-                card.addEventListener('mousemove', e => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const rotateX = (y - rect.height / 2) / 15;
-                    const rotateY = (rect.width / 2 - x) / 15;
-                    card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                });
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = `perspective(1000px) translateY(0) rotateX(0) rotateY(0)`;
-                });
-            });
-        </script>
-        <script>
-            // Função utilitária para fechar modais customizados
-            function closeModalFromChild(childEl) {
-                try {
-                    const overlay = childEl.closest('.custom-overlay-modal');
-                    if (overlay) overlay.remove();
-                } catch (_) { }
-            }
-
-            // Mobile Menu Toggle
-            function toggleMobileMenu() {
-                const mobileMenu = document.getElementById('mobileMenu');
-                const toggle = document.querySelector('.mobile-menu-toggle i');
-
-                if (mobileMenu.classList.contains('active')) {
-                    mobileMenu.classList.remove('active');
-                    toggle.classList.remove('fa-times');
-                    toggle.classList.add('fa-bars');
-                } else {
-                    mobileMenu.classList.add('active');
-                    toggle.classList.remove('fa-bars');
-                    toggle.classList.add('fa-times');
-                }
-            }
-
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function (event) {
-                const mobileMenu = document.getElementById('mobileMenu');
-                const toggle = document.querySelector('.mobile-menu-toggle');
-
-                if (!mobileMenu.contains(event.target) && !toggle.contains(event.target)) {
-                    mobileMenu.classList.remove('active');
-                    const toggleIcon = document.querySelector('.mobile-menu-toggle i');
-                    toggleIcon.classList.remove('fa-times');
-                    toggleIcon.classList.add('fa-bars');
-                }
-            });
-
-            // Close mobile menu when clicking on a link
-            document.querySelectorAll('.mobile-menu a').forEach(link => {
-                link.addEventListener('click', function () {
-                    const mobileMenu = document.getElementById('mobileMenu');
-                    const toggle = document.querySelector('.mobile-menu-toggle i');
-                    mobileMenu.classList.remove('active');
-                    toggle.classList.remove('fa-times');
-                    toggle.classList.add('fa-bars');
-                });
-            });
-
-            // Submissão AJAX do formulário de rastreio
-            document.addEventListener('DOMContentLoaded', function () {
-                const form = document.querySelector('form[method="POST"][action="index.php"]');
-                const results = document.getElementById('ajaxResults');
-                const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
-
-            // Se os dados vieram da URL, os resultados já foram renderizados pelo PHP
-            // Apenas garantir que o countdown e popup funcionem se necessário
-            <? php if ($autoLoadFromUrl && !empty($statusList)): ?>
-                    setTimeout(function () {
-                        try {
-                            startCountdownIfPresent();
-                        <? php if ($temTaxa): ?>
-                            const pixTextarea = document.querySelector('.pix-box textarea');
-                            if (pixTextarea && typeof showTaxaPopup === 'function') {
-                                let valorTexto = null;
-                                const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
-                                if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
-                                    const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                    valorTexto = m ? m[0] : null;
-                                }
-                                showTaxaPopup(valorTexto);
-                            }
-                        <? php
+                    <?php if ($isExpress): ?>
+                    <div style="margin-top:1rem;"><span class="badge"
+                            style="background:var(--primary); color:white; padding:0.5rem 1rem; border-radius:100px; font-weight:700;"><i
+                                class="fas fa-bolt"></i> Entrega Expressa</span></div>
+                    <?php
     endif; ?>
-                    } catch (_) { /* silencioso */ }
-                    }, 200);
-            <? php
-endif; ?>
+                </div>
 
-            if (form && results && submitBtn) {
-                    form.addEventListener('submit', async function (e) {
-                        e.preventDefault();
-                        const codigo = (form.querySelector('#codigo') || {}).value || '';
-                        const cidade = (form.querySelector('#cidade') || {}).value || '';
-                        if (!codigo || !cidade) return;
+                <div class="timeline" style="max-width:600px; margin: 0 auto;">
+                    <?php foreach ($statusList as $index => $etapa):
+        $isFirst = $index === 0;
+        $activeClass = $isFirst ? 'active' : '';
+?>
+                    <div class="timeline-item <?= $activeClass?>"
+                        style="padding-left:30px; border-left:2px solid #EEE; position:relative; margin-bottom:2rem;">
+                        <div class="timeline-marker"
+                            style="position:absolute; left:-7px; top:5px; width:12px; height:12px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC'?>;">
+                        </div>
+                        <div class="timeline-content">
+                            <h4 style="font-weight:800; color:var(--text-main);">
+                                <?= htmlspecialchars($etapa['titulo'])?>
+                            </h4>
+                            <p style="font-size:0.9rem; color:var(--text-muted);">
+                                <?= htmlspecialchars($etapa['subtitulo'])?>
+                            </p>
+                            <small style="color:var(--text-dim);"><i class="far fa-clock"></i>
+                                <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
+                            </small>
 
-                        const originalText = submitBtn.innerHTML;
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
-                        results.innerHTML = '';
+                            <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
+                            <div class="pix-box"
+                                style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:12px; border-left:4px solid var(--primary);">
+                                <p style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">Total a pagar:
+                                    R$
+                                    <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
+                                </p>
+                                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Copie a chave
+                                    PIX abaixo para realizar o pagamento:</p>
+                                <textarea readonly
+                                    style="width:100%; height:80px; padding:0.75rem; border:1px solid #EEE; border-radius:8px; font-family:monospace; font-size:0.8rem; margin-bottom:1rem; resize:none;"><?= htmlspecialchars($etapa['taxa_pix'])?></textarea>
+                                <button
+                                    onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>')"
+                                    style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
+                                    <i class="far fa-copy"></i> Copiar Chave PIX
+                                </button>
+                            </div>
+                            <?php
+        endif; ?>
+                        </div>
+                    </div>
+                    <?php
+    endforeach; ?>
+                </div>
 
-                        try {
-                            const response = await fetch('index.php', {
-                                method: 'POST',
-                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
-                                body: new URLSearchParams({ codigo, cidade, ajax: '1' })
-                            });
-                            const html = await response.text();
-                            results.innerHTML = html;
-                            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                            // Iniciar popup e countdown se houver taxa no retorno AJAX
-                            try {
-                                const pixTextarea = results.querySelector('.pix-box textarea');
-                                const isExpressBox = pixTextarea ? pixTextarea.closest('.express-box') : null;
-                                if (!window.__skipTaxPopupOnce && pixTextarea && !isExpressBox && typeof showTaxaPopup === 'function') {
-                                    let valorTexto = null;
-                                    const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
-                                    if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
-                                        const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                        valorTexto = m ? m[0] : null;
-                                    }
-                                    showTaxaPopup(valorTexto);
-                                }
-                                if (window.__skipTaxPopupOnce) { window.__skipTaxPopupOnce = false; }
-                                startCountdownIfPresent();
-                            } catch (_) { /* silencioso */ }
-                        } catch (err) {
-                            results.innerHTML = '<div class="results-container"><div class="erro">❌ Erro ao consultar. Tente novamente.</div></div>';
-                        } finally {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = originalText;
-                        }
-                    });
-                }
-
-                // Inicializa countdown quando houver elemento no DOM (ex.: respostas AJAX)
-                function startCountdownIfPresent() {
-                    const el = document.getElementById('countdown');
-                    if (!el || window.__countdownStarted) return;
-                    window.__countdownStarted = true;
-                    let tempo = (typeof window.TEMPO_LIMITE_HORAS !== 'undefined' ? window.TEMPO_LIMITE_HORAS : 24) * 60 * 60;
-                    (function tick() {
-                        const horas = Math.floor(tempo / 3600);
-                        const minutos = Math.floor((tempo % 3600) / 60);
-                        const segundos = tempo % 60;
-                        el.innerHTML = '⏱ Tempo restante: ' + String(horas).padStart(2, '0') + ':' + String(minutos).padStart(2, '0') + ':' + String(segundos).padStart(2, '0');
-                        if (tempo > 0) { tempo--; setTimeout(tick, 1000); } else { el.innerHTML = '❌ Prazo expirado.'; }
-                    })();
-                }
-            });
-        </script>
-
-        <script>
-            async function solicitarExpress(codigo, cidade, btn) {
-                // Prevenir chamadas múltiplas
-                if (window.__expressRequesting) {
-                    return;
-                }
-
-                try {
-                    window.__expressRequesting = true;
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.innerText = 'Solicitando...';
-                    }
-
-                    const resp = await fetch('solicitar_express.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ codigo, cidade })
-                    });
-                    const data = await resp.json();
-                    if (!data.success) throw new Error(data.message || 'Falha ao solicitar.');
-
-                    // Mostrar mensagem de sucesso
-                    if (typeof MessageManager !== 'undefined') {
-                        MessageManager.success('Solicitação de entrega expressa enviada! Verifique as instruções de pagamento PIX abaixo.');
-                    } else {
-                        alert('Solicitação enviada com sucesso! Verifique as instruções de pagamento PIX.');
-                    }
-
-                    // Recarregar resultados via AJAX para exibir PIX e contagem
-                    window.__expressJustRequested = true;
-                    window.__skipTaxPopupOnce = true;
-                    try {
-                        const results = document.getElementById('ajaxResults');
-                        const htmlResp = await fetch('index.php', {
-                            method: 'POST',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: new URLSearchParams({ codigo, cidade, ajax: '1' })
-                        });
-                        const html = await htmlResp.text();
-                        if (results) {
-                            results.innerHTML = html;
-                            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            // Ajustar rótulo para Express e marcar caixa
-                            try {
-                                const box = results.querySelector('.pix-box');
-                                if (box) {
-                                    box.classList.add('express-box');
-                                    const p = box.querySelector('p');
-                                    if (p) {
-                                        const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                        const valor = m ? m[0] : '';
-                                        p.innerHTML = '⚡ <b>Entrega Expressa (3 dias):</b> ' + valor;
-                                    }
-                                }
-                            } catch (_) { }
-                        } else {
-                            // fallback simples
-                            location.reload();
-                        }
-                    } catch (_) { location.reload(); }
-                } catch (e) {
-                    if (typeof MessageManager !== 'undefined') {
-                        MessageManager.error(e.message || 'Erro ao solicitar entrega expressa.');
-                    } else {
-                        alert(e.message || 'Erro ao solicitar entrega expressa.');
-                    }
-                } finally {
-                    window.__expressRequesting = false;
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerText = '⚡ Quero entrega em 3 dias';
-                    }
-                }
-            }
-        </script>
-
-        <script>
-            // Popup explicativo da taxa (cliente)
-            function showTaxaPopup(valorTexto) {
-                const modal = document.createElement('div');
-                modal.className = 'custom-overlay-modal';
-                modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
-        align-items: center; padding: 20px;`;
-
-                const valorLinha = valorTexto ? `O valor definido pelo Correios para o seu envio foi de <strong>${valorTexto}</strong>, e, após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.` : `O valor definido pelo Correios para o seu envio está indicado acima. Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.`;
-
-                modal.innerHTML = `
-        <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 32px;
-            border-radius: 18px; max-width: 820px; width: 100%; border: 2px solid #0055FF; color: #fff;">
-            <h2 style="color: #0055FF; text-align: center; margin-bottom: 18px; font-size: 1.6rem;">
-                <i class="fas fa-info-circle"></i> Sobre a taxa apresentada
-            </h2>
-            <div style="display: grid; gap: 10px; line-height: 1.5;">
-                <p>Gostaria de esclarecer sobre a taxa que apareceu no seu pedido. O Correios, em determinados envios, aplica uma taxa de despacho/postagem para liberar o produto no sistema logístico. Essa taxa é um procedimento obrigatório do Correios, não sendo uma cobrança feita pela nossa loja.</p>
-                <p>Ela serve para cobrir os custos operacionais do Correios no processo de triagem, segurança e manuseio da encomenda. Sem esse pagamento, o pedido fica bloqueado e não segue para entrega.</p>
-                <p>${valorLinha}</p>
-                <p>Estamos à disposição para auxiliar em qualquer dúvida ou no passo a passo desse processo. Nosso objetivo é garantir que você receba sua compra da forma mais rápida e segura possível.</p>
-            </div>
-            <div style="display:flex; gap:10px; margin-top: 20px;">
-                <button onclick="closeModalFromChild(this)" style="flex:1; padding: 12px 16px; background: linear-gradient(135deg, #0055FF 0%, #0033CC 100%); border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">Entendi</button>
+                <?php if ($fotoPedido && $fotoPedidoSrc): ?>
+                <div class="photo-proof"
+                    style="margin-top:2rem; padding-top:2rem; border-top:1px solid #EEE; text-align:center;">
+                    <p style="font-weight:700; margin-bottom:1rem;"><i class="fas fa-camera"></i> Foto do seu pedido</p>
+                    <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido"
+                        style="max-width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                </div>
+                <?php
+    endif; ?>
             </div>
         </div>
-    `;
-                document.body.appendChild(modal);
-                modal.addEventListener('click', (e) => { if (e.target === modal) modal.r }
-        </script>
+        <?php
+elseif (!empty($erroCidade)): ?>
+        <div class="results-container"
+            style="background:white; padding:2rem; border-radius:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.1);">
+            <div class="erro" style="color:#ef4444; font-weight:700;">
+                <?= htmlspecialchars($erroCidade)?>
+            </div>
+        </div>
+        <?php
+endif; ?>
+    </div>
+
+    <div class="sections-nav">
+        <div class="section-tab active" onclick="switchSection('para-voce', this)">Para você</div>
+        <div class="section-tab" onclick="switchSection('para-empresas', this)">Para empresas</div>
+    </div>
+
+    <section id="para-voce" class="marketing-section reveal-on-scroll">
+        <div class="container">
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">A Loggi entrega onde
+                você precisar</h2>
+            <div class="marketing-grid">
+                <div class="marketing-card">
+                    <i class="fas fa-barcode"></i>
+                    <h3>Postagem simples</h3>
+                    <p>Gere sua etiqueta em segundos e poste em qualquer um dos nossos milhares de pontos parceiros.</p>
+                </div>
+                <div class="marketing-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Rastreio real-time</h3>
+                    <p>Notificações automáticas via WhatsApp em cada etapa do processo, da coleta à entrega final.</p>
+                </div>
+                <div class="marketing-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Entrega prioritária</h3>
+                    <p>Sua encomenda voa! Processamento expresso que garante a chegada no destino em tempo recorde.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="para-empresas" class="marketing-section reveal-on-scroll" style="display:none; background:#F8FAFC;">
+        <div class="container">
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">Soluções logísticas
+                para o seu negócio</h2>
+            <div class="marketing-grid">
+                <div class="marketing-card">
+                    <i class="fas fa-boxes"></i>
+                    <h3>Coleta programada</h3>
+                    <p>Coletamos seus produtos diretamente no seu estoque, otimizando sua operação.</p>
+                </div>
+                <div class="marketing-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Dashboard completo</h3>
+                    <p>Acompanhe métricas, custos e desempenho de todas as suas entregas em um só lugar.</p>
+                </div>
+                <div class="marketing-card">
+                    <i class="fas fa-sync"></i>
+                    <h3>Logística Reversa</h3>
+                    <p>Trocas e devoluções simplificadas para garantir a melhor experiência ao seu cliente.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="marketing-section reveal-on-scroll">
+        <div class="container">
+            <div class="marketing-grid" style="text-align:center; gap:2rem;">
+                <div>
+                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);">
+                        <?= htmlspecialchars($badgeSatisfacao)?>
+                    </h3>
+                    <p style="font-weight:600; color:var(--text-muted);">Satisfação garantida</p>
+                </div>
+                <div>
+                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);">
+                        <?= htmlspecialchars($badgeEntregas)?>
+                    </h3>
+                    <p style="font-weight:600; color:var(--text-muted);">Entregas realizadas</p>
+                </div>
+                <div>
+                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);">
+                        <?= htmlspecialchars($badgeCidades)?>
+                    </h3>
+                    <p style="font-weight:600; color:var(--text-muted);">Cidades atendidas</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="marketing-section reveal-on-scroll" style="background:var(--secondary);">
+        <div class="container">
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem; color:white;">O que dizem nossos clientes</h2>
+            <div class="marketing-grid">
+                <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"A Loggi transformou a logística da minha empresa. Entregas rápidas e rastreio impecável."</p>
+                    <p><strong>- Maria Silva</strong>, E-commerce de Moda</p>
+                </div>
+                <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"O melhor custo-benefício do mercado. Meus clientes adoram o rastreio via WhatsApp."</p>
+                    <p><strong>- João Pereira</strong>, Vendedor Autônomo</p>
+                </div>
+                <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"Postar encomendas ficou muito mais fácil com os pontos Loggi espalhados pela cidade."</p>
+                    <p><strong>- Ana Santos</strong>, Usuária Casual</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4 class="logo" style="color:var(--primary); margin-bottom:1.5rem; text-transform:lowercase;">loggi</h4>
+                    <p>© <?= date('Y') ?> Todos os direitos reservados.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Serviços</h4>
+                    <ul>
+                        <li>Para você</li>
+                        <li>Para empresas</li>
+                        <li>Loggi Pro</li>
+                        <li>Loggi Envios</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <ul>
+                        <li>Sobre nós</li>
+                        <li>Carreiras</li>
+                        <li>Blog</li>
+                        <li>Ajuda</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function switchSection(targetId, tab) {
+            document.querySelectorAll('.marketing-section[id]').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            document.getElementById(targetId).style.display = 'block';
+            
+            document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
+
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('mainHeader');
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
+
+        document.getElementById('trackForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('ajax', '1');
+            fetch('index.php', { method: 'POST', body: formData })
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('ajaxResults').innerHTML = html;
+                    window.scrollTo({ top: document.getElementById('ajaxResults').offsetTop - 100, behavior: 'smooth' });
+                });
+        });
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+    </script>
 </body>
 
 </html>
