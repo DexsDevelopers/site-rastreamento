@@ -10,7 +10,7 @@ require_once 'includes/config.php';
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Loggi - Escolha seu objetivo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -242,13 +242,14 @@ require_once 'includes/config.php';
 
                 <div class="options-grid">
                     <!-- Enviar pela Loggi -->
-                    <a href="cadastro_envio.php" class="option-card">
+                    <!-- Enviar pela Loggi -->
+                    <a href="calcular_frete.php" class="option-card">
                         <div class="option-icon">
                             <i class="fas fa-box-open"></i>
                         </div>
                         <div class="option-content">
                             <span class="option-title">Enviar pela Loggi</span>
-                            <span class="option-desc">Conheça e contrate serviços de entrega</span>
+                            <span class="option-desc">Calcular frete e contratar serviços</span>
                         </div>
                     </a>
 
@@ -298,15 +299,16 @@ require_once 'includes/config.php';
                 </div>
 
                 <div class="login-footer">
-                    <a href="login.php" class="login-link">Voltar para Login</a>
+                    <a href="index.php" class="login-link">Voltar para o Início</a>
                 </div>
             </div>
         </div>
     </div>
 </body>
 
-</html> </div>
-    </div>
+</html>
+</div>
+</div>
 </body>
 
 </html>

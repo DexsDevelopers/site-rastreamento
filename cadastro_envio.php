@@ -6,7 +6,7 @@ require_once 'includes/config.php';
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Loggi - Enviar Pacotes</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -139,6 +139,13 @@ require_once 'includes/config.php';
                 </div>
 
                 <div class="form-group">
+                    <label for="cpf">CPF</label>
+                    <input type="text" id="cpf" name="cpf" class="form-control" placeholder="000.000.000-00" required
+                        maxlength="14" oninput="maskCPF(this)">
+                    <small id="cpf-error" style="color: #ff3333; display: none; margin-top: 5px;">CPF inválido</small>
+                </div>
+
+                <div class="form-group">
                     <label style="display: flex; align-items: top; gap: 8px; font-weight: 400; font-size: 0.85rem;">
                         <input type="checkbox" required>
                         Concordo com os Termos de Uso e Política de Privacidade da Loggi.
@@ -148,8 +155,95 @@ require_once 'includes/config.php';
                 <button type="submit" class="btn-full">Criar conta grátis</button>
             </form>
 
+            <script>
+                function maskCPF(input) {
+                    let v = input.value.replace(/\D/g, "");
+                    if (v.length > 11) v = v.slice(0, 11);
+                    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                    input.value = v;
+                    validateCPFInput(input);
+                }
+
+                function validateCPFInput(input) {
+                    const cpf = input.value.replace(/\D/g, '');
+                    const errorSpan = document.getElementById('cpf-error');
+                    const btn = document.querySelector('button[type="submit"]');
+
+                    if (cpf.length === 11) {
+                        if (!isValidCPF(cpf)) {
+                            errorSpan.style.display = 'block';
+                            input.style.borderColor = '#ff3333';
+                            btn.disabled = true;
+                            btn.style.opacity = '0.5';
+                            btn.style.cursor = 'not-allowed';
+                        } else {
+                            errorSpan.style.display = 'none';
+                            input.style.borderColor = '#d1d5db'; // Reset border
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                        }
+                    } else {
+                        // While typing, don't show error yet if incomplete, but maybe disable button?
+                        // Let's keep button handy but maybe show error if full length achieved
+                        if (cpf.length > 0 && cpf.length < 11) {
+                            // Optional: indicate incomplete
+                        }
+                    }
+                }
+
+                function isValidCPF(cpf) {
+                    if (typeof cpf !== "string") return false;
+                    cpf = cpf.replace(/[\s.-]*/igm, '');
+                    if (
+                        !cpf ||
+                        cpf.length != 11 ||
+                        cpf == "00000000000" ||
+                        cpf == "11111111111" ||
+                        cpf == "22222222222" ||
+                        cpf == "33333333333" ||
+                        cpf == "44444444444" ||
+                        cpf == "55555555555" ||
+                        cpf == "66666666666" ||
+                        cpf == "77777777777" ||
+                        cpf == "88888888888" ||
+                        cpf == "99999999999"
+                    ) {
+                        return false;
+                    }
+                    var soma = 0;
+                    var resto;
+                    for (var i = 1; i <= 9; i++)
+                        soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+                    resto = (soma * 10) % 11;
+                    if ((resto == 10) || (resto == 11)) resto = 0;
+                    if (resto != parseInt(cpf.substring(9, 10))) return false;
+                    soma = 0;
+                    for (var i = 1; i <= 10; i++)
+                        soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+                    resto = (soma * 10) % 11;
+                    if ((resto == 10) || (resto == 11)) resto = 0;
+                    if (resto != parseInt(cpf.substring(10, 11))) return false;
+                    return true;
+                }
+
+                // Add submit event listener to prevent invalid submission
+                document.querySelector('form').addEventListener('submit', function (e) {
+                    const cpfInput = document.getElementById('cpf');
+                    const cpf = cpfInput.value.replace(/\D/g, '');
+                    if (!isValidCPF(cpf)) {
+                        e.preventDefault();
+                        document.getElementById('cpf-error').style.display = 'block';
+                        cpfInput.style.borderColor = '#ff3333';
+                        cpfInput.focus();
+                    }
+                });
+            </script>
+
             <div class="auth-footer">
-                Já tem uma conta? <a href="login.php">Fazer login</a>
+                Já tem uma conta? <a href="index.php">Voltar para o Início</a>
             </div>
             <div class="auth-footer" style="margin-top: 0.5rem;">
                 <a href="cadastro_objetivo.php"><i class="fas fa-arrow-left"></i> Voltar</a>

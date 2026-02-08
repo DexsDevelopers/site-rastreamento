@@ -1,0 +1,89 @@
+/* 
+ * 3D & Scroll Animations Additions 
+ * Copy and paste this at the end of style.css 
+ */
+
+/* Disable Zoom generally via CSS (helper, meta tag is main source) */
+html,
+body {
+    touch-action: pan-x pan-y;
+}
+
+/* Scroll Animation Base Class */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    will-change: opacity, transform;
+}
+
+.reveal-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* 3D Tilt Effect Utilities */
+.tilt-card {
+    transition: transform 0.1s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.tilt-card-content {
+    transform: translateZ(20px);
+}
+
+/* 3D Hover Effects for specific cards */
+.feature-card,
+.option-card,
+.calc-card,
+.auth-card,
+.search-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover,
+.option-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 85, 255, 0.15);
+}
+
+/* Advanced 3D Button */
+.btn-primary,
+.btn-full,
+.btn-calc,
+.btn-pay {
+    position: relative;
+    top: 0;
+    transition: all 0.1s ease;
+    box-shadow: 0 4px 0 #003399;
+    /* 3D depth */
+}
+
+.btn-primary:active,
+.btn-full:active,
+.btn-calc:active,
+.btn-pay:active {
+    top: 4px;
+    box-shadow: 0 0 0 #003399;
+}
+
+/* Floating Animation for Hero Images or Icons */
+@keyframes float-3d {
+    0% {
+        transform: translateY(0px) rotateX(0deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotateX(2deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotateX(0deg);
+    }
+}
+
+.hero-image,
+.checkout-icon {
+    animation: float-3d 4s ease-in-out infinite;
+}

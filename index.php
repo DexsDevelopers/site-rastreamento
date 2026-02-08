@@ -417,7 +417,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                         <div style="margin-top: 1.5rem;">
                             <button class="promo-banner-button"
                                 onclick='openExpressOffer(<?= json_encode($codigo)?>, <?= json_encode($cidade)?>, "<?= number_format($expressValor, 2, '
-                                ,', '.' )?>")'>
+                                ,', '.')?>")'>
                                 <div class="promo-content">
                                     <span class="promo-tag">Oferta Relâmpago</span>
                                     <span class="promo-title">⚡ Antecipe para 3 dias</span>
@@ -627,7 +627,7 @@ if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
 
     <?php if ($temTaxa): ?>
     <script>
-        let tempo = <?= $tempoLimite ?> * 60 * 60;
+        let tempo = <?= $tempoLimite?> * 60 * 60;
         function atualizarContagem() {
             let horas = Math.floor(tempo / 3600);
             let minutos = Math.floor((tempo % 3600) / 60);
@@ -719,18 +719,26 @@ endif; ?>
 
     <script>
         // Valor global para inicialização de contagem no fluxo AJAX
-        window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
+        window.TEMPO_LIMITE_HORAS = <?=(int)$tempoLimite?>;
 
         function showIndicacaoInfo() {
             const modal = document.createElement('div');
             modal.className = 'custom-overlay-modal';
             modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
-        align-items: center; padding: 20px;`;
+        align-items: center; padding: 20px; backdrop-filter: blur(5px);`;
 
             modal.innerHTML = `
         <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 40px;
-            border-radius: 20px; max-width: 700px; width: 100%; border: 2px solid #0055FF;">
+            border-radius: 20px; max-width: 700px; width: 100%; border: 1px solid rgba(0, 85, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative;">
+            
+            <button onclick="this.closest('.custom-overlay-modal').remove()" 
+                style="position: absolute; top: 15px; right: 15px; background: none; border: none; 
+                color: #fff; font-size: 1.5rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+
             <h2 style="color: #0055FF; text-align: center; margin-bottom: 30px; font-size: 2rem;">
                 <i class="fas fa-star"></i> Sistema de Indicação
             </h2>
@@ -742,9 +750,9 @@ endif; ?>
                 <p style="color: #fff; margin-bottom: 10px;">3️⃣ Sua entrega cai para <strong>2 dias</strong></p>
                 <p style="color: #fff;">4️⃣ Prioridade total no sistema</p>
             </div>
-            <button onclick="closeModalFromChild(this)" style="width: 100%; padding: 15px;
-                background: var(--gradient); border: none; border-radius: 10px; color: white;
-                font-weight: 600; cursor: pointer; font-size: 1.1rem;">
+            <button onclick="this.closest('.custom-overlay-modal').remove()" style="width: 100%; padding: 15px;
+                background: linear-gradient(135deg, #0055FF 0%, #0033CC 100%); border: none; border-radius: 10px; color: white;
+                font-weight: 600; cursor: pointer; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0, 85, 255, 0.3);">
                 Fechar
             </button>
         </div>

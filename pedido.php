@@ -44,10 +44,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Telefone inválido.');
         }
 
-        // Validar CPF
+        // Validar CPF (Complex Validation)
         $cpfLimpo = preg_replace('/[^0-9]/', '', $cpf);
-        if (strlen($cpfLimpo) !== 11) {
-            throw new Exception('CPF inválido. Deve conter 11 dígitos.');
+        if (strlen($cpfLimpo) !== 11 || !isValidCPF($cpfLimpo)) {
+            throw new Exception('O CPF informado é inválido. Por favor, verifique os dados.');
+        }
+
+        function isValidCPF($cpf)
+        {
+            if (empty($cpf))
+                return false;
+            $cpf = preg_replace('/[^0-9]/', '', $cpf);
+            if (strlen($cpf) != 11)
+                return false;
+            if (preg_match('/(\d)\1{10}/', $cpf))
+                return false;
+            for ($t = 9; $t < 11; $t++) {
+                for ($d = 0, $c = 0; $c < $t; $c++) {
+                    $d += $cpf[$c] * (($t + 1) - $c);
+                }
+                $d = ((10 * $d) % 11) % 10;
+                if ($cpf[$c] != $d)
+                    return false;
+            }
+            return true;
         }
 
         // Validar CEP
@@ -679,7 +699,11 @@ endif; ?>
                         <div class="input-group">
                             <label>CPF <span>*</span></label>
                             <input type="text" name="cpf" id="cpf" class="input-control" required
-                                placeholder="000.000.000-00" inputmode="numeric">
+                                placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                            <small id="cpf-error"
+                                style="color: #ff3333; display: none; margin-top: 5px; font-weight: 600;">
+                                <i class="fas fa-times-circle"></i> CPF Inválido
+                            </small>
                         </div>
 
                         <div class="input-group">
@@ -972,7 +996,7 @@ endif; ?>
         }
 
         // Processar sucesso/erro
-        <?php if ($success): ?>
+        <? php if ($success): ?>
             Swal.fire({
                 title: '✅ Pedido Enviado!',
                 html: `
@@ -1001,10 +1025,10 @@ endif; ?>
             }).then(() => {
                 window.location.href = 'pedido.php';
             });
-        <?php
+        <? php
 endif; ?>
 
-        <?php if ($error): ?>
+        <? php if ($error): ?>
             Swal.fire({
                 title: '❌ Erro',
                 text: '<?= addslashes($error)?>',
@@ -1014,7 +1038,7 @@ endif; ?>
                 color: '#ffffff',
                 confirmButtonColor: '#FF3333'
             });
-        <?php
+        <? php
 endif; ?>
     </script>
 </body>
