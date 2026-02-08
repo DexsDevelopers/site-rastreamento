@@ -493,94 +493,108 @@ endif; ?>
         </div>
     </section>
 
-    <!-- Como funciona -->
-    <section class="features" style="margin-top: 3rem;">
-        <h2 class="section-title">
-            <?= htmlspecialchars($howItWorksTitle)?>
-        </h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-barcode" style="font-size: 1.5rem;"></i></div>
-                <h3>
-                    <?= htmlspecialchars($feature1Title)?>
-                </h3>
-                <p>
-                    <?= htmlspecialchars($feature1Description)?>
-                </p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-stream" style="font-size: 1.5rem;"></i></div>
-                <h3>
-                    <?= htmlspecialchars($feature2Title)?>
-                </h3>
-                <p>
-                    <?= htmlspecialchars($feature2Description)?>
-                </p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-bolt" style="font-size: 1.5rem;"></i></div>
-                <h3>
-                    <?= htmlspecialchars($feature3Title)?>
-                </h3>
-                <p>
-                    <?= htmlspecialchars($feature3Description)?>
-                </p>
-            </div>
+    <!-- Por que escolher a Loggi? (Modernized Section) -->
+    <section class="features" style="margin-top: 4rem; position: relative;">
+        <!-- Elemento flutuante decorativo 3D posterior -->
+        <div
+            style="position: absolute; top: 0; left: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: -1;">
         </div>
-        <!-- Prova social -->
-        <div class="features-grid" style="margin-top:2rem;">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
-                <h3>
-                    <?= htmlspecialchars($socialProof1Title)?>
-                </h3>
-                <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
-                        <?= htmlspecialchars($socialProof1LinkText)?>
-                    </a>
-                </p>
+
+        <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF; margin-bottom: 4rem;">
+            Por que escolher a Loggi?
+        </h2>
+
+        <div class="features-grid">
+            <div class="feature-card reveal-on-scroll tilt-card">
+                <div class="feature-icon"><i class="fas fa-barcode"></i></div>
+                <h3>Postagem Simples</h3>
+                <p>Gere sua etiqueta em segundos e poste em qualquer um dos nossos milhares de pontos parceiros.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
-                <h3>
-                    <?= htmlspecialchars($socialProof2Title)?>
-                </h3>
-                <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
-                        <?= htmlspecialchars($socialProof2LinkText)?>
-                    </a>
-                </p>
+
+            <div class="feature-card reveal-on-scroll tilt-card">
+                <div class="feature-icon"><i class="fas fa-stream"></i></div>
+                <h3>Rastreio Real-Time</h3>
+                <p>Notificações automáticas via WhatsApp em cada etapa do processo, da coleta à entrega final.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
-                <h3>
-                    <?= htmlspecialchars($socialProof3Title)?>
-                </h3>
-                <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
-                        <?= htmlspecialchars($socialProof3LinkText)?>
-                    </a>
-                </p>
+
+            <div class="feature-card reveal-on-scroll tilt-card">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h3>Entrega prioritária</h3>
+                <p>Sua encomenda voa! Processamento expresso que garante a chegada no destino em tempo recorde.</p>
             </div>
         </div>
     </section>
-
-    <!-- Depoimentos -->
-    <section class="features" style="margin-top: 0;">
-        <h2 class="section-title">Depoimentos</h2>
-        <div class="features-grid">
-            <div class="feature-card" style="text-align:left;">
-                <p>“Recebi antes do prazo e pude acompanhar tudo. Recomendo!”</p>
-                <p style="margin-top:8px; color:#fff;"><strong>Camila S.</strong> — São Paulo/SP</p>
-            </div>
-            <div class="feature-card" style="text-align:left;">
-                <p>“A linha do tempo me deu segurança. Experiência excelente.”</p>
-                <p style="margin-top:8px; color:#fff;"><strong>Marcos T.</strong> — Belo Horizonte/MG</p>
-            </div>
-            <div class="feature-card" style="text-align:left;">
-                <p>“Usei a entrega expressa e chegou rapidinho. Muito bom!”</p>
-                <p style="margin-top:8px; color:#fff;"><strong>Renata P.</strong> — Curitiba/PR</p>
-            </div>
+    <!-- Prova social -->
+    <div class="features-grid" style="margin-top:2rem;">
+        <div class="feature-card reveal-on-scroll tilt-card">
+            <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
+            <h3>
+                <?= htmlspecialchars($socialProof1Title)?>
+            </h3>
+            <p><a href="sobre.php" style="color:inherit; text-decoration:underline;">
+                    <?= htmlspecialchars($socialProof1LinkText)?>
+                </a>
+            </p>
         </div>
-        <div style="text-align:center; color: rgba(255,255,255,0.75); margin-top: 12px;">
-            <small>Parcerias: <span style="opacity:.85;">Loggi Technology</span></small>
+        <div class="feature-card reveal-on-scroll tilt-card">
+            <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
+            <h3>
+                <?= htmlspecialchars($socialProof2Title)?>
+            </h3>
+            <p><a href="sobre.php" style="color:inherit; text-decoration:underline;">
+                    <?= htmlspecialchars($socialProof2LinkText)?>
+                </a>
+            </p>
+        </div>
+        <div class="feature-card reveal-on-scroll tilt-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
+            <h3>
+                <?= htmlspecialchars($socialProof3Title)?>
+            </h3>
+            <p><a href="sobre.php" style="color:inherit; text-decoration:underline;">
+                    <?= htmlspecialchars($socialProof3LinkText)?>
+                </a>
+            </p>
+        </div>
+    </div>
+    </section>
+
+    <!-- Depoimentos Premium -->
+    <section class="testimonials" style="padding: 8rem 0; background: var(--secondary); position: relative; overflow: hidden;">
+        <!-- Glowing background effect -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: 0;"></div>
+        
+        <div class="container" style="position: relative; z-index: 1;">
+            <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF;">O que dizem nossos clientes</h2>
+            
+            <div class="features-grid">
+                <div class="testimonial-card reveal-on-scroll tilt-card">
+                    <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                    <p>“A facilidade de postagem e o rastreio via WhatsApp me surpreenderam. Experiência de envio nota 10!”</p>
+                    <div class="client-info">
+                        <strong>Juliana Mendes</strong>
+                        <span>Rio de Janeiro/RJ</span>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card reveal-on-scroll tilt-card">
+                    <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                    <p>“Uso a Loggi para minha loja virtual e as entregas sempre chegam antes do prazo. Meus clientes adoram!”</p>
+                    <div class="client-info">
+                        <strong>Ricardo Alves</strong>
+                        <span>Curitiba/PR</span>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card reveal-on-scroll tilt-card">
+                    <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                    <p>“Sistema super confiável e interface intuitiva. Recomendo para quem busca agilidade e segurança.”</p>
+                    <div class="client-info">
+                        <strong>Fernanda Lima</strong>
+                        <span>Fortaleza/CE</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -627,7 +641,7 @@ if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
 
     <?php if ($temTaxa): ?>
     <script>
-        let tempo = <?= $tempoLimite?> * 60 * 60;
+        let tempo = <?= $tempoLimite?>  * 60 * 60;
         function atualizarContagem() {
             let horas = Math.floor(tempo / 3600);
             let minutos = Math.floor((tempo % 3600) / 60);
@@ -719,7 +733,7 @@ endif; ?>
 
     <script>
         // Valor global para inicialização de contagem no fluxo AJAX
-        window.TEMPO_LIMITE_HORAS = <?=(int)$tempoLimite?>;
+        window.TEMPO_LIMITE_HORAS = <?=( int)$tempoLimite ?>;
 
         function showIndicacaoInfo() {
             const modal = document.createElement('div');
@@ -760,6 +774,34 @@ endif; ?>
             document.body.appendChild(modal);
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
         }
+
+        // --- Premium Visual Experience Controllers ---
+        
+        // Scroll Reveal Observer
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+        // 3D Tilt Effect for Cards
+        document.querySelectorAll('.tilt-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const rotateX = (y - rect.height / 2) / 15;
+                const rotateY = (rect.width / 2 - x) / 15;
+                card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) translateY(0) rotateX(0) rotateY(0)`;
+            });
+        });
     </script>
     <script>
         // Função utilitária para fechar modais customizados

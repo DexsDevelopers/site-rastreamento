@@ -28,7 +28,7 @@ define('AUTOMATION_INTERVAL', 30); // minutos
 define('AUTOMATION_LOG_FILE', __DIR__ . '/../logs/automation.log');
 
 // Configurações de notificação
-define('NOTIFICATION_EMAIL', 'atendimento@loggi.com');
+define('NOTIFICATION_EMAIL', 'atendimento@transloggi.site');
 define('NOTIFICATION_ENABLED', true);
 define('NOTIFICATION_SMS_ENABLED', false);
 
@@ -42,7 +42,7 @@ define('EXPRESS_DELIVERY_DAYS', 3);
 define('STANDARD_DELIVERY_MIN_DAYS', 5);
 define('STANDARD_DELIVERY_MAX_DAYS', 7);
 define('EXPRESS_FEE_VALUE', 29.90); // R$
-define('EXPRESS_PIX_KEY', 'financeiro@loggi.com');
+define('EXPRESS_PIX_KEY', 'financeiro@transloggi.site');
 
 // Configurações de rate limiting
 define('RATE_LIMIT_ENABLED', true);
@@ -67,7 +67,7 @@ define('BACKUP_RETENTION', 7); // dias
 // Configurações de monitoramento
 define('MONITORING_ENABLED', true);
 define('MONITORING_INTERVAL', 300); // 5 minutos
-define('ALERT_EMAIL', 'alertas@loggi.com');
+define('ALERT_EMAIL', 'alertas@transloggi.site');
 
 // Configurações de desenvolvimento
 define('DEBUG_MODE', false);

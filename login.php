@@ -1,6 +1,6 @@
 <?php
 /**
- * Sistema de Login Unificado - Loggi
+ * Sistema de Login Unificado - Transloggi
  * Acesso aos painéis de Rastreamento e Bot WhatsApp
  */
 
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Administrativo - Loggi</title>
+    <title>Login Administrativo - Transloggi</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     <div class="search-card" style="max-width: 450px; width: 100%; padding: 3rem;">
         <div class="logo-container" style="text-align: center; margin-bottom: 2rem;">
             <div class="logo" style="justify-content: center; font-size: 2rem;">
-                <i class="fas fa-shipping-fast"></i> Loggi
+                <i class="fas fa-shipping-fast"></i> Transloggi
             </div>
             <p class="subtitle" style="color: var(--text-muted);">Acesso Restrito</p>
         </div>

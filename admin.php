@@ -950,7 +950,7 @@ $semTaxa = $totalRastreios - $comTaxa;
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <i class="fas fa-shipping-fast"></i> Loggi
+                    <i class="fas fa-cube"></i> Loggi
                 </div>
                 <button class="mobile-close-btn" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>

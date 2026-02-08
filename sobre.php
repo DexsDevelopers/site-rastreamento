@@ -79,7 +79,8 @@ $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
     <section class="hero">
         <div class="container hero-content" style="text-align: center; align-items: center;">
             <h1>Conectamos o Brasil</h1>
-            <p class="tagline" style="margin-bottom: 2rem;">A Loggi está em todo lugar. Entregamos tecnologia, rapidez e
+            <p class="tagline" style="margin-bottom: 2rem;">A Loggi está em todo lugar. Entregamos tecnologia,
+                rapidez e
                 segurança para você e seu negócio.</p>
 
             <div class="hero-actions" style="justify-content: center;">
@@ -166,7 +167,8 @@ $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
                     <i class="fas fa-chevron-down"></i>
                 </summary>
                 <div class="faq-answer" style="margin-top: 1rem; color: var(--text-muted); line-height: 1.6;">
-                    O prazo varia conforme a distância e modalidade escolhida. A Loggi oferece diversas opções, desde
+                    O prazo varia conforme a distância e modalidade escolhida. A Loggi oferece diversas opções,
+                    desde
                     entregas no mesmo dia até envios nacionais econômicos.
                 </div>
             </details>
