@@ -30,7 +30,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Helmer Logistics</title>
+    <title>Painel Administrativo - Loggi</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -42,13 +42,13 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         }
 
         :root {
-            --primary: #FF3333;
-            --primary-dark: #CC0000;
-            --secondary: #FF6600;
+            --primary: #0055FF;
+            --primary-dark: #0044CC;
+            --secondary: #180F33;
             --dark: #0A0A0A;
             --dark-light: #1A1A1A;
             --light: #FFF;
-            --gradient: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
+            --gradient: linear-gradient(135deg, #0055FF 0%, #180F33 100%);
         }
 
         body {
@@ -62,7 +62,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         .header {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 20px;
             padding: 1.5rem 2rem;
             margin-bottom: 2rem;
@@ -100,8 +100,8 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
 
         .btn-logout {
             padding: 0.6rem 1.2rem;
-            background: rgba(255, 51, 51, 0.15);
-            border: 1px solid rgba(255, 51, 51, 0.3);
+            background: rgba(0, 85, 255, 0.15);
+            border: 1px solid rgba(0, 85, 255, 0.3);
             border-radius: 8px;
             color: var(--primary);
             text-decoration: none;
@@ -114,7 +114,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         }
 
         .btn-logout:hover {
-            background: rgba(255, 51, 51, 0.25);
+            background: rgba(0, 85, 255, 0.25);
             transform: translateY(-2px);
         }
 
@@ -152,7 +152,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         .panel-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 51, 51, 0.2);
+            border: 2px solid rgba(0, 85, 255, 0.2);
             border-radius: 24px;
             padding: 2.5rem;
             text-align: center;
@@ -180,7 +180,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         .panel-card:hover {
             transform: translateY(-8px);
             border-color: var(--primary);
-            box-shadow: 0 20px 60px rgba(255, 51, 51, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 85, 255, 0.3);
         }
 
         .panel-card:hover::before {
@@ -197,7 +197,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             justify-content: center;
             margin: 0 auto 1.5rem;
             font-size: 2rem;
-            box-shadow: 0 10px 30px rgba(255, 51, 51, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 85, 255, 0.3);
         }
 
         .panel-title {
@@ -262,7 +262,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
         .stat-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 16px;
             padding: 1.5rem;
             text-align: center;
@@ -303,12 +303,13 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
     <div class="header">
         <div class="header-left">
             <div class="logo">
-                <i class="fas fa-shield-alt"></i> Helmer Logistics
+                <i class="fas fa-shipping-fast"></i> Loggi
             </div>
         </div>
         <div class="user-info">
             <span class="user-name">
-                <i class="fas fa-user-circle"></i> <?= htmlspecialchars($admin_username) ?>
+                <i class="fas fa-user-circle"></i>
+                <?= htmlspecialchars($admin_username)?>
             </span>
             <a href="?logout=1" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Sair
@@ -390,34 +391,43 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
 
         <div class="stats-grid">
             <?php
-            try {
-                // Estatísticas rápidas
-                $totalRastreios = fetchOne($pdo, "SELECT COUNT(*) as total FROM rastreios_status");
-                $rastreiosHoje = fetchOne($pdo, "SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status WHERE DATE(data) = CURDATE()");
-                $totalWhatsapp = fetchOne($pdo, "SELECT COUNT(*) as total FROM whatsapp_contatos WHERE notificacoes_ativas = 1");
-                $automacoes = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations WHERE ativo = 1");
-                ?>
-                <div class="stat-card">
-                    <div class="stat-value"><?= number_format($totalRastreios['total'] ?? 0) ?></div>
-                    <div class="stat-label">Total de Rastreios</div>
+try {
+    // Estatísticas rápidas
+    $totalRastreios = fetchOne($pdo, "SELECT COUNT(*) as total FROM rastreios_status");
+    $rastreiosHoje = fetchOne($pdo, "SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status WHERE DATE(data) = CURDATE()");
+    $totalWhatsapp = fetchOne($pdo, "SELECT COUNT(*) as total FROM whatsapp_contatos WHERE notificacoes_ativas = 1");
+    $automacoes = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations WHERE ativo = 1");
+?>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <?= number_format($totalRastreios['total'] ?? 0)?>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value"><?= number_format($rastreiosHoje['total'] ?? 0) ?></div>
-                    <div class="stat-label">Rastreios Hoje</div>
+                <div class="stat-label">Total de Rastreios</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <?= number_format($rastreiosHoje['total'] ?? 0)?>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value"><?= number_format($totalWhatsapp['total'] ?? 0) ?></div>
-                    <div class="stat-label">Contatos Ativos</div>
+                <div class="stat-label">Rastreios Hoje</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <?= number_format($totalWhatsapp['total'] ?? 0)?>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value"><?= number_format($automacoes['total'] ?? 0) ?></div>
-                    <div class="stat-label">Automações Ativas</div>
+                <div class="stat-label">Contatos Ativos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <?= number_format($automacoes['total'] ?? 0)?>
                 </div>
-                <?php
-            } catch (Exception $e) {
-                // Silenciosamente falhar se não conseguir buscar stats
-            }
-            ?>
+                <div class="stat-label">Automações Ativas</div>
+            </div>
+            <?php
+}
+catch (Exception $e) {
+// Silenciosamente falhar se não conseguir buscar stats
+}
+?>
         </div>
     </div>
 </body>

@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 
         header('Location: dashboard.php');
         exit;
-    } else {
+    }
+    else {
         $error = 'Usuário ou senha incorretos';
     }
 }
@@ -42,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Helmer Logistics</title>
+    <title>Login Administrativo - Loggi</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -52,26 +53,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 </head>
 
 <body>
-    <div class="glass-panel"
-        style="max-width: 450px; width: 100%; padding: 3rem; border-radius: 24px; border: 1px solid rgba(255, 51, 51, 0.2);">
-        <div class="logo-container">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i> Helmer Logistics
+    <div class="search-card" style="max-width: 450px; width: 100%; padding: 3rem;">
+        <div class="logo-container" style="text-align: center; margin-bottom: 2rem;">
+            <div class="logo" style="justify-content: center; font-size: 2rem;">
+                <i class="fas fa-shipping-fast"></i> Loggi
             </div>
-            <p class="subtitle">Sistema Administrativo</p>
+            <p class="subtitle" style="color: var(--text-muted);">Acesso Restrito</p>
         </div>
 
         <?php if ($error): ?>
-            <div class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?>
-            </div>
-        <?php endif; ?>
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <?= htmlspecialchars($error)?>
+        </div>
+        <?php
+endif; ?>
 
         <?php if ($success): ?>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <?= htmlspecialchars($success) ?>
-            </div>
-        <?php endif; ?>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <?= htmlspecialchars($success)?>
+        </div>
+        <?php
+endif; ?>
 
         <form method="POST" action="">
             <div class="form-group">
@@ -91,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             </div>
 
             <button type="submit" name="login" class="btn-primary" style="width: 100%;">
-                <i class="fas fa-sign-in-alt"></i> Entrar
+                <i class="fas fa-sign-in-alt"></i> Entrar no Painel
             </button>
         </form>
 
@@ -110,9 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             </div>
         </div>
 
-        <div class="back-home">
-            <a href="index.php">
-                <i class="fas fa-arrow-left"></i> Voltar para o site
+        <div class="back-home" style="text-align: center; margin-top: 2rem;">
+            <a href="index.php" style="color: var(--primary); font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Voltar para o site oficial
             </a>
         </div>
     </div>

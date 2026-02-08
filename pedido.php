@@ -1,6 +1,6 @@
 <?php
 /**
- * Formulário de Pedido - Helmer Logistics
+ * Formulário de Pedido - Loggi
  * Página pública para clientes preencherem endereço
  */
 
@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Validações básicas
         if (
-            empty($nome) || empty($cpf) || empty($telefone) || empty($cep) || empty($estado) ||
-            empty($cidade) || empty($bairro) || empty($rua) || empty($numero)
+        empty($nome) || empty($cpf) || empty($telefone) || empty($cep) || empty($estado) ||
+        empty($cidade) || empty($bairro) || empty($rua) || empty($numero)
         ) {
             throw new Exception('Por favor, preencha todos os campos obrigatórios.');
         }
@@ -102,12 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     writeLog("Falha ao enviar WhatsApp para pedido: " . ($resultado['error'] ?? 'Erro desconhecido'), 'WARNING');
                 }
             }
-        } catch (Exception $whatsappError) {
+        }
+        catch (Exception $whatsappError) {
             writeLog("Erro ao enviar WhatsApp para pedido: " . $whatsappError->getMessage(), 'WARNING');
-            // Não interrompe o fluxo se o WhatsApp falhar
+        // Não interrompe o fluxo se o WhatsApp falhar
         }
 
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error = $e->getMessage();
     }
 }
@@ -120,25 +122,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#FF3333">
-    <title>Fazer Pedido - Helmer Logistics</title>
+    <title>Finalizar Pedido - Loggi</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary: #FF3333;
-            --primary-glow: rgba(255, 51, 51, 0.4);
-            --secondary: #2563EB;
-            --surface: #121214;
-            --surface-secondary: #202024;
-            --background: #09090A;
-            --border: #29292E;
-            --text-main: #E1E1E6;
-            --text-muted: #A8A8B3;
-            --success: #04D361;
-            --error: #F75A68;
-            --font-main: 'Inter', sans-serif;
+            --primary: #0055FF;
+            --primary-glow: rgba(0, 85, 255, 0.2);
+            --secondary: #180F33;
+            --surface: #FFFFFF;
+            --surface-secondary: #F8F9FA;
+            --background: #F1F5F9;
+            --border: #E2E8F0;
+            --text-main: #180F33;
+            --text-muted: #52525B;
+            --text-dim: #71717A;
+            --success: #16A34A;
+            --error: #EF4444;
+            --font-main: 'Montserrat', sans-serif;
         }
+
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
 
         * {
             margin: 0;
@@ -149,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         body {
             background-color: var(--background);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(255, 51, 51, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
             color: var(--text-main);
@@ -189,9 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 2.25rem;
             font-weight: 800;
             letter-spacing: -1px;
-            background: linear-gradient(180deg, #FFFFFF 0%, #A8A8B3 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-main);
         }
 
         .header-brand p {
@@ -432,7 +435,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .trust-badges {
@@ -641,18 +646,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <header class="header-brand">
             <div class="logo-container">
-                <i class="fas fa-truck-fast logo-icon"></i>
+                <i class="fas fa-shipping-fast logo-icon"></i>
             </div>
             <h1>Finalizar Pedido</h1>
-            <p>Complete seus dados para envio imediato</p>
+            <p>Confirme seus dados para entrega Loggi</p>
         </header>
 
         <div class="checkout-card">
             <?php if ($error): ?>
-                <div style="background: rgba(247, 90, 104, 0.1); border: 1px solid var(--error); color: var(--error); padding: 16px; border-radius: 12px; margin-bottom: 24px; font-size: 0.875rem;">
-                    <i class="fas fa-exclamation-circle"></i> <?= $error ?>
-                </div>
-            <?php endif; ?>
+            <div
+                style="background: rgba(247, 90, 104, 0.1); border: 1px solid var(--error); color: var(--error); padding: 16px; border-radius: 12px; margin-bottom: 24px; font-size: 0.875rem;">
+                <i class="fas fa-exclamation-circle"></i>
+                <?= $error?>
+            </div>
+            <?php
+endif; ?>
 
             <form method="POST" id="pedidoForm" onsubmit="return handleSubmit(event)">
 
@@ -663,24 +671,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-grid">
                     <div class="input-group">
                         <label>Nome Completo <span>*</span></label>
-                        <input type="text" name="nome" class="input-control" required autocomplete="name" placeholder="Ex: Maria da Silva Santos">
+                        <input type="text" name="nome" class="input-control" required autocomplete="name"
+                            placeholder="Ex: Maria da Silva Santos">
                     </div>
 
                     <div class="form-row">
                         <div class="input-group">
                             <label>CPF <span>*</span></label>
-                            <input type="text" name="cpf" id="cpf" class="input-control" required placeholder="000.000.000-00" inputmode="numeric">
+                            <input type="text" name="cpf" id="cpf" class="input-control" required
+                                placeholder="000.000.000-00" inputmode="numeric">
                         </div>
 
                         <div class="input-group">
                             <label>WhatsApp <span>*</span></label>
-                            <input type="tel" name="telefone" class="input-control" required placeholder="(11) 99999-9999" autocomplete="tel">
+                            <input type="tel" name="telefone" class="input-control" required
+                                placeholder="(11) 99999-9999" autocomplete="tel">
                         </div>
                     </div>
 
                     <div class="input-group">
                         <label>E-mail (Opcional)</label>
-                        <input type="email" name="email" class="input-control" placeholder="seuemail@exemplo.com" autocomplete="email">
+                        <input type="email" name="email" class="input-control" placeholder="seuemail@exemplo.com"
+                            autocomplete="email">
                     </div>
                 </div>
 
@@ -692,7 +704,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-row">
                         <div class="input-group">
                             <label>CEP <span>*</span></label>
-                            <input type="text" name="cep" id="cep" class="input-control" required maxlength="9" placeholder="00000-000" inputmode="numeric">
+                            <input type="text" name="cep" id="cep" class="input-control" required maxlength="9"
+                                placeholder="00000-000" inputmode="numeric">
                         </div>
 
                         <div class="input-group">
@@ -733,19 +746,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-row">
                         <div class="input-group">
                             <label>Cidade <span>*</span></label>
-                            <input type="text" name="cidade" id="cidade" class="input-control" required autocomplete="address-level2">
+                            <input type="text" name="cidade" id="cidade" class="input-control" required
+                                autocomplete="address-level2">
                         </div>
 
                         <div class="input-group">
                             <label>Bairro <span>*</span></label>
-                            <input type="text" name="bairro" id="bairro" class="input-control" required autocomplete="address-level3">
+                            <input type="text" name="bairro" id="bairro" class="input-control" required
+                                autocomplete="address-level3">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
                         <div class="input-group">
                             <label>Logradouro (Rua/Av) <span>*</span></label>
-                            <input type="text" name="rua" id="rua" class="input-control" required autocomplete="street-address" placeholder="Ex: Rua das Flores">
+                            <input type="text" name="rua" id="rua" class="input-control" required
+                                autocomplete="street-address" placeholder="Ex: Rua das Flores">
                         </div>
 
                         <div class="input-group">
@@ -761,12 +777,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="input-group">
                         <label>Observações para o Entregador</label>
-                        <textarea name="observacoes" class="input-control" rows="2" style="resize: none;" placeholder="Ex: Portão azul, próximo ao mercado..."></textarea>
+                        <textarea name="observacoes" class="input-control" rows="2" style="resize: none;"
+                            placeholder="Ex: Portão azul, próximo ao mercado..."></textarea>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-submit" id="submitBtn">
-                    <i class="fas fa-shield-check"></i> Finalizar e Receber Rastreio
+                    Confirmar Endereço
                 </button>
 
             </form>
@@ -781,11 +798,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <section class="referencias-section">
         <div class="section-header">
-            <h2 class="section-title">
-                Experiência de Compra Premium
+            <h2 class="section-title"
+                style="background: none; -webkit-text-fill-color: initial; color: var(--text-main);">
+                Loggi: Tecnologia e Agilidade
             </h2>
             <p class="section-subtitle">
-                Tecnologia de ponta aliada a um atendimento humanizado. Veja o que quem já comprou tem a dizer sobre a Helmer Logistics.
+                Acompanhe cada passo da sua entrega. Veja o que dizem nossos clientes.
             </p>
         </div>
 
@@ -966,11 +984,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <p style="font-size: 14px; color: #25D366; margin-bottom: 10px;">
                             <i class="fab fa-whatsapp"></i> Enviamos uma mensagem no seu WhatsApp! Nossa equipe entrará em contato em breve.
                         </p>
-                        <?php else: ?>
+                        <?php
+    else: ?>
                         <p style="font-size: 14px; color: #888;">
                             Aguarde nosso contato via WhatsApp. Nossa equipe entrará em contato em breve para finalizar seu pedido.
                         </p>
-                        <?php endif; ?>
+                        <?php
+    endif; ?>
                     </div>
                 `,
                 icon: 'success',
@@ -981,19 +1001,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }).then(() => {
                 window.location.href = 'pedido.php';
             });
-        <?php endif; ?>
+        <?php
+endif; ?>
 
         <?php if ($error): ?>
             Swal.fire({
                 title: '❌ Erro',
-                text: '<?= addslashes($error) ?>',
+                text: '<?= addslashes($error)?>',
                 icon: 'error',
                 confirmButtonText: 'OK',
                 background: '#1a1a1a',
                 color: '#ffffff',
                 confirmButtonColor: '#FF3333'
             });
-        <?php endif; ?>
+        <?php
+endif; ?>
     </script>
 </body>
 

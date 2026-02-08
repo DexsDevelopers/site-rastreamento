@@ -4,9 +4,9 @@
 
 :root {
     /* Core Brand */
-    --primary: #FF3333;
-    --primary-glow: rgba(255, 51, 51, 0.5);
-    --accent: #ff5e00;
+    --primary: #0055FF;
+    --primary-glow: rgba(0, 85, 255, 0.5);
+    --accent: #180F33;
 
     /* Backgrounds - Ultra Dark Theme */
     --bg-body: #050505;
@@ -16,9 +16,9 @@
     --bg-glass: rgba(10, 10, 10, 0.8);
 
     /* Gradients */
-    --gradient-brand: linear-gradient(135deg, #FF3333 0%, #ff5e00 100%);
+    --gradient-brand: linear-gradient(135deg, #0055FF 0%, #180F33 100%);
     --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
-    --gradient-glow: radial-gradient(circle at top right, rgba(255, 51, 51, 0.15), transparent 70%);
+    --gradient-glow: radial-gradient(circle at top right, rgba(0, 85, 255, 0.15), transparent 70%);
 
     /* Text */
     --text-main: #ffffff;
@@ -134,7 +134,7 @@ body {
 
 .nav-item:hover,
 .nav-item.active {
-    background: rgba(255, 51, 51, 0.1);
+    background: rgba(0, 85, 255, 0.1);
     color: var(--primary);
 }
 
@@ -214,8 +214,8 @@ body {
 
 /* Gradient Mesh for First Card */
 .stat-card.featured {
-    background: radial-gradient(circle at top right, rgba(255, 51, 51, 0.1), transparent), var(--bg-card);
-    border: 1px solid rgba(255, 51, 51, 0.2);
+    background: radial-gradient(circle at top right, rgba(0, 85, 255, 0.1), transparent), var(--bg-card);
+    border: 1px solid rgba(0, 85, 255, 0.2);
 }
 
 .stat-icon {
@@ -305,11 +305,11 @@ body {
 .btn-primary {
     background: var(--gradient-brand);
     color: white;
-    box-shadow: 0 4px 12px rgba(255, 51, 51, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 85, 255, 0.2);
 }
 
 .btn-primary:hover {
-    box-shadow: 0 6px 16px rgba(255, 51, 51, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 85, 255, 0.3);
     transform: translateY(-1px);
 }
 
@@ -375,7 +375,7 @@ textarea {
 input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.1);
+    box-shadow: 0 0 0 2px rgba(0, 85, 255, 0.1);
 }
 
 /* Modals */
@@ -664,7 +664,7 @@ form {
 .form-control:focus {
     background: #000 !important;
     border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.15) !important;
+    box-shadow: 0 0 0 3px rgba(0, 85, 255, 0.15) !important;
 }
 
 /* Checkbox Groups - Improve styling */
@@ -718,7 +718,7 @@ form {
 
 .photo-upload:hover {
     border-color: var(--primary);
-    background: rgba(255, 51, 51, 0.05);
+    background: rgba(0, 85, 255, 0.05);
 }
 
 .photo-preview img {
@@ -769,7 +769,7 @@ input[readonly] {
     background: var(--gradient-brand);
     color: white;
     border: none;
-    box-shadow: 0 4px 15px rgba(255, 51, 51, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 85, 255, 0.5);
     font-size: 1.5rem;
     cursor: pointer;
     z-index: 90;
@@ -780,7 +780,7 @@ input[readonly] {
 
 .fab-add:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 85, 255, 0.3);
 }
 
 @media (max-width: 768px) {

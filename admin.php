@@ -1,6 +1,6 @@
 <?php
 /**
- * Painel Administrativo Helmer Logistics
+ * Painel Administrativo Loggi
  * Versão otimizada e segura
  */
 
@@ -60,7 +60,7 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
             exit;
         }
 
-        if ((int) $contato['notificacoes_ativas'] !== 1) {
+        if ((int)$contato['notificacoes_ativas'] !== 1) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Notificações WhatsApp estão desativadas para este código. Ative nas configurações do rastreio.'
@@ -130,25 +130,29 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
                                        ORDER BY criado_em DESC 
                                        LIMIT 1", [$codigo]);
 
-        if ($ultimaNotif && (int) $ultimaNotif['sucesso'] === 1) {
+        if ($ultimaNotif && (int)$ultimaNotif['sucesso'] === 1) {
             echo json_encode([
                 'success' => true,
                 'message' => "✅ Notificação WhatsApp enviada com sucesso para {$contato['telefone_normalizado']}!"
             ]);
             writeLog("Envio manual de WhatsApp para código {$codigo} concluído com sucesso", 'INFO');
-        } else {
+        }
+        else {
             $erroMsg = 'Erro desconhecido';
             if ($ultimaNotif) {
                 // Tentar extrair erro da resposta HTTP
                 $respostaBot = json_decode($ultimaNotif['resposta_http'] ?? '{}', true);
                 if (isset($respostaBot['error'])) {
                     $erroMsg = $respostaBot['error'];
-                } elseif (isset($respostaBot['message'])) {
+                }
+                elseif (isset($respostaBot['message'])) {
                     $erroMsg = $respostaBot['message'];
-                } else {
+                }
+                else {
                     $erroMsg = "HTTP {$ultimaNotif['http_code']}";
                 }
-            } else {
+            }
+            else {
                 $erroMsg = "Nenhum registro de envio encontrado (possível timeout interno)";
             }
 
@@ -164,7 +168,8 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         $output = ob_get_clean();
         echo $output;
         exit;
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $errorMsg = $e->getMessage();
         // Limpar buffer se tiver erro
         if (ob_get_level())
@@ -175,7 +180,8 @@ if (isset($_POST['enviar_whatsapp_manual']) && isset($_POST['codigo'])) {
         ]);
         writeLog("Erro ao enviar WhatsApp manual para {$codigo}: " . $errorMsg, 'ERROR');
         exit;
-    } catch (Throwable $e) {
+    }
+    catch (Throwable $e) {
         $errorMsg = $e->getMessage();
         if (ob_get_level())
             ob_end_clean();
@@ -222,7 +228,8 @@ if (isset($_POST['login']) && !isset($erro)) {
         $_SESSION['login_time'] = time();
         unset($_SESSION[$login_attempts_key]);
         writeLog("Login realizado com sucesso para usuário: $user", 'INFO');
-    } else {
+    }
+    else {
         // Incrementar tentativas
         if (!isset($_SESSION[$login_attempts_key])) {
             $_SESSION[$login_attempts_key] = ['count' => 0, 'last_attempt' => 0];
@@ -251,7 +258,7 @@ $STATUS_PRESETS = [
             ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', 'bg-green-500', 0],
             ['🚚 Em trânsito', 'A caminho do centro de distribuição', 'bg-orange-500', 6],
             ['🏢 No centro de distribuição', 'Processando encaminhamento', 'bg-yellow-500', 18],
-            ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', 'bg-red-500', 36],
+            ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', 'bg-blue-600', 36],
             ['✅ Entregue', 'Objeto entregue com sucesso', 'bg-green-500', 48]
         ]
     ],
@@ -261,7 +268,7 @@ $STATUS_PRESETS = [
             ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', 'bg-green-500', 0],
             ['🚚 Em trânsito', 'A caminho do centro de distribuição', 'bg-orange-500', 12],
             ['🏢 No centro de distribuição', 'Processando encaminhamento', 'bg-yellow-500', 36],
-            ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', 'bg-red-500', 60],
+            ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', 'bg-blue-600', 60],
             ['✅ Entregue', 'Objeto entregue com sucesso', 'bg-green-500', 72]
         ]
     ],
@@ -271,7 +278,7 @@ $STATUS_PRESETS = [
             ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', 'bg-green-500', 0],
             ['🚚 Em trânsito', 'A caminho do centro de distribuição', 'bg-orange-500', 8],
             ['🏢 No centro de distribuição', 'Aguardando confirmação de taxa', 'bg-yellow-500', 24],
-            ['🚀 Saiu para entrega', 'Taxa confirmada, em rota de entrega', 'bg-red-500', 48],
+            ['🚀 Saiu para entrega', 'Taxa confirmada, em rota de entrega', 'bg-blue-600', 48],
             ['✅ Entregue', 'Objeto entregue com sucesso', 'bg-green-500', 60]
         ]
     ]
@@ -286,7 +293,7 @@ function captureUndoSnapshot($pdo, $codigos, $label)
     $rows = fetchData($pdo, "SELECT * FROM rastreios_status WHERE codigo IN ($placeholders)", $codigos);
     $contacts = [];
     foreach ($codigos as $codigoItem) {
-        $codigo = trim((string) $codigoItem);
+        $codigo = trim((string)$codigoItem);
         $contato = getWhatsappContact($pdo, $codigo);
         if ($contato) {
             $contacts[$codigo] = $contato;
@@ -340,7 +347,7 @@ function restoreUndoSnapshot($pdo)
                 $codigo,
                 $contato['nome'] ?? null,
                 $contato['telefone_original'] ?? null,
-                isset($contato['notificacoes_ativas']) ? (int) $contato['notificacoes_ativas'] === 1 : true
+                isset($contato['notificacoes_ativas']) ? (int)$contato['notificacoes_ativas'] === 1 : true
             );
         }
     }
@@ -369,7 +376,7 @@ function adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $etapasMarcadas, 
         "postado" => ["📦 Objeto postado", "Objeto recebido no ponto de coleta", "bg-green-500"],
         "transito" => ["🚚 Em trânsito", "A caminho do centro de distribuição", "bg-orange-500"],
         "distribuicao" => ["🏢 No centro de distribuição", "Processando encaminhamento", "bg-yellow-500"],
-        "entrega" => ["🚀 Saiu para entrega", "Saiu para entrega ao destinatário", "bg-red-500"],
+        "entrega" => ["🚀 Saiu para entrega", "Saiu para entrega ao destinatário", "bg-blue-600"],
         "entregue" => ["✅ Entregue", "Objeto entregue com sucesso", "bg-green-500"],
     ];
 
@@ -419,7 +426,7 @@ if (isset($_POST['confirmar_pagamento_express'])) {
                     ["📦 Objeto postado", "Objeto recebido no ponto de coleta", "#16A34A", 0],
                     ["🚚 Em trânsito", "A caminho do centro de distribuição", "#F59E0B", 12],
                     ["🏢 No centro de distribuição", "Processando encaminhamento", "#FBBF24", 36],
-                    ["🚀 Saiu para entrega", "Saiu para entrega ao destinatário", "#EF4444", 60],
+                    ["🚀 Saiu para entrega", "Saiu para entrega ao destinatário", "#0055FF", 60],
                     ["✅ Entregue", "Objeto entregue com sucesso", "#16A34A", 72]
                 ]
             ];
@@ -428,16 +435,18 @@ if (isset($_POST['confirmar_pagamento_express'])) {
             aplicarPresetAoCodigo($pdo, $codigo, $cidade, $inicio, $presetExpress, null, null);
 
             // Marcar prioridade, ajustar previsão e limpar taxa
-            $dias = (int) getConfig('EXPRESS_DELIVERY_DAYS', 3);
+            $dias = (int)getConfig('EXPRESS_DELIVERY_DAYS', 3);
             $sql = "UPDATE rastreios_status SET prioridade = TRUE, data_entrega_prevista = DATE_ADD(CURDATE(), INTERVAL ? DAY), taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?";
             executeQuery($pdo, $sql, [$dias, $codigo]);
             notifyWhatsappLatestStatus($pdo, $codigo);
 
             $success_message = "Pagamento confirmado e entrega expressa aplicada ao código {$codigo}.";
-        } else {
+        }
+        else {
             $erro = "Código e cidade são obrigatórios para confirmar expressa.";
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $erro = "Erro ao aplicar entrega expressa: " . $e->getMessage();
     }
 }
@@ -490,11 +499,13 @@ if (isset($_POST['novo_codigo'])) {
                 $tempFotoPath = null;
                 $success_message = "Foto do rastreio {$codigo} atualizada com sucesso.";
                 writeLog("Foto atualizada via formulário principal para {$codigo}", 'INFO');
-            } else {
+            }
+            else {
                 $error_message = "O código {$codigo} já existe. Use o campo de foto ou edite o rastreio para atualizar os dados.";
                 writeLog("Tentativa de adicionar código duplicado sem foto: $codigo", 'WARNING');
             }
-        } else {
+        }
+        else {
             adicionarEtapas($pdo, $codigo, $cidade, $dataInicial, $_POST['etapas'], $taxa_valor, $taxa_pix);
             upsertWhatsappContact(
                 $pdo,
@@ -506,8 +517,9 @@ if (isset($_POST['novo_codigo'])) {
             notifyWhatsappLatestStatus($pdo, $codigo);
             if ($taxa_valor && $taxa_pix) {
                 try {
-                    notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
-                } catch (Exception $taxaError) {
+                    notifyWhatsappTaxa($pdo, $codigo, (float)$taxa_valor, $taxa_pix);
+                }
+                catch (Exception $taxaError) {
                     writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
                 }
             }
@@ -520,7 +532,8 @@ if (isset($_POST['novo_codigo'])) {
             $success_message = "Rastreio {$codigo} adicionado com sucesso!";
             writeLog("Novo rastreio adicionado: $codigo para $cidade", 'INFO');
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         if ($tempFotoPath) {
             deleteRastreioFotoFile($tempFotoPath);
         }
@@ -541,7 +554,8 @@ if (isset($_POST['deletar'])) {
         removeRastreioFoto($pdo, $codigo);
         $success_message = "Rastreio {$codigo} excluído com sucesso!";
         writeLog("Rastreio excluído: $codigo", 'INFO');
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = "Erro ao excluir rastreio: " . $e->getMessage();
         writeLog("Erro ao excluir rastreio: " . $e->getMessage(), 'ERROR');
     }
@@ -550,7 +564,7 @@ if (isset($_POST['deletar'])) {
 // PEDIDOS PENDENTES - Aprovar
 if (isset($_POST['aprovar_pedido'])) {
     try {
-        $pedidoId = (int) $_POST['pedido_id'];
+        $pedidoId = (int)$_POST['pedido_id'];
         $codigoRastreio = sanitizeInput($_POST['codigo_rastreio'] ?? '');
 
         if (empty($codigoRastreio)) {
@@ -603,7 +617,8 @@ if (isset($_POST['aprovar_pedido'])) {
         $baseUrl = getDynamicConfig('WHATSAPP_TRACKING_URL', '');
         if ($baseUrl) {
             $linkRastreio = str_replace('{{codigo}}', $codigoRastreio, $baseUrl);
-        } else {
+        }
+        else {
             // Fallback: usar URL atual
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
             $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
@@ -626,7 +641,8 @@ if (isset($_POST['aprovar_pedido'])) {
 
         $success_message = "✅ Pedido aprovado! Rastreamento {$codigoRastreio} criado e cliente notificado.";
         writeLog("Pedido aprovado: ID {$pedidoId}, Código: {$codigoRastreio}, Cliente: {$pedido['nome']}", 'INFO');
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = "Erro ao aprovar pedido: " . $e->getMessage();
         writeLog("Erro ao aprovar pedido: " . $e->getMessage(), 'ERROR');
     }
@@ -635,13 +651,14 @@ if (isset($_POST['aprovar_pedido'])) {
 // PEDIDOS PENDENTES - Rejeitar
 if (isset($_POST['rejeitar_pedido'])) {
     try {
-        $pedidoId = (int) $_POST['pedido_id'];
+        $pedidoId = (int)$_POST['pedido_id'];
         $sql = "UPDATE pedidos_pendentes SET status = 'rejeitado' WHERE id = ?";
         executeQuery($pdo, $sql, [$pedidoId]);
 
         $success_message = "Pedido rejeitado com sucesso!";
         writeLog("Pedido rejeitado: ID {$pedidoId}", 'INFO');
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = "Erro ao rejeitar pedido: " . $e->getMessage();
         writeLog("Erro ao rejeitar pedido: " . $e->getMessage(), 'ERROR');
     }
@@ -695,14 +712,16 @@ if (isset($_POST['salvar_edicao'])) {
             // Notificar sobre taxa se houver
             if ($taxa_valor && $taxa_pix) {
                 try {
-                    notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
-                } catch (Exception $taxaError) {
+                    notifyWhatsappTaxa($pdo, $codigo, (float)$taxa_valor, $taxa_pix);
+                }
+                catch (Exception $taxaError) {
                     writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
                 }
             }
-        } catch (Exception $whatsappError) {
+        }
+        catch (Exception $whatsappError) {
             writeLog("Erro ao atualizar WhatsApp para {$codigo}: " . $whatsappError->getMessage(), 'WARNING');
-            // Não interrompe o processo de edição se houver erro no WhatsApp
+        // Não interrompe o processo de edição se houver erro no WhatsApp
         }
 
         // Processar foto
@@ -713,14 +732,16 @@ if (isset($_POST['salvar_edicao'])) {
             persistRastreioFoto($pdo, $codigo, $novaFotoPath);
             $tempFotoEdicao = null; // Limpar referência após salvar
             writeLog("Foto salva com sucesso para código $codigo", 'DEBUG');
-        } elseif ($removerFoto) {
+        }
+        elseif ($removerFoto) {
             writeLog("Removendo foto do código $codigo", 'DEBUG');
             removeRastreioFoto($pdo, $codigo);
         }
 
         $success_message = "Rastreio {$codigo} atualizado com sucesso!";
         writeLog("Rastreio atualizado: $codigo", 'INFO');
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         if ($tempFotoEdicao) {
             deleteRastreioFotoFile($tempFotoEdicao);
         }
@@ -747,7 +768,8 @@ if (isset($_POST['bulk_delete'])) {
             $success_message = "{$count} rastreio(s) excluído(s) com sucesso!";
             writeLog("Exclusão em lote: $count rastreios excluídos", 'INFO');
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = "Erro na exclusão em lote: " . $e->getMessage();
         writeLog("Erro na exclusão em lote: " . $e->getMessage(), 'ERROR');
     }
@@ -777,8 +799,9 @@ if (isset($_POST['bulk_edit'])) {
                     executeQuery($pdo, $sql, [$nova_taxa_valor, $nova_taxa_pix, $codigo]);
                     // Notificar sobre taxa
                     try {
-                        notifyWhatsappTaxa($pdo, $codigo, (float) $nova_taxa_valor, $nova_taxa_pix);
-                    } catch (Exception $taxaError) {
+                        notifyWhatsappTaxa($pdo, $codigo, (float)$nova_taxa_valor, $nova_taxa_pix);
+                    }
+                    catch (Exception $taxaError) {
                         writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
                     }
                 }
@@ -787,7 +810,8 @@ if (isset($_POST['bulk_edit'])) {
             $success_message = "{$count} rastreio(s) atualizado(s) com sucesso!";
             writeLog("Edição em lote: $count rastreios atualizados", 'INFO');
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = "Erro na edição em lote: " . $e->getMessage();
         writeLog("Erro na edição em lote: " . $e->getMessage(), 'ERROR');
     }
@@ -830,8 +854,9 @@ if (isset($_POST['apply_preset'])) {
             // Notificar sobre taxa se houver
             if ($taxa_valor && $taxa_pix) {
                 try {
-                    notifyWhatsappTaxa($pdo, $codigo, (float) $taxa_valor, $taxa_pix);
-                } catch (Exception $taxaError) {
+                    notifyWhatsappTaxa($pdo, $codigo, (float)$taxa_valor, $taxa_pix);
+                }
+                catch (Exception $taxaError) {
                     writeLog("Erro ao notificar sobre taxa para {$codigo}: " . $taxaError->getMessage(), 'WARNING');
                 }
             }
@@ -839,7 +864,8 @@ if (isset($_POST['apply_preset'])) {
         }
         $success_message = "Preset aplicado para {$count} rastreio(s)!";
         writeLog("Preset '{$preset_key}' aplicado em massa para $count códigos", 'INFO');
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = "Erro ao aplicar preset: " . $e->getMessage();
         writeLog("Erro ao aplicar preset: " . $e->getMessage(), 'ERROR');
     }
@@ -851,7 +877,8 @@ if (isset($_POST['undo_action'])) {
     if ($ok) {
         $success_message = 'Ação desfeita com sucesso';
         writeLog('Desfazer executado com sucesso', 'INFO');
-    } else {
+    }
+    else {
         $error_message = $msg ?: 'Não foi possível desfazer';
         writeLog('Falha ao desfazer: ' . ($msg ?: 'desconhecida'), 'WARNING');
     }
@@ -867,7 +894,8 @@ $sqlPedidos = "SELECT COUNT(*) as total FROM pedidos_pendentes WHERE status = 'p
 $totalPedidosPendentes = fetchOne($pdo, $sqlPedidos)['total'] ?? 0;
 if ($totalPedidosPendentes > 0) {
     $pedidosPendentes = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pendente' ORDER BY data_pedido DESC");
-} else {
+}
+else {
     $pedidosPendentes = [];
 }
 
@@ -902,8 +930,8 @@ $semTaxa = $totalRastreios - $comTaxa;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Helmer Logistics</title>
-    <meta name="theme-color" content="#FF3333">
+    <title>Painel Admin - Loggi</title>
+    <meta name="theme-color" content="#0055FF">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -922,7 +950,7 @@ $semTaxa = $totalRastreios - $comTaxa;
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <i class="fas fa-cube"></i> Helmer
+                    <i class="fas fa-shipping-fast"></i> Loggi
                 </div>
                 <button class="mobile-close-btn" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>
@@ -947,13 +975,14 @@ $semTaxa = $totalRastreios - $comTaxa;
 
             <div class="sidebar-footer">
                 <?php if (!empty($_SESSION['undo_action'])): ?>
-                    <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action"
-                            value="1"></form>
-                    <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;"
-                        style="color: var(--warning);">
-                        <i class="fas fa-rotate-left"></i> Desfazer
-                    </a>
-                <?php endif; ?>
+                <form id="undoForm" method="POST" style="display:none"><input type="hidden" name="undo_action"
+                        value="1"></form>
+                <a href="#" class="nav-item" onclick="document.getElementById('undoForm').submit(); return false;"
+                    style="color: var(--warning);">
+                    <i class="fas fa-rotate-left"></i> Desfazer
+                </a>
+                <?php
+endif; ?>
                 <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i
                         class="fas fa-power-off"></i> Sair</a>
             </div>
@@ -971,7 +1000,7 @@ $semTaxa = $totalRastreios - $comTaxa;
                         <i class="fas fa-bars"></i>
                     </button>
                     <div class="header-title">
-                        <h2>Painel Administrativo</h2>
+                        <h2>Painel Loggi</h2>
                     </div>
                 </div>
 
@@ -995,31 +1024,42 @@ $semTaxa = $totalRastreios - $comTaxa;
                 <div class="stats-grid">
                     <div class="stat-card featured">
                         <div class="stat-icon"><i class="fas fa-box"></i></div>
-                        <div class="stat-value"><?= $totalRastreios ?></div>
+                        <div class="stat-value">
+                            <?= $totalRastreios?>
+                        </div>
                         <div class="stat-label">Total de Rastreios</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-clock"></i></div>
-                        <div class="stat-value"><?= $comTaxa ?></div>
+                        <div class="stat-value">
+                            <?= $comTaxa?>
+                        </div>
                         <div class="stat-label">Taxa Pendente</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="color: var(--success);"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value"><?= $semTaxa ?></div>
+                        <div class="stat-value">
+                            <?= $semTaxa?>
+                        </div>
                         <div class="stat-label">Sem Taxa</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="color: var(--info);"><i class="fas fa-truck"></i></div>
-                        <div class="stat-value"><?= $entregues ?></div>
+                        <div class="stat-value">
+                            <?= $entregues?>
+                        </div>
                         <div class="stat-label">Entregues</div>
                     </div>
                     <?php if ($totalPedidosPendentes > 0): ?>
-                        <div class="stat-card" style="border-color: var(--warning);">
-                            <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
-                            <div class="stat-value"><?= $totalPedidosPendentes ?></div>
-                            <div class="stat-label">Pedidos Pendentes</div>
+                    <div class="stat-card" style="border-color: var(--warning);">
+                        <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="stat-value">
+                            <?= $totalPedidosPendentes?>
                         </div>
-                    <?php endif; ?>
+                        <div class="stat-label">Pedidos Pendentes</div>
+                    </div>
+                    <?php
+endif; ?>
                 </div>
 
                 <!-- Table Section -->
@@ -1082,62 +1122,64 @@ $semTaxa = $totalRastreios - $comTaxa;
                             </thead>
                             <tbody>
                                 <?php
-                                // Lógica para buscar rastreios
-                                $where = "";
-                                if (isset($_GET['filtro'])) {
-                                    if ($_GET['filtro'] == "com_taxa") {
-                                        $where = "HAVING MAX(taxa_valor) IS NOT NULL AND MAX(taxa_pix) IS NOT NULL";
-                                    } elseif ($_GET['filtro'] == "sem_taxa") {
-                                        $where = "HAVING MAX(taxa_valor) IS NULL OR MAX(taxa_pix) IS NULL";
-                                    }
-                                }
+// Lógica para buscar rastreios
+$where = "";
+if (isset($_GET['filtro'])) {
+    if ($_GET['filtro'] == "com_taxa") {
+        $where = "HAVING MAX(taxa_valor) IS NOT NULL AND MAX(taxa_pix) IS NOT NULL";
+    }
+    elseif ($_GET['filtro'] == "sem_taxa") {
+        $where = "HAVING MAX(taxa_valor) IS NULL OR MAX(taxa_pix) IS NULL";
+    }
+}
 
-                                // Consulta mais robusta - primeiro pega todos os códigos únicos
-                                $sql = "SELECT DISTINCT codigo FROM rastreios_status WHERE codigo IS NOT NULL AND codigo != '' ORDER BY codigo DESC";
-                                $codigos_result = fetchData($pdo, $sql);
+// Consulta mais robusta - primeiro pega todos os códigos únicos
+$sql = "SELECT DISTINCT codigo FROM rastreios_status WHERE codigo IS NOT NULL AND codigo != '' ORDER BY codigo DESC";
+$codigos_result = fetchData($pdo, $sql);
 
-                                $dados_rastreios = [];
-                                if (!empty($codigos_result)) {
-                                    foreach ($codigos_result as $codigo_row) {
-                                        $codigo = $codigo_row['codigo'];
+$dados_rastreios = [];
+if (!empty($codigos_result)) {
+    foreach ($codigos_result as $codigo_row) {
+        $codigo = $codigo_row['codigo'];
 
-                                        // Para cada código, pega o último registro
-                                        $ultimo_sql = "SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1";
-                                        $ultimo_result = fetchOne($pdo, $ultimo_sql, [$codigo]);
+        // Para cada código, pega o último registro
+        $ultimo_sql = "SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1";
+        $ultimo_result = fetchOne($pdo, $ultimo_sql, [$codigo]);
 
-                                        if ($ultimo_result) {
-                                            $dados_rastreios[] = $ultimo_result;
-                                        }
-                                    }
-                                }
+        if ($ultimo_result) {
+            $dados_rastreios[] = $ultimo_result;
+        }
+    }
+}
 
-                                // Aplicar filtros se necessário
-                                if (isset($_GET['filtro'])) {
-                                    $dados_rastreios = array_filter($dados_rastreios, function ($row) {
-                                        if ($_GET['filtro'] == "com_taxa") {
-                                            return !empty($row['taxa_valor']) && !empty($row['taxa_pix']);
-                                        } elseif ($_GET['filtro'] == "sem_taxa") {
-                                            return empty($row['taxa_valor']) || empty($row['taxa_pix']);
-                                        }
-                                        return true;
-                                    });
-                                }
+// Aplicar filtros se necessário
+if (isset($_GET['filtro'])) {
+    $dados_rastreios = array_filter($dados_rastreios, function ($row) {
+        if ($_GET['filtro'] == "com_taxa") {
+            return !empty($row['taxa_valor']) && !empty($row['taxa_pix']);
+        }
+        elseif ($_GET['filtro'] == "sem_taxa") {
+            return empty($row['taxa_valor']) || empty($row['taxa_pix']);
+        }
+        return true;
+    });
+}
 
-                                if (!empty($dados_rastreios)) {
-                                    foreach ($dados_rastreios as $row) {
-                                        $badge = !empty($row['taxa_valor']) && !empty($row['taxa_pix'])
-                                            ? "<span class='badge badge-warning'>Pendente</span>"
-                                            : "<span class='badge badge-success'>Sem taxa</span>";
+if (!empty($dados_rastreios)) {
+    foreach ($dados_rastreios as $row) {
+        $badge = !empty($row['taxa_valor']) && !empty($row['taxa_pix'])
+            ? "<span class='badge badge-warning'>Pendente</span>"
+            : "<span class='badge badge-success'>Sem taxa</span>";
 
-                                        $statusClass = 'text-muted';
-                                        if (strpos($row['status_atual'], 'Entregue') !== false)
-                                            $statusClass = 'text-success';
-                                        elseif (strpos($row['status_atual'], 'Saiu') !== false)
-                                            $statusClass = 'text-warning';
-                                        elseif (strpos($row['status_atual'], 'trânsito') !== false)
-                                            $statusClass = 'text-info';
+        $statusClass = 'text-muted';
+        if (strpos($row['status_atual'], 'Entregue') !== false)
+            $statusClass = 'text-success';
+        elseif (strpos($row['status_atual'], 'Saiu') !== false)
+            $statusClass = 'text-warning';
+        elseif (strpos($row['status_atual'], 'trânsito') !== false)
+            $statusClass = 'text-info';
 
-                                        echo "<tr data-codigo='{$row['codigo']}' data-cidade='{$row['cidade']}' data-status='{$row['status_atual']}'>
+        echo "<tr data-codigo='{$row['codigo']}' data-cidade='{$row['cidade']}' data-status='{$row['status_atual']}'>
                                     <td><input type='checkbox' class='row-checkbox' value='{$row['codigo']}' onchange='updateSelection()'></td>
                                     <td style='font-family:var(--font-mono); font-weight:600;'>{$row['codigo']}</td>
                                     <td>{$row['cidade']}</td>
@@ -1155,11 +1197,12 @@ $semTaxa = $totalRastreios - $comTaxa;
                                         </form>
                                     </td>
                                 </tr>";
-                                    }
-                                } else {
-                                    echo "<tr><td colspan='7' style='text-align:center; padding:3rem; color:var(--text-muted);'>Nenhum rastreio encontrado</td></tr>";
-                                }
-                                ?>
+    }
+}
+else {
+    echo "<tr><td colspan='7' style='text-align:center; padding:3rem; color:var(--text-muted);'>Nenhum rastreio encontrado</td></tr>";
+}
+?>
                             </tbody>
                         </table>
                     </div>
@@ -1168,35 +1211,43 @@ $semTaxa = $totalRastreios - $comTaxa;
                 <!-- Cards View (Mobile Only) - Gerado via JS ou mantido PHP se preferir -->
                 <div class="cards-list">
                     <?php if (!empty($dados_rastreios)):
-                        foreach ($dados_rastreios as $row): ?>
-                            <div class="card-item" onclick="viewDetails('<?= $row['codigo'] ?>')">
-                                <div class="card-header">
-                                    <div class="card-code"><?= $row['codigo'] ?></div>
-                                    <?= !empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : '' ?>
-                                </div>
-                                <div class="card-status"><?= $row['status_atual'] ?></div>
-                                <div class="card-city"><i class="fas fa-map-pin"></i> <?= $row['cidade'] ?></div>
-                                <div class="card-actions">
-                                    <button class="btn-mobile-action btn-mobile-edit"
-                                        onclick="event.stopPropagation(); abrirModal('<?= $row['codigo'] ?>')">
-                                        <i class="fas fa-pencil"></i> Editar
-                                    </button>
-                                    <button class="btn-mobile-action"
-                                        style="background: rgba(37, 211, 102, 0.1); color: #25D366; border-color: rgba(37, 211, 102, 0.2);"
-                                        onclick="event.stopPropagation(); enviarWhatsappManual('<?= $row['codigo'] ?>')">
-                                        <i class="fab fa-whatsapp"></i> Zap
-                                    </button>
-                                    <button class="btn-mobile-action btn-mobile-delete"
-                                        onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo'] ?>', 'rastreio', '<?= $row['codigo'] ?>')">
-                                        <i class="fas fa-trash"></i> Excluir
-                                    </button>
-                                </div>
-                                <form id="form-delete-<?= $row['codigo'] ?>" method="POST" style="display:none;">
-                                    <input type="hidden" name="deletar" value="1">
-                                    <input type="hidden" name="codigo" value="<?= $row['codigo'] ?>">
-                                </form>
+    foreach ($dados_rastreios as $row): ?>
+                    <div class="card-item" onclick="viewDetails('<?= $row['codigo']?>')">
+                        <div class="card-header">
+                            <div class="card-code">
+                                <?= $row['codigo']?>
                             </div>
-                        <?php endforeach; endif; ?>
+                            <?=!empty($row['taxa_valor']) ? '<span class="badge badge-warning">Taxa</span>' : ''?>
+                        </div>
+                        <div class="card-status">
+                            <?= $row['status_atual']?>
+                        </div>
+                        <div class="card-city"><i class="fas fa-map-pin"></i>
+                            <?= $row['cidade']?>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-mobile-action btn-mobile-edit"
+                                onclick="event.stopPropagation(); abrirModal('<?= $row['codigo']?>')">
+                                <i class="fas fa-pencil"></i> Editar
+                            </button>
+                            <button class="btn-mobile-action"
+                                style="background: rgba(37, 211, 102, 0.1); color: #25D366; border-color: rgba(37, 211, 102, 0.2);"
+                                onclick="event.stopPropagation(); enviarWhatsappManual('<?= $row['codigo']?>')">
+                                <i class="fab fa-whatsapp"></i> Zap
+                            </button>
+                            <button class="btn-mobile-action btn-mobile-delete"
+                                onclick="event.stopPropagation(); confirmarExclusao('form-delete-<?= $row['codigo']?>', 'rastreio', '<?= $row['codigo']?>')">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                        <form id="form-delete-<?= $row['codigo']?>" method="POST" style="display:none;">
+                            <input type="hidden" name="deletar" value="1">
+                            <input type="hidden" name="codigo" value="<?= $row['codigo']?>">
+                        </form>
+                    </div>
+                    <?php
+    endforeach;
+endif; ?>
                 </div>
 
             </div> <!-- End .content-body -->
@@ -1226,7 +1277,7 @@ $semTaxa = $totalRastreios - $comTaxa;
                     <div class="form-group">
                         <label>Data de Postagem</label>
                         <input type="datetime-local" name="data_inicial" class="form-control"
-                            value="<?= date('Y-m-d\TH:i') ?>" required>
+                            value="<?= date('Y-m-d\TH:i')?>" required>
                     </div>
                 </div>
 
@@ -1253,7 +1304,8 @@ $semTaxa = $totalRastreios - $comTaxa;
                                 onchange="previewFotoNovo(this)">
                         </div>
                         <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">
-                            Formatos suportados: JPG, PNG, WEBP ou GIF (até <?= $uploadMaxSizeMb ?> MB).
+                            Formatos suportados: JPG, PNG, WEBP ou GIF (até
+                            <?= $uploadMaxSizeMb?> MB).
                         </small>
                     </div>
                 </div>
@@ -1379,7 +1431,8 @@ $semTaxa = $totalRastreios - $comTaxa;
                             </label>
                         </div>
                         <small style="display:block;color:rgba(148,163,184,0.85);font-size:0.85rem;margin-top:6px;">
-                            Formatos suportados: JPG, PNG, WEBP ou GIF (até <?= $uploadMaxSizeMb ?> MB).
+                            Formatos suportados: JPG, PNG, WEBP ou GIF (até
+                            <?= $uploadMaxSizeMb?> MB).
                         </small>
                     </div>
                 </div>
@@ -1954,37 +2007,39 @@ $semTaxa = $totalRastreios - $comTaxa;
         // Auto-refresh removido - atualização apenas manual
 
         // Mostrar notificações de sucesso do PHP
-        <?php if (isset($success_message)): ?>
+        <? php if (isset($success_message)): ?>
             document.addEventListener('DOMContentLoaded', function () {
-                notifySuccess('<?= addslashes($success_message) ?>');
+                notifySuccess('<?= addslashes($success_message)?>');
             });
-        <?php endif; ?>
+        <? php
+endif; ?>
 
         // Mostrar notificações de erro do PHP
-        <?php if (isset($error_message)): ?>
+        <? php if (isset($error_message)): ?>
             document.addEventListener('DOMContentLoaded', function () {
-                notifyError('<?= addslashes($error_message) ?>');
+                notifyError('<?= addslashes($error_message)?>');
             });
-        <?php endif; ?>
+        <? php
+endif; ?>
 
-        // Inicializar sistema de automações
-        document.addEventListener('DOMContentLoaded', function () {
-            loadAutomationSettings();
+            // Inicializar sistema de automações
+            document.addEventListener('DOMContentLoaded', function () {
+                loadAutomationSettings();
 
-            // Verificar se há automações ativas e iniciá-las
-            const saved = localStorage.getItem('automationSettings');
-            if (saved) {
-                const automations = JSON.parse(saved);
+                // Verificar se há automações ativas e iniciá-las
+                const saved = localStorage.getItem('automationSettings');
+                if (saved) {
+                    const automations = JSON.parse(saved);
 
-                if (automations.statusUpdate && automations.statusUpdate.enabled) {
-                    startStatusAutomation(automations.statusUpdate.interval);
+                    if (automations.statusUpdate && automations.statusUpdate.enabled) {
+                        startStatusAutomation(automations.statusUpdate.interval);
+                    }
+
+                    if (automations.notifications && automations.notifications.enabled) {
+                        startNotificationAutomation();
+                    }
                 }
-
-                if (automations.notifications && automations.notifications.enabled) {
-                    startNotificationAutomation();
-                }
-            }
-        });
+            });
 
         // Validação AJAX de duplicidade no formulário de adicionar
         document.addEventListener('DOMContentLoaded', function () {
@@ -2871,11 +2926,11 @@ $semTaxa = $totalRastreios - $comTaxa;
             }
         });
     </script>
-    <?php // Expor presets ao JS ?>
+    <?php // Expor presets ao JS ?? ?>
     <script>
         window.STATUS_PRESETS = <?php echo json_encode(array_map(function ($p) {
-            return ['label' => $p['label'], 'steps' => $p['steps']];
-        }, $STATUS_PRESETS)); ?>
+    return ['label' => $p['label'], 'steps' => $p['steps']];
+}, $STATUS_PRESETS)); ?>
     </script>
     <!-- UI Enhancements - Melhorias de UX/UI -->
     <script src="assets/js/ui-enhancements.js"></script>

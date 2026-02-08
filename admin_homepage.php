@@ -229,7 +229,7 @@ foreach ($configs as $config) {
 }
 
 // Valores padrão se não existirem
-$nomeEmpresa = $configArray['nome_empresa'] ?? 'Helmer Logistics';
+$nomeEmpresa = $configArray['nome_empresa'] ?? 'Loggi';
 $tituloHero = $configArray['titulo_hero'] ?? 'Acompanhe seus Recebimentos em Tempo Real';
 $descricaoHero = $configArray['descricao_hero'] ?? 'Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real';
 $badgeSatisfacao = $configArray['badge_satisfacao'] ?? '98.7% de Satisfação';
@@ -247,7 +247,7 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #FF3333;
+            --primary: #0055FF;
             --bg-dark: #0F0F0F;
             --bg-card: #1A1A1A;
             --border: rgba(255, 255, 255, 0.1);
@@ -277,7 +277,7 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
         .input-field:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 85, 255, 0.1);
         }
         .btn {
             padding: 12px 24px;
@@ -288,12 +288,12 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
             border: none;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #FF3333 0%, #FF6666 100%);
+            background: linear-gradient(135deg, #0055FF 0%, #180F33 100%);
             color: white;
         }
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 85, 255, 0.4);
         }
         .alert {
             padding: 16px;

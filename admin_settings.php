@@ -1,7 +1,7 @@
 <?php
 /**
  * Painel Admin - Configurações (Moderno)
- * Helmer Logistics
+ * Loggi
  */
 
 require_once 'includes/config.php';
@@ -28,19 +28,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($pix === '')
                 throw new Exception('Chave PIX obrigatória.');
 
-            setDynamicConfig('EXPRESS_FEE_VALUE', (float) $fee);
+            setDynamicConfig('EXPRESS_FEE_VALUE', (float)$fee);
             setDynamicConfig('EXPRESS_PIX_KEY', $pix);
 
-            $currentFee = (float) $fee;
+            $currentFee = (float)$fee;
             $currentPix = $pix;
 
             $message = "Configurações de Expressa atualizadas!";
             $type = 'success';
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             $message = $e->getMessage();
             $type = 'error';
         }
-    } elseif (isset($_POST['salvar_settings_pedido'])) {
+    }
+    elseif (isset($_POST['salvar_settings_pedido'])) {
         try {
             $pixPedido = isset($_POST['pedido_pix_key']) ? trim($_POST['pedido_pix_key']) : '';
             setDynamicConfig('PEDIDO_PIX_KEY', $pixPedido);
@@ -48,7 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $message = "Configurações de Pedido atualizadas!";
             $type = 'success';
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             $message = $e->getMessage();
             $type = 'error';
         }
@@ -61,8 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurações | Helmer Admin</title>
-    <meta name="theme-color" content="#FF3333">
+    <title>Configurações | Loggi Admin</title>
+    <meta name="theme-color" content="#0055FF">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo time(); ?>">
@@ -75,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <i class="fas fa-cube"></i> Helmer
+                    <i class="fas fa-shipping-fast"></i> Loggi
                 </div>
                 <button class="mobile-close-btn" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>
@@ -133,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="form-group">
                             <label>Chave PIX (Para pagamento do produto)</label>
                             <input type="text" name="pedido_pix_key" class="form-control"
-                                value="<?= htmlspecialchars($pedidoPixKey) ?>" placeholder="CNPJ, Email ou Telefone">
+                                value="<?= htmlspecialchars($pedidoPixKey)?>" placeholder="CNPJ, Email ou Telefone">
                             <small class="text-muted" style="display:block; margin-top:0.5rem;">Esta chave será enviada
                                 ao cliente após o pedido.</small>
                         </div>
@@ -155,12 +158,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="form-group">
                                 <label>Valor da Taxa (R$)</label>
                                 <input type="text" name="express_fee_value" class="form-control"
-                                    value="<?= number_format($currentFee, 2, ',', '') ?>">
+                                    value="<?= number_format($currentFee, 2, ',', '')?>">
                             </div>
                             <div class="form-group">
                                 <label>Chave PIX (Para taxa expressa)</label>
                                 <input type="text" name="express_pix_key" class="form-control"
-                                    value="<?= htmlspecialchars($currentPix) ?>">
+                                    value="<?= htmlspecialchars($currentPix)?>">
                             </div>
                         </div>
                         <div style="text-align:right;">
@@ -192,15 +195,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <?php if ($message): ?>
                 Swal.fire({
-                    icon: '<?= $type ?>',
-                    title: '<?= $type == "success" ? "Sucesso" : "Erro" ?>',
-                    text: '<?= addslashes($message) ?>',
+                    icon: '<?= $type?>',
+                    title: '<?= $type == "success" ? "Sucesso" : "Erro"?>',
+                    text: '<?= addslashes($message)?>',
                     background: '#1a1a1a',
                     color: '#fff',
-                    confirmButtonColor: '#16A34A',
+                    confirmButtonColor: '#0055FF',
                     timer: 2000
                 });
-            <?php endif; ?>
+            <?php
+endif; ?>
         });
     </script>
 </body>

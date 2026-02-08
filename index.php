@@ -1,6 +1,6 @@
 <?php
 /**
- * Sistema de Rastreamento Helmer Logistics
+ * Sistema de Rastreamento Loggi
  * Serviços Especializados de Entrega
  */
 
@@ -31,36 +31,37 @@ function getHomepageConfig($pdo, $chave, $default = '')
 
         $result = fetchOne($pdo, "SELECT valor FROM homepage_config WHERE chave = ?", [$chave]);
         return $result && isset($result['valor']) ? $result['valor'] : $default;
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         // Em caso de erro, retornar valor padrão
         return $default;
     }
 }
 
 // Carregar configurações da homepage
-$nomeEmpresa = getHomepageConfig($pdo, 'nome_empresa', 'Helmer Logistics');
-$tituloHero = getHomepageConfig($pdo, 'titulo_hero', 'Acompanhe seus Recebimentos em Tempo Real');
-$descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Verifique o status dos seus recebimentos com tecnologia de ponta e acompanhamento em tempo real');
-$badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', '98.7% de Satisfação');
-$badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', '5.247 Entregas');
-$badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
+$nomeEmpresa = getHomepageConfig($pdo, 'nome_empresa', 'Loggi');
+$tituloHero = getHomepageConfig($pdo, 'titulo_hero', 'O rastreio do seu envio é prático');
+$descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Acompanhe seu pedido em tempo real com a Loggi. Entregas rápidas e seguras em todo o Brasil.');
+$badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', 'Loggi para você');
+$badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', 'Loggi para empresas');
+$badgeCidades = getHomepageConfig($pdo, 'badge_cidades', 'Ajudar');
 
 // Seção "Como funciona"
-$howItWorksTitle = getHomepageConfig($pdo, 'how_it_works_title', 'Como funciona');
-$feature1Title = getHomepageConfig($pdo, 'feature1_title', '1) Rastreie');
-$feature1Description = getHomepageConfig($pdo, 'feature1_description', 'Digite o código e a cidade para validar e ver o status do envio.');
-$feature2Title = getHomepageConfig($pdo, 'feature2_title', '2) Acompanhe');
-$feature2Description = getHomepageConfig($pdo, 'feature2_description', 'Veja a linha do tempo com todas as etapas do seu recebimento.');
-$feature3Title = getHomepageConfig($pdo, 'feature3_title', '3) Entrega Expressa');
-$feature3Description = getHomepageConfig($pdo, 'feature3_description', 'Antecipe em 3 dias com confirmação rápida por PIX, quando disponível.');
+$howItWorksTitle = getHomepageConfig($pdo, 'how_it_works_title', 'A Loggi entrega onde você precisar');
+$feature1Title = getHomepageConfig($pdo, 'feature1_title', 'Para você');
+$feature1Description = getHomepageConfig($pdo, 'feature1_description', 'Envie pacotes para qualquer lugar do Brasil de forma rápida e segura.');
+$feature2Title = getHomepageConfig($pdo, 'feature2_title', 'Para empresas');
+$feature2Description = getHomepageConfig($pdo, 'feature2_description', 'Soluções completas de logística para o seu e-commerce crescer.');
+$feature3Title = getHomepageConfig($pdo, 'feature3_title', 'Rastreamento');
+$feature3Description = getHomepageConfig($pdo, 'feature3_description', 'Acompanhe cada etapa da sua entrega em tempo real.');
 
 // Prova social
-$socialProof1Title = getHomepageConfig($pdo, 'social_proof1_title', 'Satisfação 98,7%');
-$socialProof1LinkText = getHomepageConfig($pdo, 'social_proof1_link_text', 'Ver metodologia');
-$socialProof2Title = getHomepageConfig($pdo, 'social_proof2_title', '+5.247 Entregas');
-$socialProof2LinkText = getHomepageConfig($pdo, 'social_proof2_link_text', 'Ver histórico');
-$socialProof3Title = getHomepageConfig($pdo, 'social_proof3_title', 'Confiabilidade');
-$socialProof3LinkText = getHomepageConfig($pdo, 'social_proof3_link_text', 'Política e garantias');
+$socialProof1Title = getHomepageConfig($pdo, 'social_proof1_title', 'Entrega em todo o Brasil');
+$socialProof1LinkText = getHomepageConfig($pdo, 'social_proof1_link_text', 'Conheça nossa rede');
+$socialProof2Title = getHomepageConfig($pdo, 'social_proof2_title', 'Envios a partir de R$ 9,90');
+$socialProof2LinkText = getHomepageConfig($pdo, 'social_proof2_link_text', 'Calcular frete');
+$socialProof3Title = getHomepageConfig($pdo, 'social_proof3_title', 'Atendimento rápido');
+$socialProof3LinkText = getHomepageConfig($pdo, 'social_proof3_link_text', 'Fale conosco');
 
 $codigo = $cidade = "";
 $statusList = [];
@@ -121,22 +122,27 @@ if (isset($_GET['codigo']) && !isset($_POST['codigo'])) {
                             if ($fotoPedido) {
                                 $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
                                 $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
-                            } else {
+                            }
+                            else {
                                 $fotoPedidoSrc = null;
                             }
-                        } else {
+                        }
+                        else {
                             $erroCidade = "⚠️ A cidade informada não confere com este código!";
                             writeLog("City Mismatch (Auto): DB=" . normalizeString($rows[0]['cidade']) . " Input=" . normalizeString($cidade), 'WARNING');
                         }
-                    } else {
+                    }
+                    else {
                         // Results found in DB but none are visible (future/filtered)
                         $erroCidade = "⏳ Código aguardando liberação no sistema (Horário).";
                     }
-                } else {
+                }
+                else {
                     $erroCidade = "❌ Código inexistente!";
                 }
             }
-        } catch (PDOException $e) {
+        }
+        catch (PDOException $e) {
             writeLog("Erro ao buscar código da URL: " . $e->getMessage(), 'ERROR');
         }
     }
@@ -148,7 +154,8 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
 
     if (empty($codigo) || empty($cidade)) {
         $erroCidade = "❌ Código e cidade são obrigatórios!";
-    } else {
+    }
+    else {
         try {
             writeLog("Debug City Check - Input Code: " . $codigo, 'DEBUG');
             writeLog("Debug City Check - Input City: " . $cidade, 'DEBUG');
@@ -187,19 +194,24 @@ if (isset($_POST['codigo']) && isset($_POST['cidade'])) {
                         if ($fotoPedido) {
                             $cacheBuster = @filemtime($fotoPedido['absolute']) ?: time();
                             $fotoPedidoSrc = $fotoPedido['url'] . '?v=' . $cacheBuster;
-                        } else {
+                        }
+                        else {
                             $fotoPedidoSrc = null;
                         }
-                    } else {
+                    }
+                    else {
                         $erroCidade = "⚠️ A cidade informada não confere com este código!";
                     }
-                } else {
+                }
+                else {
                     $erroCidade = "⏳ Código aguardando liberação no sistema (Horário).";
                 }
-            } else {
+            }
+            else {
                 $erroCidade = "❌ Código inexistente!";
             }
-        } catch (PDOException $e) {
+        }
+        catch (PDOException $e) {
             writeLog("Erro na consulta: " . $e->getMessage(), 'ERROR');
             $erroCidade = "❌ Erro interno. Tente novamente.";
         }
@@ -273,7 +285,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         echo '</div>'; // results-box
         echo '</div>'; // results
         if ($temTaxa) {
-            echo '<script>(function(){let tempo=' . ((int) $tempoLimite) . '*60*60;function atualizarContagem(){var el=document.getElementById("countdown");if(!el){return;}var h=Math.floor(tempo/3600),m=Math.floor((tempo%3600)/60),s=tempo%60;el.innerHTML="⏱ Tempo restante: "+String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");if(tempo>0){tempo--;setTimeout(atualizarContagem,1000)}else{el.innerHTML="❌ Prazo expirado."}}atualizarContagem()})();</script>';
+            echo '<script>(function () { let tempo = ' . ((int)$tempoLimite) . ' * 60 * 60; function atualizarContagem() { var el = document.getElementById("countdown"); if (!el) { return; } var h = Math.floor(tempo / 3600), m = Math.floor((tempo % 3600) / 60), s = tempo % 60; el.innerHTML = "⏱ Tempo restante: " + String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0"); if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000) } else { el.innerHTML = "❌ Prazo expirado." } } atualizarContagem() })();</script>';
         }
         exit;
     }
@@ -288,7 +300,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Helmer Logistics - Acompanhamento de Recebimentos</title>
+    <title>Loggi - O rastreio do seu envio é prático</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -302,7 +314,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <header class="header">
         <div class="nav-container">
             <a href="index.php" class="logo">
-                <?= htmlspecialchars($nomeEmpresa) ?>
+                <i class="fas fa-shipping-fast"></i>
+                <?= htmlspecialchars($nomeEmpresa)?>
             </a>
             <nav class="nav-links">
                 <a href="index.php">Início</a>
@@ -328,122 +341,141 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                     <div class="form-group">
                         <label for="codigo">Código de Rastreamento</label>
                         <input type="text" name="codigo" id="codigo" placeholder="Digite o código" maxlength="12"
-                            value="<?= htmlspecialchars($codigo) ?>" required>
+                            value="<?= htmlspecialchars($codigo)?>" required>
                     </div>
                     <div class="form-group">
                         <label for="cidade">Cidade</label>
                         <input type="text" name="cidade" id="cidade" placeholder="Digite a cidade"
-                            value="<?= htmlspecialchars($cidade) ?>" required>
+                            value="<?= htmlspecialchars($cidade)?>" required>
                     </div>
                     <button type="submit" class="btn-primary">
-                        <i class="fas fa-search"></i> Rastrear
+                        Rastrear
                     </button>
                 </form>
             </div>
             <!-- Resultados AJAX sem recarregar -->
             <div id="ajaxResults">
                 <?php if (!empty($statusList)): ?>
-                    <div class="results-container">
-                        <div class="results-card animate-fade-in">
-                            <div class="status-header">
-                                <span class="status-icon">📦</span>
-                                <h3><?= htmlspecialchars($statusAtualTopo) ?></h3>
-                                <small style="color:var(--text-muted);"><?= htmlspecialchars($cidade) ?></small>
-                                <?php if ($isExpress): ?>
-                                    <div style="margin-top:0.5rem;"><span class="badge"><i class="fas fa-bolt"></i> Entrega
-                                            Expressa</span></div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="timeline">
-                                <?php foreach ($statusList as $index => $etapa):
-                                    $isFirst = $index === 0;
-                                    $activeClass = $isFirst ? 'active' : '';
-                                    ?>
-                                    <div class="timeline-item <?= $activeClass ?>">
-                                        <div class="timeline-marker"></div>
-                                        <div class="timeline-content">
-                                            <h4><?= htmlspecialchars($etapa['titulo']) ?></h4>
-                                            <span><?= htmlspecialchars($etapa['subtitulo']) ?></span>
-                                            <div class="timeline-date"><i class="far fa-clock"></i>
-                                                <?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></div>
-
-                                            <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                                                <div class="pix-box">
-                                                    <p>💰 <b>Taxa de distribuição nacional:</b> R$
-                                                        <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?>
-                                                    </p>
-                                                    <p>Faça o pagamento via PIX:</p>
-                                                    <textarea readonly><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
-                                                    <button
-                                                        onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')">
-                                                        📋 Copiar chave PIX
-                                                    </button>
-                                                    <?php if ($temTaxa): ?>
-                                                        <div id="countdown" class="countdown"></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
+                <div class="results-container">
+                    <div class="results-card animate-fade-in">
+                        <div class="status-header">
+                            <span class="status-icon">📦</span>
+                            <h3>
+                                <?= htmlspecialchars($statusAtualTopo)?>
+                            </h3>
+                            <small style="color:var(--text-muted);">
+                                <?= htmlspecialchars($cidade)?>
+                            </small>
+                            <?php if ($isExpress): ?>
+                            <div style="margin-top:0.5rem;"><span class="badge"><i class="fas fa-bolt"></i> Entrega
+                                    Expressa</span></div>
+                            <?php
+    endif; ?>
+                        </div>
+                        <div class="timeline">
+                            <?php foreach ($statusList as $index => $etapa):
+        $isFirst = $index === 0;
+        $activeClass = $isFirst ? 'active' : '';
+?>
+                            <div class="timeline-item <?= $activeClass?>">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h4>
+                                        <?= htmlspecialchars($etapa['titulo'])?>
+                                    </h4>
+                                    <span>
+                                        <?= htmlspecialchars($etapa['subtitulo'])?>
+                                    </span>
+                                    <div class="timeline-date"><i class="far fa-clock"></i>
+                                        <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
                                     </div>
-                                <?php endforeach; ?>
+
+                                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
+                                    <div class="pix-box">
+                                        <p>💰 <b>Taxa de distribuição nacional:</b> R$
+                                            <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
+                                        </p>
+                                        <p>Faça o pagamento via PIX:</p>
+                                        <textarea readonly><?= htmlspecialchars($etapa['taxa_pix'])?></textarea>
+                                        <button
+                                            onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>')">
+                                            📋 Copiar chave PIX
+                                        </button>
+                                        <?php if ($temTaxa): ?>
+                                        <div id="countdown" class="countdown"></div>
+                                        <?php
+            endif; ?>
+                                    </div>
+                                    <?php
+        endif; ?>
+                                </div>
                             </div>
-                            <?php if (!$temTaxa && !$isExpress): ?>
-                                <div style="margin-top: 1.5rem;">
-                                    <button class="promo-banner-button" onclick='openExpressOffer(<?= json_encode($codigo) ?>, <?= json_encode($cidade) ?>, "<?= number_format($expressValor, 2, ',', '.') ?>")'>
-                                        <div class="promo-content">
-                                            <span class="promo-tag">Oferta Relâmpago</span>
-                                            <span class="promo-title">⚡ Antecipe sua entrega para 3 dias</span>
-                                            <span class="promo-subtitle">Clique para ver detalhes e solicitar</span>
-                                        </div>
-                                        <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>
-                                    </button>
-                                </div>
-                            <?php endif; ?>
-                            <?php if ($fotoPedido && $fotoPedidoSrc): ?>
-                                <div class="photo-proof">
-                                    <p><i class="fas fa-image"></i> Foto do seu pedido</p>
-                                    <img src="<?= htmlspecialchars($fotoPedidoSrc, ENT_QUOTES, 'UTF-8') ?>"
-                                        alt="Foto do pedido <?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') ?>">
-                                    <small>Imagem anexada ao pedido pelo atendimento Helmer Logistics.</small>
-                                </div>
-                            <?php endif; ?>
+                            <?php
+    endforeach; ?>
                         </div>
-                    </div>
-                <?php elseif (!empty($erroCidade)): ?>
-                    <div class="results-container">
-                        <div class="erro">
-                            <?= htmlspecialchars($erroCidade) ?>
+                        <?php if (!$temTaxa && !$isExpress): ?>
+                        <div style="margin-top: 1.5rem;">
+                            <button class="promo-banner-button"
+                                onclick='openExpressOffer(<?= json_encode($codigo)?>, <?= json_encode($cidade)?>, "<?= number_format($expressValor, 2, '
+                                ,', '.' )?>")'>
+                                <div class="promo-content">
+                                    <span class="promo-tag">Oferta Relâmpago</span>
+                                    <span class="promo-title">⚡ Antecipe sua entrega para 3 dias</span>
+                                    <span class="promo-subtitle">Clique para ver detalhes e solicitar</span>
+                                </div>
+                                <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>
+                            </button>
                         </div>
+                        <?php
+    endif; ?>
+                        <?php if ($fotoPedido && $fotoPedidoSrc): ?>
+                        <div class="photo-proof">
+                            <p><i class="fas fa-image"></i> Foto do seu pedido</p>
+                            <img src="<?= htmlspecialchars($fotoPedidoSrc, ENT_QUOTES, 'UTF-8')?>"
+                                alt="Foto do pedido <?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8')?>">
+                            <small>Imagem anexada ao pedido pelo atendimento Loggi.</small>
+                        </div>
+                        <?php
+    endif; ?>
                     </div>
-                <?php endif; ?>
+                </div>
+                <?php
+elseif (!empty($erroCidade)): ?>
+                <div class="results-container">
+                    <div class="erro">
+                        <?= htmlspecialchars($erroCidade)?>
+                    </div>
+                </div>
+                <?php
+endif; ?>
             </div>
 
             <div class="hero-content">
                 <h1>
-                    <?= htmlspecialchars($tituloHero) ?>
+                    <?= htmlspecialchars($tituloHero)?>
                 </h1>
                 <p>
-                    <?= htmlspecialchars($descricaoHero) ?>
+                    <?= htmlspecialchars($descricaoHero)?>
                 </p>
 
                 <div class="hero-actions" style="justify-content: flex-start;">
-                    <a href="sobre.php" class="btn-hero secondary"><i class="fas fa-info-circle"></i> Sobre nós</a>
-                    <a href="indicacao.php" class="btn-hero"><i class="fas fa-users"></i> Indicar Amigo</a>
+                    <a href="https://www.loggi.com/enviar/" class="btn-hero">Enviar agora</a>
+                    <a href="https://www.loggi.com/precos/" class="btn-hero secondary">Calcular frete</a>
                 </div>
                 <div class="badges">
                     <span class="badge"><i class="fas fa-check-circle"></i>
-                        <?= htmlspecialchars($badgeSatisfacao) ?>
+                        <?= htmlspecialchars($badgeSatisfacao)?>
                     </span>
                     <span class="badge"><i class="fas fa-truck"></i>
-                        <?= htmlspecialchars($badgeEntregas) ?>
+                        <?= htmlspecialchars($badgeEntregas)?>
                     </span>
                     <span class="badge"><i class="fas fa-map-marker-alt"></i>
-                        <?= htmlspecialchars($badgeCidades) ?>
+                        <?= htmlspecialchars($badgeCidades)?>
                     </span>
                 </div>
 
                 <div class="referral-box" style="margin-top: 2rem;">
-                    <i class="fas fa-star" style="font-size: 2rem; color: #FF3333; margin-bottom: 1rem;"></i>
+                    <i class="fas fa-star" style="font-size: 2rem; color: #0055FF; margin-bottom: 1rem;"></i>
                     <h3>Sistema de Indicações — Entrega Prioritária (2 dias)</h3>
                     <p>Indique um amigo e garanta <strong>entrega prioritária em 2 dias</strong> para o seu próximo
                         envio.</p>
@@ -463,34 +495,34 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <!-- Como funciona -->
     <section class="features" style="margin-top: 3rem;">
         <h2 class="section-title">
-            <?= htmlspecialchars($howItWorksTitle) ?>
+            <?= htmlspecialchars($howItWorksTitle)?>
         </h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-barcode" style="font-size: 1.5rem;"></i></div>
                 <h3>
-                    <?= htmlspecialchars($feature1Title) ?>
+                    <?= htmlspecialchars($feature1Title)?>
                 </h3>
                 <p>
-                    <?= htmlspecialchars($feature1Description) ?>
+                    <?= htmlspecialchars($feature1Description)?>
                 </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-stream" style="font-size: 1.5rem;"></i></div>
                 <h3>
-                    <?= htmlspecialchars($feature2Title) ?>
+                    <?= htmlspecialchars($feature2Title)?>
                 </h3>
                 <p>
-                    <?= htmlspecialchars($feature2Description) ?>
+                    <?= htmlspecialchars($feature2Description)?>
                 </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-bolt" style="font-size: 1.5rem;"></i></div>
                 <h3>
-                    <?= htmlspecialchars($feature3Title) ?>
+                    <?= htmlspecialchars($feature3Title)?>
                 </h3>
                 <p>
-                    <?= htmlspecialchars($feature3Description) ?>
+                    <?= htmlspecialchars($feature3Description)?>
                 </p>
             </div>
         </div>
@@ -499,30 +531,30 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-star" style="font-size: 1.5rem;"></i></div>
                 <h3>
-                    <?= htmlspecialchars($socialProof1Title) ?>
+                    <?= htmlspecialchars($socialProof1Title)?>
                 </h3>
                 <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
-                        <?= htmlspecialchars($socialProof1LinkText) ?>
+                        <?= htmlspecialchars($socialProof1LinkText)?>
                     </a>
                 </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-truck" style="font-size: 1.5rem;"></i></div>
                 <h3>
-                    <?= htmlspecialchars($socialProof2Title) ?>
+                    <?= htmlspecialchars($socialProof2Title)?>
                 </h3>
                 <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
-                        <?= htmlspecialchars($socialProof2LinkText) ?>
+                        <?= htmlspecialchars($socialProof2LinkText)?>
                     </a>
                 </p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
                 <h3>
-                    <?= htmlspecialchars($socialProof3Title) ?>
+                    <?= htmlspecialchars($socialProof3Title)?>
                 </h3>
                 <p><a href="sobre.php" style="color:#fff; text-decoration:underline;">
-                        <?= htmlspecialchars($socialProof3LinkText) ?>
+                        <?= htmlspecialchars($socialProof3LinkText)?>
                     </a>
                 </p>
             </div>
@@ -547,66 +579,68 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             </div>
         </div>
         <div style="text-align:center; color: rgba(255,255,255,0.75); margin-top: 12px;">
-            <small>Parcerias: <span style="opacity:.85;">Helmer Logistics</span></small>
+            <small>Parcerias: <span style="opacity:.85;">Loggi Technology</span></small>
         </div>
     </section>
 
 
     <?php
-    // Exibir popup explicativo automaticamente no render completo quando houver taxa
-    if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
-        $taxaValorPrimeira = null;
-        foreach ($statusList as $etapa) {
-            if (!empty($etapa['taxa_valor'])) {
-                $taxaValorPrimeira = number_format($etapa['taxa_valor'], 2, ',', '.');
-                break;
-            }
-        }
-        if ($taxaValorPrimeira) {
-            echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup('R$ {$taxaValorPrimeira}'); }});</script>";
-        } else {
-            echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup(); }});</script>";
+// Exibir popup explicativo automaticamente no render completo quando houver taxa
+if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
+    $taxaValorPrimeira = null;
+    foreach ($statusList as $etapa) {
+        if (!empty($etapa['taxa_valor'])) {
+            $taxaValorPrimeira = number_format($etapa['taxa_valor'], 2, ',', '.');
+            break;
         }
     }
-    ?>
+    if ($taxaValorPrimeira) {
+        echo "<script>document.addEventListener('DOMContentLoaded',function(){ if (typeof showTaxaPopup==='function') { showTaxaPopup('R$ {$taxaValorPrimeira}'); }});</script>";
+    }
+    else {
+        echo "<script>document.addEventListener('DOMContentLoaded', function () { if (typeof showTaxaPopup === 'function') { showTaxaPopup(); } });</script>";
+    }
+}
+?>
 
     <section class="features">
-        <h2 class="section-title">Por que escolher Helmer Logistics?</h2>
+        <h2 class="section-title">Por que escolher a Loggi?</h2>
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-rocket" style="font-size: 1.5rem;"></i></div>
+                <div class="feature-icon"><i class="fas fa-rocket"></i></div>
                 <h3>Entrega Rápida</h3>
-                <p>Entrega prioritária em até 2 dias para indicações</p>
+                <p>Nossa rede logística garante os prazos mais curtos do mercado.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-shield-alt" style="font-size: 1.5rem;"></i></div>
+                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
                 <h3>Seguro e Confiável</h3>
-                <p>Seus pacotes protegidos com tecnologia avançada</p>
+                <p>Seus pedidos protegidos com a melhor tecnologia do Brasil.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-map-marked-alt" style="font-size: 1.5rem;"></i></div>
+                <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
                 <h3>Cobertura Nacional</h3>
-                <p>Entregas em todo o Brasil com rastreamento em tempo real</p>
+                <p>Chegamos em cada canto do país com eficiência e tecnologia.</p>
             </div>
         </div>
     </section>
 
     <?php if ($temTaxa): ?>
-        <script>
-            let tempo = <?= $tempoLimite ?> * 60 * 60;
-            function atualizarContagem() {
-                let horas = Math.floor(tempo / 3600);
-                let minutos = Math.floor((tempo % 3600) / 60);
-                let segundos = tempo % 60;
-                document.getElementById("countdown").innerHTML =
-                    "⏱ Tempo restante: " + String(horas).padStart(2, '0') + ":" +
-                    String(minutos).padStart(2, '0') + ":" + String(segundos).padStart(2, '0');
-                if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000); }
-                else { document.getElementById("countdown").innerHTML = "❌ Prazo expirado."; }
-            }
-            atualizarContagem();
-        </script>
-    <?php endif; ?>
+    <script>
+        let tempo = <?= $tempoLimite ?> * 60 * 60;
+        function atualizarContagem() {
+            let horas = Math.floor(tempo / 3600);
+            let minutos = Math.floor((tempo % 3600) / 60);
+            let segundos = tempo % 60;
+            document.getElementById("countdown").innerHTML =
+                "⏱ Tempo restante: " + String(horas).padStart(2, '0') + ":" +
+                String(minutos).padStart(2, '0') + ":" + String(segundos).padStart(2, '0');
+            if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000); }
+            else { document.getElementById("countdown").innerHTML = "❌ Prazo expirado."; }
+        }
+        atualizarContagem();
+    </script>
+    <?php
+endif; ?>
 
     <script>
         // Modal Moderno de Entrega Expressa
@@ -619,7 +653,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
             modal.innerHTML = `
                 <div style="background: #0d0d0d; padding: 40px; border-radius: 24px; max-width: 500px; width: 100%; 
-                    border: 1px solid rgba(255, 51, 51, 0.3); box-shadow: 0 0 50px rgba(255, 51, 51, 0.2); position: relative;">
+                    border: 1px solid rgba(0, 85, 255, 0.3); box-shadow: 0 0 50px rgba(0, 85, 255, 0.2); position: relative;">
                     
                     <button onclick="closeModalFromChild(this)" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #666; cursor: pointer; font-size: 1.5rem;">
                         <i class="fas fa-times"></i>
@@ -627,7 +661,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
                     <div style="text-align: center; margin-bottom: 30px;">
                         <div style="width: 80px; height: 80px; background: rgba(255, 51, 51, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                            <i class="fas fa-bolt" style="font-size: 2.5rem; color: #ff3333; filter: drop-shadow(0 0 10px #ff3333);"></i>
+                            <i class="fas fa-bolt" style="font-size: 2.5rem; color: #0055FF; filter: drop-shadow(0 0 10px #0055FF);"></i>
                         </div>
                         <h2 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 10px;">Entrega Expressa</h2>
                         <p style="color: var(--text-muted);">Acelere seu recebimento agora mesmo</p>
@@ -635,21 +669,21 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
                     <div style="margin-bottom: 30px;">
                         <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
-                            <div style="color: #ff3333; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-calendar-check"></i></div>
+                            <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-calendar-check"></i></div>
                             <div>
                                 <h4 style="color: #fff; margin-bottom: 4px;">Prazo reduzido</h4>
                                 <p style="color: var(--text-muted); font-size: 0.9rem;">Sua encomenda chegará em apenas <strong>3 dias úteis</strong> após a confirmação.</p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
-                            <div style="color: #ff3333; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-shipping-fast"></i></div>
+                            <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-shipping-fast"></i></div>
                             <div>
                                 <h4 style="color: #fff; margin-bottom: 4px;">Prioridade Total</h4>
                                 <p style="color: var(--text-muted); font-size: 0.9rem;">Seu pacote entra no lote de despacho prioritário da categoria especial.</p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: flex-start; gap: 15px;">
-                            <div style="color: #ff3333; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-qrcode"></i></div>
+                            <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-qrcode"></i></div>
                             <div>
                                 <h4 style="color: #fff; margin-bottom: 4px;">Pagamento via PIX</h4>
                                 <p style="color: var(--text-muted); font-size: 0.9rem;">Confirmação instantânea do serviço de antecipação.</p>
@@ -684,7 +718,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <script>
         // Valor global para inicialização de contagem no fluxo AJAX
-        window.TEMPO_LIMITE_HORAS = <?= (int) $tempoLimite ?>;
+        window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
 
         function showIndicacaoInfo() {
             const modal = document.createElement('div');
@@ -694,13 +728,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         align-items: center; padding: 20px;`;
 
             modal.innerHTML = `
-        <div style="background: linear-gradient(135deg, #0a0a0a, #1a0000); padding: 40px;
-            border-radius: 20px; max-width: 700px; width: 100%; border: 2px solid #ff3333;">
-            <h2 style="color: #ff3333; text-align: center; margin-bottom: 30px; font-size: 2rem;">
+        <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 40px;
+            border-radius: 20px; max-width: 700px; width: 100%; border: 2px solid #0055FF;">
+            <h2 style="color: #0055FF; text-align: center; margin-bottom: 30px; font-size: 2rem;">
                 <i class="fas fa-star"></i> Sistema de Indicação
             </h2>
             <div style="background: rgba(255, 51, 51, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <h3 style="color: #ff3333; margin-bottom: 15px;">Como Funciona:</h3>
+                <h3 style="color: #0055FF; margin-bottom: 15px;">Como Funciona:</h3>
                 <p style="color: #fff; margin-bottom: 10px;">1️⃣ Você indica um amigo</p>
                 <p style="color: #fff; margin-bottom: 10px;">2️⃣ Seu amigo compra no mesmo dia</p>
                 <p style="color: #fff; margin-bottom: 10px;">3️⃣ A entrega será feita em apenas <strong>2 dias</strong></p>
@@ -774,25 +808,27 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
             // Se os dados vieram da URL, os resultados já foram renderizados pelo PHP
             // Apenas garantir que o countdown e popup funcionem se necessário
-            <?php if ($autoLoadFromUrl && !empty($statusList)): ?>
+            <? php if ($autoLoadFromUrl && !empty($statusList)): ?>
                 setTimeout(function () {
                     try {
                         startCountdownIfPresent();
-                        <?php if ($temTaxa): ?>
+                        <? php if ($temTaxa): ?>
                             const pixTextarea = document.querySelector('.pix-box textarea');
-                            if (pixTextarea && typeof showTaxaPopup === 'function') {
-                                let valorTexto = null;
-                                const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
-                                if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
-                                    const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                    valorTexto = m ? m[0] : null;
-                                }
-                                showTaxaPopup(valorTexto);
+                        if (pixTextarea && typeof showTaxaPopup === 'function') {
+                            let valorTexto = null;
+                            const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
+                            if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
+                                const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                                valorTexto = m ? m[0] : null;
                             }
-                        <?php endif; ?>
+                            showTaxaPopup(valorTexto);
+                        }
+                        <? php
+    endif; ?>
                     } catch (_) { /* silencioso */ }
                 }, 200);
-            <?php endif; ?>
+            <? php
+endif; ?>
 
             if (form && results && submitBtn) {
                 form.addEventListener('submit', async function (e) {
