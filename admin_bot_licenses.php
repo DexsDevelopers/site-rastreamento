@@ -305,7 +305,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary: #FF3333;
+            --primary: #0055FF;
             --primary-dark: #CC0000;
             --secondary: #FF6600;
             --dark: #0A0A0A;
@@ -314,7 +314,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
             --success: #22c55e;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --gradient: linear-gradient(135deg, #FF0000 0%, #FF6600 100%);
+            --gradient: linear-gradient(135deg, #180F33 0%, #FF6600 100%);
         }
         
         body {
@@ -351,7 +351,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         .nav-link {
             padding: 0.6rem 1.2rem;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 8px;
             color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
@@ -360,7 +360,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         }
         
         .nav-link:hover {
-            background: rgba(255, 51, 51, 0.15);
+            background: rgba(0, 85, 255, 0.15);
             border-color: var(--primary);
         }
         
@@ -373,7 +373,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         
         .stat-card {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 16px;
             padding: 1.5rem;
             text-align: center;
@@ -395,7 +395,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         
         .card {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 16px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
@@ -430,7 +430,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
             width: 100%;
             padding: 0.75rem 1rem;
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 8px;
             color: var(--light);
             font-size: 0.95rem;
@@ -451,7 +451,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         
         .form-group select option:hover,
         .form-group select option:checked {
-            background: linear-gradient(135deg, #FF3333, #FF6600);
+            background: linear-gradient(135deg, #0055FF, #FF6600);
             color: #ffffff;
         }
         
@@ -480,7 +480,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 51, 51, 0.4);
+            box-shadow: 0 5px 20px rgba(0, 85, 255, 0.4);
         }
         
         .btn-success { background: var(--success); color: var(--light); }
@@ -504,7 +504,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         }
         
         th {
-            background: rgba(255, 51, 51, 0.1);
+            background: rgba(0, 85, 255, 0.1);
             font-weight: 600;
             font-size: 0.85rem;
             text-transform: uppercase;
@@ -530,7 +530,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         
         .key-display {
             font-family: 'Courier New', monospace;
-            background: rgba(255, 51, 51, 0.1);
+            background: rgba(0, 85, 255, 0.1);
             padding: 0.3rem 0.6rem;
             border-radius: 4px;
             font-size: 0.9rem;
@@ -547,7 +547,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         .filter-bar input, .filter-bar select {
             padding: 0.6rem 1rem;
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             border-radius: 8px;
             color: var(--light);
             font-size: 0.9rem;
@@ -571,7 +571,7 @@ $plans = fetchData($pdo, "SELECT * FROM bot_license_plans WHERE is_active = 1 OR
         
         .modal-content {
             background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-            border: 1px solid rgba(255, 51, 51, 0.3);
+            border: 1px solid rgba(0, 85, 255, 0.3);
             border-radius: 16px;
             padding: 2rem;
             max-width: 500px;

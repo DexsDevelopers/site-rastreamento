@@ -426,11 +426,13 @@ foreach ($msgEtapas as $k => $v) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Configuração do Bot | Loggi</title>
-    <meta name="theme-color" content="#FF3333">
+    <meta name="theme-color" content="#0055FF">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.webmanifest">
@@ -441,9 +443,9 @@ foreach ($msgEtapas as $k => $v) {
     <link rel="stylesheet" href="assets/css/admin-mobile.css">
     <style>
         :root {
-            --primary: #FF3333;
-            --primary-dark: #E02020;
-            --primary-gradient: linear-gradient(135deg, #FF3333 0%, #FF6B6B 100%);
+            --primary: #0055FF;
+            --primary-dark: #0044CC;
+            --primary-gradient: linear-gradient(135deg, #0055FF 0%, #180F33 100%);
             --accent: #f59e0b;
             --bg-dark: #0F0F0F;
             --bg-card: #1A1A1A;
@@ -452,9 +454,11 @@ foreach ($msgEtapas as $k => $v) {
             --text: #FFFFFF;
             --text-muted: rgba(255, 255, 255, 0.7);
         }
-        
-        * { box-sizing: border-box; }
-        
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-dark);
@@ -463,29 +467,32 @@ foreach ($msgEtapas as $k => $v) {
             margin: 0;
             padding: 0;
         }
-        
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         /* Sidebar */
         .sidebar {
             background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
             border-right: 1px solid var(--border);
         }
-        
+
         .sidebar-item {
             transition: all 0.2s;
             border-left: 3px solid transparent;
         }
-        
-        .sidebar-item:hover, .sidebar-item.active {
-            background: rgba(255, 51, 51, 0.1);
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: rgba(0, 85, 255, 0.1);
             border-left-color: var(--primary);
         }
-        
+
         .sidebar-item.active {
-            background: rgba(255, 51, 51, 0.15);
+            background: rgba(0, 85, 255, 0.15);
         }
-        
+
         /* Cards */
         .card {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
@@ -494,17 +501,17 @@ foreach ($msgEtapas as $k => $v) {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             transition: all 0.2s;
         }
-        
+
         .card:hover {
-            border-color: rgba(255, 51, 51, 0.3);
+            border-color: rgba(0, 85, 255, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
-        
+
         .card-header {
             border-bottom: 1px solid var(--border);
             padding: 16px 20px;
         }
-        
+
         /* Inputs */
         .input-field {
             background: var(--bg-input);
@@ -514,17 +521,17 @@ foreach ($msgEtapas as $k => $v) {
             color: var(--text);
             transition: all 0.2s;
         }
-        
+
         .input-field:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
-        
+
         .input-field::placeholder {
             color: var(--text-muted);
         }
-        
+
         /* Buttons */
         .btn {
             padding: 14px 24px;
@@ -536,54 +543,54 @@ foreach ($msgEtapas as $k => $v) {
             gap: 8px;
             min-height: 44px;
         }
-        
+
         .btn-primary {
             background: var(--primary-gradient);
             color: white;
-            box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 85, 255, 0.4);
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 51, 51, 0.5);
+            box-shadow: 0 6px 20px rgba(0, 85, 255, 0.5);
         }
-        
+
         .btn-primary:active {
             transform: scale(0.97);
         }
-        
+
         .btn-secondary {
             background: var(--bg-input);
             border: 1px solid var(--border);
             color: var(--text);
         }
-        
+
         .btn-secondary:hover {
             background: #3f3f46;
         }
-        
+
         .btn-danger {
             background: #dc2626;
             color: white;
         }
-        
+
         .btn-danger:hover {
             background: #b91c1c;
         }
-        
+
         /* Toggle Switch */
         .toggle-switch {
             position: relative;
             width: 48px;
             height: 26px;
         }
-        
+
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-        
+
         .toggle-slider {
             position: absolute;
             cursor: pointer;
@@ -593,7 +600,7 @@ foreach ($msgEtapas as $k => $v) {
             border-radius: 26px;
             transition: 0.3s;
         }
-        
+
         .toggle-slider:before {
             position: absolute;
             content: "";
@@ -605,16 +612,16 @@ foreach ($msgEtapas as $k => $v) {
             border-radius: 50%;
             transition: 0.3s;
         }
-        
-        .toggle-switch input:checked + .toggle-slider {
+
+        .toggle-switch input:checked+.toggle-slider {
             background: var(--primary);
             border-color: var(--primary);
         }
-        
-        .toggle-switch input:checked + .toggle-slider:before {
+
+        .toggle-switch input:checked+.toggle-slider:before {
             transform: translateX(22px);
         }
-        
+
         /* Automation Card */
         .automation-card {
             background: var(--bg-card);
@@ -623,15 +630,15 @@ foreach ($msgEtapas as $k => $v) {
             padding: 16px;
             transition: all 0.2s;
         }
-        
+
         .automation-card:hover {
             border-color: var(--primary);
         }
-        
+
         .automation-card.inactive {
             opacity: 0.6;
         }
-        
+
         /* Badge */
         .badge {
             padding: 4px 10px;
@@ -639,27 +646,27 @@ foreach ($msgEtapas as $k => $v) {
             font-size: 12px;
             font-weight: 500;
         }
-        
+
         .badge-green {
             background: rgba(16, 185, 129, 0.15);
             color: #34d399;
         }
-        
+
         .badge-yellow {
             background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
         }
-        
+
         .badge-red {
             background: rgba(220, 38, 38, 0.15);
             color: #f87171;
         }
-        
+
         .badge-blue {
             background: rgba(59, 130, 246, 0.15);
             color: #60a5fa;
         }
-        
+
         /* Status Indicator */
         .status-dot {
             width: 10px;
@@ -667,22 +674,29 @@ foreach ($msgEtapas as $k => $v) {
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        
+
         .status-online {
             background: #22c55e;
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
-        
+
         .status-offline {
             background: #ef4444;
             animation: none;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
-        
+
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -696,12 +710,12 @@ foreach ($msgEtapas as $k => $v) {
             visibility: hidden;
             transition: all 0.3s;
         }
-        
+
         .modal-overlay.active {
             opacity: 1;
             visibility: visible;
         }
-        
+
         .modal-content {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -713,11 +727,11 @@ foreach ($msgEtapas as $k => $v) {
             transform: scale(0.9);
             transition: all 0.3s;
         }
-        
+
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
-        
+
         /* Tab Navigation */
         .tab-btn {
             padding: 12px 24px;
@@ -725,30 +739,30 @@ foreach ($msgEtapas as $k => $v) {
             color: var(--text-muted);
             transition: all 0.2s;
         }
-        
+
         .tab-btn:hover {
             color: var(--text);
         }
-        
+
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
         }
-        
+
         /* Stat Card */
         .stat-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 51, 51, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 85, 255, 0.05) 100%);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 20px;
             transition: all 0.2s;
         }
-        
+
         .stat-card:hover {
-            border-color: rgba(255, 51, 51, 0.3);
+            border-color: rgba(0, 85, 255, 0.3);
             transform: translateY(-2px);
         }
-        
+
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
@@ -757,26 +771,26 @@ foreach ($msgEtapas as $k => $v) {
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: var(--bg-dark);
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 4px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: #52525b;
         }
-        
+
         /* Toast */
         .toast {
             position: fixed;
@@ -792,18 +806,27 @@ foreach ($msgEtapas as $k => $v) {
             transition: all 0.3s;
             z-index: 1001;
         }
-        
+
         .toast.show {
             transform: translateY(0);
             opacity: 1;
         }
-        
-        .toast.success { border-left: 4px solid #22c55e; }
-        .toast.error { border-left: 4px solid #ef4444; }
-        .toast.warning { border-left: 4px solid #f59e0b; }
-        
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
         /* ===== RESPONSIVO MOBILE ===== */
         @media screen and (max-width: 768px) {
+
             /* Menu Hambúrguer */
             .menu-toggle {
                 display: flex !important;
@@ -816,7 +839,7 @@ foreach ($msgEtapas as $k => $v) {
                 background: var(--primary-gradient) !important;
                 border: none !important;
                 border-radius: 14px !important;
-                box-shadow: 0 4px 16px rgba(255, 51, 51, 0.4), 0 0 20px rgba(255, 51, 51, 0.3) !important;
+                box-shadow: 0 4px 16px rgba(0, 85, 255, 0.4), 0 0 20px rgba(0, 85, 255, 0.3) !important;
                 cursor: pointer !important;
                 flex-direction: column !important;
                 justify-content: center !important;
@@ -824,7 +847,7 @@ foreach ($msgEtapas as $k => $v) {
                 gap: 5px !important;
                 padding: 0 !important;
             }
-            
+
             .menu-toggle span {
                 display: block !important;
                 width: 26px !important;
@@ -833,7 +856,7 @@ foreach ($msgEtapas as $k => $v) {
                 border-radius: 3px !important;
                 transition: all 0.2s !important;
             }
-            
+
             /* Sidebar Mobile */
             .sidebar {
                 position: fixed !important;
@@ -847,11 +870,11 @@ foreach ($msgEtapas as $k => $v) {
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6) !important;
             }
-            
+
             .sidebar.active {
                 left: 0 !important;
             }
-            
+
             /* Overlay */
             .sidebar-overlay {
                 display: none;
@@ -864,19 +887,19 @@ foreach ($msgEtapas as $k => $v) {
                 opacity: 0;
                 transition: opacity 0.3s;
             }
-            
+
             .sidebar-overlay.active {
                 display: block;
                 opacity: 1;
             }
-            
+
             /* Main Content Mobile */
             main {
                 margin-left: 0 !important;
                 padding: 16px !important;
                 padding-top: 80px !important;
             }
-            
+
             /* Header Mobile */
             header {
                 flex-direction: column !important;
@@ -884,25 +907,25 @@ foreach ($msgEtapas as $k => $v) {
                 gap: 16px !important;
                 margin-bottom: 20px !important;
             }
-            
+
             /* Stats Grid Mobile */
             .grid {
                 grid-template-columns: 1fr !important;
                 gap: 16px !important;
             }
-            
+
             /* Cards Mobile */
             .card {
                 margin-bottom: 16px !important;
             }
-            
+
             /* Buttons Mobile */
             .btn {
                 width: 100% !important;
                 justify-content: center !important;
                 margin-bottom: 12px !important;
             }
-            
+
             /* Modal Mobile */
             .modal-content {
                 width: 95% !important;
@@ -910,23 +933,23 @@ foreach ($msgEtapas as $k => $v) {
                 margin: 10px !important;
                 max-height: 90vh !important;
             }
-            
+
             /* Form Grid Mobile */
             .grid.grid-cols-2,
             .grid.grid-cols-3 {
                 grid-template-columns: 1fr !important;
             }
-            
+
             /* Table Mobile */
             .overflow-x-auto {
                 -webkit-overflow-scrolling: touch;
             }
-            
+
             table {
                 font-size: 0.875rem !important;
                 min-width: 600px;
             }
-            
+
             /* Toast Mobile */
             .toast {
                 left: 16px !important;
@@ -935,19 +958,20 @@ foreach ($msgEtapas as $k => $v) {
                 width: auto !important;
             }
         }
-        
+
         /* Desktop - manter sidebar visível */
         @media (min-width: 769px) {
             .menu-toggle {
                 display: none !important;
             }
-            
+
             .sidebar-overlay {
                 display: none !important;
             }
         }
     </style>
 </head>
+
 <body class="flex">
     <!-- Menu Hambúrguer Mobile -->
     <button class="menu-toggle hidden" id="menuToggle" onclick="toggleSidebar()" aria-label="Toggle menu">
@@ -955,18 +979,19 @@ foreach ($msgEtapas as $k => $v) {
         <span></span>
         <span></span>
     </button>
-    
+
     <!-- Overlay para fechar sidebar -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <!-- Sidebar -->
     <aside class="sidebar w-64 min-h-screen flex flex-col fixed left-0 top-0" id="sidebar">
         <div class="p-6 border-b border-zinc-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--primary-gradient);">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style="background: var(--primary-gradient);">
                     <i class="fas fa-robot text-white"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg">Bot Config</h1>
+                    <h1 class="font-bold text-lg">Loggi Bot</h1>
                     <p class="text-xs text-zinc-500">WhatsApp Automation</p>
                 </div>
                 <!-- Botão fechar no mobile -->
@@ -975,36 +1000,38 @@ foreach ($msgEtapas as $k => $v) {
                 </button>
             </div>
         </div>
-        
+
         <nav class="flex-1 py-4">
             <div class="px-4 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Menu</div>
-            
+
             <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="dashboard">
                 <i class="fas fa-chart-line w-5"></i>
                 <span>Dashboard</span>
             </a>
-            
+
             <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="automations">
                 <i class="fas fa-bolt w-5"></i>
                 <span>Automações</span>
             </a>
-            
+
             <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="settings">
                 <i class="fas fa-cog w-5"></i>
                 <span>Configurações</span>
             </a>
-            
+
             <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="logs">
                 <i class="fas fa-history w-5"></i>
                 <span>Logs</span>
             </a>
-            
-            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="licencas" style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
-                <i class="fas fa-key w-5" style="color: #FF3333;"></i>
+
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="licencas"
+                style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #0055FF;">
+                <i class="fas fa-key w-5" style="color: #0055FF;"></i>
                 <span>Licenças de Grupos</span>
             </a>
-            
-            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="ai" style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
+
+            <a href="#" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300" data-section="ai"
+                style="background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1)); border-left: 3px solid #8B5CF6;">
                 <i class="fas fa-brain w-5" style="color: #8B5CF6;"></i>
                 <span>IA do Bot</span>
             </a>
@@ -1018,20 +1045,20 @@ foreach ($msgEtapas as $k => $v) {
                 <i class="fas fa-comment-dots w-5"></i>
                 <span>Mensagens</span>
             </a>
-            
+
             <div class="px-4 mt-6 mb-2 text-xs text-zinc-500 uppercase tracking-wider">Links</div>
-            
+
             <a href="dashboard.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-home w-5"></i>
                 <span>Dashboard</span>
             </a>
-            
+
             <a href="admin.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300">
                 <i class="fas fa-arrow-left w-5"></i>
                 <span>Painel Rastreamento</span>
             </a>
         </nav>
-        
+
         <!-- Bot Status -->
         <div class="p-4 border-t border-zinc-800">
             <div class="flex items-center justify-between">
@@ -1045,7 +1072,7 @@ foreach ($msgEtapas as $k => $v) {
             </div>
         </div>
     </aside>
-    
+
     <!-- Main Content -->
     <main class="flex-1 ml-64 p-8">
         <!-- Header -->
@@ -1059,7 +1086,7 @@ foreach ($msgEtapas as $k => $v) {
                 Nova Automação
             </button>
         </header>
-        
+
         <!-- Dashboard Section -->
         <section id="section-dashboard" class="section">
             <!-- Stats -->
@@ -1067,12 +1094,12 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Automações</span>
-                        <i class="fas fa-bolt" style="color: #FF3333;"></i>
+                        <i class="fas fa-bolt" style="color: #0055FF;"></i>
                     </div>
                     <div class="stat-value" id="statTotal">0</div>
                     <p class="text-xs text-zinc-500 mt-1"><span id="statActive">0</span> ativas</p>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Usos Total</span>
@@ -1081,7 +1108,7 @@ foreach ($msgEtapas as $k => $v) {
                     <div class="stat-value" id="statUsos">0</div>
                     <p class="text-xs text-zinc-500 mt-1">desde o início</p>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Hoje</span>
@@ -1090,22 +1117,23 @@ foreach ($msgEtapas as $k => $v) {
                     <div class="stat-value" id="statHoje">0</div>
                     <p class="text-xs text-zinc-500 mt-1">execuções</p>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Status Bot</span>
-                        <i class="fas fa-robot" style="color: #FF3333;"></i>
+                        <i class="fas fa-robot" style="color: #0055FF;"></i>
                     </div>
-                    <div id="statBotStatus" class="text-2xl font-bold" style="color: #FF3333;">--</div>
+                    <div id="statBotStatus" class="text-2xl font-bold" style="color: #0055FF;">--</div>
                     <p class="text-xs text-zinc-500 mt-1" id="statUptime">uptime: --</p>
                 </div>
             </div>
-            
+
             <!-- Recent Automations -->
             <div class="card">
                 <div class="card-header flex items-center justify-between">
                     <h3 class="font-semibold">Automações Recentes</h3>
-                    <a href="#" onclick="showSection('automations')" class="text-sm hover:underline" style="color: #FF3333;">Ver todas</a>
+                    <a href="#" onclick="showSection('automations')" class="text-sm hover:underline"
+                        style="color: #0055FF;">Ver todas</a>
                 </div>
                 <div class="p-4">
                     <div id="recentAutomations" class="space-y-3">
@@ -1114,7 +1142,7 @@ foreach ($msgEtapas as $k => $v) {
                 </div>
             </div>
         </section>
-        
+
         </section>
 
         <!-- Marketing Section -->
@@ -1123,19 +1151,27 @@ foreach ($msgEtapas as $k => $v) {
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Total Leads</div>
-                    <div class="text-xl font-bold text-white"><?= $mktStats['total'] ?? 0?></div>
+                    <div class="text-xl font-bold text-white">
+                        <?= $mktStats['total'] ?? 0?>
+                    </div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Na Fila</div>
-                    <div class="text-xl font-bold text-yellow-500"><?= $mktStats['novos'] ?? 0?></div>
+                    <div class="text-xl font-bold text-yellow-500">
+                        <?= $mktStats['novos'] ?? 0?>
+                    </div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Em Andamento</div>
-                    <div class="text-xl font-bold text-blue-500"><?= $mktStats['progresso'] ?? 0?></div>
+                    <div class="text-xl font-bold text-blue-500">
+                        <?= $mktStats['progresso'] ?? 0?>
+                    </div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Finalizados</div>
-                    <div class="text-xl font-bold text-green-500"><?= $mktStats['concluidos'] ?? 0?></div>
+                    <div class="text-xl font-bold text-green-500">
+                        <?= $mktStats['concluidos'] ?? 0?>
+                    </div>
                 </div>
             </div>
 
@@ -1147,32 +1183,42 @@ foreach ($msgEtapas as $k => $v) {
                     </div>
                     <div class="p-6">
                         <form id="marketingConfigForm" onsubmit="saveMarketingConfig(event)">
-                            <div class="flex items-center justify-between mb-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                            <div
+                                class="flex items-center justify-between mb-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
                                 <div>
                                     <h4 class="font-medium">Campanha Ativa</h4>
                                     <p class="text-sm text-zinc-500">O bot enviará mensagens automáticas</p>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" name="ativo" <?=($mktCampanha['ativo'] ?? 0) ? 'checked' : ''?>>
+                                    <input type="checkbox" name="ativo" <?=($mktCampanha['ativo'] ?? 0) ? 'checked' : ''
+                                        ?>>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
 
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-zinc-400 mb-2">Membros por Dia (por Grupo)</label>
-                                <input type="number" name="membros_dia" value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5?>" min="1" max="50" class="input-field w-full">
+                                <label class="block text-sm font-medium text-zinc-400 mb-2">Membros por Dia (por
+                                    Grupo)</label>
+                                <input type="number" name="membros_dia"
+                                    value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5?>" min="1" max="50"
+                                    class="input-field w-full">
                                 <p class="text-xs text-zinc-600 mt-1">Recomendado: 5-10 para evitar banimento.</p>
                             </div>
 
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-zinc-400 mb-2">Intervalo entre Envios (Minutos)</label>
+                                <label class="block text-sm font-medium text-zinc-400 mb-2">Intervalo entre Envios
+                                    (Minutos)</label>
                                 <div class="flex gap-4">
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_min" value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30?>" placeholder="Min" class="input-field w-full">
+                                        <input type="number" name="intervalo_min"
+                                            value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30?>" placeholder="Min"
+                                            class="input-field w-full">
                                         <div class="text-xs text-zinc-600 mt-1">Mínimo</div>
                                     </div>
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120?>" min="5" class="input-field w-full">
+                                        <input type="number" name="intervalo_max"
+                                            value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120?>" min="5"
+                                            class="input-field w-full">
                                         <p class="text-xs text-zinc-600 mt-1">Máximo</p>
                                     </div>
                                 </div>
@@ -1181,8 +1227,9 @@ foreach ($msgEtapas as $k => $v) {
                             <button type="submit" class="w-full btn btn-primary justify-center mb-3">
                                 Salvar Configurações
                             </button>
-                            
-                            <button type="button" onclick="resetDailyLimit()" class="w-full btn btn-secondary justify-center text-sm">
+
+                            <button type="button" onclick="resetDailyLimit()"
+                                class="w-full btn btn-secondary justify-center text-sm">
                                 <i class="fas fa-undo mr-2"></i> Zerar Limite Hoje (Emergência)
                             </button>
                         </form>
@@ -1193,32 +1240,40 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="card h-fit">
                     <div class="card-header flex justify-between items-center">
                         <h3 class="font-semibold">💬 Funil de Mensagens</h3>
-                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400"><?= count($mktMensagens)?> msgs</span>
+                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400">
+                            <?= count($mktMensagens)?> msgs
+                        </span>
                     </div>
                     <div class="p-4 space-y-4">
                         <?php if (empty($mktMensagens)): ?>
-                            <div class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
-                                Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
-                            </div>
+                        <div class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
+                            Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
+                        </div>
                         <?php
 else: ?>
-                            <div class="space-y-3">
-                                <?php foreach ($mktMensagens as $msg): ?>
-                                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group">
-                                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                                            <button onclick="deleteMarketingMsg(<?= $msg['id']?>)" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
-                                        </div>
-                                        <div class="flex items-center gap-2 mb-2">
-                                            <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#<?= $msg['ordem']?></span>
-                                            <span class="text-xs text-zinc-500">
-                                                <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior'?>
-                                            </span>
-                                        </div>
-                                        <p class="text-sm text-zinc-300 whitespace-pre-line"><?= htmlspecialchars($msg['conteudo'])?></p>
-                                    </div>
-                                <?php
-    endforeach; ?>
+                        <div class="space-y-3">
+                            <?php foreach ($mktMensagens as $msg): ?>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group">
+                                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                                    <button onclick="deleteMarketingMsg(<?= $msg['id']?>)"
+                                        class="text-zinc-500 hover:text-red-500 p-1"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#
+                                        <?= $msg['ordem']?>
+                                    </span>
+                                    <span class="text-xs text-zinc-500">
+                                        <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior'?>
+                                    </span>
+                                </div>
+                                <p class="text-sm text-zinc-300 whitespace-pre-line">
+                                    <?= htmlspecialchars($msg['conteudo'])?>
+                                </p>
                             </div>
+                            <?php
+    endforeach; ?>
+                        </div>
                         <?php
 endif; ?>
 
@@ -1227,12 +1282,14 @@ endif; ?>
                         <form id="addMktMsgForm" onsubmit="addMarketingMsg(event)">
                             <div class="mb-3">
                                 <label class="block text-xs font-medium text-zinc-500 mb-1">Nova Mensagem</label>
-                                <textarea name="conteudo" rows="3" required placeholder="Digite a mensagem..." class="input-field w-full text-sm"></textarea>
+                                <textarea name="conteudo" rows="3" required placeholder="Digite a mensagem..."
+                                    class="input-field w-full text-sm"></textarea>
                             </div>
                             <div class="flex gap-3 items-end">
                                 <div class="flex-1">
                                     <label class="block text-xs font-medium text-zinc-500 mb-1">Delay (min)</label>
-                                    <input type="number" name="delay" value="60" required class="input-field w-full text-sm">
+                                    <input type="number" name="delay" value="60" required
+                                        class="input-field w-full text-sm">
                                 </div>
                                 <button type="submit" class="btn btn-secondary text-sm h-[42px]">
                                     <i class="fas fa-plus mr-1"></i> Adicionar
@@ -1248,29 +1305,38 @@ endif; ?>
         <section id="section-messages" class="section hidden">
             <div class="card mb-6">
                 <div class="p-4 bg-zinc-900/50 border-b border-zinc-800">
-                    <p class="text-sm text-zinc-400"><i class="fas fa-info-circle mr-2"></i>Estas são as mensagens enviadas automaticamente quando o status de um rastreio é atualizado.</p>
+                    <p class="text-sm text-zinc-400"><i class="fas fa-info-circle mr-2"></i>Estas são as mensagens
+                        enviadas automaticamente quando o status de um rastreio é atualizado.</p>
                 </div>
                 <div class="p-6">
                     <form id="messagesConfigForm" onsubmit="saveMessagesConfig(event)">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <?php foreach ($msgEtapas as $k => $v): ?>
-                                <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-xl"><?= $v['icon']?></span>
-                                        <h4 class="font-medium text-zinc-200"><?= $v['nome']?></h4>
-                                    </div>
-                                    <textarea name="<?= $v['key']?>" rows="5" class="input-field w-full text-sm font-mono leading-relaxed" spellcheck="false"><?= htmlspecialchars($msgConfig[$k])?></textarea>
-                                    <div class="mt-2 flex flex-wrap gap-1">
-                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{nome}</span>
-                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{codigo}</span>
-                                        <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{link}</span>
-                                        <?php if ($k === 'taxa'): ?>
-                                            <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_valor}</span>
-                                            <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_pix}</span>
-                                        <?php
-    endif; ?>
-                                    </div>
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-xl">
+                                        <?= $v['icon']?>
+                                    </span>
+                                    <h4 class="font-medium text-zinc-200">
+                                        <?= $v['nome']?>
+                                    </h4>
                                 </div>
+                                <textarea name="<?= $v['key']?>" rows="5"
+                                    class="input-field w-full text-sm font-mono leading-relaxed"
+                                    spellcheck="false"><?= htmlspecialchars($msgConfig[$k])?></textarea>
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{nome}</span>
+                                    <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{codigo}</span>
+                                    <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{link}</span>
+                                    <?php if ($k === 'taxa'): ?>
+                                    <span
+                                        class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_valor}</span>
+                                    <span
+                                        class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_pix}</span>
+                                    <?php
+    endif; ?>
+                                </div>
+                            </div>
                             <?php
 endforeach; ?>
                         </div>
@@ -1284,14 +1350,14 @@ endforeach; ?>
                 </div>
             </div>
         </section>
-        
+
         <!-- Automations Section -->
         <section id="section-automations" class="section hidden">
             <div id="automationsList" class="grid gap-4">
                 <p class="text-zinc-500 text-center py-12">Carregando automações...</p>
             </div>
         </section>
-        
+
         <!-- Settings Section -->
         <section id="section-settings" class="section hidden">
             <div class="card">
@@ -1306,11 +1372,12 @@ endforeach; ?>
                             <p class="text-sm text-zinc-500">Ativar ou desativar o bot completamente</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="setting_bot_enabled" onchange="saveSetting('bot_enabled', this.checked ? '1' : '0')">
+                            <input type="checkbox" id="setting_bot_enabled"
+                                onchange="saveSetting('bot_enabled', this.checked ? '1' : '0')">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    
+
                     <!-- Automations Enabled -->
                     <div class="flex items-center justify-between">
                         <div>
@@ -1318,11 +1385,12 @@ endforeach; ?>
                             <p class="text-sm text-zinc-500">Ativar ou desativar todas as automações</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="setting_automations_enabled" onchange="saveSetting('automations_enabled', this.checked ? '1' : '0')">
+                            <input type="checkbox" id="setting_automations_enabled"
+                                onchange="saveSetting('automations_enabled', this.checked ? '1' : '0')">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    
+
                     <!-- Auto Reply -->
                     <div class="flex items-center justify-between">
                         <div>
@@ -1330,11 +1398,12 @@ endforeach; ?>
                             <p class="text-sm text-zinc-500">Responder automaticamente a saudações</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="setting_auto_reply_enabled" onchange="saveSetting('auto_reply_enabled', this.checked ? '1' : '0')">
+                            <input type="checkbox" id="setting_auto_reply_enabled"
+                                onchange="saveSetting('auto_reply_enabled', this.checked ? '1' : '0')">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    
+
                     <!-- Log Automations -->
                     <div class="flex items-center justify-between">
                         <div>
@@ -1342,7 +1411,8 @@ endforeach; ?>
                             <p class="text-sm text-zinc-500">Salvar histórico de execução das automações</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="setting_log_automations" onchange="saveSetting('log_automations', this.checked ? '1' : '0')">
+                            <input type="checkbox" id="setting_log_automations"
+                                onchange="saveSetting('log_automations', this.checked ? '1' : '0')">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -1351,47 +1421,51 @@ endforeach; ?>
                     <div class="flex items-center justify-between">
                         <div>
                             <h4 class="font-medium">Entrar Automaticamente em Grupos</h4>
-                            <p class="text-sm text-zinc-500">Entrar em grupos quando receber link no privado (após validação)</p>
+                            <p class="text-sm text-zinc-500">Entrar em grupos quando receber link no privado (após
+                                validação)</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="setting_auto_join_groups" onchange="saveSetting('auto_join_groups', this.checked ? '1' : '0')">
+                            <input type="checkbox" id="setting_auto_join_groups"
+                                onchange="saveSetting('auto_join_groups', this.checked ? '1' : '0')">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
 
                     <!-- Warming Mode -->
-                    <div class="flex items-center justify-between mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                    <div
+                        class="flex items-center justify-between mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
                         <div>
                             <h4 class="font-medium text-orange-400">🔥 Modo Aquecimento</h4>
-                            <p class="text-sm text-zinc-400">Simula comportamento humano (digita, varia tempo) para evitar banimento.</p>
+                            <p class="text-sm text-zinc-400">Simula comportamento humano (digita, varia tempo) para
+                                evitar banimento.</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="setting_warming_mode" onchange="saveSetting('warming_mode', this.checked ? '1' : '0')">
+                            <input type="checkbox" id="setting_warming_mode"
+                                onchange="saveSetting('warming_mode', this.checked ? '1' : '0')">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    
+
                     <hr class="border-zinc-800">
-                    
+
                     <!-- Welcome Message -->
                     <div>
                         <h4 class="font-medium mb-2">Mensagem de Boas-Vindas</h4>
-                        <textarea id="setting_welcome_message" class="input-field w-full h-24" 
+                        <textarea id="setting_welcome_message" class="input-field w-full h-24"
                             placeholder="Olá! Como posso ajudar?"
                             onblur="saveSetting('welcome_message', this.value)"></textarea>
                     </div>
-                    
+
                     <!-- Rate Limit -->
                     <div>
                         <h4 class="font-medium mb-2">Limite de Automações por Minuto (por usuário)</h4>
-                        <input type="number" id="setting_max_automations_per_minute" class="input-field w-32"
-                            min="1" max="100" value="10"
-                            onblur="saveSetting('max_automations_per_minute', this.value)">
+                        <input type="number" id="setting_max_automations_per_minute" class="input-field w-32" min="1"
+                            max="100" value="10" onblur="saveSetting('max_automations_per_minute', this.value)">
                     </div>
                 </div>
             </div>
         </section>
-        
+
         <!-- Logs Section -->
         <section id="section-logs" class="section hidden">
             <div class="card">
@@ -1423,7 +1497,7 @@ endforeach; ?>
             </div>
         </section>
     </main>
-    
+
     <!-- Modal -->
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -1433,10 +1507,10 @@ endforeach; ?>
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
+
             <form id="automationForm" class="p-6 space-y-5" onsubmit="saveAutomation(event)">
                 <input type="hidden" id="automationId" name="id" value="">
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Nome *</label>
@@ -1452,13 +1526,13 @@ endforeach; ?>
                         </select>
                     </div>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Descrição</label>
                     <input type="text" name="descricao" id="autoDescricao" class="input-field w-full"
                         placeholder="Breve descrição da automação">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Gatilho (Texto que ativa) *</label>
                     <input type="text" name="gatilho" id="autoGatilho" class="input-field w-full mono" required
@@ -1467,7 +1541,7 @@ endforeach; ?>
                         <span class="text-yellow-500">Dica:</span> Use | para múltiplas palavras. Ex: oi|olá|hey
                     </p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">Resposta *</label>
                     <textarea name="resposta" id="autoResposta" class="input-field w-full h-32" required
@@ -1476,7 +1550,7 @@ endforeach; ?>
                         Suporta formatação WhatsApp: *negrito*, _itálico_, ~tachado~, ```código```
                     </p>
                 </div>
-                
+
                 <!-- Campo de Imagem -->
                 <div>
                     <label class="block text-sm text-zinc-400 mb-2">
@@ -1484,9 +1558,8 @@ endforeach; ?>
                     </label>
                     <div class="flex gap-3">
                         <input type="text" name="imagem_url" id="autoImagemUrl" class="input-field flex-1"
-                            placeholder="https://exemplo.com/imagem.jpg" 
-                            onchange="previewImage(this.value)">
-                        <button type="button" onclick="document.getElementById('imageUpload').click()" 
+                            placeholder="https://exemplo.com/imagem.jpg" onchange="previewImage(this.value)">
+                        <button type="button" onclick="document.getElementById('imageUpload').click()"
                             class="btn btn-secondary" title="Upload de imagem">
                             <i class="fas fa-upload"></i>
                         </button>
@@ -1498,35 +1571,38 @@ endforeach; ?>
                     <!-- Preview da imagem -->
                     <div id="imagePreview" class="mt-3 hidden">
                         <div class="relative inline-block">
-                            <img id="imagePreviewImg" src="" alt="Preview" 
+                            <img id="imagePreviewImg" src="" alt="Preview"
                                 class="max-h-32 rounded-lg border border-zinc-700">
-                            <button type="button" onclick="clearImage()" 
+                            <button type="button" onclick="clearImage()"
                                 class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600">
                                 <i class="fas fa-times text-xs text-white"></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-sm text-zinc-400">Grupos Específicos (opcional)</label>
-                            <a href="#" onclick="purgeGroups(); return false;" class="text-xs text-red-500 hover:text-red-400" title="Limpar lista antiga">Limpar cache</a>
+                            <a href="#" onclick="purgeGroups(); return false;"
+                                class="text-xs text-red-500 hover:text-red-400" title="Limpar lista antiga">Limpar
+                                cache</a>
                         </div>
                         <div class="text-xs text-zinc-500 mb-1">Segure Ctrl (ou Cmd) para selecionar vários</div>
-                        <select name="grupo_id[]" id="autoGrupoId" class="input-field w-full" multiple size="4" onchange="updateGrupoNome()">
+                        <select name="grupo_id[]" id="autoGrupoId" class="input-field w-full" multiple size="4"
+                            onchange="updateGrupoNome()">
                             <option value="">Todos os chats</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Prioridade</label>
-                        <input type="number" name="prioridade" id="autoPrioridade" class="input-field w-full"
-                            value="0" min="0" max="100">
+                        <input type="number" name="prioridade" id="autoPrioridade" class="input-field w-full" value="0"
+                            min="0" max="100">
                     </div>
                 </div>
                 <input type="hidden" name="grupo_nome" id="autoGrupoNome">
-                
+
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm text-zinc-400 mb-2">Delay antes de responder</label>
@@ -1573,7 +1649,7 @@ endforeach; ?>
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="flex items-center gap-3">
                     <label class="toggle-switch">
                         <input type="checkbox" name="ativo" id="autoAtivo" checked>
@@ -1581,7 +1657,7 @@ endforeach; ?>
                     </label>
                     <span>Automação Ativa</span>
                 </div>
-                
+
                 <div class="flex justify-end gap-3 pt-4 border-t border-zinc-800">
                     <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
@@ -1593,24 +1669,24 @@ endforeach; ?>
 
         </div>
     </div>
-    
+
     <!-- Toast -->
     <div id="toast" class="toast">
         <span id="toastMessage"></span>
     </div>
-    
+
     <script>
         // ===== VARIÁVEIS GLOBAIS =====
-        let automations = <?= json_encode($automations)?>;
-        let settings = <?= json_encode($settingsObj)?>;
+        let automations = <?= json_encode($automations) ?>;
+        let settings = <?= json_encode($settingsObj) ?>;
         let grupos = [];
         const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? ''?>';
-        
+
         // ===== INICIALIZAÇÃO =====
         // ===== INICIALIZAÇÃO =====
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('BotConfig: Inicializando...');
-            
+
             // 1. Setup Navegação (PRIORIDADE MÁXIMA)
             try {
                 const navItems = document.querySelectorAll('.sidebar-item[data-section]');
@@ -1625,7 +1701,7 @@ endforeach; ?>
                         showSection(section);
                     });
                 });
-                
+
                 // Verificar hash inicial (ex: #marketing) e navegar
                 const initialHash = window.location.hash.replace('#', '');
                 if (initialHash) {
@@ -1633,10 +1709,10 @@ endforeach; ?>
                     // Pequeno delay para garantir que o DOM renderizou
                     setTimeout(() => showSection(initialHash), 50);
                 } else {
-                     // Default para dashboard se não tiver hash
-                     showSection('logs');
+                    // Default para dashboard se não tiver hash
+                    showSection('logs');
                 }
-                
+
                 // Escutar mudanças de hash (caso o usuário use botões voltar/avançar)
                 window.addEventListener('hashchange', () => {
                     const hash = window.location.hash.replace('#', '');
@@ -1650,30 +1726,30 @@ endforeach; ?>
             // 2. Carregar dados de forma segura (Independentes)
             // Usamos setTimeout para não travar a thread principal imediatamente
             setTimeout(async () => {
-                try { await loadStats(); } catch(e) { console.error('Erro loadStats:', e); }
-                try { await loadSettings(); } catch(e) { console.error('Erro loadSettings:', e); }
-                try { await loadGrupos(); } catch(e) { console.error('Erro loadGrupos:', e); }
-                try { renderAutomations(); } catch(e) { console.error('Erro renderAutomations:', e); }
-                try { checkBotStatus(); } catch(e) { console.error('Erro checkBotStatus:', e); }
+                try { await loadStats(); } catch (e) { console.error('Erro loadStats:', e); }
+                try { await loadSettings(); } catch (e) { console.error('Erro loadSettings:', e); }
+                try { await loadGrupos(); } catch (e) { console.error('Erro loadGrupos:', e); }
+                try { renderAutomations(); } catch (e) { console.error('Erro renderAutomations:', e); }
+                try { checkBotStatus(); } catch (e) { console.error('Erro checkBotStatus:', e); }
             }, 100);
-            
+
             // Auto-refresh status a cada 30s
             setInterval(() => {
-                try { checkBotStatus(); } catch(e) { console.error('Erro intervalo status:', e); }
+                try { checkBotStatus(); } catch (e) { console.error('Erro intervalo status:', e); }
             }, 30000);
         });
-        
+
         function showSection(section) {
             // Update sidebar
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
             document.querySelector(`.sidebar-item[data-section="${section}"]`)?.classList.add('active');
-            
+
             // Update sections
             document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
             document.getElementById(`section-${section}`)?.classList.remove('hidden');
-            
+
             // Update header
             const titles = {
                 dashboard: ['Dashboard', 'Visão geral do bot e automações'],
@@ -1685,23 +1761,23 @@ endforeach; ?>
                 ai: ['IA do Bot', 'Configuração de inteligência'],
                 messages: ['Mensagens', 'Personalize textos de rastreamento']
             };
-            
+
             document.getElementById('pageTitle').textContent = titles[section]?.[0] || section;
             document.getElementById('pageSubtitle').textContent = titles[section]?.[1] || '';
-            
+
             // Show/hide new automation button
-            document.getElementById('btnNewAutomation').style.display = 
+            document.getElementById('btnNewAutomation').style.display =
                 section === 'automations' ? 'flex' : 'none';
-            
+
             // Load section data
             if (section === 'logs') loadLogs();
         }
-        
+
         // ===== MODAL =====
         function openModal(automation = null) {
             const modal = document.getElementById('modal');
             const form = document.getElementById('automationForm');
-            
+
             if (automation) {
                 document.getElementById('modalTitle').textContent = 'Editar Automação';
                 document.getElementById('automationId').value = automation.id;
@@ -1718,7 +1794,7 @@ endforeach; ?>
                 });
                 document.getElementById('autoGrupoNome').value = automation.grupo_nome || '';
                 document.getElementById('autoPrioridade').value = automation.prioridade || 0;
-                
+
                 // Delay - selecionar a opção mais próxima
                 const delayMs = parseInt(automation.delay_ms || 0);
                 const delaySelect = document.getElementById('autoDelay');
@@ -1735,7 +1811,7 @@ endforeach; ?>
                     }
                     delaySelect.value = selectedDelay;
                 }
-                
+
                 // Cooldown - selecionar a opção exata ou mais próxima
                 const cooldownSegundos = parseInt(automation.cooldown_segundos || 0);
                 const cooldownSelect = document.getElementById('autoCooldown');
@@ -1752,11 +1828,11 @@ endforeach; ?>
                     }
                     cooldownSelect.value = selectedCooldown;
                 }
-                
+
                 document.getElementById('autoApenasPrivado').checked = automation.apenas_privado == 1;
                 document.getElementById('autoApenasGrupo').checked = automation.apenas_grupo == 1;
                 document.getElementById('autoAtivo').checked = automation.ativo == 1;
-                
+
                 // Preview da imagem se existir
                 if (automation.imagem_url) {
                     previewImage(automation.imagem_url);
@@ -1769,30 +1845,30 @@ endforeach; ?>
                 document.getElementById('automationId').value = '';
                 document.getElementById('autoAtivo').checked = true;
                 document.getElementById('imagePreview').classList.add('hidden');
-                
+
                 // Resetar campos
                 document.getElementById('autoDelay').value = '0';
                 document.getElementById('autoCooldown').value = '0';
                 document.getElementById('autoPrioridade').value = '0';
-                
+
                 // Clear group selection
                 const grupoSelect = document.getElementById('autoGrupoId');
                 Array.from(grupoSelect.options).forEach(opt => opt.selected = false);
             }
-            
+
             modal.classList.add('active');
         }
-        
+
         function closeModal(event) {
             if (event && event.target !== event.currentTarget) return;
             document.getElementById('modal').classList.remove('active');
         }
-        
+
         // ===== AUTOMAÇÕES =====
         function renderAutomations() {
             const container = document.getElementById('automationsList');
             const recent = document.getElementById('recentAutomations');
-            
+
             if (!automations.length) {
                 container.innerHTML = `
                     <div class="text-center py-12">
@@ -1807,14 +1883,14 @@ endforeach; ?>
                 recent.innerHTML = container.innerHTML;
                 return;
             }
-            
+
             // Full list
             container.innerHTML = automations.map(a => automationCard(a)).join('');
-            
+
             // Recent (top 5)
             recent.innerHTML = automations.slice(0, 5).map(a => automationCardMini(a)).join('');
         }
-        
+
         function automationCard(a) {
             const tipoLabels = {
                 'mensagem_especifica': { text: 'Mensagem', class: 'badge-blue' },
@@ -1822,7 +1898,7 @@ endforeach; ?>
                 'regex': { text: 'Regex', class: 'badge-red' }
             };
             const tipo = tipoLabels[a.tipo] || { text: a.tipo, class: 'badge-blue' };
-            
+
             return `
                 <div class="automation-card ${a.ativo == 0 ? 'inactive' : ''}" id="auto-${a.id}">
                     <div class="flex items-start justify-between mb-3">
@@ -1846,7 +1922,7 @@ endforeach; ?>
                     <div class="grid grid-cols-2 gap-4 mb-3">
                         <div class="bg-zinc-900 rounded-lg p-3">
                             <div class="text-xs text-zinc-500 mb-1">Gatilho</div>
-                            <code class="mono text-sm" style="color: #FF3333;">${escapeHtml(a.gatilho)}</code>
+                            <code class="mono text-sm" style="color: #0055FF;">${escapeHtml(a.gatilho)}</code>
                         </div>
                         <div class="bg-zinc-900 rounded-lg p-3">
                             <div class="text-xs text-zinc-500 mb-1">Resposta</div>
@@ -1858,7 +1934,7 @@ endforeach; ?>
                         <div class="flex items-center gap-4">
                             ${a.grupo_nome ? `<span><i class="fas fa-users mr-1"></i>${escapeHtml(a.grupo_nome)}</span>` : '<span><i class="fas fa-globe mr-1"></i>Todos os chats</span>'}
                             <span><i class="fas fa-chart-bar mr-1"></i>${a.contador_uso || 0} usos</span>
-                            ${a.imagem_url ? '<span style="color: #FF3333;"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
+                            ${a.imagem_url ? '<span style="color: #0055FF;"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
                             ${a.delay_ms > 0 ? `<span><i class="fas fa-clock mr-1"></i>${a.delay_ms}ms</span>` : ''}
                         </div>
                         <div class="flex items-center gap-2">
@@ -1876,7 +1952,7 @@ endforeach; ?>
                 </div>
             `;
         }
-        
+
         function automationCardMini(a) {
             return `
                 <div class="flex items-center justify-between p-3 bg-zinc-900 rounded-lg">
@@ -1889,21 +1965,21 @@ endforeach; ?>
                             <p class="text-xs text-zinc-500">${a.contador_uso || 0} usos</p>
                         </div>
                     </div>
-                    <code class="mono text-xs max-w-[150px] truncate" style="color: #FF3333;">${escapeHtml(a.gatilho)}</code>
+                    <code class="mono text-xs max-w-[150px] truncate" style="color: #0055FF;">${escapeHtml(a.gatilho)}</code>
                 </div>
             `;
         }
-        
+
         async function saveAutomation(e) {
             e.preventDefault();
             const form = document.getElementById('automationForm');
             const formData = new FormData(form);
             formData.append('action', 'save_automation');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     closeModal();
@@ -1915,17 +1991,17 @@ endforeach; ?>
                 showToast('Erro ao salvar: ' + err.message, 'error');
             }
         }
-        
+
         async function toggleAutomation(id, ativo) {
             const formData = new FormData();
             formData.append('action', 'toggle_automation');
             formData.append('id', id);
             formData.append('ativo', ativo ? 1 : 0);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     await loadAutomations();
@@ -1934,22 +2010,22 @@ endforeach; ?>
                 showToast('Erro: ' + err.message, 'error');
             }
         }
-        
+
         async function cloneAutomation(id, nome) {
             if (!confirm(`Clonar a automação "${nome}"?\n\nUma cópia será criada com o nome "${nome} (Cópia)" e ficará INATIVA por padrão.`)) return;
-            
+
             const formData = new FormData();
             formData.append('action', 'clone_automation');
             formData.append('id', id);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message + ' Edite para personalizar.', 'success');
                     await loadAutomations();
-                    
+
                     // Abrir modal de edição da nova automação clonada
                     if (data.id) {
                         // Aguardar lista carregar e então abrir o modal
@@ -1968,18 +2044,18 @@ endforeach; ?>
                 showToast('Erro ao clonar: ' + err.message, 'error');
             }
         }
-        
+
         async function deleteAutomation(id, nome) {
             if (!confirm(`Excluir a automação "${nome}"?`)) return;
-            
+
             const formData = new FormData();
             formData.append('action', 'delete_automation');
             formData.append('id', id);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     await loadAutomations();
@@ -1990,20 +2066,20 @@ endforeach; ?>
                 showToast('Erro: ' + err.message, 'error');
             }
         }
-        
+
         async function fetchAutomations() {
             const formData = new FormData();
             formData.append('action', 'get_automations');
-            
+
             const res = await fetch('', { method: 'POST', body: formData });
             const data = await res.json();
-            
+
             if (data.success) {
                 return data.data;
             }
             return [];
         }
-        
+
         async function loadAutomations() {
             try {
                 automations = await fetchAutomations();
@@ -2013,7 +2089,7 @@ endforeach; ?>
                 console.error('Erro ao carregar automações:', err);
             }
         }
-        
+
         // ===== CONFIGURAÇÕES =====
         function loadSettings() {
             document.getElementById('setting_bot_enabled').checked = settings.bot_enabled === '1';
@@ -2028,7 +2104,7 @@ endforeach; ?>
 
         async function purgeGroups() {
             if (!confirm('Tem certeza? Isso apagará a lista de grupos do banco. O bot precisará ser reiniciado para sincronizar novamente.')) return;
-            
+
             try {
                 // Usando o script separado que criamos
                 const res = await fetch('limpar_grupos.php');
@@ -2048,7 +2124,7 @@ endforeach; ?>
         // ===== MARKETING JS =====
         async function resetDailyLimit() {
             if (!confirm('Tem certeza? Isso vai zerar a contagem do dia e o bot enviará mensagens para MAIS PESSOAS hoje, ignorando o limite já atingido.')) return;
-            
+
             try {
                 const response = await fetch('api_marketing.php?action=reset_daily_limit&token=' + API_TOKEN, {
                     method: 'GET',
@@ -2056,9 +2132,9 @@ endforeach; ?>
                         'x-api-token': API_TOKEN
                     }
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showToast(result.message, 'success');
                 } else {
@@ -2069,13 +2145,13 @@ endforeach; ?>
                 showToast('Erro de conexão ou resposta inválida', 'error');
             }
         }
-        
+
         async function saveMarketingConfig(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_campaign');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2094,7 +2170,7 @@ endforeach; ?>
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'add_marketing_msg');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2111,11 +2187,11 @@ endforeach; ?>
         }
 
         async function deleteMarketingMsg(id) {
-            if(!confirm('Tem certeza?')) return;
+            if (!confirm('Tem certeza?')) return;
             const formData = new FormData();
             formData.append('action', 'delete_marketing_msg');
             formData.append('id', id);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2131,11 +2207,11 @@ endforeach; ?>
         async function loadMarketingMsgs() {
             const formData = new FormData();
             formData.append('action', 'get_marketing_msgs');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     renderMarketingMsgs(data.data);
                 }
@@ -2150,11 +2226,11 @@ endforeach; ?>
             // Vamos precisar adicionar um ID ao container no PHP ou usar seletor robusto
             // Como não posso editar o HTML do PHP aqui facilmente sem ver o código, vou usar seletor relativo ao form
             // O form é addMktMsgForm. O container de msgs está acima dele.
-            
+
             // Mas espera, eu tenho acesso ao container via DOM se eu der um ID pra ele.
             // Vou assumir que o usuário pode atualizar o PHP container.
             // Melhor: Vou recriar o container no JS.
-            
+
             // Mas espera, o HTML atual é:
             /*
             <div class="p-4 space-y-4">
@@ -2170,24 +2246,24 @@ endif; ?>
                 <hr ...>
                 <form ...>
             */
-            
+
             // Eu preciso identificar o pai dos items.
             // Vou usar o seletor: #section-marketing .card:nth-child(2) .p-4
-            
+
             const container = document.querySelector('#section-marketing .card:nth-child(2) .p-4');
-            if(!container) return;
-            
+            if (!container) return;
+
             // Remover conteúdo antes do HR
             // A estrutura é complexa. O ideal é ter um container explícito.
             // Como não tenho ID, vou limpar tudo exceto o form e o HR e recriar.
-            
+
             // Pegar o form e o hr para preservar
             const form = document.getElementById('addMktMsgForm');
             const hr = container.querySelector('hr');
-            
+
             // Limpar container
             container.innerHTML = '';
-            
+
             // Recriar lista
             if (!msgs || msgs.length === 0) {
                 container.innerHTML = `
@@ -2199,15 +2275,15 @@ endif; ?>
                 const listDiv = document.createElement('div');
                 listDiv.className = 'space-y-3';
                 listDiv.id = 'mktMsgsList';
-                
+
                 msgs.forEach(msg => {
                     const item = document.createElement('div');
                     item.className = 'bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group';
-                    
+
                     // Escapar conteúdo HTML para segurança
                     const conteudoEscapado = escapeHtml(msg.conteudo);
                     const delayText = msg.delay_apos_anterior_minutos == 0 ? 'Imediato (1º msg)' : `Aguarda ${msg.delay_apos_anterior_minutos} min após anterior`;
-                    
+
                     item.innerHTML = `
                         <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
                             <button onclick="deleteMarketingMsg(${msg.id})" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
@@ -2220,35 +2296,35 @@ endif; ?>
                     `;
                     listDiv.appendChild(item);
                 });
-                
+
                 container.appendChild(listDiv);
             }
-            
+
             // Re-adicionar HR e Form
             container.appendChild(hr);
             container.appendChild(form);
-            
+
             // Atualizar contador no header do card se possível
             const counter = document.querySelector('#section-marketing .card:nth-child(2) .card-header span');
-            if(counter) counter.textContent = `${msgs.length} msgs`;
+            if (counter) counter.textContent = `${msgs.length} msgs`;
         }
 
         async function syncMembers() {
-            if(!confirm('Isso ordenará ao Bot varrer os grupos. Continuar?')) return;
+            if (!confirm('Isso ordenará ao Bot varrer os grupos. Continuar?')) return;
             showToast('Enviando comando...', 'warning');
             try {
                 const res = await fetch('api_marketing_trigger.php', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'sync_groups'})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'sync_groups' })
                 });
                 const data = await res.json();
-                if(data.success) {
+                if (data.success) {
                     showToast('Comando enviado! Bot está processando em background.', 'success');
                 } else {
                     showToast('Erro: ' + data.message, 'error');
                 }
-            } catch(err) {
+            } catch (err) {
                 showToast('Falha na requisição: ' + err.message, 'error');
             }
         }
@@ -2259,9 +2335,9 @@ endif; ?>
             const form = e.target;
             const formData = new FormData(form);
             formData.append('action', 'save_messages');
-            
+
             showToast('Salvando...', 'warning');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2274,17 +2350,17 @@ endif; ?>
                 showToast('Erro ao salvar: ' + err.message, 'error');
             }
         }
-        
+
         async function saveSetting(chave, valor) {
             const formData = new FormData();
             formData.append('action', 'save_setting');
             formData.append('chave', chave);
             formData.append('valor', valor);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     settings[chave] = valor;
                     showToast('Configuração salva!', 'success');
@@ -2293,16 +2369,16 @@ endif; ?>
                 showToast('Erro: ' + err.message, 'error');
             }
         }
-        
+
         // ===== ESTATÍSTICAS =====
         async function loadStats() {
             const formData = new FormData();
             formData.append('action', 'get_stats');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     document.getElementById('statTotal').textContent = data.data.total_automations;
                     document.getElementById('statActive').textContent = data.data.active_automations;
@@ -2313,27 +2389,27 @@ endif; ?>
                 console.error('Erro ao carregar stats:', err);
             }
         }
-        
+
         // ===== BOT STATUS =====
         async function checkBotStatus() {
             const formData = new FormData();
             formData.append('action', 'get_bot_status');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 const dot = document.getElementById('botStatusDot');
                 const text = document.getElementById('botStatusText');
                 const statStatus = document.getElementById('statBotStatus');
                 const statUptime = document.getElementById('statUptime');
-                
+
                 if (data.success && data.data.ready) {
                     dot.className = 'status-dot status-online';
                     text.textContent = 'Online';
                     statStatus.textContent = 'Online';
                     statStatus.className = 'text-2xl font-bold';
-                    statStatus.style.color = '#FF3333';
+                    statStatus.style.color = '#0055FF';
                     statUptime.textContent = `uptime: ${data.data.uptime}`;
                 } else if (data.success && data.data.online) {
                     dot.className = 'status-dot status-offline';
@@ -2351,7 +2427,7 @@ endif; ?>
                 console.error('Erro ao verificar status:', err);
             }
         }
-        
+
         // ===== LOGS =====
         async function loadLogs() {
             const tbody = document.getElementById('logsTable');
@@ -2360,18 +2436,18 @@ endif; ?>
             const formData = new FormData();
             formData.append('action', 'get_logs');
             formData.append('limit', 50);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (!tbody) return;
-                
+
                 if (!data.success || !data.data.length) {
                     tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-zinc-500">Nenhum log encontrado</td></tr>';
                     return;
                 }
-                
+
                 tbody.innerHTML = data.data.map(log => `
                     <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                         <td class="px-4 py-3 text-zinc-400">${formatDate(log.criado_em)}</td>
@@ -2389,36 +2465,36 @@ endif; ?>
                 // Update stats too
                 loadStats();
                 showToast('Logs atualizados!', 'success');
-                
+
             } catch (err) {
                 console.error('Erro ao carregar logs:', err);
-                if(tbody) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Erro ao carregar logs. Tente recarregar.</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Erro ao carregar logs. Tente recarregar.</td></tr>';
             }
         }
-        
+
         // Auto-refresh logs every 10s if on logs section
         setInterval(() => {
-            if(!document.getElementById('section-logs').classList.contains('hidden')) {
+            if (!document.getElementById('section-logs').classList.contains('hidden')) {
                 loadLogs();
             }
         }, 10000);
-        
+
         // ===== GRUPOS =====
         async function loadGrupos() {
             const formData = new FormData();
             formData.append('action', 'get_grupos');
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     grupos = data.data;
                     const select = document.getElementById('autoGrupoId');
-                    
+
                     // Manter primeira opção (todos os chats)
                     select.innerHTML = '<option value="">Todos os chats</option>';
-                    
+
                     grupos.forEach(g => {
                         select.innerHTML += `<option value="${escapeHtml(g.jid)}">${escapeHtml(g.nome || g.jid)}</option>`;
                     });
@@ -2427,13 +2503,13 @@ endif; ?>
                 console.error('Erro ao carregar grupos:', err);
             }
         }
-        
+
         function updateGrupoNome() {
             const select = document.getElementById('autoGrupoId');
             const nomeInput = document.getElementById('autoGrupoNome');
-            
+
             const selectedOptions = Array.from(select.selectedOptions);
-            
+
             if (selectedOptions.length === 0 || (selectedOptions.length === 1 && selectedOptions[0].value === '')) {
                 nomeInput.value = ''; // Todos os chats
             } else if (selectedOptions.length === 1) {
@@ -2442,12 +2518,12 @@ endif; ?>
                 nomeInput.value = selectedOptions.length + ' grupos selecionados';
             }
         }
-        
+
         // ===== FUNÇÕES DE IMAGEM =====
         function previewImage(url) {
             const preview = document.getElementById('imagePreview');
             const img = document.getElementById('imagePreviewImg');
-            
+
             if (url && url.trim()) {
                 img.src = url;
                 img.onload = () => preview.classList.remove('hidden');
@@ -2459,38 +2535,38 @@ endif; ?>
                 preview.classList.add('hidden');
             }
         }
-        
+
         function clearImage() {
             document.getElementById('autoImagemUrl').value = '';
             document.getElementById('imagePreview').classList.add('hidden');
         }
-        
+
         async function uploadImage(input) {
             const file = input.files[0];
             if (!file) return;
-            
+
             // Validar tamanho (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 showToast('Imagem muito grande! Máximo 5MB', 'error');
                 return;
             }
-            
+
             // Validar tipo
             if (!file.type.startsWith('image/')) {
                 showToast('Arquivo deve ser uma imagem', 'error');
                 return;
             }
-            
+
             showToast('Fazendo upload...', 'warning');
-            
+
             const formData = new FormData();
             formData.append('action', 'upload_image');
             formData.append('image', file);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: formData });
                 const data = await res.json();
-                
+
                 if (data.success && data.url) {
                     document.getElementById('autoImagemUrl').value = data.url;
                     previewImage(data.url);
@@ -2501,11 +2577,11 @@ endif; ?>
             } catch (err) {
                 showToast('Erro: ' + err.message, 'error');
             }
-            
+
             // Limpar input
             input.value = '';
         }
-        
+
         // ===== UTILIDADES =====
         function escapeHtml(text) {
             if (!text) return '';
@@ -2513,26 +2589,26 @@ endif; ?>
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function formatDate(dateStr) {
             const date = new Date(dateStr);
-            return date.toLocaleString('pt-BR', { 
+            return date.toLocaleString('pt-BR', {
                 day: '2-digit', month: '2-digit', year: '2-digit',
                 hour: '2-digit', minute: '2-digit'
             });
         }
-        
+
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
-            
+
             toast.className = `toast ${type}`;
             toastMessage.textContent = message;
             toast.classList.add('show');
-            
+
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
-        
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -2548,60 +2624,60 @@ endif; ?>
                 e.preventDefault();
             }
         });
-        
+
         // ===== PREVENIR ZOOM COMPLETAMENTE =====
         // Prevenir zoom com gestos de pinça
         let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
+        document.addEventListener('touchend', function (event) {
             const now = Date.now();
             if (now - lastTouchEnd <= 300) {
                 event.preventDefault();
             }
             lastTouchEnd = now;
         }, false);
-        
+
         // Prevenir zoom com gestos de pinça (iOS)
-        document.addEventListener('gesturestart', function(e) {
+        document.addEventListener('gesturestart', function (e) {
             e.preventDefault();
         });
-        
-        document.addEventListener('gesturechange', function(e) {
+
+        document.addEventListener('gesturechange', function (e) {
             e.preventDefault();
         });
-        
-        document.addEventListener('gestureend', function(e) {
+
+        document.addEventListener('gestureend', function (e) {
             e.preventDefault();
         });
-        
+
         // Prevenir zoom com duplo toque
         let lastTouch = 0;
-        document.addEventListener('touchstart', function(event) {
+        document.addEventListener('touchstart', function (event) {
             const now = Date.now();
             if (now - lastTouch <= 300) {
                 event.preventDefault();
             }
             lastTouch = now;
         }, { passive: false });
-        
+
         // Prevenir zoom com wheel (alguns navegadores)
-        document.addEventListener('wheel', function(e) {
+        document.addEventListener('wheel', function (e) {
             if (e.ctrlKey) {
                 e.preventDefault();
             }
         }, { passive: false });
-        
+
         // Forçar viewport scale
         const viewport = document.querySelector('meta[name="viewport"]');
         if (viewport) {
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
         }
-        
+
         // ===== SIDEBAR MOBILE =====
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             const isActive = sidebar.classList.contains('active');
-            
+
             if (isActive) {
                 closeSidebar();
             } else {
@@ -2610,7 +2686,7 @@ endif; ?>
                 document.body.style.overflow = 'hidden';
             }
         }
-        
+
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2618,7 +2694,7 @@ endif; ?>
             overlay.classList.remove('active');
             document.body.style.overflow = '';
         }
-        
+
         // Fechar sidebar ao clicar em um link
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -2627,7 +2703,7 @@ endif; ?>
                 }
             });
         });
-        
+
         // Mostrar menu hambúrguer no mobile
         function updateMenuVisibility() {
             const menuToggle = document.getElementById('menuToggle');
@@ -2638,10 +2714,10 @@ endif; ?>
                 closeSidebar();
             }
         }
-        
+
         window.addEventListener('resize', updateMenuVisibility);
         updateMenuVisibility();
     </script>
 </body>
-</html>
 
+</html>

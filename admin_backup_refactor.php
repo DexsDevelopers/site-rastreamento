@@ -330,7 +330,7 @@ if (!isset($_SESSION['logado'])) {
 <title>Helmer Admin - Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-    :root { --primary:#FF3333; --accent:#FF6600; --bg:#0A0A0A; --card:#1A1A1A; --text:#FFF; --muted:#A3A3A3; }
+    :root { --primary:#0055FF; --accent:#FF6600; --bg:#0A0A0A; --card:#1A1A1A; --text:#FFF; --muted:#A3A3A3; }
     * { box-sizing: border-box; }
     body { margin:0; background: linear-gradient(135deg, #0A0A0A 0%, #1A0000 100%); color: var(--text); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial; min-height: 100vh; display: grid; place-items: center; }
     .login-wrap { width: 100%; max-width: 420px; padding: 20px; }
@@ -905,7 +905,7 @@ if (isset($_POST['undo_action'])) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Painel Admin - Helmer Logistics</title>
-<meta name="theme-color" content="#FF3333">
+<meta name="theme-color" content="#0055FF">
 <meta name="description" content="Painel administrativo Helmer Logistics - Gerencie rastreamentos, mensagens e configurações">
 <meta name="keywords" content="helmer, logistics, admin, rastreamento">
 <meta name="author" content="Helmer Logistics">
@@ -955,8 +955,8 @@ if (isset($_POST['undo_action'])) {
         height: 48px !important;
         min-width: 48px !important;
         min-height: 48px !important;
-        background: #FF3333 !important;
-        background-color: #FF3333 !important;
+        background: #0055FF !important;
+        background-color: #0055FF !important;
         border: 3px solid #FFFFFF !important;
         border-radius: 8px !important;
         cursor: pointer !important;
@@ -964,7 +964,7 @@ if (isset($_POST['undo_action'])) {
         justify-content: center !important;
         align-items: center !important;
         gap: 5px !important;
-        box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8) !important;
+        box-shadow: 0 4px 20px rgba(0, 85, 255, 0.8) !important;
         padding: 0 !important;
         margin: 0 !important;
         overflow: visible !important;
@@ -1062,7 +1062,7 @@ if (isset($_POST['undo_action'])) {
         const btn = document.getElementById('navToggleBtn') || document.querySelector('.nav-toggle');
         if (btn && (window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches)) {
             // Forçar com cssText completo
-            btn.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 16px !important; left: 16px !important; z-index: 999999 !important; width: 48px !important; height: 48px !important; background: #FF3333 !important; border: 3px solid #FFFFFF !important; border-radius: 8px !important; cursor: pointer !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 5px !important; box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8) !important; padding: 0 !important; margin: 0 !important;';
+            btn.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; top: 16px !important; left: 16px !important; z-index: 999999 !important; width: 48px !important; height: 48px !important; background: #0055FF !important; border: 3px solid #FFFFFF !important; border-radius: 8px !important; cursor: pointer !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 5px !important; box-shadow: 0 4px 20px rgba(0, 85, 255, 0.8) !important; padding: 0 !important; margin: 0 !important;';
             const spans = btn.querySelectorAll('span');
             spans.forEach((s, i) => {
                 s.style.cssText = 'display: block !important; width: 26px !important; height: 3px !important; background: #FFFFFF !important; border-radius: 2px !important; margin: 0 !important;';
@@ -1089,7 +1089,7 @@ if (isset($_POST['undo_action'])) {
 </script>
 <style>
 :root {
-    --primary-color: #FF3333;
+    --primary-color: #0055FF;
     --secondary-color: #FF6600;
     --success-color: #16A34A;
     --warning-color: #F59E0B;
@@ -1941,7 +1941,7 @@ table .actions button i:only-child {
             width: 44px !important;
             height: 44px !important;
             background: rgba(26, 26, 26, 0.95) !important;
-            border: 2px solid rgba(255, 51, 51, 0.3) !important;
+            border: 2px solid rgba(0, 85, 255, 0.3) !important;
             border-radius: 8px !important;
             cursor: pointer !important;
         }
@@ -2018,7 +2018,7 @@ table .actions button i:only-child {
             width: 44px !important;
             height: 44px !important;
             background: rgba(26, 26, 26, 0.95) !important;
-            border: 2px solid rgba(255, 51, 51, 0.3) !important;
+            border: 2px solid rgba(0, 85, 255, 0.3) !important;
             border-radius: 8px !important;
             cursor: pointer !important;
         }
@@ -2408,7 +2408,7 @@ table .actions button i:only-child {
         z-index: 99999 !important; /* Z-index muito alto */
         width: 48px !important;
         height: 48px !important;
-        background: #FF3333 !important; /* Fundo vermelho bem visível */
+        background: #0055FF !important; /* Fundo vermelho bem visível */
         border: 2px solid #FFFFFF !important; /* Borda branca */
         border-radius: 8px !important;
         cursor: pointer !important;
@@ -2776,10 +2776,10 @@ table .actions button i:only-child {
 /* ===== SWEETALERT2 CUSTOM STYLES ===== */
 .swal2-popup.swal-dark-popup {
     background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%) !important;
-    border: 1px solid rgba(255, 51, 51, 0.3) !important;
+    border: 1px solid rgba(0, 85, 255, 0.3) !important;
     border-radius: 20px !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
-                0 0 30px rgba(255, 51, 51, 0.15) !important;
+                0 0 30px rgba(0, 85, 255, 0.15) !important;
 }
 
 .swal2-title.swal-dark-title {
@@ -2794,19 +2794,19 @@ table .actions button i:only-child {
 }
 
 .swal-confirm-btn {
-    background: linear-gradient(135deg, #FF3333 0%, #FF6600 100%) !important;
+    background: linear-gradient(135deg, #0055FF 0%, #FF6600 100%) !important;
     border: none !important;
     border-radius: 12px !important;
     padding: 12px 28px !important;
     font-weight: 600 !important;
     font-family: 'Inter', sans-serif !important;
-    box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(0, 85, 255, 0.3) !important;
     transition: all 0.3s ease !important;
 }
 
 .swal-confirm-btn:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(255, 51, 51, 0.4) !important;
+    box-shadow: 0 6px 20px rgba(0, 85, 255, 0.4) !important;
 }
 
 .swal-cancel-btn {
@@ -2826,7 +2826,7 @@ table .actions button i:only-child {
 }
 
 .swal2-icon {
-    border-color: rgba(255, 51, 51, 0.3) !important;
+    border-color: rgba(0, 85, 255, 0.3) !important;
 }
 
 .swal2-icon.swal2-warning {
@@ -2853,7 +2853,7 @@ table .actions button i:only-child {
 }
 
 .swal2-timer-progress-bar {
-    background: linear-gradient(90deg, #FF3333, #FF6600) !important;
+    background: linear-gradient(90deg, #0055FF, #FF6600) !important;
 }
 
 /* ============================================
@@ -2986,7 +2986,7 @@ table .actions button i:only-child {
     /* Melhorias nos cards mobile */
     .card-item {
         background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%) !important;
-        border: 1px solid rgba(255, 51, 51, 0.2) !important;
+        border: 1px solid rgba(0, 85, 255, 0.2) !important;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
                     0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
         transition: all 0.3s ease !important;
@@ -3188,7 +3188,7 @@ button:focus-visible,
 .btn:focus-visible,
 input:focus-visible,
 select:focus-visible {
-    outline: 3px solid rgba(255, 51, 51, 0.5) !important;
+    outline: 3px solid rgba(0, 85, 255, 0.5) !important;
     outline-offset: 2px !important;
 }
 
@@ -3260,7 +3260,7 @@ select:focus-visible {
 
 <!-- BOTÃO HAMBÚRGUER MOBILE - FORA DO ADMIN-NAV PARA GARANTIR VISIBILIDADE -->
 <!-- TESTE: Botão sempre visível no mobile para debug -->
-<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none; position: fixed; top: 16px; left: 16px; z-index: 999999; width: 48px; height: 48px; background: #FF3333; border: 3px solid #FFFFFF; border-radius: 8px; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; gap: 5px; box-shadow: 0 4px 20px rgba(255, 51, 51, 0.8); padding: 0; margin: 0;">
+<button class="nav-toggle mobile-visible" id="navToggleBtn" aria-expanded="false" aria-controls="adminNav" onclick="toggleAdminMenu()" aria-label="Toggle menu" style="display: none; position: fixed; top: 16px; left: 16px; z-index: 999999; width: 48px; height: 48px; background: #0055FF; border: 3px solid #FFFFFF; border-radius: 8px; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; gap: 5px; box-shadow: 0 4px 20px rgba(0, 85, 255, 0.8); padding: 0; margin: 0;">
     <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px;"></span>
     <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
     <span style="display: block; width: 26px; height: 3px; background: #FFFFFF; border-radius: 2px; margin-top: 5px;"></span>
@@ -3409,7 +3409,7 @@ select:focus-visible {
                                 <div><i class="fas fa-calendar"></i> <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></div>
                             </div>
                             
-                            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 51, 51, 0.05); border-radius: 12px; border-left: 3px solid var(--primary-color);">
+                            <div style="margin-top: 15px; padding: 15px; background: rgba(0, 85, 255, 0.05); border-radius: 12px; border-left: 3px solid var(--primary-color);">
                                 <strong style="color: var(--primary-color); display: block; margin-bottom: 8px;">
                                     <i class="fas fa-map-marker-alt"></i> Endereço de Entrega:
                                 </strong>
@@ -4128,7 +4128,7 @@ function exportData() {
 const SwalDark = Swal.mixin({
     background: '#1a1a1a',
     color: '#ffffff',
-    confirmButtonColor: '#FF3333',
+    confirmButtonColor: '#0055FF',
     cancelButtonColor: '#6b7280',
     customClass: {
         popup: 'swal-dark-popup',
@@ -4147,7 +4147,7 @@ async function confirmarExclusao(formId, tipo = 'rastreio', codigo = '') {
                 <p style="font-size: 16px; margin-bottom: 15px;">
                     Tem certeza que deseja excluir ${tipo === 'rastreio' ? 'o rastreio' : 'este item'}?
                 </p>
-                ${codigo ? `<p style="font-size: 20px; font-weight: bold; color: #FF3333;">${codigo}</p>` : ''}
+                ${codigo ? `<p style="font-size: 20px; font-weight: bold; color: #0055FF;">${codigo}</p>` : ''}
                 <p style="font-size: 13px; color: #888; margin-top: 15px;">
                     ⚠️ Esta ação não pode ser desfeita!
                 </p>
@@ -4234,7 +4234,7 @@ async function confirmarExclusaoMassa(quantidade) {
                 <p style="font-size: 18px; margin-bottom: 15px;">
                     Você está prestes a excluir
                 </p>
-                <p style="font-size: 32px; font-weight: bold; color: #FF3333; margin-bottom: 15px;">
+                <p style="font-size: 32px; font-weight: bold; color: #0055FF; margin-bottom: 15px;">
                     ${quantidade} rastreio(s)
                 </p>
                 <p style="font-size: 13px; color: #888;">
@@ -4320,7 +4320,7 @@ async function confirmarAprovarPedido(form, nomeCliente) {
         html: `
             <div style="text-align: center; padding: 10px;">
                 <p style="font-size: 16px; margin-bottom: 15px;">
-                    Aprovar pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
+                    Aprovar pedido de <strong style="color: #0055FF;">${nomeCliente}</strong>?
                 </p>
                 <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
                     Código de rastreio: <strong>${codigo}</strong>
@@ -4351,7 +4351,7 @@ async function confirmarRejeitarPedido(form, nomeCliente, pedidoId) {
         html: `
             <div style="text-align: center; padding: 10px;">
                 <p style="font-size: 16px; margin-bottom: 15px;">
-                    Tem certeza que deseja rejeitar o pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
+                    Tem certeza que deseja rejeitar o pedido de <strong style="color: #0055FF;">${nomeCliente}</strong>?
                 </p>
                 <p style="font-size: 14px; color: #cbd5e1; margin-top: 10px;">
                     Esta ação não pode ser desfeita.
@@ -5257,7 +5257,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 navToggle.style.setProperty('z-index', '99999', 'important'); // Z-index muito alto
                 navToggle.style.setProperty('width', '48px', 'important'); // Um pouco maior
                 navToggle.style.setProperty('height', '48px', 'important'); // Um pouco maior
-                navToggle.style.setProperty('background', '#FF3333', 'important'); // Fundo vermelho bem visível
+                navToggle.style.setProperty('background', '#0055FF', 'important'); // Fundo vermelho bem visível
                 navToggle.style.setProperty('border', '2px solid #FFFFFF', 'important'); // Borda branca
                 navToggle.style.setProperty('border-radius', '8px', 'important');
                 navToggle.style.setProperty('cursor', 'pointer', 'important');

@@ -194,7 +194,7 @@
         btn.title = 'Incrementar último número/letra do código';
         btn.style.cssText = `
             padding: 8px 12px;
-            background: linear-gradient(135deg, #FF3333, #FF6600);
+            background: linear-gradient(135deg, #0055FF, #FF6600);
             border: none;
             border-radius: 8px;
             color: white;
@@ -203,17 +203,17 @@
             font-size: 0.9rem;
             white-space: nowrap;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 12px rgba(255, 51, 51, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 85, 255, 0.3);
         `;
         
         btn.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 6px 16px rgba(255, 51, 51, 0.4)';
+            this.style.boxShadow = '0 6px 16px rgba(0, 85, 255, 0.4)';
         });
         
         btn.addEventListener('mouseleave', function() {
             this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 4px 12px rgba(255, 51, 51, 0.3)';
+            this.style.boxShadow = '0 4px 12px rgba(0, 85, 255, 0.3)';
         });
         
         btn.addEventListener('click', function(e) {

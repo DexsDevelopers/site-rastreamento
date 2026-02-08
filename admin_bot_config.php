@@ -1015,8 +1015,8 @@ foreach ($msgEtapas as $k => $v) {
             </a>
 
             <a href="admin_bot_licenses.php" class="sidebar-item flex items-center gap-3 px-6 py-3 text-zinc-300"
-                style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #FF3333;">
-                <i class="fas fa-key w-5" style="color: #FF3333;"></i>
+                style="background: linear-gradient(135deg, rgba(255,51,51,0.1), rgba(255,102,0,0.1)); border-left: 3px solid #0055FF;">
+                <i class="fas fa-key w-5" style="color: #0055FF;"></i>
                 <span>Licenças de Grupos</span>
             </a>
 
@@ -1084,7 +1084,7 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Automações</span>
-                        <i class="fas fa-bolt" style="color: #FF3333;"></i>
+                        <i class="fas fa-bolt" style="color: #0055FF;"></i>
                     </div>
                     <div class="stat-value" id="statTotal">0</div>
                     <p class="text-xs text-zinc-500 mt-1"><span id="statActive">0</span> ativas</p>
@@ -1111,9 +1111,9 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="stat-card">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-zinc-400 text-sm">Status Bot</span>
-                        <i class="fas fa-robot" style="color: #FF3333;"></i>
+                        <i class="fas fa-robot" style="color: #0055FF;"></i>
                     </div>
-                    <div id="statBotStatus" class="text-2xl font-bold" style="color: #FF3333;">--</div>
+                    <div id="statBotStatus" class="text-2xl font-bold" style="color: #0055FF;">--</div>
                     <p class="text-xs text-zinc-500 mt-1" id="statUptime">uptime: --</p>
                 </div>
             </div>
@@ -1122,7 +1122,7 @@ foreach ($msgEtapas as $k => $v) {
             <div class="card">
                 <div class="card-header flex items-center justify-between">
                     <h3 class="font-semibold">Automações Recentes</h3>
-                    <a href="admin_bot_automations.php" class="text-sm hover:underline" style="color: #FF3333;">Ver
+                    <a href="admin_bot_automations.php" class="text-sm hover:underline" style="color: #0055FF;">Ver
                         todas</a>
                 </div>
                 <div class="p-4">
@@ -1912,7 +1912,7 @@ endforeach; ?>
                     <div class="grid grid-cols-2 gap-4 mb-3">
                         <div class="bg-zinc-900 rounded-lg p-3">
                             <div class="text-xs text-zinc-500 mb-1">Gatilho</div>
-                            <code class="mono text-sm" style="color: #FF3333;">${escapeHtml(a.gatilho)}</code>
+                            <code class="mono text-sm" style="color: #0055FF;">${escapeHtml(a.gatilho)}</code>
                         </div>
                         <div class="bg-zinc-900 rounded-lg p-3">
                             <div class="text-xs text-zinc-500 mb-1">Resposta</div>
@@ -1924,7 +1924,7 @@ endforeach; ?>
                         <div class="flex items-center gap-4">
                             ${a.grupo_nome ? `<span><i class="fas fa-users mr-1"></i>${escapeHtml(a.grupo_nome)}</span>` : '<span><i class="fas fa-globe mr-1"></i>Todos os chats</span>'}
                             <span><i class="fas fa-chart-bar mr-1"></i>${a.contador_uso || 0} usos</span>
-                            ${a.imagem_url ? '<span style="color: #FF3333;"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
+                            ${a.imagem_url ? '<span style="color: #0055FF;"><i class="fas fa-image mr-1"></i>Imagem</span>' : ''}
                             ${a.delay_ms > 0 ? `<span><i class="fas fa-clock mr-1"></i>${a.delay_ms}ms</span>` : ''}
                         </div>
                         <div class="flex items-center gap-2">
@@ -1955,7 +1955,7 @@ endforeach; ?>
                             <p class="text-xs text-zinc-500">${a.contador_uso || 0} usos</p>
                         </div>
                     </div>
-                    <code class="mono text-xs max-w-[150px] truncate" style="color: #FF3333;">${escapeHtml(a.gatilho)}</code>
+                    <code class="mono text-xs max-w-[150px] truncate" style="color: #0055FF;">${escapeHtml(a.gatilho)}</code>
                 </div>
             `;
         }
@@ -2418,7 +2418,7 @@ endforeach; ?>
                         text.textContent = 'Online';
                         statStatus.textContent = 'Online';
                         statStatus.className = 'text-2xl font-bold';
-                        statStatus.style.color = '#FF3333';
+                        statStatus.style.color = '#0055FF';
                         statUptime.textContent = `uptime: ${data.data.uptime}`;
                     } else if (data.success && data.data.online) {
                         dot.className = 'status-dot status-offline';

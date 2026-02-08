@@ -13,7 +13,7 @@ echo "<style>
     body { font-family: monospace; background: #1a1a1a; color: #00ff00; padding: 20px; }
     h1, h2 { color: #00ffff; }
     .success { color: #00ff00; }
-    .error { color: #ff0000; }
+    .error { color: #180F33; }
     .warning { color: #ffaa00; }
     .info { color: #00aaff; }
     pre { background: #000; padding: 15px; border: 1px solid #333; border-radius: 5px; }
@@ -21,7 +21,7 @@ echo "<style>
     th, td { border: 1px solid #333; padding: 10px; text-align: left; }
     th { background: #333; color: #00ffff; }
     .status-ok { color: #00ff00; font-weight: bold; }
-    .status-error { color: #ff0000; font-weight: bold; }
+    .status-error { color: #180F33; font-weight: bold; }
 </style>";
 
 echo "<pre>";

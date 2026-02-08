@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#FF3333">
+    <meta name="theme-color" content="#0055FF">
     <title>Finalizar Pedido - Loggi</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body {
             background-color: var(--background);
             background-image:
-                radial-gradient(circle at 10% 20%, rgba(255, 51, 51, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 10% 20%, rgba(0, 85, 255, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
             color: var(--text-main);
             font-family: var(--font-main);
@@ -701,7 +701,7 @@ endif; ?>
                             <input type="text" name="cpf" id="cpf" class="input-control" required
                                 placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
                             <small id="cpf-error"
-                                style="color: #ff3333; display: none; margin-top: 5px; font-weight: 600;">
+                                style="color: #0055FF; display: none; margin-top: 5px; font-weight: 600;">
                                 <i class="fas fa-times-circle"></i> CPF Inválido
                             </small>
                         </div>
@@ -1021,7 +1021,7 @@ endif; ?>
                 confirmButtonText: 'OK',
                 background: '#1a1a1a',
                 color: '#ffffff',
-                confirmButtonColor: '#FF3333'
+                confirmButtonColor: '#0055FF'
             }).then(() => {
                 window.location.href = 'pedido.php';
             });
@@ -1036,7 +1036,7 @@ endif; ?>
                 confirmButtonText: 'OK',
                 background: '#1a1a1a',
                 color: '#ffffff',
-                confirmButtonColor: '#FF3333'
+                confirmButtonColor: '#0055FF'
             });
         <? php
 endif; ?>

@@ -1705,7 +1705,7 @@ endif; ?>
         const SwalDark = Swal.mixin({
             background: '#1a1a1a',
             color: '#ffffff',
-            confirmButtonColor: '#FF3333',
+            confirmButtonColor: '#0055FF',
             cancelButtonColor: '#6b7280',
             customClass: {
                 popup: 'swal-dark-popup',
@@ -1724,7 +1724,7 @@ endif; ?>
                 <p style="font-size: 16px; margin-bottom: 15px;">
                     Tem certeza que deseja excluir ${tipo === 'rastreio' ? 'o rastreio' : 'este item'}?
                 </p>
-                ${codigo ? `<p style="font-size: 20px; font-weight: bold; color: #FF3333;">${codigo}</p>` : ''}
+                ${codigo ? `<p style="font-size: 20px; font-weight: bold; color: #0055FF;">${codigo}</p>` : ''}
                 <p style="font-size: 13px; color: #888; margin-top: 15px;">
                     ⚠️ Esta ação não pode ser desfeita!
                 </p>
@@ -1808,7 +1808,7 @@ endif; ?>
                 <p style="font-size: 18px; margin-bottom: 15px;">
                     Você está prestes a excluir
                 </p>
-                <p style="font-size: 32px; font-weight: bold; color: #FF3333; margin-bottom: 15px;">
+                <p style="font-size: 32px; font-weight: bold; color: #0055FF; margin-bottom: 15px;">
                     ${quantidade} rastreio(s)
                 </p>
                 <p style="font-size: 13px; color: #888;">
@@ -1894,7 +1894,7 @@ endif; ?>
                 html: `
             <div style="text-align: center; padding: 10px;">
                 <p style="font-size: 16px; margin-bottom: 15px;">
-                    Aprovar pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
+                    Aprovar pedido de <strong style="color: #0055FF;">${nomeCliente}</strong>?
                 </p>
                 <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
                     Código de rastreio: <strong>${codigo}</strong>
@@ -1922,7 +1922,7 @@ endif; ?>
                 html: `
             <div style="text-align: center; padding: 10px;">
                 <p style="font-size: 16px; margin-bottom: 15px;">
-                    Tem certeza que deseja rejeitar o pedido de <strong style="color: #FF3333;">${nomeCliente}</strong>?
+                    Tem certeza que deseja rejeitar o pedido de <strong style="color: #0055FF;">${nomeCliente}</strong>?
                 </p>
             </div>
         `,

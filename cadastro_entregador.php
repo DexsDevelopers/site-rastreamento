@@ -132,7 +132,7 @@ require_once 'includes/config.php';
                     <label for="cpf">CPF</label>
                     <input type="text" id="cpf" name="cpf" class="form-control" placeholder="000.000.000-00" required
                         maxlength="14" oninput="maskCPF(this)">
-                    <small id="cpf-error" style="color: #ff3333; display: none; margin-top: 5px;">CPF inválido</small>
+                    <small id="cpf-error" style="color: #0055FF; display: none; margin-top: 5px;">CPF inválido</small>
                 </div>
                 <div class="form-group">
                     <label for="veiculo">Tipo de Veículo</label>
@@ -178,7 +178,7 @@ require_once 'includes/config.php';
                     if (cpf.length === 11) {
                         if (!isValidCPF(cpf)) {
                             errorSpan.style.display = 'block';
-                            input.style.borderColor = '#ff3333';
+                            input.style.borderColor = '#0055FF';
                             btn.disabled = true;
                             btn.style.opacity = '0.5';
                             btn.style.cursor = 'not-allowed';
@@ -234,7 +234,7 @@ require_once 'includes/config.php';
                     if (!isValidCPF(cpf)) {
                         e.preventDefault();
                         document.getElementById('cpf-error').style.display = 'block';
-                        cpfInput.style.borderColor = '#ff3333';
+                        cpfInput.style.borderColor = '#0055FF';
                         cpfInput.focus();
                     }
                 });

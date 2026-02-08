@@ -238,15 +238,15 @@ if (!$git_available) {
             border-radius: 20px;
             margin-bottom: 30px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 51, 51, 0.2);
+            border: 1px solid rgba(0, 85, 255, 0.2);
             text-align: center;
         }
         
         .header h1 {
-            color: #FF3333;
+            color: #0055FF;
             font-size: 2.5rem;
             margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(255, 51, 51, 0.6);
+            text-shadow: 0 0 30px rgba(0, 85, 255, 0.6);
         }
         
         .header p {
@@ -266,15 +266,15 @@ if (!$git_available) {
             padding: 25px;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 51, 51, 0.15);
+            border: 1px solid rgba(0, 85, 255, 0.15);
         }
         
         .info-card h2 {
-            color: #FF3333;
+            color: #0055FF;
             font-size: 1.5rem;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 51, 51, 0.3);
+            border-bottom: 2px solid rgba(0, 85, 255, 0.3);
         }
         
         .info-item {
@@ -282,7 +282,7 @@ if (!$git_available) {
             padding: 12px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 8px;
-            border-left: 3px solid #FF3333;
+            border-left: 3px solid #0055FF;
         }
         
         .info-item strong {

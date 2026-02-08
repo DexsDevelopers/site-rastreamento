@@ -11,7 +11,7 @@ $username = getLoggedUsername();
 .admin-nav {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 51, 51, 0.2);
+    border: 1px solid rgba(0, 85, 255, 0.2);
     border-radius: 16px;
     padding: 1rem 1.5rem;
     margin-bottom: 2rem;
@@ -31,7 +31,7 @@ $username = getLoggedUsername();
 .admin-nav-link {
     padding: 0.6rem 1.2rem;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 51, 51, 0.2);
+    border: 1px solid rgba(0, 85, 255, 0.2);
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
@@ -44,7 +44,7 @@ $username = getLoggedUsername();
 }
 
 .admin-nav-link:hover {
-    background: rgba(255, 51, 51, 0.15);
+    background: rgba(0, 85, 255, 0.15);
     border-color: var(--primary);
     color: var(--light);
     transform: translateY(-2px);
@@ -69,8 +69,8 @@ $username = getLoggedUsername();
 
 .admin-nav-logout {
     padding: 0.6rem 1.2rem;
-    background: rgba(255, 51, 51, 0.15);
-    border: 1px solid rgba(255, 51, 51, 0.3);
+    background: rgba(0, 85, 255, 0.15);
+    border: 1px solid rgba(0, 85, 255, 0.3);
     border-radius: 8px;
     color: var(--primary);
     text-decoration: none;
@@ -83,7 +83,7 @@ $username = getLoggedUsername();
 }
 
 .admin-nav-logout:hover {
-    background: rgba(255, 51, 51, 0.25);
+    background: rgba(0, 85, 255, 0.25);
     transform: translateY(-2px);
 }
 

@@ -417,7 +417,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                         <div style="margin-top: 1.5rem;">
                             <button class="promo-banner-button"
                                 onclick='openExpressOffer(<?= json_encode($codigo)?>, <?= json_encode($cidade)?>, "<?= number_format($expressValor, 2, '
-                                ,', '.')?>")'>
+                                ,', '.' )?>")'>
                                 <div class="promo-content">
                                     <span class="promo-tag">Oferta Relâmpago</span>
                                     <span class="promo-title">⚡ Antecipe para 3 dias</span>
@@ -500,7 +500,7 @@ endif; ?>
             style="position: absolute; top: 0; left: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: -1;">
         </div>
 
-        <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF; margin-bottom: 4rem;">
+        <h2 class="section-title reveal-on-scroll" style="margin-bottom: 4rem;">
             Por que escolher a Loggi?
         </h2>
 
@@ -560,35 +560,41 @@ endif; ?>
     </section>
 
     <!-- Depoimentos Premium -->
-    <section class="testimonials" style="padding: 8rem 0; background: var(--secondary); position: relative; overflow: hidden;">
+    <section class="testimonials"
+        style="padding: 8rem 0; background: var(--secondary); position: relative; overflow: hidden;">
         <!-- Glowing background effect -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: 0;"></div>
-        
+        <div
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: 0;">
+        </div>
+
         <div class="container" style="position: relative; z-index: 1;">
             <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF;">O que dizem nossos clientes</h2>
-            
+
             <div class="features-grid">
                 <div class="testimonial-card reveal-on-scroll tilt-card">
                     <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                    <p>“A facilidade de postagem e o rastreio via WhatsApp me surpreenderam. Experiência de envio nota 10!”</p>
+                    <p>“A facilidade de postagem e o rastreio via WhatsApp me surpreenderam. Experiência de envio nota
+                        10!”</p>
                     <div class="client-info">
                         <strong>Juliana Mendes</strong>
                         <span>Rio de Janeiro/RJ</span>
                     </div>
                 </div>
-                
+
                 <div class="testimonial-card reveal-on-scroll tilt-card">
                     <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                    <p>“Uso a Loggi para minha loja virtual e as entregas sempre chegam antes do prazo. Meus clientes adoram!”</p>
+                    <p>“Uso a Loggi para minha loja virtual e as entregas sempre chegam antes do prazo. Meus clientes
+                        adoram!”</p>
                     <div class="client-info">
                         <strong>Ricardo Alves</strong>
                         <span>Curitiba/PR</span>
                     </div>
                 </div>
-                
+
                 <div class="testimonial-card reveal-on-scroll tilt-card">
                     <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                    <p>“Sistema super confiável e interface intuitiva. Recomendo para quem busca agilidade e segurança.”</p>
+                    <p>“Sistema super confiável e interface intuitiva. Recomendo para quem busca agilidade e segurança.”
+                    </p>
                     <div class="client-info">
                         <strong>Fernanda Lima</strong>
                         <span>Fortaleza/CE</span>
@@ -641,7 +647,7 @@ if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
 
     <?php if ($temTaxa): ?>
     <script>
-        let tempo = <?= $tempoLimite?>  * 60 * 60;
+        let tempo = <?= $tempoLimite ?>  * 60 * 60;
         function atualizarContagem() {
             let horas = Math.floor(tempo / 3600);
             let minutos = Math.floor((tempo % 3600) / 60);
@@ -675,7 +681,7 @@ endif; ?>
                     </button>
 
                     <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="width: 80px; height: 80px; background: rgba(255, 51, 51, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <div style="width: 80px; height: 80px; background: rgba(0, 85, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                             <i class="fas fa-bolt" style="font-size: 2.5rem; color: #0055FF; filter: drop-shadow(0 0 10px #0055FF);"></i>
                         </div>
                         <h2 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 10px;">Entrega Expressa</h2>
@@ -733,7 +739,7 @@ endif; ?>
 
     <script>
         // Valor global para inicialização de contagem no fluxo AJAX
-        window.TEMPO_LIMITE_HORAS = <?=( int)$tempoLimite ?>;
+        window.TEMPO_LIMITE_HORAS = <?=(int)$tempoLimite?>;
 
         function showIndicacaoInfo() {
             const modal = document.createElement('div');
@@ -756,7 +762,7 @@ endif; ?>
             <h2 style="color: #0055FF; text-align: center; margin-bottom: 30px; font-size: 2rem;">
                 <i class="fas fa-star"></i> Sistema de Indicação
             </h2>
-            <div style="background: rgba(255, 51, 51, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="background: rgba(0, 85, 255, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                 <h3 style="color: #0055FF; margin-bottom: 15px;">Como Funciona:</h3>
                 <p style="color: #fff; margin-bottom: 10px;">🚚 <strong>Frete Grátis</strong> para todo Brasil (prazo até 5 dias)</p>
                 <p style="color: #fff; margin-bottom: 10px;">1️⃣ Você indica um amigo</p>
@@ -776,8 +782,8 @@ endif; ?>
         }
 
         // --- Premium Visual Experience Controllers ---
-        
-        // Scroll Reveal Observer
+
+   Scroll Reveal Observer
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1035,9 +1041,9 @@ endif; ?>
             const valorLinha = valorTexto ? `O valor definido pelo Correios para o seu envio foi de <strong>${valorTexto}</strong>, e, após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.` : `O valor definido pelo Correios para o seu envio está indicado acima. Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.`;
 
             modal.innerHTML = `
-        <div style="background: linear-gradient(135deg, #0a0a0a, #1a0000); padding: 32px;
-            border-radius: 18px; max-width: 820px; width: 100%; border: 2px solid #ff3333; color: #fff;">
-            <h2 style="color: #ff3333; text-align: center; margin-bottom: 18px; font-size: 1.6rem;">
+        <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 32px;
+            border-radius: 18px; max-width: 820px; width: 100%; border: 2px solid #0055FF; color: #fff;">
+            <h2 style="color: #0055FF; text-align: center; margin-bottom: 18px; font-size: 1.6rem;">
                 <i class="fas fa-info-circle"></i> Sobre a taxa apresentada
             </h2>
             <div style="display: grid; gap: 10px; line-height: 1.5;">
@@ -1047,11 +1053,13 @@ endif; ?>
                 <p>Estamos à disposição para auxiliar em qualquer dúvida ou no passo a passo desse processo. Nosso objetivo é garantir que você receba sua compra da forma mais rápida e segura possível.</p>
             </div>
             <div style="display:flex; gap:10px; margin-top: 20px;">
-                <button onclick="closeModalFromChild(this)" style="flex:1; padding: 12px 16px; background: var(--gradient); border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">Entendi</button>
+                <button onclick="closeModalFromChild(this)" style="flex:1; padding: 12px 16px; background: linear-gradient(135deg, #0055FF 0%, #0033CC 100%); border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">Entendi</button>
             </div>
         </div>
     `;
             document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-        }
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.r }
     </script>
+</body>
+
+</html>

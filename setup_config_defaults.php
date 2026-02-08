@@ -98,7 +98,7 @@ echo "<li>Recarregue as páginas (F5) para ver suas configurações salvas</li>"
 echo "</ol>";
 
 echo "<p style='margin-top:30px'>";
-echo "<a href='admin.php' style='background:#ff3333;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block'>⬅️ Voltar ao Painel</a>";
+echo "<a href='admin.php' style='background:#0055FF;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block'>⬅️ Voltar ao Painel</a>";
 echo "</p>";
 
 echo "</body></html>";

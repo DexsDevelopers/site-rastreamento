@@ -13,7 +13,7 @@ echo "<style>
     body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; padding: 20px; }
     h1 { color: #00ffff; }
     .success { color: #00ff00; font-weight: bold; }
-    .error { color: #ff0000; font-weight: bold; }
+    .error { color: #180F33; font-weight: bold; }
     .warning { color: #ffaa00; font-weight: bold; }
     pre { background: #000; padding: 15px; border: 1px solid #333; border-radius: 5px; margin: 20px 0; }
     .button { 
