@@ -181,13 +181,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 ?>
 <div class="results-container">
     <div class="results-card animate-fade-in"
-        style="background:white; padding:3rem; border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
+        style="background:white; padding:3rem; border-radius:32px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
         <div class="status-header" style="text-align:center; margin-bottom:2rem;">
-            <span class="status-icon" style="font-size:3rem; display:block; margin-bottom:1rem;">📦</span>
-            <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:800;">
+            <span class="status-icon" style="font-size:4rem; display:block; margin-bottom:1rem;">📦</span>
+            <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:900;">
                 <?= htmlspecialchars($statusAtualTopo)?>
             </h3>
-            <p style="color:var(--text-muted);">
+            <p style="color:var(--text-muted); font-size: 1.1rem;">
                 <?= htmlspecialchars($cidade)?>
             </p>
         </div>
@@ -197,34 +197,38 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             $activeClass = $isFirst ? 'active' : '';
 ?>
             <div class="timeline-item <?= $activeClass?>"
-                style="padding-left:30px; border-left:2px solid #EEE; position:relative; margin-bottom:2rem;">
+                style="padding-left:36px; border-left:2px solid #EEE; position:relative; margin-bottom:2.5rem;">
                 <div class="timeline-marker"
-                    style="position:absolute; left:-7px; top:5px; width:12px; height:12px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC'?>;">
+                    style="position:absolute; left:-8px; top:6px; width:14px; height:14px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC'?>; <?= $isFirst ? 'box-shadow: 0 0 0 6px rgba(0,85,255,0.15);' : ''?>">
                 </div>
                 <div class="timeline-content">
-                    <h4 style="font-weight:800; color:var(--text-main);">
+                    <h4 style="font-weight:900; color:var(--text-main); font-size: 1.1rem; margin-bottom: 0.25rem;">
                         <?= htmlspecialchars($etapa['titulo'])?>
                     </h4>
-                    <p style="font-size:0.9rem; color:var(--text-muted);">
+                    <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom: 0.5rem;">
                         <?= htmlspecialchars($etapa['subtitulo'])?>
                     </p>
-                    <small style="color:var(--text-dim);"><i class="far fa-clock"></i>
+                    <small style="color:var(--text-dim); font-weight: 600;"><i class="far fa-clock"></i>
                         <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
                     </small>
 
                     <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
                     <div class="pix-box"
-                        style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:12px; border-left:4px solid var(--primary);">
-                        <p style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">Total a pagar: R$
+                        style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:20px; border:1px solid #E2E8F0;">
+                        <p style="font-weight:900; color:var(--text-main); margin-bottom:0.75rem; font-size: 1.1rem;">
+                            Total a pagar: R$
                             <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
                         </p>
-                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Copie a chave PIX
-                            abaixo para realizar o pagamento:</p>
-                        <textarea readonly
-                            style="width:100%; height:80px; padding:0.75rem; border:1px solid #EEE; border-radius:8px; font-family:monospace; font-size:0.8rem; margin-bottom:1rem; resize:none;"><?= htmlspecialchars($etapa['taxa_pix'])?></textarea>
+                        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.25rem;">Realize o pagamento
+                            por PIX para liberar seu pedido imediatamente:</p>
+                        <div
+                            style="background: white; padding: 1rem; border-radius: 12px; border: 1px dashed #CBD5E1; margin-bottom: 1.25rem;">
+                            <code
+                                style="word-break: break-all; font-family: monospace; font-size: 0.85rem; color: #1e293b;"><?= htmlspecialchars($etapa['taxa_pix'])?></code>
+                        </div>
                         <button
-                            onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>')"
-                            style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
+                            onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>'); this.innerHTML='<i class = \'fas fa-check\'></i> Copiado!'"
+                            style="width:100%; padding:1rem; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:800; cursor:pointer; font-size: 1rem; transition: background 0.2s;">
                             <i class="far fa-copy"></i> Copiar Chave PIX
                         </button>
                     </div>
@@ -237,11 +241,14 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         </div>
 
         <?php if ($fotoPedido && $fotoPedidoSrc): ?>
-        <div class="photo-proof"
-            style="margin-top:2rem; padding-top:2rem; border-top:1px solid #EEE; text-align:center;">
-            <p style="font-weight:700; margin-bottom:1rem;"><i class="fas fa-camera"></i> Foto do seu pedido</p>
-            <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido"
-                style="max-width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <div class="photo-proof-card"
+            style="margin-top:3rem; padding:2rem; background: #F1F5F9; border-radius:24px; text-align:center;">
+            <p style="font-weight:900; margin-bottom:1.5rem; font-size: 1.1rem; color: var(--secondary);"><i
+                    class="fas fa-camera"></i> Foto Real do seu Envio</p>
+            <div style="overflow: hidden; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido"
+                    style="max-width:100%; display: block;">
+            </div>
         </div>
         <?php
         endif; ?>
@@ -271,7 +278,12 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <header class="header" id="mainHeader">
         <div class="container nav-container">
             <a href="index.php" class="logo">loggi</a>
-            <nav class="nav-links">
+
+            <div class="mobile-menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+
+            <nav class="nav-links" id="navLinks">
                 <a href="index.php">Início</a>
                 <a href="#para-voce">Para você</a>
                 <a href="#para-empresas">Para empresas</a>
@@ -284,23 +296,29 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <section class="hero">
         <div class="container hero-box">
             <div class="hero-content reveal-on-scroll">
-                <h1>
+                <h1 class="premium-title">
                     <?= htmlspecialchars($tituloHero)?>
                 </h1>
-                <p>
+                <p class="hero-desc">
                     <?= htmlspecialchars($descricaoHero)?>
                 </p>
                 <div class="hero-actions">
                     <a href="cadastro_objetivo.php" class="btn-cta primary">Enviar agora</a>
-                    <a href="https://www.loggi.com/precos/" class="btn-cta secondary">Calcular frete</a>
+                    <a href="calcular_frete.php" class="btn-cta secondary">Calcular frete</a>
                 </div>
                 <div class="tracking-wrapper">
                     <form method="POST" action="index.php" class="tracking-form" id="trackForm">
-                        <input type="text" name="codigo" placeholder="Código de rastreio" maxlength="12"
-                            class="tracking-input" required value="<?= htmlspecialchars($codigo)?>">
-                        <input type="text" name="cidade" placeholder="Cidade" class="tracking-input" required
-                            value="<?= htmlspecialchars($cidade)?>">
-                        <button type="submit" class="btn-track">Rastrear</button>
+                        <div class="input-group">
+                            <i class="fas fa-barcode"></i>
+                            <input type="text" name="codigo" placeholder="Código de rastreio" maxlength="12"
+                                class="tracking-input" required value="<?= htmlspecialchars($codigo)?>">
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" name="cidade" placeholder="Sua cidade" class="tracking-input" required
+                                value="<?= htmlspecialchars($cidade)?>">
+                        </div>
+                        <button type="submit" class="btn-track">Rastrear agora</button>
                     </form>
                 </div>
             </div>
@@ -312,63 +330,12 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         </div>
     </section>
 
-    <div id="ajaxResults" class="container" style="margin-top: -50px; position: relative; z-index: 100;">
-        <?php if (!empty($statusList)): ?>
-            <div class="results-container">
-                <div class="results-card animate-fade-in" style="background:white; padding:3rem; border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
-                    <div class="status-header" style="text-align:center; margin-bottom:2rem;">
-                        <span class="status-icon" style="font-size:3rem; display:block; margin-bottom:1rem;">📦</span>
-                        <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:800;"><?= htmlspecialchars($statusAtualTopo) ?></h3>
-                        <p style="color:var(--text-muted);"><?= htmlspecialchars($cidade) ?></p>
-                        <?php if ($isExpress): ?>
-                            <div style="margin-top:1rem;"><span class="badge" style="background:var(--primary); color:white; padding:0.5rem 1rem; border-radius:100px; font-weight:700;"><i class="fas fa-bolt"></i> Entrega Expressa</span></div>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <div class="timeline" style="max-width:600px; margin: 0 auto;">
-                        <?php foreach ($statusList as $index => $etapa): 
-                            $isFirst = $index === 0;
-                            $activeClass = $isFirst ? 'active' : '';
-                        ?>
-                            <div class="timeline-item <?= $activeClass ?>" style="padding-left:30px; border-left:2px solid #EEE; position:relative; margin-bottom:2rem;">
-                                <div class="timeline-marker" style="position:absolute; left:-7px; top:5px; width:12px; height:12px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC' ?>;"></div>
-                                <div class="timeline-content">
-                                    <h4 style="font-weight:800; color:var(--text-main);"><?= htmlspecialchars($etapa['titulo']) ?></h4>
-                                    <p style="font-size:0.9rem; color:var(--text-muted);"><?= htmlspecialchars($etapa['subtitulo']) ?></p>
-                                    <small style="color:var(--text-dim);"><i class="far fa-clock"></i> <?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></small>
-                                    
-                                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                                        <div class="pix-box" style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:12px; border-left:4px solid var(--primary);">
-                                            <p style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">Total a pagar: R$ <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?></p>
-                                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Copie a chave PIX abaixo para realizar o pagamento:</p>
-                                            <textarea readonly style="width:100%; height:80px; padding:0.75rem; border:1px solid #EEE; border-radius:8px; font-family:monospace; font-size:0.8rem; margin-bottom:1rem; resize:none;"><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
-                                            <button onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')" style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
-                                                <i class="far fa-copy"></i> Copiar Chave PIX
-                                            </button>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <?php if ($fotoPedido && $fotoPedidoSrc): ?>
-                        <div class="photo-proof" style="margin-top:2rem; padding-top:2rem; border-top:1px solid #EEE; text-align:center;">
-                            <p style="font-weight:700; margin-bottom:1rem;"><i class="fas fa-camera"></i> Foto do seu pedido</p>
-                            <img src="<?= htmlspecialchars($fotoPedidoSrc) ?>" alt="Foto do pedido" style="max-width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        <?php elseif (!empty($erroCidade)): ?>
-            <div class="results-container" style="background:white; padding:2rem; border-radius:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.1);">
-                <div class="erro" style="color:#ef4444; font-weight:700;"><?= htmlspecialchars($erroCidade) ?></div>
-            </div>
-        <?php endif; ?>
+    <div id="ajaxResults" class="container results-anchor">
+        <!-- Results will be injected here -->
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="container" style="background: white; border-radius: 20px 20px 0 0; margin-top: -30px; position: relative; z-index: 101;">
+    <div class="container tabs-container">
         <div class="sections-nav">
             <div class="section-tab active" onclick="switchSection('para-voce', this)">Para você</div>
             <div class="section-tab" onclick="switchSection('para-empresas', this)">Para empresas</div>
@@ -377,22 +344,30 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <section id="para-voce" class="marketing-section reveal-on-scroll">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">A Loggi entrega onde você precisar</h2>
+            <div class="section-header">
+                <h2 class="section-title">A Loggi entrega onde você precisar</h2>
+                <p class="section-subtitle">Soluções inteligentes para envios rápidos e seguros em todo território
+                    nacional.</p>
+            </div>
             <div class="marketing-grid">
-                <div class="marketing-card">
-                    <i class="fas fa-barcode"></i>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-barcode"></i></div>
                     <h3>Postagem simples</h3>
                     <p>Gere sua etiqueta em segundos e poste em qualquer um dos nossos milhares de pontos parceiros.</p>
+                    <a href="cadastro_objetivo.php" class="card-link">Saiba mais <i class="fas fa-arrow-right"></i></a>
                 </div>
-                <div class="marketing-card">
-                    <i class="fas fa-map-marker-alt"></i>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-clock"></i></div>
                     <h3>Rastreio real-time</h3>
                     <p>Notificações automáticas via WhatsApp em cada etapa do processo, da coleta à entrega final.</p>
+                    <a href="#" class="card-link">Ver detalhes <i class="fas fa-arrow-right"></i></a>
                 </div>
-                <div class="marketing-card">
-                    <i class="fas fa-bolt"></i>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-bolt"></i></div>
                     <h3>Entrega prioritária</h3>
                     <p>Sua encomenda voa! Processamento expresso que garante a chegada no destino em tempo recorde.</p>
+                    <a href="solicitar_express_checkout.php" class="card-link">Pedir urgência <i
+                            class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
         </div>
@@ -400,61 +375,86 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <section id="para-empresas" class="marketing-section reveal-on-scroll" style="display:none; background:#F8FAFC;">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">Soluções logísticas para o seu negócio</h2>
+            <div class="section-header">
+                <h2 class="section-title">Soluções logísticas para o seu negócio</h2>
+                <p class="section-subtitle">O parceiro ideal para escalar seu e-commerce com tecnologia de ponta.</p>
+            </div>
             <div class="marketing-grid">
-                <div class="marketing-card">
-                    <i class="fas fa-boxes"></i>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-boxes"></i></div>
                     <h3>Coleta programada</h3>
-                    <p>Coletamos seus produtos diretamente no seu estoque, otimizando sua operação.</p>
+                    <p>Coletamos seus produtos diretamente no seu estoque, otimizando sua operação diária.</p>
                 </div>
-                <div class="marketing-card">
-                    <i class="fas fa-chart-line"></i>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-chart-line"></i></div>
                     <h3>Dashboard completo</h3>
-                    <p>Acompanhe métricas, custos e desempenho de todas as suas entregas em um só lugar.</p>
+                    <p>Acompanhe métricas, custos e desempenho de todas as suas entregas em um painel unificado.</p>
                 </div>
-                <div class="marketing-card">
-                    <i class="fas fa-sync"></i>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-sync"></i></div>
                     <h3>Logística Reversa</h3>
-                    <p>Trocas e devoluções simplificadas para garantir a melhor experiência ao seu cliente.</p>
+                    <p>Trocas e devoluções simplificadas para garantir a melhor experiência pós-venda ao seu cliente.
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="marketing-section reveal-on-scroll">
+    <section class="marketing-section reveal-on-scroll proof-section">
         <div class="container">
-            <div class="marketing-grid" style="text-align:center; gap:2rem;">
-                <div>
-                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);"><?= htmlspecialchars($badgeSatisfacao) ?></h3>
-                    <p style="font-weight:600; color:var(--text-muted);">Satisfação garantida</p>
+            <div class="proof-grid">
+                <div class="proof-card">
+                    <div class="proof-value">
+                        <?= htmlspecialchars($badgeSatisfacao)?>
+                    </div>
+                    <div class="proof-label">Satisfação dos clientes</div>
                 </div>
-                <div>
-                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);"><?= htmlspecialchars($badgeEntregas) ?></h3>
-                    <p style="font-weight:600; color:var(--text-muted);">Entregas realizadas</p>
+                <div class="proof-card highlight">
+                    <div class="proof-value">
+                        <?= htmlspecialchars($badgeEntregas)?>
+                    </div>
+                    <div class="proof-label">Entregas realizadas este mês</div>
                 </div>
-                <div>
-                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);"><?= htmlspecialchars($badgeCidades) ?></h3>
-                    <p style="font-weight:600; color:var(--text-muted);">Cidades atendidas</p>
+                <div class="proof-card">
+                    <div class="proof-value">
+                        <?= htmlspecialchars($badgeCidades)?>
+                    </div>
+                    <div class="proof-label">Cidades com cobertura direta</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="marketing-section reveal-on-scroll" style="background:var(--secondary);">
+    <section class="marketing-section reveal-on-scroll testimonials-section" style="background:var(--secondary);">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem; color:white;">O que dizem nossos clientes</h2>
+            <h2 class="section-title light">O que dizem nossos clientes</h2>
             <div class="marketing-grid">
-                <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"A Loggi transformou a logística da minha empresa. Entregas rápidas e rastreio impecável."</p>
-                    <p><strong>- Maria Silva</strong>, E-commerce de Moda</p>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"A Loggi transformou a logística da minha empresa. Entregas rápidas e rastreio impecável."</p>
+                    <div class="client-info">
+                        <strong>Maria Silva</strong>
+                        <span>E-commerce de Moda</span>
+                    </div>
                 </div>
-                <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"O melhor custo-benefício do mercado. Meus clientes adoram o rastreio via WhatsApp."</p>
-                    <p><strong>- João Pereira</strong>, Vendedor Autônomo</p>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"O melhor custo-benefício do mercado. Meus clientes adoram o rastreio via WhatsApp."</p>
+                    <div class="client-info">
+                        <strong>João Pereira</strong>
+                        <span>Vendedor Autônomo</span>
+                    </div>
                 </div>
-                <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"Postar encomendas ficou muito mais fácil com os pontos Loggi espalhados pela cidade."</p>
-                    <p><strong>- Ana Santos</strong>, Usuária Casual</p>
+                <div class="testimonial-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"Postar encomendas ficou muito mais fácil com os pontos Loggi espalhados pela cidade."</p>
+                    <div class="client-info">
+                        <strong>Ana Santos</strong>
+                        <span>Usuária Casual</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -463,34 +463,51 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-col">
-                    <h4 class="logo" style="color:var(--primary); margin-bottom:1.5rem; text-transform:lowercase;">loggi</h4>
-                    <p>© <?= date('Y') ?> Todos os direitos reservados.</p>
+                <div class="footer-col brand">
+                    <h4 class="logo">loggi</h4>
+                    <p>Tecnologia e logística unidas para entregar a melhor experiência de envio do Brasil.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
                 </div>
                 <div class="footer-col">
                     <h4>Serviços</h4>
                     <ul>
-                        <li>Para você</li>
-                        <li>Para empresas</li>
-                        <li>Loggi Pro</li>
-                        <li>Loggi Envios</li>
+                        <li><a href="#">Para você</a></li>
+                        <li><a href="#">Para empresas</a></li>
+                        <li><a href="#">Loggi Pro</a></li>
+                        <li><a href="#">Loggi Envios</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Empresa</h4>
                     <ul>
-                        <li>Sobre nós</li>
-                        <li>Carreiras</li>
-                        <li>Blog</li>
-                        <li>Ajuda</li>
+                        <li><a href="#">Sobre nós</a></li>
+                        <li><a href="#">Carreiras</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Ajuda</a></li>
                     </ul>
                 </div>
+            </div>
+            <div class="footer-bottom">
+                <p>©
+                    <?= date('Y')?> Loggi Tecnologia LTDA. Todos os direitos reservados.
+                </p>
             </div>
         </div>
     </footer>
 
     <script>
-        function switchSection(targetId, tab) {
+        // Menu Toggle
+     uToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        function switchSection(targ
             document.querySelectorAll('.marketing-section[id]').forEach(sec => {
                 sec.style.display = 'none';
             });
@@ -513,13 +530,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             fetch('index.php', { method: 'POST', body: formData })
                 .then(r => r.text())
                 .then(html => {
-                    document.getElementById('ajaxResults').innerHTML = html;
-                    window.scrollTo({ top: document.getElementById('ajaxResults').offsetTop - 100, behavior: 'smooth' });
+                    const resultsDiv = document.getElementById('ajaxResults');
+                    resultsDiv.innerHTML = html;
+                    window.scrollTo({ top: resultsDiv.offsetTop - 120, behavior: 'smooth' });
                 });
         });
 
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        const revealObserver = new IntersectionObserver((entr =>        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
         }, { threshold: 0.1 });
         document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
     </script>
