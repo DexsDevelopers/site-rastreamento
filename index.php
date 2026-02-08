@@ -308,14 +308,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
 </head>
-</head>
 
 <body>
     <header class="header">
         <div class="nav-container">
             <a href="index.php" class="logo">
                 <i class="fas fa-shipping-fast"></i>
-                <?= htmlspecialchars($nomeEmpresa)?>
+                Loggi
             </a>
             <nav class="nav-links">
                 <a href="index.php">Início</a>
@@ -417,7 +416,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                         <div style="margin-top: 1.5rem;">
                             <button class="promo-banner-button"
                                 onclick='openExpressOffer(<?= json_encode($codigo)?>, <?= json_encode($cidade)?>, "<?= number_format($expressValor, 2, '
-                                ,', '.' )?>")'>
+                                ,', '.')?>")'>
                                 <div class="promo-content">
                                     <span class="promo-tag">Oferta Relâmpago</span>
                                     <span class="promo-title">⚡ Antecipe para 3 dias</span>
@@ -556,56 +555,58 @@ endif; ?>
                 </a>
             </p>
         </div>
-    </div>
-    </section>
+        </section>
 
-    <!-- Depoimentos Premium -->
-    <section class="testimonials"
-        style="padding: 8rem 0; background: var(--secondary); position: relative; overflow: hidden;">
-        <!-- Glowing background effect -->
-        <div
-            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: 0;">
-        </div>
+        <!-- Depoimentos Premium -->
+        <section class="testimonials"
+            style="padding: 8rem 0; background: var(--secondary); position: relative; overflow: hidden;">
+            <!-- Glowing background effect -->
+            <div
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, transparent 70%); pointer-events: none; z-index: 0;">
+            </div>
 
-        <div class="container" style="position: relative; z-index: 1;">
-            <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF;">O que dizem nossos clientes</h2>
+            <div class="container" style="position: relative; z-index: 1;">
+                <h2 class="section-title reveal-on-scroll" style="color: #FFFFFF;">O que dizem nossos clientes</h2>
 
-            <div class="features-grid">
-                <div class="testimonial-card reveal-on-scroll tilt-card">
-                    <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                    <p>“A facilidade de postagem e o rastreio via WhatsApp me surpreenderam. Experiência de envio nota
-                        10!”</p>
-                    <div class="client-info">
-                        <strong>Juliana Mendes</strong>
-                        <span>Rio de Janeiro/RJ</span>
+                <div class="features-grid">
+                    <div class="testimonial-card reveal-on-scroll tilt-card">
+                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                        <p>“A facilidade de postagem e o rastreio via WhatsApp me surpreenderam. Experiência de envio
+                            nota
+                            10!”</p>
+                        <div class="client-info">
+                            <strong>Juliana Mendes</strong>
+                            <span>Rio de Janeiro/RJ</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="testimonial-card reveal-on-scroll tilt-card">
-                    <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                    <p>“Uso a Loggi para minha loja virtual e as entregas sempre chegam antes do prazo. Meus clientes
-                        adoram!”</p>
-                    <div class="client-info">
-                        <strong>Ricardo Alves</strong>
-                        <span>Curitiba/PR</span>
+                    <div class="testimonial-card reveal-on-scroll tilt-card">
+                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                        <p>“Uso a Loggi para minha loja virtual e as entregas sempre chegam antes do prazo. Meus
+                            clientes
+                            adoram!”</p>
+                        <div class="client-info">
+                            <strong>Ricardo Alves</strong>
+                            <span>Curitiba/PR</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="testimonial-card reveal-on-scroll tilt-card">
-                    <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                    <p>“Sistema super confiável e interface intuitiva. Recomendo para quem busca agilidade e segurança.”
-                    </p>
-                    <div class="client-info">
-                        <strong>Fernanda Lima</strong>
-                        <span>Fortaleza/CE</span>
+                    <div class="testimonial-card reveal-on-scroll tilt-card">
+                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                        <p>“Sistema super confiável e interface intuitiva. Recomendo para quem busca agilidade e
+                            segurança.”
+                        </p>
+                        <div class="client-info">
+                            <strong>Fernanda Lima</strong>
+                            <span>Fortaleza/CE</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
 
-    <?php
+        <?php
 // Exibir popup explicativo automaticamente no render completo quando houver taxa
 if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
     $taxaValorPrimeira = null;
@@ -624,55 +625,55 @@ if (!empty($statusList) && $temTaxa && $autoLoadFromUrl) {
 }
 ?>
 
-    <section class="features">
-        <h2 class="section-title">Por que escolher a Loggi?</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-rocket"></i></div>
-                <h3>Entrega Rápida</h3>
-                <p>Nossa rede logística garante os prazos mais curtos do mercado.</p>
+        <section class="features">
+            <h2 class="section-title">Por que escolher a Loggi?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-rocket"></i></div>
+                    <h3>Entrega Rápida</h3>
+                    <p>Nossa rede logística garante os prazos mais curtos do mercado.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Seguro e Confiável</h3>
+                    <p>Seus pedidos protegidos com a melhor tecnologia do Brasil.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <h3>Cobertura Nacional</h3>
+                    <p>Chegamos em cada canto do país com eficiência e tecnologia.</p>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                <h3>Seguro e Confiável</h3>
-                <p>Seus pedidos protegidos com a melhor tecnologia do Brasil.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
-                <h3>Cobertura Nacional</h3>
-                <p>Chegamos em cada canto do país com eficiência e tecnologia.</p>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <?php if ($temTaxa): ?>
-    <script>
-        let tempo = <?= $tempoLimite ?>  * 60 * 60;
-        function atualizarContagem() {
-            let horas = Math.floor(tempo / 3600);
-            let minutos = Math.floor((tempo % 3600) / 60);
-            let segundos = tempo % 60;
-            document.getElementById("countdown").innerHTML =
-                "⏱ Tempo restante: " + String(horas).padStart(2, '0') + ":" +
-                String(minutos).padStart(2, '0') + ":" + String(segundos).padStart(2, '0');
-            if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000); }
-            else { document.getElementById("countdown").innerHTML = "❌ Prazo expirado."; }
-        }
-        atualizarContagem();
-    </script>
-    <?php
+        <?php if ($temTaxa): ?>
+        <script>
+            let tempo = <?= $tempoLimite?>  * 60 * 60;
+            function atualizarContagem() {
+                let horas = Math.floor(tempo / 3600);
+                let minutos = Math.floor((tempo % 3600) / 60);
+                let segundos = tempo % 60;
+                document.getElementById("countdown").innerHTML =
+                    "⏱ Tempo restante: " + String(horas).padStart(2, '0') + ":" +
+                    String(minutos).padStart(2, '0') + ":" + String(segundos).padStart(2, '0');
+                if (tempo > 0) { tempo--; setTimeout(atualizarContagem, 1000); }
+                else { document.getElementById("countdown").innerHTML = "❌ Prazo expirado."; }
+            }
+            atualizarContagem();
+        </script>
+        <?php
 endif; ?>
 
-    <script>
-        // Modal Moderno de Entrega Expressa
-        function openExpressOffer(codigo, cidade, valor) {
-            const modal = document.createElement('div');
-            modal.className = 'custom-overlay-modal animate-fade-in';
-            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        <script>
+            // Modal Moderno de Entrega Expressa
+            function openExpressOffer(codigo, cidade, valor) {
+                const modal = document.createElement('div');
+                modal.className = 'custom-overlay-modal animate-fade-in';
+                modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0, 0, 0, 0.95); z-index: 10000; display: flex; justify-content: center;
                 align-items: center; padding: 20px; backdrop-filter: blur(10px);`;
 
-            modal.innerHTML = `
+                modal.innerHTML = `
                 <div style="background: #0d0d0d; padding: 40px; border-radius: 24px; max-width: 500px; width: 100%; 
                     border: 1px solid rgba(0, 85, 255, 0.3); box-shadow: 0 0 50px rgba(0, 85, 255, 0.2); position: relative;">
                     
@@ -726,29 +727,29 @@ endif; ?>
                     </p>
                 </div>
             `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-        }
+                document.body.appendChild(modal);
+                modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+            }
 
-        // Função de ponte do Modal para a Solicitação Real
-        function confirmExpressModal(btnModal, codigo, cidade) {
-            closeModalFromChild(btnModal);
-            solicitarExpress(codigo, cidade, null);
-        }
-    </script>
+            // Função de ponte do Modal para a Solicitação Real
+            function confirmExpressModal(btnModal, codigo, cidade) {
+                closeModalFromChild(btnModal);
+                solicitarExpress(codigo, cidade, null);
+            }
+        </script>
 
-    <script>
-        // Valor global para inicialização de contagem no fluxo AJAX
-        window.TEMPO_LIMITE_HORAS = <?=(int)$tempoLimite?>;
+        <script>
+            // Valor global para inicialização de contagem no fluxo AJAX
+            window.TEMPO_LIMITE_HORAS = <?= (int)$tempoLimite ?>;
 
-        function showIndicacaoInfo() {
-            const modal = document.createElement('div');
-            modal.className = 'custom-overlay-modal';
-            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            function showIndicacaoInfo() {
+                const modal = document.createElement('div');
+                modal.className = 'custom-overlay-modal';
+                modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
         align-items: center; padding: 20px; backdrop-filter: blur(5px);`;
 
-            modal.innerHTML = `
+                modal.innerHTML = `
         <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 40px;
             border-radius: 20px; max-width: 700px; width: 100%; border: 1px solid rgba(0, 85, 255, 0.3);
             box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative;">
@@ -777,144 +778,102 @@ endif; ?>
             </button>
         </div>
     `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-        }
+                document.body.appendChild(modal);
+                modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+            }
 
         // --- Premium Visual Experience Controllers ---
 
    Scroll Reveal Observer
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+            // 3D Tilt Effect for Cards
+            document.querySelectorAll('.tilt-card').forEach(card => {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const rotateX = (y - rect.height / 2) / 15;
+                    const rotateY = (rect.width / 2 - x) / 15;
+                    card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = `perspective(1000px) translateY(0) rotateX(0) rotateY(0)`;
+                });
             });
-        }, { threshold: 0.15 });
-
-        document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
-
-        // 3D Tilt Effect for Cards
-        document.querySelectorAll('.tilt-card').forEach(card => {
-            card.addEventListener('mousemove', e => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const rotateX = (y - rect.height / 2) / 15;
-                const rotateY = (rect.width / 2 - x) / 15;
-                card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = `perspective(1000px) translateY(0) rotateX(0) rotateY(0)`;
-            });
-        });
-    </script>
-    <script>
-        // Função utilitária para fechar modais customizados
-        function closeModalFromChild(childEl) {
-            try {
-                const overlay = childEl.closest('.custom-overlay-modal');
-                if (overlay) overlay.remove();
-            } catch (_) { }
-        }
-
-        // Mobile Menu Toggle
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const toggle = document.querySelector('.mobile-menu-toggle i');
-
-            if (mobileMenu.classList.contains('active')) {
-                mobileMenu.classList.remove('active');
-                toggle.classList.remove('fa-times');
-                toggle.classList.add('fa-bars');
-            } else {
-                mobileMenu.classList.add('active');
-                toggle.classList.remove('fa-bars');
-                toggle.classList.add('fa-times');
+        </script>
+        <script>
+            // Função utilitária para fechar modais customizados
+            function closeModalFromChild(childEl) {
+                try {
+                    const overlay = childEl.closest('.custom-overlay-modal');
+                    if (overlay) overlay.remove();
+                } catch (_) { }
             }
-        }
 
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function (event) {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-
-            if (!mobileMenu.contains(event.target) && !toggle.contains(event.target)) {
-                mobileMenu.classList.remove('active');
-                const toggleIcon = document.querySelector('.mobile-menu-toggle i');
-                toggleIcon.classList.remove('fa-times');
-                toggleIcon.classList.add('fa-bars');
-            }
-        });
-
-        // Close mobile menu when clicking on a link
-        document.querySelectorAll('.mobile-menu a').forEach(link => {
-            link.addEventListener('click', function () {
+            // Mobile Menu Toggle
+            function toggleMobileMenu() {
                 const mobileMenu = document.getElementById('mobileMenu');
                 const toggle = document.querySelector('.mobile-menu-toggle i');
-                mobileMenu.classList.remove('active');
-                toggle.classList.remove('fa-times');
-                toggle.classList.add('fa-bars');
-            });
-        });
 
-        // Submissão AJAX do formulário de rastreio
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.querySelector('form[method="POST"][action="index.php"]');
-            const results = document.getElementById('ajaxResults');
-            const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+                if (mobileMenu.classList.contains('active')) {
+                    mobileMenu.classList.remove('active');
+                    toggle.classList.remove('fa-times');
+                    toggle.classList.add('fa-bars');
+                } else {
+                    mobileMenu.classList.add('active');
+                    toggle.classList.remove('fa-bars');
+                    toggle.classList.add('fa-times');
+                }
+            }
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function (event) {
+                const mobileMenu = document.getElementById('mobileMenu');
+                const toggle = document.querySelector('.mobile-menu-toggle');
+
+                if (!mobileMenu.contains(event.target) && !toggle.contains(event.target)) {
+                    mobileMenu.classList.remove('active');
+                    const toggleIcon = document.querySelector('.mobile-menu-toggle i');
+                    toggleIcon.classList.remove('fa-times');
+                    toggleIcon.classList.add('fa-bars');
+                }
+            });
+
+            // Close mobile menu when clicking on a link
+            document.querySelectorAll('.mobile-menu a').forEach(link => {
+                link.addEventListener('click', function () {
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    const toggle = document.querySelector('.mobile-menu-toggle i');
+                    mobileMenu.classList.remove('active');
+                    toggle.classList.remove('fa-times');
+                    toggle.classList.add('fa-bars');
+                });
+            });
+
+            // Submissão AJAX do formulário de rastreio
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.querySelector('form[method="POST"][action="index.php"]');
+                const results = document.getElementById('ajaxResults');
+                const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
 
             // Se os dados vieram da URL, os resultados já foram renderizados pelo PHP
             // Apenas garantir que o countdown e popup funcionem se necessário
             <? php if ($autoLoadFromUrl && !empty($statusList)): ?>
-                setTimeout(function () {
-                    try {
-                        startCountdownIfPresent();
+                    setTimeout(function () {
+                        try {
+                            startCountdownIfPresent();
                         <? php if ($temTaxa): ?>
                             const pixTextarea = document.querySelector('.pix-box textarea');
-                        if (pixTextarea && typeof showTaxaPopup === 'function') {
-                            let valorTexto = null;
-                            const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
-                            if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
-                                const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                valorTexto = m ? m[0] : null;
-                            }
-                            showTaxaPopup(valorTexto);
-                        }
-                        <? php
-    endif; ?>
-                    } catch (_) { /* silencioso */ }
-                }, 200);
-            <? php
-endif; ?>
-
-            if (form && results && submitBtn) {
-                form.addEventListener('submit', async function (e) {
-                    e.preventDefault();
-                    const codigo = (form.querySelector('#codigo') || {}).value || '';
-                    const cidade = (form.querySelector('#cidade') || {}).value || '';
-                    if (!codigo || !cidade) return;
-
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
-                    results.innerHTML = '';
-
-                    try {
-                        const response = await fetch('index.php', {
-                            method: 'POST',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: new URLSearchParams({ codigo, cidade, ajax: '1' })
-                        });
-                        const html = await response.text();
-                        results.innerHTML = html;
-                        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                        // Iniciar popup e countdown se houver taxa no retorno AJAX
-                        try {
-                            const pixTextarea = results.querySelector('.pix-box textarea');
-                            const isExpressBox = pixTextarea ? pixTextarea.closest('.express-box') : null;
-                            if (!window.__skipTaxPopupOnce && pixTextarea && !isExpressBox && typeof showTaxaPopup === 'function') {
+                            if (pixTextarea && typeof showTaxaPopup === 'function') {
                                 let valorTexto = null;
                                 const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
                                 if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
@@ -923,124 +882,166 @@ endif; ?>
                                 }
                                 showTaxaPopup(valorTexto);
                             }
-                            if (window.__skipTaxPopupOnce) { window.__skipTaxPopupOnce = false; }
-                            startCountdownIfPresent();
-                        } catch (_) { /* silencioso */ }
-                    } catch (err) {
-                        results.innerHTML = '<div class="results-container"><div class="erro">❌ Erro ao consultar. Tente novamente.</div></div>';
-                    } finally {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
-                    }
-                });
-            }
+                        <? php
+    endif; ?>
+                    } catch (_) { /* silencioso */ }
+                    }, 200);
+            <? php
+endif; ?>
 
-            // Inicializa countdown quando houver elemento no DOM (ex.: respostas AJAX)
-            function startCountdownIfPresent() {
-                const el = document.getElementById('countdown');
-                if (!el || window.__countdownStarted) return;
-                window.__countdownStarted = true;
-                let tempo = (typeof window.TEMPO_LIMITE_HORAS !== 'undefined' ? window.TEMPO_LIMITE_HORAS : 24) * 60 * 60;
-                (function tick() {
-                    const horas = Math.floor(tempo / 3600);
-                    const minutos = Math.floor((tempo % 3600) / 60);
-                    const segundos = tempo % 60;
-                    el.innerHTML = '⏱ Tempo restante: ' + String(horas).padStart(2, '0') + ':' + String(minutos).padStart(2, '0') + ':' + String(segundos).padStart(2, '0');
-                    if (tempo > 0) { tempo--; setTimeout(tick, 1000); } else { el.innerHTML = '❌ Prazo expirado.'; }
-                })();
-            }
-        });
-    </script>
+            if (form && results && submitBtn) {
+                    form.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        const codigo = (form.querySelector('#codigo') || {}).value || '';
+                        const cidade = (form.querySelector('#cidade') || {}).value || '';
+                        if (!codigo || !cidade) return;
 
-    <script>
-        async function solicitarExpress(codigo, cidade, btn) {
-            // Prevenir chamadas múltiplas
-            if (window.__expressRequesting) {
-                return;
-            }
+                        const originalText = submitBtn.innerHTML;
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
+                        results.innerHTML = '';
 
-            try {
-                window.__expressRequesting = true;
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerText = 'Solicitando...';
-                }
-
-                const resp = await fetch('solicitar_express.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ codigo, cidade })
-                });
-                const data = await resp.json();
-                if (!data.success) throw new Error(data.message || 'Falha ao solicitar.');
-
-                // Mostrar mensagem de sucesso
-                if (typeof MessageManager !== 'undefined') {
-                    MessageManager.success('Solicitação de entrega expressa enviada! Verifique as instruções de pagamento PIX abaixo.');
-                } else {
-                    alert('Solicitação enviada com sucesso! Verifique as instruções de pagamento PIX.');
-                }
-
-                // Recarregar resultados via AJAX para exibir PIX e contagem
-                window.__expressJustRequested = true;
-                window.__skipTaxPopupOnce = true;
-                try {
-                    const results = document.getElementById('ajaxResults');
-                    const htmlResp = await fetch('index.php', {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ codigo, cidade, ajax: '1' })
-                    });
-                    const html = await htmlResp.text();
-                    if (results) {
-                        results.innerHTML = html;
-                        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        // Ajustar rótulo para Express e marcar caixa
                         try {
-                            const box = results.querySelector('.pix-box');
-                            if (box) {
-                                box.classList.add('express-box');
-                                const p = box.querySelector('p');
-                                if (p) {
-                                    const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
-                                    const valor = m ? m[0] : '';
-                                    p.innerHTML = '⚡ <b>Entrega Expressa (3 dias):</b> ' + valor;
+                            const response = await fetch('index.php', {
+                                method: 'POST',
+                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: new URLSearchParams({ codigo, cidade, ajax: '1' })
+                            });
+                            const html = await response.text();
+                            results.innerHTML = html;
+                            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                            // Iniciar popup e countdown se houver taxa no retorno AJAX
+                            try {
+                                const pixTextarea = results.querySelector('.pix-box textarea');
+                                const isExpressBox = pixTextarea ? pixTextarea.closest('.express-box') : null;
+                                if (!window.__skipTaxPopupOnce && pixTextarea && !isExpressBox && typeof showTaxaPopup === 'function') {
+                                    let valorTexto = null;
+                                    const p = pixTextarea.closest('.pix-box') ? pixTextarea.closest('.pix-box').querySelector('p') : null;
+                                    if (p && /R\$\s*[0-9\.,]+/.test(p.textContent)) {
+                                        const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                                        valorTexto = m ? m[0] : null;
+                                    }
+                                    showTaxaPopup(valorTexto);
                                 }
-                            }
-                        } catch (_) { }
-                    } else {
-                        // fallback simples
-                        location.reload();
-                    }
-                } catch (_) { location.reload(); }
-            } catch (e) {
-                if (typeof MessageManager !== 'undefined') {
-                    MessageManager.error(e.message || 'Erro ao solicitar entrega expressa.');
-                } else {
-                    alert(e.message || 'Erro ao solicitar entrega expressa.');
+                                if (window.__skipTaxPopupOnce) { window.__skipTaxPopupOnce = false; }
+                                startCountdownIfPresent();
+                            } catch (_) { /* silencioso */ }
+                        } catch (err) {
+                            results.innerHTML = '<div class="results-container"><div class="erro">❌ Erro ao consultar. Tente novamente.</div></div>';
+                        } finally {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    });
                 }
-            } finally {
-                window.__expressRequesting = false;
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = '⚡ Quero entrega em 3 dias';
+
+                // Inicializa countdown quando houver elemento no DOM (ex.: respostas AJAX)
+                function startCountdownIfPresent() {
+                    const el = document.getElementById('countdown');
+                    if (!el || window.__countdownStarted) return;
+                    window.__countdownStarted = true;
+                    let tempo = (typeof window.TEMPO_LIMITE_HORAS !== 'undefined' ? window.TEMPO_LIMITE_HORAS : 24) * 60 * 60;
+                    (function tick() {
+                        const horas = Math.floor(tempo / 3600);
+                        const minutos = Math.floor((tempo % 3600) / 60);
+                        const segundos = tempo % 60;
+                        el.innerHTML = '⏱ Tempo restante: ' + String(horas).padStart(2, '0') + ':' + String(minutos).padStart(2, '0') + ':' + String(segundos).padStart(2, '0');
+                        if (tempo > 0) { tempo--; setTimeout(tick, 1000); } else { el.innerHTML = '❌ Prazo expirado.'; }
+                    })();
+                }
+            });
+        </script>
+
+        <script>
+            async function solicitarExpress(codigo, cidade, btn) {
+                // Prevenir chamadas múltiplas
+                if (window.__expressRequesting) {
+                    return;
+                }
+
+                try {
+                    window.__expressRequesting = true;
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerText = 'Solicitando...';
+                    }
+
+                    const resp = await fetch('solicitar_express.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({ codigo, cidade })
+                    });
+                    const data = await resp.json();
+                    if (!data.success) throw new Error(data.message || 'Falha ao solicitar.');
+
+                    // Mostrar mensagem de sucesso
+                    if (typeof MessageManager !== 'undefined') {
+                        MessageManager.success('Solicitação de entrega expressa enviada! Verifique as instruções de pagamento PIX abaixo.');
+                    } else {
+                        alert('Solicitação enviada com sucesso! Verifique as instruções de pagamento PIX.');
+                    }
+
+                    // Recarregar resultados via AJAX para exibir PIX e contagem
+                    window.__expressJustRequested = true;
+                    window.__skipTaxPopupOnce = true;
+                    try {
+                        const results = document.getElementById('ajaxResults');
+                        const htmlResp = await fetch('index.php', {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({ codigo, cidade, ajax: '1' })
+                        });
+                        const html = await htmlResp.text();
+                        if (results) {
+                            results.innerHTML = html;
+                            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            // Ajustar rótulo para Express e marcar caixa
+                            try {
+                                const box = results.querySelector('.pix-box');
+                                if (box) {
+                                    box.classList.add('express-box');
+                                    const p = box.querySelector('p');
+                                    if (p) {
+                                        const m = p.textContent.match(/R\$\s*[0-9\.,]+/);
+                                        const valor = m ? m[0] : '';
+                                        p.innerHTML = '⚡ <b>Entrega Expressa (3 dias):</b> ' + valor;
+                                    }
+                                }
+                            } catch (_) { }
+                        } else {
+                            // fallback simples
+                            location.reload();
+                        }
+                    } catch (_) { location.reload(); }
+                } catch (e) {
+                    if (typeof MessageManager !== 'undefined') {
+                        MessageManager.error(e.message || 'Erro ao solicitar entrega expressa.');
+                    } else {
+                        alert(e.message || 'Erro ao solicitar entrega expressa.');
+                    }
+                } finally {
+                    window.__expressRequesting = false;
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '⚡ Quero entrega em 3 dias';
+                    }
                 }
             }
-        }
-    </script>
+        </script>
 
-    <script>
-        // Popup explicativo da taxa (cliente)
-        function showTaxaPopup(valorTexto) {
-            const modal = document.createElement('div');
-            modal.className = 'custom-overlay-modal';
-            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        <script>
+            // Popup explicativo da taxa (cliente)
+            function showTaxaPopup(valorTexto) {
+                const modal = document.createElement('div');
+                modal.className = 'custom-overlay-modal';
+                modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; justify-content: center;
         align-items: center; padding: 20px;`;
 
-            const valorLinha = valorTexto ? `O valor definido pelo Correios para o seu envio foi de <strong>${valorTexto}</strong>, e, após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.` : `O valor definido pelo Correios para o seu envio está indicado acima. Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.`;
+                const valorLinha = valorTexto ? `O valor definido pelo Correios para o seu envio foi de <strong>${valorTexto}</strong>, e, após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.` : `O valor definido pelo Correios para o seu envio está indicado acima. Após o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.`;
 
-            modal.innerHTML = `
+                modal.innerHTML = `
         <div style="background: linear-gradient(135deg, #0a0a0a, #001a1a); padding: 32px;
             border-radius: 18px; max-width: 820px; width: 100%; border: 2px solid #0055FF; color: #fff;">
             <h2 style="color: #0055FF; text-align: center; margin-bottom: 18px; font-size: 1.6rem;">
@@ -1057,9 +1058,9 @@ endif; ?>
             </div>
         </div>
     `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.r }
-    </script>
+                document.body.appendChild(modal);
+                modal.addEventListener('click', (e) => { if (e.target === modal) modal.r }
+        </script>
 </body>
 
 </html>
