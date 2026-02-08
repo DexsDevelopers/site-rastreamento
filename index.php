@@ -9,6 +9,10 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+// Debug - Remover em produção se necessário, mas útil agora
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Incluir configurações
 require_once 'includes/config.php';
 require_once 'includes/db_connect.php';
@@ -39,9 +43,6 @@ function getHomepageConfig($pdo, $chave, $default = '')
 $nomeEmpresa = getHomepageConfig($pdo, 'nome_empresa', 'Loggi');
 $tituloHero = getHomepageConfig($pdo, 'titulo_hero', 'O rastreio do seu envio é prático');
 $descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Acompanhe seu pedido em tempo real com a Loggi. Frete grátis para todo o Brasil.');
-$badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', 'Loggi para você');
-$badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', 'Loggi para empresas');
-$badgeCidades = getHomepageConfig($pdo, 'badge_cidades', 'Ajudar');
 
 $codigo = $cidade = "";
 $statusList = [];
@@ -111,7 +112,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             }
         }
         catch (PDOException $e) {
-            $erroCidade = "Erro interno.";
+            $erroCidade = "Erro interno: " . $e->getMessage();
         }
     }
 
@@ -136,81 +137,75 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             </p>
         </div>
         <div class="timeline" style="max-width:700px; margin: 0 auto;">
-            <?php foreach ($statusList as $index => $etapa):
-            $isFirst = $index === count($statusList) - 1; // Last one is the current status
+            <?php
+        // Timeline Loop - Pure PHP to avoid syntax errors
+        foreach ($statusList as $index => $etapa) {
+            $isFirst = ($index === count($statusList) - 1);
             $activeClass = $isFirst ? 'active' : '';
 
-            // Determine icon based on status title
-            $iconClass = 'fa-circle'; // default
-            $titleLower = mb_strtolower($etapa['titulo'], 'UTF-8');
+            // Icon logic
+            $iconClass = 'fa-circle';
+            $titleLower = strtolower($etapa['titulo']);
 
-            if (strpos($titleLower, 'postado') !== false)
+            if (strpos($titleLower, 'postado') !== false) {
                 $iconClass = 'fa-box';
-            elseif (strpos($titleLower, 'trânsito') !== false || strpos($titleLower, 'encaminhado') !== false)
+            }
+            elseif (strpos($titleLower, 'trânsito') !== false || strpos($titleLower, 'encaminhado') !== false) {
                 $iconClass = 'fa-truck';
-            elseif (strpos($titleLower, 'saiu') !== false)
+            }
+            elseif (strpos($titleLower, 'saiu') !== false) {
                 $iconClass = 'fa-shipping-fast';
-            elseif (strpos($titleLower, 'entregue') !== false)
+            }
+            elseif (strpos($titleLower, 'entregue') !== false) {
                 $iconClass = 'fa-check';
-            elseif (strpos($titleLower, 'aguardando') !== false)
+            }
+            elseif (strpos($titleLower, 'aguardando') !== false) {
                 $iconClass = 'fa-clock';
-            elseif (strpos($titleLower, 'fiscaliza') !== false)
+            }
+            elseif (strpos($titleLower, 'fiscaliza') !== false) {
                 $iconClass = 'fa-search';
-?>
-            <div class="timeline-item <?= $activeClass?>"
-                style="padding-left:50px; border-left:2px solid var(--slate-100); position:relative; margin-bottom:3rem;">
-                <div class="timeline-marker <?= $activeClass?>"
-                    style="position:absolute; left:-16px; top:0; width:32px; height:32px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : 'var(--bg-white)'?>; border: 2px solid <?= $isFirst ? 'var(--primary)' : 'var(--slate-300)'?>; display: flex; align-items: center; justify-content: center; color: <?= $isFirst ? 'white' : 'var(--slate-400)'?>; z-index: 10;">
-                    <i class="fas <?= $iconClass?>" style="font-size: 0.9rem;"></i>
-                </div>
-                <div class="timeline-content">
-                    <h4 style="font-weight:900; color:var(--secondary); font-size: 1.25rem; margin-bottom: 0.5rem;">
-                        <?= htmlspecialchars($etapa['titulo'])?>
-                    </h4>
-                    <p style="font-size:1.1rem; color:var(--slate-500); margin-bottom: 0.75rem; font-weight: 500;">
-                        <?= htmlspecialchars($etapa['subtitulo'])?>
-                    </p>
-                    <small style="color:var(--slate-400); font-weight: 700; font-size: 0.9rem;"><i
-                            class="far fa-clock"></i>
-                        <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
-                    </small>
+            }
 
-                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                    <div class="pix-box reveal-on-scroll visible"
-                        style="margin-top:2rem; background:var(--slate-50); padding:2rem; border-radius:24px; border: 1px solid var(--slate-200);">
-                        <p style="font-weight:900; color:var(--secondary); margin-bottom:1rem; font-size: 1.25rem;">
-                            <i class="fas fa-receipt"></i> Total a pagar: <span style="color: var(--primary);">R$
-                                <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
-                            </span>
-                        </p>
-                        <p style="font-size:1rem; color:var(--slate-600); margin-bottom:1.5rem; font-weight: 500;">
-                            Realize o pagamento por PIX para desbloquear seu envio agora mesmo.</p>
-                        <div
-                            style="background: white; padding: 1.25rem; border-radius: 16px; border: 2px dashed var(--slate-200); margin-bottom: 1.5rem;">
-                            <code
-                                style="word-break: break-all; font-family: monospace; font-size: 0.9rem; color: var(--secondary); font-weight: 700;"><?= htmlspecialchars($etapa['taxa_pix'])?></code>
-                        </div>
-                        <button
-                            onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>'); this.innerHTML='<i class = \'fas fa-check\'></i> Sucesso!';"
-                            style="width:100%; padding:1.25rem; background:var(--primary); color:white; border:none; border-radius:16px; font-weight:900; cursor:pointer; font-size: 1.1rem; transition: all 0.3s;"
-                            class="cursor-pointer">
-                            <i class="far fa-copy"></i> Copiar Chave PIX
-                        </button>
-                    </div>
-                    <?php
-            endif; ?>
-                </div>
-            </div>
-            <?php
-        endforeach; ?>
+            $markerBg = $isFirst ? 'var(--primary)' : '#fff';
+            $markerBorder = $isFirst ? 'var(--primary)' : 'var(--slate-300)';
+            $markerColor = $isFirst ? 'white' : 'var(--slate-400)';
+
+            echo '<div class="timeline-item ' . $activeClass . '" style="padding-left:50px; border-left:2px solid var(--slate-100); position:relative; margin-bottom:3rem;">';
+
+            echo '<div class="timeline-marker ' . $activeClass . '" style="position:absolute; left:-16px; top:0; width:32px; height:32px; border-radius:50%; background:' . $markerBg . '; border: 2px solid ' . $markerBorder . '; display: flex; align-items: center; justify-content: center; color: ' . $markerColor . '; z-index: 10;">';
+            echo '<i class="fas ' . $iconClass . '" style="font-size: 0.9rem;"></i>';
+            echo '</div>';
+
+            echo '<div class="timeline-content">';
+            echo '<h4 style="font-weight:900; color:var(--secondary); font-size: 1.25rem; margin-bottom: 0.5rem;">' . htmlspecialchars($etapa['titulo']) . '</h4>';
+            echo '<p style="font-size:1.1rem; color:var(--slate-500); margin-bottom: 0.75rem; font-weight: 500;">' . htmlspecialchars($etapa['subtitulo']) . '</p>';
+            echo '<small style="color:var(--slate-400); font-weight: 700; font-size: 0.9rem;"><i class="far fa-clock"></i> ' . date("d/m/Y H:i", strtotime($etapa['data'])) . '</small>';
+
+            if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])) {
+                echo '<div class="pix-box reveal-on-scroll visible" style="margin-top:2rem; background:var(--slate-50); padding:2rem; border-radius:24px; border: 1px solid var(--slate-200);">';
+                echo '<p style="font-weight:900; color:var(--secondary); margin-bottom:1rem; font-size: 1.25rem;">';
+                echo '<i class="fas fa-receipt"></i> Total a pagar: <span style="color: var(--primary);">R$ ' . number_format($etapa['taxa_valor'], 2, ',', '.') . '</span>';
+                echo '</p>';
+                echo '<p style="font-size:1rem; color:var(--slate-600); margin-bottom:1.5rem; font-weight: 500;">Realize o pagamento por PIX para desbloquear seu envio agora mesmo.</p>';
+                echo '<div style="background: white; padding: 1.25rem; border-radius: 16px; border: 2px dashed var(--slate-200); margin-bottom: 1.5rem;">';
+                echo '<code style="word-break: break-all; font-family: monospace; font-size: 0.9rem; color: var(--secondary); font-weight: 700;">' . htmlspecialchars($etapa['taxa_pix']) . '</code>';
+                echo '</div>';
+                echo '<button onclick="navigator.clipboard.writeText(\'' . htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) . '\'); this.innerHTML=\'<i class=\\\'fas fa-check\\\'></i> Sucesso!\';" style="width:100%; padding:1.25rem; background:var(--primary); color:white; border:none; border-radius:16px; font-weight:900; cursor:pointer; font-size: 1.1rem; transition: all 0.3s;" class="cursor-pointer">';
+                echo '<i class="far fa-copy"></i> Copiar Chave PIX';
+                echo '</button>';
+                echo '</div>';
+            }
+
+            echo '</div></div>';
+        }
+?>
         </div>
 
         <?php if ($fotoPedido && $fotoPedidoSrc): ?>
         <div class="photo-proof-card" style="margin-top:4rem;">
             <p
                 style="font-weight:900; margin-bottom:2rem; font-size: 1.3rem; color: var(--secondary); text-align: center;">
-                <i class="fas fa-camera"></i> Registro Fotográfico do Objeto
-            </p>
+                <i class="fas fa-camera"></i> Registro Fotográfico do Objeto</p>
             <div class="image-card"
                 style="transform: none; max-width: 600px; margin: 0 auto; padding: 1rem; border-radius: 32px;">
                 <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido" style="border-radius: 20px;">
@@ -353,7 +348,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             <div class="marketing-grid">
                 <div class="marketing-card premium">
                     <div class="card-icon"><i class="fas fa-warehouse"></i></div>
-                    <h3>Colete loggi</h3>
+                    <h3>Coleta loggi</h3>
                     <p>Equipe dedicada para coletar seus envios diretamente no seu centro de distribuição.</p>
                 </div>
                 <div class="marketing-card premium">
@@ -374,14 +369,23 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         <div class="container">
             <div class="proof-grid">
                 <div class="proof-card">
+                    <div class="proof-icon" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;">
+                        <i class="fas fa-smile-beam"></i>
+                    </div>
                     <div class="proof-value">4.8/5</div>
-                    <div class="proof-label">Satisfação Média</div>
+                    <div class="proof-label">Satisfação dos Clientes</div>
                 </div>
                 <div class="proof-card highlight">
+                    <div class="proof-icon" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;">
+                        <i class="fas fa-dolly-flatbed"></i>
+                    </div>
                     <div class="proof-value">10M+</div>
-                    <div class="proof-label">Entregas Mensais</div>
+                    <div class="proof-label">Entregas Realizadas</div>
                 </div>
                 <div class="proof-card">
+                    <div class="proof-icon" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
                     <div class="proof-value">4.5k+</div>
                     <div class="proof-label">Cidades Atendidas</div>
                 </div>
@@ -389,7 +393,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         </div>
     </section>
 
-    <section class="marketing-section reveal-on-scroll testimonials-section">
+    <section class="marketing-section reveal-on-scroll testimonials-section" style="background:var(--secondary);">
         <div class="container">
             <h2 class="section-title light" style="text-align: center; margin-bottom: 6rem;">Confiança de quem usa</h2>
             <div class="marketing-grid">
@@ -468,13 +472,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     </footer>
 
     <script>
-        // Menu Toggle
-        const menuToggle = document.getElementById('men       const navLinks = document.getElementById('navLinks');
-        
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+
         if (menuToggle && navLinks) {
             menuToggle.addEventListener('click', () => {
                 navLinks.classList.toggle('active');
-                const icon = menuToggle.quei');
+                const icon = menuToggle.querySelector('i');
                 if (icon) {
                     icon.classList.toggle('fa-bars');
                     icon.classList.toggle('fa-times');
@@ -507,7 +511,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                 e.preventDefault();
                 const btn = this.querySelector('button');
                 const originalHtml = btn.innerHTML;
-                btn.innerHT '<="fas fa-spinner fa-spin"></i> Buscando...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
                 btn.disabled = true;
 
                 const formData = new FormData(this);
@@ -533,7 +537,6 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             });
         }
 
-        // Animation Observer
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -544,6 +547,11 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         }, { threshold: 0.1 });
 
         document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+        // Safety Fallback
+        setTimeout(() => {
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('visible'));
+        }, 1000);
     </script>
 </body>
 
