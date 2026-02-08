@@ -137,20 +137,10 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             </p>
         </div>
         <div class="timeline" style="max-width:700px; margin: 0 auto;">
-            <?php
-        // Timeline Loop - Pure PHP to avoid syntax errors
-        foreach ($statusList as $index => $etapa) {
-            $isFirst = ($index === count($statusList) - 1);
-            $activeClass = $isFirst ? 'active' : '';
-
-            // Icon logic
-            $iconClass = 'fa-circle';
-            $titleLower = strtolower($etapa['titulo']);
-
             <?php foreach ($statusList as $index => $etapa):
             $isFirst = $index === count($statusList) - 1; // Last one is the current status
             $activeClass = $isFirst ? 'active' : '';
-            ?>
+?>
             <div class="timeline-item <?= $activeClass?>"
                 style="padding-left:40px; border-left:2px solid var(--slate-100); position:relative; margin-bottom:3rem;">
                 <div class="timeline-marker <?= $activeClass?>"
@@ -189,11 +179,12 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                             Copiar Chave PIX
                         </button>
                     </div>
-                    <?php endif; ?>
+                    <?php
+            endif; ?>
                 </div>
             </div>
-            <?php endforeach; ?>
-            ?>
+            <?php
+        endforeach; ?>
         </div>
 
         <?php if ($fotoPedido && $fotoPedidoSrc): ?>
