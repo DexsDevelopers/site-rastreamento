@@ -191,7 +191,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         <div class="photo-proof-card" style="margin-top:4rem;">
             <p
                 style="font-weight:900; margin-bottom:2rem; font-size: 1.3rem; color: var(--secondary); text-align: center;">
-                <i class="fas fa-camera"></i> Registro Fotográfico do Objeto</p>
+                <i class="fas fa-camera"></i> Registro Fotográfico do Objeto
+            </p>
             <div class="image-card"
                 style="transform: none; max-width: 600px; margin: 0 auto; padding: 1rem; border-radius: 32px;">
                 <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido" style="border-radius: 20px;">
@@ -449,15 +450,19 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     </footer>
 
     <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const navLinks = dlementById('navLinks');
+        // Menu Toggle
+        const menuToggle = document.getElementById('men       const navLinks = document.getElementById('navLinks');
         
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = menuToggle.querySelector('i');
-            icon.classList.toggle('fa-bars');
-            icon.classLia-times');
-        });
+        if (menuToggle && navLinks) {
+            menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+                const icon = menuToggle.quei');
+                if (icon) {
+                    icon.classList.toggle('fa-bars');
+                    icon.classList.toggle('fa-times');
+                }
+            });
+        }
 
         function switchSection(targetId, tab) {
             document.querySelectorAll('.marketing-section[id]').forEach(sec => {
@@ -467,43 +472,50 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             if(target) target.style.display = 'block';
             
             document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+            if(tab) tab.classList.add('active');
         }
 
         window.addEventListener('scroll', () => {
             const header = document.getElementById('mainHeader');
-            if (window.scrollY > 50) header.classList.add('scrolled');
-            else header.classList.remove('scrolled');
+            if (header) {
+                if (window.scrollY > 50) header.classList.add('scrolled');
+                else header.classList.remove('scrolled');
+            }
         });
 
-        document.getElementById('trackForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const btn = this.querySelector('button');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
-            btn.disabled = true;
+        const trackForm = document.getElementById('trackForm');
+        if (trackForm) {
+            trackForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const btn = this.querySelector('button');
+                const originalHtml = btn.innerHTML;
+                btn.innerHT '<="fas fa-spinner fa-spin"></i> Buscando...';
+                btn.disabled = true;
 
-            const formData = new FormData(this);
-            formData.append('ajax', '1');
-            
-            fetch('index.php', { method: 'POST', body: formData })
-                .then(r => r.text())
-     .then(html => {
-                    const resultsDiv = document.getElementById('ajaxResults');
-                    resultsDiv.innerHTML = html;
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                    window.scrollTo({ top: resultsDiv.offsetTop - 120, behavior: 'smooth' });
-                    
-                    // Re-run animation observer for new content
-                    document.querySelectorAll('#ajaxResults .reveal-on-scroll').forEach(el => revealObserver.observe(el));
-                })
-                .catch(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                });
-        });
+                const formData = new FormData(this);
+                formData.append('ajax', '1');
+                
+                fetch('index.php', { method: 'POST', body: formData })
+                    .then(r => r.text())
+                    .then(html => {
+                        const resultsDiv = document.getElementById('ajaxResults');
+                        if (resultsDiv) {
+                            resultsDiv.innerHTML = html;
+                            window.scrollTo({ top: resultsDiv.offsetTop - 120, behavior: 'smooth' });
+                            // Re-run animation observer for new content
+                            document.querySelectorAll('#ajaxResults .reveal-on-scroll').forEach(el => revealObserver.observe(el));
+                        }
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    })
+                    .catch(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    });
+            });
+        }
 
+        // Animation Observer
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => { 
                 if (entry.isIntersecting) {
