@@ -473,6 +473,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
     <script>
         const menuToggle = document.getElementById('menuToggle');
+<<<<<<< HEAD
         const navLinks = document.getElementById('navLinks');
 
         if (menuToggle && navLinks) {
@@ -485,6 +486,16 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                 }
             });
         }
+=======
+        const navLinks = dlementById('navLinks');
+        
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = menuToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classLia-times');
+        });
+>>>>>>> parent of 72be4f8 (Fix syntax errors in JS causing blank page)
 
         function switchSection(targetId, tab) {
             document.querySelectorAll('.marketing-section[id]').forEach(sec => {
@@ -494,17 +505,20 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             if (target) target.style.display = 'block';
 
             document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+<<<<<<< HEAD
             if (tab) tab.classList.add('active');
+=======
+            tab.classList.add('active');
+>>>>>>> parent of 72be4f8 (Fix syntax errors in JS causing blank page)
         }
 
         window.addEventListener('scroll', () => {
             const header = document.getElementById('mainHeader');
-            if (header) {
-                if (window.scrollY > 50) header.classList.add('scrolled');
-                else header.classList.remove('scrolled');
-            }
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
         });
 
+<<<<<<< HEAD
         const trackForm = document.getElementById('trackForm');
         if (trackForm) {
             trackForm.addEventListener('submit', function (e) {
@@ -536,6 +550,35 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                     });
             });
         }
+=======
+        document.getElementById('trackForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = this.querySelector('button');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            btn.disabled = true;
+
+            const formData = new FormData(this);
+            formData.append('ajax', '1');
+            
+            fetch('index.php', { method: 'POST', body: formData })
+                .then(r => r.text())
+     .then(html => {
+                    const resultsDiv = document.getElementById('ajaxResults');
+                    resultsDiv.innerHTML = html;
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    window.scrollTo({ top: resultsDiv.offsetTop - 120, behavior: 'smooth' });
+                    
+                    // Re-run animation observer for new content
+                    document.querySelectorAll('#ajaxResults .reveal-on-scroll').forEach(el => revealObserver.observe(el));
+                })
+                .catch(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                });
+        });
+>>>>>>> parent of 72be4f8 (Fix syntax errors in JS causing blank page)
 
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
