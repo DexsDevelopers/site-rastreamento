@@ -65,7 +65,7 @@ require_once 'includes/config.php';
         /* Lado Direito - Conteúdo */
         .right-content {
             flex: 1;
-            background-color: #fff;
+            background: linear-gradient(135deg, #f0f4ff 0%, #fff 100%);
             padding: 40px;
             display: flex;
             flex-direction: column;
@@ -302,6 +302,10 @@ require_once 'includes/config.php';
                 </div>
             </div>
         </div>
+    </div>
+</body>
+
+</html> </div>
     </div>
 </body>
 

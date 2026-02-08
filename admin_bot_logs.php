@@ -13,8 +13,11 @@ require_once 'includes/auth_helper.php';
 date_default_timezone_set('America/Sao_Paulo');
 try {
     $offset = date('P');
-    if (isset($pdo)) $pdo->exec("SET time_zone = '$offset'");
-} catch (Exception $e) {}
+    if (isset($pdo))
+        $pdo->exec("SET time_zone = '$offset'");
+}
+catch (Exception $e) {
+}
 
 // Verificar autenticação
 requireLogin();
@@ -27,7 +30,8 @@ if (!isset($pdo) || $pdo === null) {
 // Verificar se tabelas existem
 try {
     $pdo->query("SELECT 1 FROM bot_automations LIMIT 1");
-} catch (PDOException $e) {
+}
+catch (PDOException $e) {
     header('Location: setup_bot_automations.php');
     exit;
 }
@@ -35,17 +39,17 @@ try {
 // ===== PROCESSAMENTO AJAX =====
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json; charset=utf-8');
-    
+
     $action = $_POST['action'];
     $response = ['success' => false, 'message' => 'Ação não reconhecida'];
-    
+
     try {
         switch ($action) {
             case 'get_automations':
                 $automations = fetchData($pdo, "SELECT * FROM bot_automations ORDER BY prioridade DESC, criado_em DESC");
                 $response = ['success' => true, 'data' => $automations];
                 break;
-                
+
             case 'save_automation':
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
                 $nome = sanitizeInput($_POST['nome'] ?? '');
@@ -58,27 +62,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 if (is_array($grupoIdData)) {
                     $grupoIdData = array_filter($grupoIdData); // Remove vazios
                     $grupoId = !empty($grupoIdData) ? implode(',', $grupoIdData) : null;
-                } else {
+                }
+                else {
                     $grupoId = sanitizeInput($grupoIdData) ?: null;
                 }
-                
+
                 $grupoNome = sanitizeInput($_POST['grupo_nome'] ?? '') ?: null;
                 $apenasPrivado = isset($_POST['apenas_privado']) ? 1 : 0;
                 $apenasGrupo = isset($_POST['apenas_grupo']) ? 1 : 0;
                 // Delay - já vem em milissegundos do select
                 $delayMs = (int)($_POST['delay_ms'] ?? 0);
-                
+
                 // Cooldown - já vem em segundos do select
                 $cooldown = (int)($_POST['cooldown_segundos'] ?? 0);
-                
+
                 $prioridade = (int)($_POST['prioridade'] ?? 0);
                 $ativo = isset($_POST['ativo']) ? 1 : 0;
-                
+
                 if (empty($nome) || empty($gatilho) || empty($resposta)) {
                     $response = ['success' => false, 'message' => 'Preencha todos os campos obrigatórios'];
                     break;
                 }
-                
+
                 if ($id > 0) {
                     // Atualizar
                     $sql = "UPDATE bot_automations SET 
@@ -87,23 +92,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             delay_ms = ?, cooldown_segundos = ?, prioridade = ?, ativo = ?
                             WHERE id = ?";
                     executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
-                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
+                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo,
                         $delayMs, $cooldown, $prioridade, $ativo, $id]);
                     $response = ['success' => true, 'message' => 'Automação atualizada!', 'id' => $id];
-                } else {
+                }
+                else {
                     // Inserir
                     $sql = "INSERT INTO bot_automations 
                             (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                              apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     executeQuery($pdo, $sql, [$nome, $descricao, $tipo, $gatilho, $resposta, $imagemUrl,
-                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo, 
+                        $grupoId, $grupoNome, $apenasPrivado, $apenasGrupo,
                         $delayMs, $cooldown, $prioridade, $ativo]);
                     $newId = $pdo->lastInsertId();
                     $response = ['success' => true, 'message' => 'Automação criada!', 'id' => $newId];
                 }
                 break;
-                
+
             case 'delete_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 if ($id > 0) {
@@ -111,22 +117,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => true, 'message' => 'Automação excluída!'];
                 }
                 break;
-                
+
             case 'clone_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 if ($id > 0) {
                     // Buscar automação original
                     $original = fetchOne($pdo, "SELECT * FROM bot_automations WHERE id = ?", [$id]);
-                    
+
                     if ($original) {
                         // Criar cópia com nome modificado
                         $novoNome = $original['nome'] . ' (Cópia)';
-                        
+
                         $sql = "INSERT INTO bot_automations 
                                 (nome, descricao, tipo, gatilho, resposta, imagem_url, grupo_id, grupo_nome, 
                                  apenas_privado, apenas_grupo, delay_ms, cooldown_segundos, prioridade, ativo)
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                        
+
                         executeQuery($pdo, $sql, [
                             $novoNome,
                             $original['descricao'],
@@ -141,17 +147,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $original['delay_ms'],
                             $original['cooldown_segundos'],
                             $original['prioridade'],
-                            0  // Deixar inativa por padrão
+                            0 // Deixar inativa por padrão
                         ]);
-                        
+
                         $newId = $pdo->lastInsertId();
                         $response = ['success' => true, 'message' => 'Automação clonada com sucesso!', 'id' => $newId];
-                    } else {
+                    }
+                    else {
                         $response = ['success' => false, 'message' => 'Automação não encontrada'];
                     }
                 }
                 break;
-                
+
             case 'toggle_automation':
                 $id = (int)($_POST['id'] ?? 0);
                 $ativo = (int)($_POST['ativo'] ?? 0);
@@ -160,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => true, 'message' => $ativo ? 'Automação ativada!' : 'Automação desativada!'];
                 }
                 break;
-                
+
             case 'get_settings':
                 $settings = fetchData($pdo, "SELECT * FROM bot_settings ORDER BY chave");
                 $settingsObj = [];
@@ -169,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 $response = ['success' => true, 'data' => $settingsObj];
                 break;
-                
+
             case 'save_setting':
                 $chave = sanitizeInput($_POST['chave'] ?? '');
                 $valor = $_POST['valor'] ?? '';
@@ -178,10 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $response = ['success' => true, 'message' => 'Configuração salva!'];
                 }
                 break;
-                
+
             case 'get_logs':
                 $limit = (int)($_POST['limit'] ?? 50);
-                $logs = fetchData($pdo, 
+                $logs = fetchData($pdo,
                     "SELECT l.*, a.nome as automation_nome 
                      FROM bot_automation_logs l 
                      LEFT JOIN bot_automations a ON l.automation_id = a.id 
@@ -189,25 +196,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                      LIMIT ?", [$limit]);
                 $response = ['success' => true, 'data' => $logs];
                 break;
-                
+
             case 'get_stats':
                 $totalAutomations = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations")['total'];
                 $activeAutomations = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations WHERE ativo = 1")['total'];
                 $totalUsos = fetchOne($pdo, "SELECT SUM(contador_uso) as total FROM bot_automations")['total'] ?? 0;
                 $logsHoje = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE DATE(criado_em) = CURDATE()")['total'];
-                
+
                 $response = ['success' => true, 'data' => [
-                    'total_automations' => $totalAutomations,
-                    'active_automations' => $activeAutomations,
-                    'total_usos' => $totalUsos,
-                    'logs_hoje' => $logsHoje
-                ]];
+                        'total_automations' => $totalAutomations,
+                        'active_automations' => $activeAutomations,
+                        'total_usos' => $totalUsos,
+                        'logs_hoje' => $logsHoje
+                    ]];
                 break;
-                
+
             case 'get_bot_status':
                 $apiConfig = whatsappApiConfig();
                 $status = ['online' => false, 'ready' => false, 'uptime' => 0];
-                
+
                 if ($apiConfig['enabled']) {
                     try {
                         $ch = curl_init($apiConfig['base_url'] . '/status');
@@ -220,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $result = curl_exec($ch);
                         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                         curl_close($ch);
-                        
+
                         if ($httpCode === 200 && $result) {
                             $data = json_decode($result, true);
                             $status = [
@@ -231,58 +238,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 'reconnects' => $data['reconnectAttempts'] ?? 0
                             ];
                         }
-                    } catch (Exception $e) {
-                        // Bot offline
+                    }
+                    catch (Exception $e) {
+                    // Bot offline
                     }
                 }
-                
+
                 $response = ['success' => true, 'data' => $status];
                 break;
-                
+
             case 'get_grupos':
                 $grupos = fetchData($pdo, "SELECT * FROM bot_grupos ORDER BY nome");
                 $response = ['success' => true, 'data' => $grupos];
                 break;
-                
+
             case 'upload_image':
                 // Upload de imagem para automação
                 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
                     $response = ['success' => false, 'message' => 'Nenhuma imagem enviada'];
                     break;
                 }
-                
+
                 $file = $_FILES['image'];
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                
+
                 if (!in_array($file['type'], $allowedTypes)) {
                     $response = ['success' => false, 'message' => 'Tipo de arquivo não permitido'];
                     break;
                 }
-                
+
                 if ($file['size'] > 5 * 1024 * 1024) {
                     $response = ['success' => false, 'message' => 'Arquivo muito grande (máx 5MB)'];
                     break;
                 }
-                
+
                 // Criar diretório se não existir
                 $uploadDir = 'uploads/bot_images/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
-                
+
                 // Gerar nome único
                 $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
                 $filename = 'auto_' . uniqid() . '_' . time() . '.' . $ext;
                 $filepath = $uploadDir . $filename;
-                
+
                 if (move_uploaded_file($file['tmp_name'], $filepath)) {
                     // Gerar URL completa
                     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
                     $baseUrl = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/';
                     $imageUrl = $baseUrl . $filepath;
-                    
+
                     $response = ['success' => true, 'url' => $imageUrl, 'path' => $filepath];
-                } else {
+                }
+                else {
                     $response = ['success' => false, 'message' => 'Erro ao salvar arquivo'];
                 }
                 break;
@@ -293,29 +302,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $membros_dia = (int)$_POST['membros_dia'];
                 $intervalo_min = (int)$_POST['intervalo_min'];
                 $intervalo_max = (int)$_POST['intervalo_max'];
-                
+
                 $sql = "UPDATE marketing_campanhas SET ativo = ?, membros_por_dia_grupo = ?, intervalo_min_minutos = ?, intervalo_max_minutos = ? WHERE id = 1";
                 executeQuery($pdo, $sql, [$ativo, $membros_dia, $intervalo_min, $intervalo_max]);
-                
+
                 $response = ['success' => true, 'message' => 'Configurações de campanha salvas!'];
                 break;
-                
+
             case 'add_marketing_msg':
                 $conteudo = trim($_POST['conteudo']);
                 $delay = (int)$_POST['delay'];
-                
+
                 $lastOrder = fetchOne($pdo, "SELECT MAX(ordem) as max_ordem FROM marketing_mensagens WHERE campanha_id = 1");
                 $ordem = ($lastOrder['max_ordem'] ?? 0) + 1;
-                
+
                 if (!empty($conteudo)) {
                     $sql = "INSERT INTO marketing_mensagens (campanha_id, ordem, conteudo, delay_apos_anterior_minutos) VALUES (1, ?, ?, ?)";
                     executeQuery($pdo, $sql, [$ordem, $conteudo, $delay]);
                     $response = ['success' => true, 'message' => 'Mensagem adicionada com sucesso!'];
-                } else {
+                }
+                else {
                     $response = ['success' => false, 'message' => 'Conteúdo não pode ser vazio'];
                 }
                 break;
-            
+
             case 'delete_marketing_msg':
                 $id = (int)$_POST['id'];
                 if ($id > 0) {
@@ -339,7 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     'entregue' => 'WHATSAPP_MSG_ENTREGUE',
                     'taxa' => 'WHATSAPP_MSG_TAXA'
                 ];
-                
+
                 $saved = 0;
                 foreach ($etapas as $key => $configKey) {
                     if (isset($_POST[$configKey])) {
@@ -348,18 +358,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         }
                     }
                 }
-                
+
                 // Limpar cache local se necessário
-                if (function_exists('opcache_reset')) opcache_reset();
+                if (function_exists('opcache_reset'))
+                    opcache_reset();
                 clearstatcache(true, __DIR__ . '/config_custom.json');
-                
+
                 $response = ['success' => true, 'message' => "{$saved} mensagens salvas com sucesso!"];
                 break;
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $response = ['success' => false, 'message' => $e->getMessage()];
     }
-    
+
     echo json_encode($response);
     exit;
 }
@@ -387,12 +399,13 @@ try {
         SUM(CASE WHEN status = 'novo' THEN 1 ELSE 0 END) as novos,
         SUM(CASE WHEN status = 'em_progresso' THEN 1 ELSE 0 END) as progresso,
         SUM(CASE WHEN status = 'concluido' THEN 1 ELSE 0 END) as concluidos
-        FROM marketing_membros") ?: ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
-} catch (Exception $e) {
+        FROM marketing_membros") ?: ['total' => 0, 'novos' => 0, 'progresso' => 0, 'concluidos' => 0];
+}
+catch (Exception $e) {
     // Silently fail or log (tables might not exist yet if setup wasnt run)
-    $mktCampanha = ['ativo'=>0, 'membros_por_dia_grupo'=>5, 'intervalo_min_minutos'=>30, 'intervalo_max_minutos'=>120];
+    $mktCampanha = ['ativo' => 0, 'membros_por_dia_grupo' => 5, 'intervalo_min_minutos' => 30, 'intervalo_max_minutos' => 120];
     $mktMensagens = [];
-    $mktStats = ['total'=>0,'novos'=>0,'progresso'=>0,'concluidos'=>0];
+    $mktStats = ['total' => 0, 'novos' => 0, 'progresso' => 0, 'concluidos' => 0];
 }
 
 // Carregar dados (Mensagens Personalizadas)
@@ -416,7 +429,7 @@ foreach ($msgEtapas as $k => $v) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Configuração do Bot | Helmer Logistics</title>
+    <title>Configuração do Bot | Loggi</title>
     <meta name="theme-color" content="#FF3333">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1110,19 +1123,19 @@ foreach ($msgEtapas as $k => $v) {
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Total Leads</div>
-                    <div class="text-xl font-bold text-white"><?= $mktStats['total'] ?? 0 ?></div>
+                    <div class="text-xl font-bold text-white"><?= $mktStats['total'] ?? 0?></div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Na Fila</div>
-                    <div class="text-xl font-bold text-yellow-500"><?= $mktStats['novos'] ?? 0 ?></div>
+                    <div class="text-xl font-bold text-yellow-500"><?= $mktStats['novos'] ?? 0?></div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Em Andamento</div>
-                    <div class="text-xl font-bold text-blue-500"><?= $mktStats['progresso'] ?? 0 ?></div>
+                    <div class="text-xl font-bold text-blue-500"><?= $mktStats['progresso'] ?? 0?></div>
                 </div>
                 <div class="stat-card p-4">
                     <div class="text-xs text-zinc-400 mb-1">Finalizados</div>
-                    <div class="text-xl font-bold text-green-500"><?= $mktStats['concluidos'] ?? 0 ?></div>
+                    <div class="text-xl font-bold text-green-500"><?= $mktStats['concluidos'] ?? 0?></div>
                 </div>
             </div>
 
@@ -1140,14 +1153,14 @@ foreach ($msgEtapas as $k => $v) {
                                     <p class="text-sm text-zinc-500">O bot enviará mensagens automáticas</p>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" name="ativo" <?= ($mktCampanha['ativo'] ?? 0) ? 'checked' : '' ?>>
+                                    <input type="checkbox" name="ativo" <?=($mktCampanha['ativo'] ?? 0) ? 'checked' : ''?>>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-zinc-400 mb-2">Membros por Dia (por Grupo)</label>
-                                <input type="number" name="membros_dia" value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5 ?>" min="1" max="50" class="input-field w-full">
+                                <input type="number" name="membros_dia" value="<?= $mktCampanha['membros_por_dia_grupo'] ?? 5?>" min="1" max="50" class="input-field w-full">
                                 <p class="text-xs text-zinc-600 mt-1">Recomendado: 5-10 para evitar banimento.</p>
                             </div>
 
@@ -1155,11 +1168,11 @@ foreach ($msgEtapas as $k => $v) {
                                 <label class="block text-sm font-medium text-zinc-400 mb-2">Intervalo entre Envios (Minutos)</label>
                                 <div class="flex gap-4">
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_min" value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30 ?>" placeholder="Min" class="input-field w-full">
+                                        <input type="number" name="intervalo_min" value="<?= $mktCampanha['intervalo_min_minutos'] ?? 30?>" placeholder="Min" class="input-field w-full">
                                         <div class="text-xs text-zinc-600 mt-1">Mínimo</div>
                                     </div>
                                     <div class="flex-1">
-                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120 ?>" min="5" class="input-field w-full">
+                                        <input type="number" name="intervalo_max" value="<?= $mktCampanha['intervalo_max_minutos'] ?? 120?>" min="5" class="input-field w-full">
                                         <p class="text-xs text-zinc-600 mt-1">Máximo</p>
                                     </div>
                                 </div>
@@ -1180,31 +1193,34 @@ foreach ($msgEtapas as $k => $v) {
                 <div class="card h-fit">
                     <div class="card-header flex justify-between items-center">
                         <h3 class="font-semibold">💬 Funil de Mensagens</h3>
-                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400"><?= count($mktMensagens) ?> msgs</span>
+                        <span class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400"><?= count($mktMensagens)?> msgs</span>
                     </div>
                     <div class="p-4 space-y-4">
                         <?php if (empty($mktMensagens)): ?>
                             <div class="text-center py-8 text-zinc-500 dashed border border-zinc-800 rounded-lg">
                                 Nenhuma mensagem configurada.<br>Adicione a primeira abaixo.
                             </div>
-                        <?php else: ?>
+                        <?php
+else: ?>
                             <div class="space-y-3">
                                 <?php foreach ($mktMensagens as $msg): ?>
                                     <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 relative group">
                                         <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                                            <button onclick="deleteMarketingMsg(<?= $msg['id'] ?>)" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
+                                            <button onclick="deleteMarketingMsg(<?= $msg['id']?>)" class="text-zinc-500 hover:text-red-500 p-1"><i class="fas fa-trash"></i></button>
                                         </div>
                                         <div class="flex items-center gap-2 mb-2">
-                                            <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#<?= $msg['ordem'] ?></span>
+                                            <span class="bg-zinc-800 text-xs px-2 py-0.5 rounded text-zinc-400">#<?= $msg['ordem']?></span>
                                             <span class="text-xs text-zinc-500">
-                                                <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior' ?>
+                                                <?= $msg['delay_apos_anterior_minutos'] == 0 ? 'Imediato (1º msg)' : 'Aguarda ' . $msg['delay_apos_anterior_minutos'] . ' min após anterior'?>
                                             </span>
                                         </div>
-                                        <p class="text-sm text-zinc-300 whitespace-pre-line"><?= htmlspecialchars($msg['conteudo']) ?></p>
+                                        <p class="text-sm text-zinc-300 whitespace-pre-line"><?= htmlspecialchars($msg['conteudo'])?></p>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php
+    endforeach; ?>
                             </div>
-                        <?php endif; ?>
+                        <?php
+endif; ?>
 
                         <hr class="border-zinc-800">
 
@@ -1240,10 +1256,10 @@ foreach ($msgEtapas as $k => $v) {
                             <?php foreach ($msgEtapas as $k => $v): ?>
                                 <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
                                     <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-xl"><?= $v['icon'] ?></span>
-                                        <h4 class="font-medium text-zinc-200"><?= $v['nome'] ?></h4>
+                                        <span class="text-xl"><?= $v['icon']?></span>
+                                        <h4 class="font-medium text-zinc-200"><?= $v['nome']?></h4>
                                     </div>
-                                    <textarea name="<?= $v['key'] ?>" rows="5" class="input-field w-full text-sm font-mono leading-relaxed" spellcheck="false"><?= htmlspecialchars($msgConfig[$k]) ?></textarea>
+                                    <textarea name="<?= $v['key']?>" rows="5" class="input-field w-full text-sm font-mono leading-relaxed" spellcheck="false"><?= htmlspecialchars($msgConfig[$k])?></textarea>
                                     <div class="mt-2 flex flex-wrap gap-1">
                                         <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{nome}</span>
                                         <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1 rounded">{codigo}</span>
@@ -1251,10 +1267,12 @@ foreach ($msgEtapas as $k => $v) {
                                         <?php if ($k === 'taxa'): ?>
                                             <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_valor}</span>
                                             <span class="text-[10px] bg-zinc-800 text-orange-500/50 px-1 rounded">{taxa_pix}</span>
-                                        <?php endif; ?>
+                                        <?php
+    endif; ?>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php
+endforeach; ?>
                         </div>
 
                         <div class="mt-8 flex justify-end sticky bottom-4">
@@ -1583,10 +1601,10 @@ foreach ($msgEtapas as $k => $v) {
     
     <script>
         // ===== VARIÁVEIS GLOBAIS =====
-        let automations = <?= json_encode($automations) ?>;
-        let settings = <?= json_encode($settingsObj) ?>;
+        let automations = <?= json_encode($automations)?>;
+        let settings = <?= json_encode($settingsObj)?>;
         let grupos = [];
-        const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? '' ?>';
+        const API_TOKEN = '<?= whatsappApiConfig()['token'] ?? ''?>';
         
         // ===== INICIALIZAÇÃO =====
         // ===== INICIALIZAÇÃO =====
@@ -2142,11 +2160,13 @@ foreach ($msgEtapas as $k => $v) {
             <div class="p-4 space-y-4">
                 <?php if (empty($mktMensagens)): ?>
                     ...
-                <?php else: ?>
+                <?php
+else: ?>
                     <div class="space-y-3">
                         ... loop ...
                     </div>
-                <?php endif; ?>
+                <?php
+endif; ?>
                 <hr ...>
                 <form ...>
             */

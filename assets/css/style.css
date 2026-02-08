@@ -104,15 +104,33 @@ img {
 }
 
 /* Header & Nav */
+/* Header & Nav - Glassmorphism Redesign */
 .header {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1200px;
     z-index: 1000;
-    background: #FFFFFF;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 0.5rem 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(0, 50, 150, 0.08);
+    /* Sombra azulada bem leve */
+    border-radius: 20px;
+    /* Bordas arredondadas */
+    padding: 0.75rem 0.5rem;
+    /* Ajuste no padding */
+    transition: all 0.3s ease;
+}
+
+/* Efeito ao rolar (opcional, pode ser adicionado via JS para diminuir o padding) */
+.header.scrolled {
+    top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .nav-container {
@@ -154,7 +172,8 @@ img {
     min-height: 85vh;
     display: flex;
     align-items: center;
-    padding-top: 5rem;
+    padding-top: 8rem;
+    /* Aumentado para compensar o header flutuante */
     background: var(--bg-hero);
     color: #FFFFFF;
     position: relative;
@@ -170,11 +189,15 @@ img {
 
 /* Search Card Styling (Clean Loggi Style) */
 .search-card {
-    background: #FFFFFF;
+    background: rgba(255, 255, 255, 0.98);
+    /* Leve transparência */
     padding: 3rem;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-radius: 24px;
+    /* Mais arredondado */
+    box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15);
+    /* Sombra mais suave e difusa */
     color: var(--text-main);
+    backdrop-filter: blur(10px);
 }
 
 /* Borda brilhante no topo do card */
@@ -814,4 +837,69 @@ img {
 
 .delay-300 {
     animation-delay: 300ms;
+}/* Mobile Menu Styling */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.mobile-menu {
+    display: none;
+    /* JS toggles to flex */
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 1.5rem;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    animation: slideDown 0.3s ease-out;
+}
+
+.mobile-menu.active {
+    display: flex;
+}
+
+.mobile-menu a {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mobile-menu a:last-child {
+    border-bottom: none;
+}
+
+@keyframes slideDown {
+    from {
+        opactiy: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+    }
 }

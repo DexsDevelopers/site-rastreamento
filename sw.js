@@ -1,4 +1,4 @@
-const CACHE_NAME = 'helmer-admin-v2';
+const CACHE_NAME = 'loggi-admin-v1';
 const OFFLINE_URL = 'offline.html';
 const CORE_ASSETS = [
   'admin.php',

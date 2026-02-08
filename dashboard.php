@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard Principal - Helmer Logistics
+ * Dashboard Principal - Loggi
  * Escolha entre Painel de Rastreamento ou Painel do Bot
  */
 

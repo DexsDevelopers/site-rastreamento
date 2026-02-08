@@ -18,15 +18,17 @@ require_once 'includes/config.php';
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f3f4f6;
+            background: linear-gradient(135deg, #0055FF 0%, #003399 100%);
             padding: 2rem;
         }
 
         .auth-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
             padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             width: 100%;
             max-width: 480px;
         }
