@@ -304,8 +304,10 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                     </form>
                 </div>
             </div>
-            <div class="hero-image reveal-on-scroll">
-                <img src="assets/images/hero_loggi.png" alt="Loggi Logistics">
+            <div class="hero-image reveal-on-scroll"
+                style="display: flex; align-items: center; justify-content: center;">
+                <img src="assets/images/hero_loggi.png" alt="Loggi Logistics"
+                    style="max-width: 100%; height: auto; transform: none; width: auto;">
             </div>
         </div>
     </section>
@@ -400,9 +402,13 @@ elseif (!empty($erroCidade)): ?>
 endif; ?>
     </div>
 
-    <div class="sections-nav">
-        <div class="section-tab active" onclick="switchSection('para-voce', this)">Para você</div>
-        <div class="section-tab" onclick="switchSection('para-empresas', this)">Para empresas</div>
+    <!-- Navigation Tabs -->
+    <div class="container"
+        style="background: white; border-radius: 20px 20px 0 0; margin-top: -30px; position: relative; z-index: 101;">
+        <div class="sections-nav">
+            <div class="section-tab active" onclick="switchSection('para-voce', this)">Para você</div>
+            <div class="section-tab" onclick="switchSection('para-empresas', this)">Para empresas</div>
+        </div>
     </div>
 
     <section id="para-voce" class="marketing-section reveal-on-scroll">
@@ -480,18 +486,22 @@ endif; ?>
 
     <section class="marketing-section reveal-on-scroll" style="background:var(--secondary);">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem; color:white;">O que dizem nossos clientes</h2>
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem; color:white;">O que
+                dizem nossos clientes</h2>
             <div class="marketing-grid">
                 <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"A Loggi transformou a logística da minha empresa. Entregas rápidas e rastreio impecável."</p>
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"A Loggi transformou a logística da minha
+                        empresa. Entregas rápidas e rastreio impecável."</p>
                     <p><strong>- Maria Silva</strong>, E-commerce de Moda</p>
                 </div>
                 <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"O melhor custo-benefício do mercado. Meus clientes adoram o rastreio via WhatsApp."</p>
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"O melhor custo-benefício do mercado. Meus
+                        clientes adoram o rastreio via WhatsApp."</p>
                     <p><strong>- João Pereira</strong>, Vendedor Autônomo</p>
                 </div>
                 <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"Postar encomendas ficou muito mais fácil com os pontos Loggi espalhados pela cidade."</p>
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"Postar encomendas ficou muito mais fácil com os
+                        pontos Loggi espalhados pela cidade."</p>
                     <p><strong>- Ana Santos</strong>, Usuária Casual</p>
                 </div>
             </div>
@@ -502,8 +512,11 @@ endif; ?>
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <h4 class="logo" style="color:var(--primary); margin-bottom:1.5rem; text-transform:lowercase;">loggi</h4>
-                    <p>© <?= date('Y') ?> Todos os direitos reservados.</p>
+                    <h4 class="logo" style="color:var(--primary); margin-bottom:1.5rem; text-transform:lowercase;">loggi
+                    </h4>
+                    <p>©
+                        <?= date('Y')?> Todos os direitos reservados.
+                    </p>
                 </div>
                 <div class="footer-col">
                     <h4>Serviços</h4>
@@ -533,7 +546,7 @@ endif; ?>
                 sec.style.display = 'none';
             });
             document.getElementById(targetId).style.display = 'block';
-            
+
             document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
         }
