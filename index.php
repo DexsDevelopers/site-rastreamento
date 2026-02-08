@@ -304,107 +304,71 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                     </form>
                 </div>
             </div>
-            <div class="hero-image reveal-on-scroll"
-                style="display: flex; align-items: center; justify-content: center;">
-                <img src="assets/images/hero_loggi.png" alt="Loggi Logistics"
-                    style="max-width: 100%; height: auto; transform: none; width: auto;">
+            <div class="hero-image reveal-on-scroll">
+                <div class="image-card">
+                    <img src="assets/images/hero_loggi.png" alt="Loggi Logistics">
+                </div>
             </div>
         </div>
     </section>
 
     <div id="ajaxResults" class="container" style="margin-top: -50px; position: relative; z-index: 100;">
         <?php if (!empty($statusList)): ?>
-        <div class="results-container">
-            <div class="results-card animate-fade-in"
-                style="background:white; padding:3rem; border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
-                <div class="status-header" style="text-align:center; margin-bottom:2rem;">
-                    <span class="status-icon" style="font-size:3rem; display:block; margin-bottom:1rem;">📦</span>
-                    <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:800;">
-                        <?= htmlspecialchars($statusAtualTopo)?>
-                    </h3>
-                    <p style="color:var(--text-muted);">
-                        <?= htmlspecialchars($cidade)?>
-                    </p>
-                    <?php if ($isExpress): ?>
-                    <div style="margin-top:1rem;"><span class="badge"
-                            style="background:var(--primary); color:white; padding:0.5rem 1rem; border-radius:100px; font-weight:700;"><i
-                                class="fas fa-bolt"></i> Entrega Expressa</span></div>
-                    <?php
-    endif; ?>
-                </div>
-
-                <div class="timeline" style="max-width:600px; margin: 0 auto;">
-                    <?php foreach ($statusList as $index => $etapa):
-        $isFirst = $index === 0;
-        $activeClass = $isFirst ? 'active' : '';
-?>
-                    <div class="timeline-item <?= $activeClass?>"
-                        style="padding-left:30px; border-left:2px solid #EEE; position:relative; margin-bottom:2rem;">
-                        <div class="timeline-marker"
-                            style="position:absolute; left:-7px; top:5px; width:12px; height:12px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC'?>;">
-                        </div>
-                        <div class="timeline-content">
-                            <h4 style="font-weight:800; color:var(--text-main);">
-                                <?= htmlspecialchars($etapa['titulo'])?>
-                            </h4>
-                            <p style="font-size:0.9rem; color:var(--text-muted);">
-                                <?= htmlspecialchars($etapa['subtitulo'])?>
-                            </p>
-                            <small style="color:var(--text-dim);"><i class="far fa-clock"></i>
-                                <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
-                            </small>
-
-                            <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
-                            <div class="pix-box"
-                                style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:12px; border-left:4px solid var(--primary);">
-                                <p style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">Total a pagar:
-                                    R$
-                                    <?= number_format($etapa['taxa_valor'], 2, ',', '.')?>
-                                </p>
-                                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Copie a chave
-                                    PIX abaixo para realizar o pagamento:</p>
-                                <textarea readonly
-                                    style="width:100%; height:80px; padding:0.75rem; border:1px solid #EEE; border-radius:8px; font-family:monospace; font-size:0.8rem; margin-bottom:1rem; resize:none;"><?= htmlspecialchars($etapa['taxa_pix'])?></textarea>
-                                <button
-                                    onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES)?>')"
-                                    style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
-                                    <i class="far fa-copy"></i> Copiar Chave PIX
-                                </button>
-                            </div>
-                            <?php
-        endif; ?>
-                        </div>
+            <div class="results-container">
+                <div class="results-card animate-fade-in" style="background:white; padding:3rem; border-radius:24px; box-shadow:0 20px 40px rgba(0,0,0,0.1); color: var(--text-main);">
+                    <div class="status-header" style="text-align:center; margin-bottom:2rem;">
+                        <span class="status-icon" style="font-size:3rem; display:block; margin-bottom:1rem;">📦</span>
+                        <h3 style="font-size:2rem; margin-bottom:0.5rem; font-weight:800;"><?= htmlspecialchars($statusAtualTopo) ?></h3>
+                        <p style="color:var(--text-muted);"><?= htmlspecialchars($cidade) ?></p>
+                        <?php if ($isExpress): ?>
+                            <div style="margin-top:1rem;"><span class="badge" style="background:var(--primary); color:white; padding:0.5rem 1rem; border-radius:100px; font-weight:700;"><i class="fas fa-bolt"></i> Entrega Expressa</span></div>
+                        <?php endif; ?>
                     </div>
-                    <?php
-    endforeach; ?>
-                </div>
+                    
+                    <div class="timeline" style="max-width:600px; margin: 0 auto;">
+                        <?php foreach ($statusList as $index => $etapa): 
+                            $isFirst = $index === 0;
+                            $activeClass = $isFirst ? 'active' : '';
+                        ?>
+                            <div class="timeline-item <?= $activeClass ?>" style="padding-left:30px; border-left:2px solid #EEE; position:relative; margin-bottom:2rem;">
+                                <div class="timeline-marker" style="position:absolute; left:-7px; top:5px; width:12px; height:12px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : '#CCC' ?>;"></div>
+                                <div class="timeline-content">
+                                    <h4 style="font-weight:800; color:var(--text-main);"><?= htmlspecialchars($etapa['titulo']) ?></h4>
+                                    <p style="font-size:0.9rem; color:var(--text-muted);"><?= htmlspecialchars($etapa['subtitulo']) ?></p>
+                                    <small style="color:var(--text-dim);"><i class="far fa-clock"></i> <?= date("d/m/Y H:i", strtotime($etapa['data'])) ?></small>
+                                    
+                                    <?php if (!empty($etapa['taxa_valor']) && !empty($etapa['taxa_pix'])): ?>
+                                        <div class="pix-box" style="margin-top:1.5rem; background:#F8FAFC; padding:1.5rem; border-radius:12px; border-left:4px solid var(--primary);">
+                                            <p style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">Total a pagar: R$ <?= number_format($etapa['taxa_valor'], 2, ',', '.') ?></p>
+                                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Copie a chave PIX abaixo para realizar o pagamento:</p>
+                                            <textarea readonly style="width:100%; height:80px; padding:0.75rem; border:1px solid #EEE; border-radius:8px; font-family:monospace; font-size:0.8rem; margin-bottom:1rem; resize:none;"><?= htmlspecialchars($etapa['taxa_pix']) ?></textarea>
+                                            <button onclick="navigator.clipboard.writeText('<?= htmlspecialchars($etapa['taxa_pix'], ENT_QUOTES) ?>')" style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
+                                                <i class="far fa-copy"></i> Copiar Chave PIX
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
 
-                <?php if ($fotoPedido && $fotoPedidoSrc): ?>
-                <div class="photo-proof"
-                    style="margin-top:2rem; padding-top:2rem; border-top:1px solid #EEE; text-align:center;">
-                    <p style="font-weight:700; margin-bottom:1rem;"><i class="fas fa-camera"></i> Foto do seu pedido</p>
-                    <img src="<?= htmlspecialchars($fotoPedidoSrc)?>" alt="Foto do pedido"
-                        style="max-width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                    <?php if ($fotoPedido && $fotoPedidoSrc): ?>
+                        <div class="photo-proof" style="margin-top:2rem; padding-top:2rem; border-top:1px solid #EEE; text-align:center;">
+                            <p style="font-weight:700; margin-bottom:1rem;"><i class="fas fa-camera"></i> Foto do seu pedido</p>
+                            <img src="<?= htmlspecialchars($fotoPedidoSrc) ?>" alt="Foto do pedido" style="max-width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <?php
-    endif; ?>
             </div>
-        </div>
-        <?php
-elseif (!empty($erroCidade)): ?>
-        <div class="results-container"
-            style="background:white; padding:2rem; border-radius:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.1);">
-            <div class="erro" style="color:#ef4444; font-weight:700;">
-                <?= htmlspecialchars($erroCidade)?>
+        <?php elseif (!empty($erroCidade)): ?>
+            <div class="results-container" style="background:white; padding:2rem; border-radius:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.1);">
+                <div class="erro" style="color:#ef4444; font-weight:700;"><?= htmlspecialchars($erroCidade) ?></div>
             </div>
-        </div>
-        <?php
-endif; ?>
+        <?php endif; ?>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="container"
-        style="background: white; border-radius: 20px 20px 0 0; margin-top: -30px; position: relative; z-index: 101;">
+    <div class="container" style="background: white; border-radius: 20px 20px 0 0; margin-top: -30px; position: relative; z-index: 101;">
         <div class="sections-nav">
             <div class="section-tab active" onclick="switchSection('para-voce', this)">Para você</div>
             <div class="section-tab" onclick="switchSection('para-empresas', this)">Para empresas</div>
@@ -413,8 +377,7 @@ endif; ?>
 
     <section id="para-voce" class="marketing-section reveal-on-scroll">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">A Loggi entrega onde
-                você precisar</h2>
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">A Loggi entrega onde você precisar</h2>
             <div class="marketing-grid">
                 <div class="marketing-card">
                     <i class="fas fa-barcode"></i>
@@ -437,8 +400,7 @@ endif; ?>
 
     <section id="para-empresas" class="marketing-section reveal-on-scroll" style="display:none; background:#F8FAFC;">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">Soluções logísticas
-                para o seu negócio</h2>
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem;">Soluções logísticas para o seu negócio</h2>
             <div class="marketing-grid">
                 <div class="marketing-card">
                     <i class="fas fa-boxes"></i>
@@ -463,21 +425,15 @@ endif; ?>
         <div class="container">
             <div class="marketing-grid" style="text-align:center; gap:2rem;">
                 <div>
-                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);">
-                        <?= htmlspecialchars($badgeSatisfacao)?>
-                    </h3>
+                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);"><?= htmlspecialchars($badgeSatisfacao) ?></h3>
                     <p style="font-weight:600; color:var(--text-muted);">Satisfação garantida</p>
                 </div>
                 <div>
-                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);">
-                        <?= htmlspecialchars($badgeEntregas)?>
-                    </h3>
+                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);"><?= htmlspecialchars($badgeEntregas) ?></h3>
                     <p style="font-weight:600; color:var(--text-muted);">Entregas realizadas</p>
                 </div>
                 <div>
-                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);">
-                        <?= htmlspecialchars($badgeCidades)?>
-                    </h3>
+                    <h3 style="font-size:3rem; font-weight:900; color:var(--primary);"><?= htmlspecialchars($badgeCidades) ?></h3>
                     <p style="font-weight:600; color:var(--text-muted);">Cidades atendidas</p>
                 </div>
             </div>
@@ -486,22 +442,18 @@ endif; ?>
 
     <section class="marketing-section reveal-on-scroll" style="background:var(--secondary);">
         <div class="container">
-            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem; color:white;">O que
-                dizem nossos clientes</h2>
+            <h2 style="text-align:center; font-size:2.5rem; font-weight:900; margin-bottom:4rem; color:white;">O que dizem nossos clientes</h2>
             <div class="marketing-grid">
                 <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"A Loggi transformou a logística da minha
-                        empresa. Entregas rápidas e rastreio impecável."</p>
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"A Loggi transformou a logística da minha empresa. Entregas rápidas e rastreio impecável."</p>
                     <p><strong>- Maria Silva</strong>, E-commerce de Moda</p>
                 </div>
                 <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"O melhor custo-benefício do mercado. Meus
-                        clientes adoram o rastreio via WhatsApp."</p>
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"O melhor custo-benefício do mercado. Meus clientes adoram o rastreio via WhatsApp."</p>
                     <p><strong>- João Pereira</strong>, Vendedor Autônomo</p>
                 </div>
                 <div class="marketing-card" style="background:rgba(255,255,255,0.05); color:white; border:none;">
-                    <p style="font-style:italic; margin-bottom:1.5rem;">"Postar encomendas ficou muito mais fácil com os
-                        pontos Loggi espalhados pela cidade."</p>
+                    <p style="font-style:italic; margin-bottom:1.5rem;">"Postar encomendas ficou muito mais fácil com os pontos Loggi espalhados pela cidade."</p>
                     <p><strong>- Ana Santos</strong>, Usuária Casual</p>
                 </div>
             </div>
@@ -512,11 +464,8 @@ endif; ?>
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <h4 class="logo" style="color:var(--primary); margin-bottom:1.5rem; text-transform:lowercase;">loggi
-                    </h4>
-                    <p>©
-                        <?= date('Y')?> Todos os direitos reservados.
-                    </p>
+                    <h4 class="logo" style="color:var(--primary); margin-bottom:1.5rem; text-transform:lowercase;">loggi</h4>
+                    <p>© <?= date('Y') ?> Todos os direitos reservados.</p>
                 </div>
                 <div class="footer-col">
                     <h4>Serviços</h4>
@@ -546,7 +495,7 @@ endif; ?>
                 sec.style.display = 'none';
             });
             document.getElementById(targetId).style.display = 'block';
-
+            
             document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
         }
