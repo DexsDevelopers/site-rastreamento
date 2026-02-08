@@ -139,11 +139,29 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             <?php foreach ($statusList as $index => $etapa):
             $isFirst = $index === count($statusList) - 1; // Last one is the current status
             $activeClass = $isFirst ? 'active' : '';
+
+            // Determine icon based on status title
+            $iconClass = 'fa-circle'; // default
+            $titleLower = mb_strtolower($etapa['titulo'], 'UTF-8');
+
+            if (strpos($titleLower, 'postado') !== false)
+                $iconClass = 'fa-box';
+            elseif (strpos($titleLower, 'trânsito') !== false || strpos($titleLower, 'encaminhado') !== false)
+                $iconClass = 'fa-truck';
+            elseif (strpos($titleLower, 'saiu') !== false)
+                $iconClass = 'fa-shipping-fast';
+            elseif (strpos($titleLower, 'entregue') !== false)
+                $iconClass = 'fa-check';
+            elseif (strpos($titleLower, 'aguardando') !== false)
+                $iconClass = 'fa-clock';
+            elseif (strpos($titleLower, 'fiscaliza') !== false)
+                $iconClass = 'fa-search';
 ?>
             <div class="timeline-item <?= $activeClass?>"
-                style="padding-left:40px; border-left:2px solid var(--slate-100); position:relative; margin-bottom:3rem;">
+                style="padding-left:50px; border-left:2px solid var(--slate-100); position:relative; margin-bottom:3rem;">
                 <div class="timeline-marker <?= $activeClass?>"
-                    style="position:absolute; left:-10px; top:6px; width:20px; height:20px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : 'var(--slate-300)'?>;">
+                    style="position:absolute; left:-16px; top:0; width:32px; height:32px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : 'var(--bg-white)'?>; border: 2px solid <?= $isFirst ? 'var(--primary)' : 'var(--slate-300)'?>; display: flex; align-items: center; justify-content: center; color: <?= $isFirst ? 'white' : 'var(--slate-400)'?>; z-index: 10;">
+                    <i class="fas <?= $iconClass?>" style="font-size: 0.9rem;"></i>
                 </div>
                 <div class="timeline-content">
                     <h4 style="font-weight:900; color:var(--secondary); font-size: 1.25rem; margin-bottom: 0.5rem;">
@@ -217,9 +235,9 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     <title>Loggi - Rastreamento Inteligente de Encomendas</title>
     <meta name="description"
         content="Acompanhe seu pedido em tempo real com a Loggi. Tecnologia de ponta para entregas rápidas e seguras em todo o Brasil.">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.png">
 </head>
 
 <body>
@@ -469,10 +487,10 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                 sec.style.display = 'none';
             });
             const target = document.getElementById(targetId);
-            if(target) target.style.display = 'block';
-            
+            if (target) target.style.display = 'block';
+
             document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
-            if(tab) tab.classList.add('active');
+            if (tab) tab.classList.add('active');
         }
 
         window.addEventListener('scroll', () => {
@@ -494,7 +512,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
                 const formData = new FormData(this);
                 formData.append('ajax', '1');
-                
+
                 fetch('index.php', { method: 'POST', body: formData })
                     .then(r => r.text())
                     .then(html => {
@@ -517,14 +535,14 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
         // Animation Observer
         const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { 
+            entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
                     revealObserver.unobserve(entry.target);
                 }
             });
         }, { threshold: 0.1 });
-        
+
         document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
     </script>
 </body>

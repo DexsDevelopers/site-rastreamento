@@ -1,3 +1,4 @@
+melh
 /* Modern Design System - Loggi Pro Max Premium Redesign */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 
@@ -261,40 +262,42 @@ h4,
 }
 
 /* Tracking Bar - PRO */
+/* Tracking Bar - PRO FIXED */
 .tracking-wrapper {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2.5rem;
-    border-radius: var(--radius-xl);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.2);
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15);
+    max-width: 600px;
+    margin-bottom: 2rem;
 }
 
 .tracking-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr 220px;
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .input-group {
     position: relative;
-    background: white;
-    border-radius: 20px;
+    background: #F8FAFC;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
     transition: all 0.3s;
-    border: 2px solid transparent;
 }
 
 .input-group:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(255, 212, 0, 0.2);
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 85, 255, 0.1);
 }
 
 .input-group i {
     position: absolute;
-    left: 1.5rem;
+    left: 1.25rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--slate-400);
+    color: var(--primary);
     font-size: 1.2rem;
 }
 
@@ -302,7 +305,7 @@ h4,
     width: 100%;
     background: transparent;
     border: none;
-    padding: 1.5rem 1.5rem 1.5rem 4rem;
+    padding: 1.25rem 1.25rem 1.25rem 3.5rem;
     font-size: 1.1rem;
     font-family: inherit;
     font-weight: 500;
@@ -311,20 +314,90 @@ h4,
 }
 
 .btn-track {
-    background: var(--secondary);
+    background: var(--primary);
     color: white;
     border: none;
-    border-radius: 20px;
+    border-radius: 12px;
     font-weight: 800;
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.3s;
-    padding: 0 2rem;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    /* Full width on mobile */
+    box-shadow: 0 4px 15px rgba(0, 85, 255, 0.3);
 }
 
 .btn-track:hover {
-    background: #000;
-    transform: scale(1.02);
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 85, 255, 0.4);
+}
+
+/* Tablet & Desktop */
+@media (min-width: 768px) {
+    .tracking-wrapper {
+        padding: 0.75rem;
+        border-radius: 100px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        max-width: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .tracking-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 0;
+        /* Remove gap for seamless look */
+        width: 100%;
+        margin: 0;
+    }
+
+    .input-group {
+        border: none;
+        background: transparent;
+        border-radius: 0;
+        border-right: 1px solid #E2E8F0;
+        margin: 0;
+    }
+
+    .input-group:nth-child(2) {
+        border-right: none;
+    }
+
+    .input-group:focus-within {
+        box-shadow: none;
+        background: transparent;
+        z-index: 10;
+    }
+
+    .tracking-input {
+        padding: 1rem 1rem 1rem 3rem;
+        /* Ensure input text doesn't overlap icon */
+    }
+
+    .input-group i {
+        left: 1rem;
+        z-index: 5;
+    }
+
+    .btn-track {
+        border-radius: 100px;
+        padding: 1rem 2.5rem;
+        width: auto;
+        margin-left: 0.5rem;
+        box-shadow: none;
+    }
+
+    .btn-track:hover {
+        box-shadow: 0 10px 20px rgba(0, 85, 255, 0.2);
+    }
 }
 
 /* Hero Image Card - Cinematic */
