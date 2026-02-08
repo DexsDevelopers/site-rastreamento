@@ -86,7 +86,7 @@ $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
                 <a href="index.php" class="btn-hero">
                     Rastrear Agora
                 </a>
-                <a href="https://www.loggi.com/enviar/" class="btn-hero secondary">
+                <a href="cadastro_objetivo.php" class="btn-hero secondary">
                     Enviar agora
                 </a>
             </div>
@@ -185,86 +185,7 @@ $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
         </div>
     </section>
 
-    <section class="section" id="galeria">
-        <h2 class="section-title">📱 Sistema em Ação</h2>
-        <p
-            style="text-align: center; color: var(--text-muted); margin-bottom: 3rem; font-size: 1.2rem; font-weight: 500;">
-            Acompanhe cada etapa da sua entrega com transparência e tecnologia.
-        </p>
 
-        <div class="features-grid">
-            <?php for ($i = 1; $i <= 6; $i++):
-    $imgKey = 'referencia_imagem_' . $i;
-    $tipoKey = 'referencia_tipo_' . $i;
-    $nomeKey = 'referencia_nome_' . $i;
-    $descKey = 'referencia_desc_' . $i;
-
-    $mediaPath = getHomepageConfig($pdo, $imgKey, 'assets/images/whatsapp-' . $i . '.jpg');
-    $tipoMedia = getHomepageConfig($pdo, $tipoKey, 'image');
-    $nome = getHomepageConfig($pdo, $nomeKey, '');
-    $desc = getHomepageConfig($pdo, $descKey, '');
-
-    // Só exibir se tiver nome ou descrição
-    if (empty($nome) && empty($desc))
-        continue;
-?>
-            <div class="feature-card" style="padding: 0; overflow: hidden;">
-                <div class="gallery-image" style="height: 300px;">
-                    <?php if ($tipoMedia === 'video'): ?>
-                    <video src="<?= htmlspecialchars($mediaPath)?>?v=<?php echo time(); ?>" controls
-                        style="width: 100%; height: 100%; object-fit: cover;">
-                        Seu navegador não suporta vídeo.
-                    </video>
-                    <?php
-    else: ?>
-                    <img src="<?= htmlspecialchars($mediaPath)?>?v=<?php echo time(); ?>"
-                        alt="<?= htmlspecialchars($nome)?>" style="width: 100%; height: 100%; object-fit: cover;">
-                    <?php
-    endif; ?>
-                </div>
-                <div style="padding: 1.5rem;">
-                    <?php if (!empty($nome)): ?>
-                    <h4 style="color: var(--text-main); margin-bottom: 0.5rem;">
-                        <?= htmlspecialchars($nome)?>
-                    </h4>
-                    <?php
-    endif; ?>
-                    <?php if (!empty($desc)): ?>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">
-                        <?= htmlspecialchars($desc)?>
-                    </p>
-                    <?php
-    endif; ?>
-                </div>
-            </div>
-            <?php
-endfor; ?>
-
-            <!-- Examples -->
-            <div class="feature-card" style="padding: 0; overflow: hidden;">
-                <div class="gallery-image" style="height: 300px;">
-                    <img src="assets/images/whatsapp-5.jpg?v=<?php echo time(); ?>" alt="2L CLIENTE"
-                        style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div style="padding: 1.5rem;">
-                    <h4 style="color: var(--text-main); margin-bottom: 0.5rem;">📍 Loggi Express</h4>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Entrega realizada com sucesso no destino.
-                    </p>
-                </div>
-            </div>
-            <div class="feature-card" style="padding: 0; overflow: hidden;">
-                <div class="gallery-image" style="height: 300px;">
-                    <img src="assets/images/whatsapp-6.jpg?v=<?php echo time(); ?>" alt="Loggi National"
-                        style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div style="padding: 1.5rem;">
-                    <h4 style="color: var(--text-main); margin-bottom: 0.5rem;">📍 Loggi Nacional</h4>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Pacote em trânsito entre centros de
-                        distribuição.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <div class="container" style="max-width: 900px; margin: 6rem auto;">
         <div class="search-card" style="text-align: center; border-color: var(--primary);">
@@ -276,7 +197,7 @@ endfor; ?>
                 <a href="index.php" class="btn-primary" style="width: auto; padding: 1rem 3rem;">
                     Rastrear Agora
                 </a>
-                <a href="https://www.loggi.com/enviar/" class="btn-hero" style="width: auto; padding: 1rem 3rem;">
+                <a href="cadastro_objetivo.php" class="btn-hero" style="width: auto; padding: 1rem 3rem;">
                     Enviar agora
                 </a>
             </div>

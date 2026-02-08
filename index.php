@@ -41,7 +41,7 @@ function getHomepageConfig($pdo, $chave, $default = '')
 // Carregar configurações da homepage
 $nomeEmpresa = getHomepageConfig($pdo, 'nome_empresa', 'Loggi');
 $tituloHero = getHomepageConfig($pdo, 'titulo_hero', 'O rastreio do seu envio é prático');
-$descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Acompanhe seu pedido em tempo real com a Loggi. Entregas rápidas e seguras em todo o Brasil.');
+$descricaoHero = getHomepageConfig($pdo, 'descricao_hero', 'Acompanhe seu pedido em tempo real com a Loggi. Frete grátis para todo o Brasil.');
 $badgeSatisfacao = getHomepageConfig($pdo, 'badge_satisfacao', 'Loggi para você');
 $badgeEntregas = getHomepageConfig($pdo, 'badge_entregas', 'Loggi para empresas');
 $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', 'Ajudar');
@@ -52,8 +52,8 @@ $feature1Title = getHomepageConfig($pdo, 'feature1_title', 'Para você');
 $feature1Description = getHomepageConfig($pdo, 'feature1_description', 'Envie pacotes para qualquer lugar do Brasil de forma rápida e segura.');
 $feature2Title = getHomepageConfig($pdo, 'feature2_title', 'Para empresas');
 $feature2Description = getHomepageConfig($pdo, 'feature2_description', 'Soluções completas de logística para o seu e-commerce crescer.');
-$feature3Title = getHomepageConfig($pdo, 'feature3_title', 'Rastreamento');
-$feature3Description = getHomepageConfig($pdo, 'feature3_description', 'Acompanhe cada etapa da sua entrega em tempo real.');
+$feature3Title = getHomepageConfig($pdo, 'feature3_title', 'Entrega Expressa');
+$feature3Description = getHomepageConfig($pdo, 'feature3_description', 'Antecipe para 3 dias com pagamento rápido por PIX, caso precise de urgência.');
 
 // Prova social
 $socialProof1Title = getHomepageConfig($pdo, 'social_proof1_title', 'Entrega em todo o Brasil');
@@ -268,8 +268,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
             echo '<button class="promo-banner-button" onclick=\'openExpressOffer(' . json_encode($codigo) . ', ' . json_encode($cidade) . ', "' . number_format($expressValor, 2, ',', '.') . '")\'>';
             echo '  <div class="promo-content">';
             echo '    <span class="promo-tag">Oferta Relâmpago</span>';
-            echo '    <span class="promo-title">⚡ Antecipe sua entrega para 3 dias</span>';
-            echo '    <span class="promo-subtitle">Clique para ver detalhes e solicitar</span>';
+            echo '    <span class="promo-title">⚡ Antecipe para 3 dias</span>';
+            echo '    <span class="promo-subtitle">Frete grátis em até 5 dias. Pague para receber em 3.</span>';
             echo '  </div>';
             echo '  <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>';
             echo '</button>';
@@ -420,8 +420,9 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                                 ,', '.' )?>")'>
                                 <div class="promo-content">
                                     <span class="promo-tag">Oferta Relâmpago</span>
-                                    <span class="promo-title">⚡ Antecipe sua entrega para 3 dias</span>
-                                    <span class="promo-subtitle">Clique para ver detalhes e solicitar</span>
+                                    <span class="promo-title">⚡ Antecipe para 3 dias</span>
+                                    <span class="promo-subtitle">Frete grátis em até 5 dias. Pague para receber em
+                                        3.</span>
                                 </div>
                                 <div class="promo-arrow"><i class="fas fa-chevron-right"></i></div>
                             </button>
@@ -455,11 +456,11 @@ endif; ?>
                     <?= htmlspecialchars($tituloHero)?>
                 </h1>
                 <p>
-                    <?= htmlspecialchars($descricaoHero)?>
+                    Acompanhe seu pedido em tempo real com a Loggi. Frete grátis para todo o Brasil.
                 </p>
 
                 <div class="hero-actions" style="justify-content: flex-start;">
-                    <a href="https://www.loggi.com/enviar/" class="btn-hero">Enviar agora</a>
+                    <a href="cadastro_objetivo.php" class="btn-hero">Enviar agora</a>
                     <a href="https://www.loggi.com/precos/" class="btn-hero secondary">Calcular frete</a>
                 </div>
                 <div class="badges">
@@ -476,9 +477,9 @@ endif; ?>
 
                 <div class="referral-box" style="margin-top: 2rem;">
                     <i class="fas fa-star" style="font-size: 2rem; color: #0055FF; margin-bottom: 1rem;"></i>
-                    <h3>Sistema de Indicações — Entrega Prioritária (2 dias)</h3>
-                    <p>Indique um amigo e garanta <strong>entrega prioritária em 2 dias</strong> para o seu próximo
-                        envio.</p>
+                    <h3>Sistema de Indicações — Entrega em 2 dias</h3>
+                    <p>O frete é grátis para todo o Brasil (até 5 dias). Indique um amigo e garanta <strong>entrega
+                            prioritária em 2 dias</strong>.</p>
                     <div class="btn-group">
                         <a href="indicacao.php" class="btn btn-referral" target="_blank">
                             <i class="fas fa-users"></i> Indicar Amigo
@@ -671,8 +672,8 @@ endif; ?>
                         <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
                             <div style="color: #0055FF; font-size: 1.2rem; margin-top: 3px;"><i class="fas fa-calendar-check"></i></div>
                             <div>
-                                <h4 style="color: #fff; margin-bottom: 4px;">Prazo reduzido</h4>
-                                <p style="color: var(--text-muted); font-size: 0.9rem;">Sua encomenda chegará em apenas <strong>3 dias úteis</strong> após a confirmação.</p>
+                                <h4 style="color: #fff; margin-bottom: 4px;">Padrão vs Expresso</h4>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">Frete Grátis: até 5 dias.<br><strong>Expresso (Pago): 3 dias úteis.</strong></p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
@@ -735,9 +736,10 @@ endif; ?>
             </h2>
             <div style="background: rgba(255, 51, 51, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                 <h3 style="color: #0055FF; margin-bottom: 15px;">Como Funciona:</h3>
+                <p style="color: #fff; margin-bottom: 10px;">🚚 <strong>Frete Grátis</strong> para todo Brasil (prazo até 5 dias)</p>
                 <p style="color: #fff; margin-bottom: 10px;">1️⃣ Você indica um amigo</p>
                 <p style="color: #fff; margin-bottom: 10px;">2️⃣ Seu amigo compra no mesmo dia</p>
-                <p style="color: #fff; margin-bottom: 10px;">3️⃣ A entrega será feita em apenas <strong>2 dias</strong></p>
+                <p style="color: #fff; margin-bottom: 10px;">3️⃣ Sua entrega cai para <strong>2 dias</strong></p>
                 <p style="color: #fff;">4️⃣ Prioridade total no sistema</p>
             </div>
             <button onclick="closeModalFromChild(this)" style="width: 100%; padding: 15px;

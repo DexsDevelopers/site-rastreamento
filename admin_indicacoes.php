@@ -1,7 +1,7 @@
 <?php
 /**
  * Painel Admin - Gerenciamento de Indicações (Moderno)
- * Helmer Logistics
+ * Loggi
  */
 
 require_once 'includes/config.php';
@@ -31,7 +31,8 @@ if (isset($_POST['action'])) {
                 $success_message = "Entrega marcada como concluída!";
                 break;
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $error_message = $e->getMessage();
     }
 }
@@ -49,7 +50,8 @@ try {
                                 COUNT(CASE WHEN status = 'confirmada' THEN 1 END) as confirmadas,
                                 COUNT(CASE WHEN status = 'entregue' THEN 1 END) as entregues
                               FROM indicacoes");
-} catch (Exception $e) {
+}
+catch (Exception $e) {
     $indicacoes = [];
     $stats = ['total_indicacoes' => 0, 'confirmadas' => 0, 'entregues' => 0];
 }
@@ -60,8 +62,8 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indicações | Helmer Admin</title>
-    <meta name="theme-color" content="#FF3333">
+    <title>Indicações | Loggi Admin</title>
+    <meta name="theme-color" content="#0055FF">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo time(); ?>">
@@ -74,7 +76,7 @@ try {
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <i class="fas fa-cube"></i> Helmer
+                    <i class="fas fa-cube"></i> Loggi
                 </div>
                 <button class="mobile-close-btn" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>
@@ -125,17 +127,23 @@ try {
                 <div class="stats-grid">
                     <div class="stat-card featured">
                         <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-value"><?= $stats['total_indicacoes'] ?></div>
+                        <div class="stat-value">
+                            <?= $stats['total_indicacoes']?>
+                        </div>
                         <div class="stat-label">Total Indicações</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="color: var(--success);"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value"><?= $stats['confirmadas'] ?></div>
+                        <div class="stat-value">
+                            <?= $stats['confirmadas']?>
+                        </div>
                         <div class="stat-label">Confirmadas</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="color: var(--info);"><i class="fas fa-truck"></i></div>
-                        <div class="stat-value"><?= $stats['entregues'] ?></div>
+                        <div class="stat-value">
+                            <?= $stats['entregues']?>
+                        </div>
                         <div class="stat-label">Entregues</div>
                     </div>
                 </div>
@@ -156,80 +164,94 @@ try {
                             </thead>
                             <tbody>
                                 <?php if (empty($indicacoes)): ?>
-                                    <tr>
-                                        <td colspan="6" style="text-align:center; padding: 2rem; color: var(--text-muted);">
-                                            Nenhuma indicação encontrada.
-                                        </td>
-                                    </tr>
-                                <?php else: ?>
-                                    <?php foreach ($indicacoes as $row): ?>
-                                        <tr>
-                                            <td style="color: var(--text-muted);">#<?= $row['id'] ?></td>
-                                            <td>
-                                                <div style="font-weight:600;">
-                                                    <?= htmlspecialchars($row['nome_indicador'] ?? 'N/A') ?></div>
-                                                <div style="font-size:0.8rem; color:var(--text-muted);">
-                                                    <?= htmlspecialchars($row['codigo_indicador']) ?></div>
-                                            </td>
-                                            <td>
-                                                <div style="font-weight:600;">
-                                                    <?= htmlspecialchars($row['nome_indicado'] ?? 'N/A') ?></div>
-                                                <div style="font-size:0.8rem; color:var(--text-muted);">
-                                                    <?= htmlspecialchars($row['codigo_indicado']) ?></div>
-                                            </td>
-                                            <td style="color:var(--text-muted);">
-                                                <?= date('d/m/Y H:i', strtotime($row['data_indicacao'])) ?></td>
-                                            <td>
-                                                <?php
-                                                $badgeClass = 'badge-warning';
-                                                switch ($row['status']) {
-                                                    case 'confirmada':
-                                                        $badgeClass = 'badge-success';
-                                                        break;
-                                                    case 'entregue':
-                                                        $badgeClass = 'badge-info';
-                                                        break;
-                                                }
-                                                ?>
-                                                <span class="badge <?= $badgeClass ?>"><?= ucfirst($row['status']) ?></span>
-                                            </td>
-                                            <td style="text-align:right;">
-                                                <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
-                                                    <?php if ($row['status'] == 'pendente'): ?>
-                                                        <form method="POST">
-                                                            <input type="hidden" name="action" value="aprovar_indicacao">
-                                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                            <button type="submit" class="btn btn-icon"
-                                                                style="color: var(--success);" title="Aprovar">
-                                                                <i class="fas fa-check"></i>
-                                                            </button>
-                                                        </form>
-                                                    <?php endif; ?>
+                                <tr>
+                                    <td colspan="6" style="text-align:center; padding: 2rem; color: var(--text-muted);">
+                                        Nenhuma indicação encontrada.
+                                    </td>
+                                </tr>
+                                <?php
+else: ?>
+                                <?php foreach ($indicacoes as $row): ?>
+                                <tr>
+                                    <td style="color: var(--text-muted);">#
+                                        <?= $row['id']?>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;">
+                                            <?= htmlspecialchars($row['nome_indicador'] ?? 'N/A')?>
+                                        </div>
+                                        <div style="font-size:0.8rem; color:var(--text-muted);">
+                                            <?= htmlspecialchars($row['codigo_indicador'])?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;">
+                                            <?= htmlspecialchars($row['nome_indicado'] ?? 'N/A')?>
+                                        </div>
+                                        <div style="font-size:0.8rem; color:var(--text-muted);">
+                                            <?= htmlspecialchars($row['codigo_indicado'])?>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-muted);">
+                                        <?= date('d/m/Y H:i', strtotime($row['data_indicacao']))?>
+                                    </td>
+                                    <td>
+                                        <?php
+        $badgeClass = 'badge-warning';
+        switch ($row['status']) {
+            case 'confirmada':
+                $badgeClass = 'badge-success';
+                break;
+            case 'entregue':
+                $badgeClass = 'badge-info';
+                break;
+        }
+?>
+                                        <span class="badge <?= $badgeClass?>">
+                                            <?= ucfirst($row['status'])?>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                                            <?php if ($row['status'] == 'pendente'): ?>
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="aprovar_indicacao">
+                                                <input type="hidden" name="id" value="<?= $row['id']?>">
+                                                <button type="submit" class="btn btn-icon"
+                                                    style="color: var(--success);" title="Aprovar">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <?php
+        endif; ?>
 
-                                                    <?php if ($row['status'] == 'confirmada'): ?>
-                                                        <form method="POST">
-                                                            <input type="hidden" name="action" value="marcar_entregue">
-                                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                            <button type="submit" class="btn btn-icon" style="color: var(--info);"
-                                                                title="Marcar Entregue">
-                                                                <i class="fas fa-truck"></i>
-                                                            </button>
-                                                        </form>
-                                                    <?php endif; ?>
+                                            <?php if ($row['status'] == 'confirmada'): ?>
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="marcar_entregue">
+                                                <input type="hidden" name="id" value="<?= $row['id']?>">
+                                                <button type="submit" class="btn btn-icon" style="color: var(--info);"
+                                                    title="Marcar Entregue">
+                                                    <i class="fas fa-truck"></i>
+                                                </button>
+                                            </form>
+                                            <?php
+        endif; ?>
 
-                                                    <form method="POST" onsubmit="return confirm('Rejeitar indicação?');">
-                                                        <input type="hidden" name="action" value="rejeitar_indicacao">
-                                                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                        <button type="submit" class="btn btn-icon" style="color: var(--danger);"
-                                                            title="Rejeitar">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                            <form method="POST" onsubmit="return confirm('Rejeitar indicação?');">
+                                                <input type="hidden" name="action" value="rejeitar_indicacao">
+                                                <input type="hidden" name="id" value="<?= $row['id']?>">
+                                                <button type="submit" class="btn btn-icon" style="color: var(--danger);"
+                                                    title="Rejeitar">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php
+    endforeach; ?>
+                                <?php
+endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -258,13 +280,14 @@ try {
                 Swal.fire({
                     icon: 'success',
                     title: 'Sucesso',
-                    text: '<?= addslashes($success_message) ?>',
+                    text: '<?= addslashes($success_message)?>',
                     background: '#1a1a1a',
                     color: '#fff',
                     confirmButtonColor: '#16A34A',
                     timer: 2000
                 });
-            <?php endif; ?>
+            <?php
+endif; ?>
         });
     </script>
 </body>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Painel Admin - Pedidos Pendentes
- * Helmer Logistics
+ * Loggi
  */
 
 require_once 'includes/config.php';
@@ -152,8 +152,8 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos Pendentes | Helmer Admin</title>
-    <meta name="theme-color" content="#FF3333">
+    <title>Pedidos Pendentes | Loggi Admin</title>
+    <meta name="theme-color" content="#0055FF">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo time(); ?>">
@@ -165,7 +165,7 @@ $pedidos = fetchData($pdo, "SELECT * FROM pedidos_pendentes WHERE status = 'pend
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <i class="fas fa-cube"></i> Helmer
+                    <i class="fas fa-cube"></i> Loggi
                 </div>
                 <button class="mobile-close-btn" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>

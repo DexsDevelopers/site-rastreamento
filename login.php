@@ -1,6 +1,6 @@
 <?php
 /**
- * Sistema de Login Unificado - Helmer Logistics
+ * Sistema de Login Unificado - Loggi
  * Acesso aos painéis de Rastreamento e Bot WhatsApp
  */
 
