@@ -150,36 +150,46 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 ?>
 <div class="results-container">
     <div class="results-card animate-fade-in">
-        <div class="status-header" style="text-align:center; margin-bottom:4rem;">
-            <div class="card-icon" style="margin: 0 auto 2rem; width: 100px; height: 100px; font-size: 3rem;">
-                <i class="fas fa-box-open"></i>
+        <div class="status-header">
+            <div class="card-icon">
+                <?php
+        $statusIcon = 'fa-box-open';
+        $statusLower = strtolower($statusAtualTopo);
+        if (strpos($statusLower, 'saiu') !== false || strpos($statusLower, 'entrega') !== false)
+            $statusIcon = 'fa-truck-fast';
+        elseif (strpos($statusLower, 'postado') !== false || strpos($statusLower, 'coletado') !== false)
+            $statusIcon = 'fa-paper-plane';
+        elseif (strpos($statusLower, 'entregue') !== false)
+            $statusIcon = 'fa-house-chimney-check';
+        elseif (strpos($statusLower, 'aguardando') !== false || strpos($statusLower, 'taxa') !== false || strpos($statusLower, 'pagamento') !== false)
+            $statusIcon = 'fa-clock-rotate-left';
+?>
+                <i class="fas <?= $statusIcon?>"></i>
             </div>
-            <h3 style="font-size:2.5rem; margin-bottom:0.5rem; font-weight:900; letter-spacing: -1px;">
+            <h3>
                 <?= htmlspecialchars($statusAtualTopo)?>
             </h3>
-            <p style="color:var(--slate-500); font-size: 1.25rem; font-weight: 500;">
-                <i class="fas fa-map-marker-alt"></i>
+            <p><i class="fas fa-map-marker-alt"></i>
                 <?= htmlspecialchars($cidade)?>
             </p>
         </div>
-        <div class="timeline" style="max-width:700px; margin: 0 auto;">
+
+        <div class="timeline">
             <?php foreach ($statusList as $index => $etapa):
-            $isFirst = $index === count($statusList) - 1; // Last one is the current status
-            $activeClass = $isFirst ? 'active' : '';
+            $isLast = $index === count($statusList) - 1; // Last one is the most recent
+            $activeClass = $isLast ? 'active' : '';
+            $statusAttr = strtolower($etapa['titulo']);
 ?>
-            <div class="timeline-item <?= $activeClass?>"
-                style="padding-left:40px; border-left:2px solid var(--slate-100); position:relative; margin-bottom:3rem;">
-                <div class="timeline-marker <?= $activeClass?>"
-                    style="position:absolute; left:-10px; top:6px; width:20px; height:20px; border-radius:50%; background:<?= $isFirst ? 'var(--primary)' : 'var(--slate-300)'?>;">
-                </div>
+            <div class="timeline-item <?= $activeClass?>" data-status="<?= $statusAttr?>">
+                <div class="timeline-marker"></div>
                 <div class="timeline-content">
-                    <h4 style="font-weight:900; color:var(--secondary); font-size: 1.25rem; margin-bottom: 0.5rem;">
+                    <h4>
                         <?= htmlspecialchars($etapa['titulo'])?>
                     </h4>
-                    <p style="font-size:1.1rem; color:var(--slate-500); margin-bottom: 0.75rem; font-weight: 500;">
+                    <p>
                         <?= htmlspecialchars($etapa['subtitulo'])?>
                     </p>
-                    <small style="color:var(--slate-400); font-weight: 700; font-size: 0.9rem;">
+                    <small>
                         <?= date("d/m/Y H:i", strtotime($etapa['data']))?>
                     </small>
 
