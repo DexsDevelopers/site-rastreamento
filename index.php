@@ -227,6 +227,17 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         <?php
         endif; ?>
 
+        <!-- Botão Acelerar Entrega -->
+        <div
+            style="margin-top: 2rem; margin-bottom: 2rem; text-align: center; border-top: 2px dashed #cbd5e1; padding-top: 2rem; padding-bottom: 1rem;">
+            <button id="btn-express-upsell" onclick="openModal('modalExpressIntro')" class="express-btn express-confirm"
+                style="background-color: #0096ff !important; color: white !important; font-size: 1.1rem; padding: 1rem 1.5rem; width: 90%; max-width: 400px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(0, 150, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 16px; border: none; font-weight: 800; cursor: pointer;">
+                <i class="fas fa-bolt"></i> Acelerar minha entrega
+            </button>
+            <p style="margin-top: 1rem; color: #64748b; font-size: 0.9rem; font-weight: 600;">Receba em até 3 dias úteis
+                com envio aéreo</p>
+        </div>
+
     </div>
 </div>
 <?php
