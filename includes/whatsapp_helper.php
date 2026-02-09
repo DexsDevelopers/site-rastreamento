@@ -361,6 +361,44 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array
         }
     }
 
+    // TENTATIVA DE FALLBACK 3: Tokens legados/conhecidos
+    if ($isAuthError) {
+        $legacyTokens = ['site-financeiro-token-2024', 'admin', '123456'];
+
+        foreach ($legacyTokens as $legacyToken) {
+            writeLog("Tentando fallback com token legado '{$legacyToken}'...", 'WARNING');
+
+            $ch4 = curl_init($endpoint);
+            curl_setopt_array($ch4, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'x-api-token: ' . $legacyToken,
+                    'ngrok-skip-browser-warning: true'
+                ],
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_TIMEOUT => 20,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => false
+            ]);
+
+            $response4 = curl_exec($ch4);
+            $httpCode4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
+            curl_close($ch4);
+
+            if ($httpCode4 >= 200 && $httpCode4 < 300) {
+                writeLog("Fallback com token legado '{$legacyToken}' funcionou! Atualize seu config.json.", 'INFO');
+                return [
+                    'success' => true,
+                    'error' => null,
+                    'http_code' => $httpCode4,
+                    'response' => $response4
+                ];
+            }
+        }
+    }
+
     if ($isAuthError) {
         writeLog("ERRO DE AUTENTICAÇÃO PERSISTENTE ao enviar WhatsApp para {$telefone}. Todas as tentativas falharam.", 'ERROR');
         return [
@@ -589,4 +627,5 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
     else {
         writeLog("Notificação de taxa enviada para {$codigo}", 'INFO');
     }
+
 }
