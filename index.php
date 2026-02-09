@@ -56,6 +56,32 @@ $expressValor = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
 $isExpress = false;
 $autoLoadFromUrl = false;
 
+// Auto-detecção via URL
+if (isset($_GET['codigo']) && empty($_POST['ajax'])) {
+    $codigo = strtoupper(trim($_GET['codigo']));
+
+    // Se cidade vier na URL, usa ela
+    if (isset($_GET['cidade']) && !empty($_GET['cidade'])) {
+        $cidade = trim($_GET['cidade']);
+        $autoLoadFromUrl = true;
+    }
+    else {
+        // Tenta buscar cidade no banco automaticamente
+        try {
+            $stmt = $pdo->prepare("SELECT cidade FROM rastreios_status WHERE codigo = ? AND cidade IS NOT NULL AND cidade != '' ORDER BY data DESC LIMIT 1");
+            $stmt->execute([$codigo]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($res) {
+                $cidade = $res['cidade'];
+                $autoLoadFromUrl = true;
+            }
+        }
+        catch (Exception $e) {
+        // Silencioso
+        }
+    }
+}
+
 // Resposta AJAX
 if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
     header('Content-Type: text/html; charset=UTF-8');
@@ -264,17 +290,30 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                             <i class="fas fa-barcode"></i>
                             <input type="text" name="codigo" placeholder="Código de rastreio" maxlength="12"
                                 class="tracking-input"
-                                value="<?= isset($_GET['codigo']) ? htmlspecialchars($_GET['codigo']) : ''?>" required>
+                                value="<?= htmlspecialchars($codigo)?>" required>
                         </div>
                         <div class="input-group">
                             <i class="fas fa-city"></i>
                             <input type="text" name="cidade" placeholder="Sua cidade" class="tracking-input"
-                                value="<?= isset($_GET['cidade']) ? htmlspecialchars($_GET['cidade']) : ''?>" required>
+                                value="<?= htmlspecialchars($cidade)?>" required>
                         </div>
                         <button type="submit" class="btn-track cursor-pointer">
                             <i class="fas fa-search-location"></i> Rastrear agora
                         </button>
                     </form>
+                    <?php if ($autoLoadFromUrl): ?>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const trackForm = document.getElementById('trackForm');
+                            if (trackForm) {
+                                // Pequeno delay para garantir que o JS principal carregou
+                                setTimeout(() => {
+                                    trackForm.dispatchEvent(new Event('submit'));
+                                }, 500);
+                            }
+                        });
+                    </script>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="hero-image reveal-on-scroll">
@@ -539,8 +578,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
 
         // Safety Fallback
         setTimeout(() => {
-            document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('visible'));
-        }, 1000);
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('visibl;
+ }, 1000);
     </script>
 </body>
 

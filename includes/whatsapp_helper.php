@@ -108,7 +108,7 @@ function deleteWhatsappContact(PDO $pdo, string $codigo): void
     executeQuery($pdo, "DELETE FROM whatsapp_contatos WHERE codigo = ?", [strtoupper(trim($codigo))]);
 }
 
-function buildWhatsappTrackingLink(string $codigo): ?string
+function buildWhatsappTrackingLink(string $codigo, string $cidade = ''): ?string
 {
     $tracking = getDynamicConfig('WHATSAPP_TRACKING_URL', '');
 
@@ -116,11 +116,20 @@ function buildWhatsappTrackingLink(string $codigo): ?string
         return null;
     }
 
-    if (str_contains($tracking, '{{codigo}}')) {
-        return str_replace('{{codigo}}', urlencode($codigo), $tracking);
+    $link = $tracking;
+
+    if (str_contains($link, '{{codigo}}')) {
+        $link = str_replace('{{codigo}}', urlencode($codigo), $link);
+    }
+    else {
+        $link = rtrim($link, '/') . (str_contains($link, '?') ? '&' : '?') . 'codigo=' . urlencode($codigo);
     }
 
-    return rtrim($tracking, '/') . (str_contains($tracking, '?') ? '&' : '?') . 'codigo=' . urlencode($codigo);
+    if ($cidade !== '') {
+        $link .= (str_contains($link, '?') ? '&' : '?') . 'cidade=' . urlencode($cidade);
+    }
+
+    return $link;
 }
 
 function buildWhatsappMessage(array $statusData, array $contato): string
@@ -132,7 +141,7 @@ function buildWhatsappMessage(array $statusData, array $contato): string
     $dataFormatada = $dataHora->format('d/m/Y');
     $horaFormatada = $dataHora->format('H:i');
 
-    $link = buildWhatsappTrackingLink($statusData['codigo']);
+    $link = buildWhatsappTrackingLink($statusData['codigo'], $statusData['cidade'] ?? '');
     if ($link) {
         $linkTexto = 'Acompanhe: ' . $link;
     }
@@ -494,6 +503,14 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
         return;
     }
 
+    // Fallback: Se cidade vazia, buscar última válida
+    if (empty($status['cidade'])) {
+        $lastCity = fetchOne($pdo, "SELECT cidade FROM rastreios_status WHERE codigo = ? AND cidade IS NOT NULL AND cidade != '' ORDER BY data DESC LIMIT 1", [$codigo]);
+        if ($lastCity) {
+            $status['cidade'] = $lastCity['cidade'];
+        }
+    }
+
     // Se não for forçado, verificar se já foi enviado com sucesso
     $force = isset($options['force']) && $options['force'] === true;
 
@@ -578,7 +595,7 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
     }
 
     $nome = $contato['nome'] ?? 'cliente';
-    $link = buildWhatsappTrackingLink($codigo);
+    $link = buildWhatsappTrackingLink($codigo, $status['cidade'] ?? '');
     $linkTexto = $link ? "Acompanhe: {$link}" : '';
 
     // Buscar mensagem personalizada ou usar padrão
