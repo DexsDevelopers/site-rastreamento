@@ -2007,20 +2007,20 @@ endif; ?>
         // Auto-refresh removido - atualização apenas manual
 
         // Mostrar notificações de sucesso do PHP
-        <? php if (isset($success_message)): ??
+        <?php if (isset($success_message)): ?>
             document.addEventListener('DOMContentLoaded', function () {
                 notifySuccess('<?= addslashes($success_message)?>');
             });
-        <? php
-endif; ??
+        <?php
+endif; ?>
 
         // Mostrar notificações de erro do PHP
-        <? php if (isset($error_message)): ??
+        <?php if (isset($error_message)): ?>
             document.addEventListener('DOMContentLoaded', function () {
                 notifyError('<?= addslashes($error_message)?>');
             });
-        <? php
-endif; ??
+        <?php
+endif; ?>
 
             // Inicializar sistema de automações
             document.addEventListener('DOMContentLoaded', function () {
