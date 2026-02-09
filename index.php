@@ -77,7 +77,7 @@ if (isset($_GET['codigo']) && empty($_POST['ajax'])) {
             }
         }
         catch (Exception $e) {
-            // Silencioso
+        // Silencioso
         }
     }
 }
@@ -580,6 +580,149 @@ endif; ?>
         setTimeout(() => {
             document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('visible'));
         }, 1000);
+    </script>
+    <!-- Modais Express -->
+    <?php
+$expressPixKey = getDynamicConfig('EXPRESS_PIX_KEY', 'financeiro@transloggi.site');
+// Se $expressValor não estiver definido aqui (pois está no topo), pegar de novo
+$expressValorModal = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
+?>
+    <style>
+        .express-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s;
+        }
+
+        .express-modal-content {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: scale(0.95);
+            animation: popIn 0.3s forwards;
+            position: relative;
+        }
+
+        @keyframes popIn {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .express-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .express-btn {
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 1rem;
+        }
+
+        .express-btn:active {
+            transform: scale(0.95);
+        }
+
+        .express-confirm {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .express-cancel {
+            background: var(--slate-100);
+            color: var(--slate-600);
+        }
+
+        .pix-code-box {
+            background: var(--slate-50);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 2px dashed var(--slate-200);
+            margin: 1.5rem 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+    </style>
+
+    <div id="modalExpressIntro" class="express-modal-overlay">
+        <div class="express-modal-content">
+            <div
+                style="width:80px; height:80px; background:var(--primary-light); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem;">
+                <i class="fas fa-bolt" style="font-size: 2.5rem; color: var(--primary);"></i>
+            </div>
+            <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--secondary);">Acelerar Entrega?</h3>
+            <p style="color: var(--slate-500); line-height: 1.6;">Receba sua encomenda em até <strong>3 dias
+                    úteis</strong> utilizando nossa malha aérea expressa.</p>
+            <div class="express-actions">
+                <button onclick="closeModal('modalExpressIntro')" class="express-btn express-cancel">Agora não</button>
+                <button onclick="closeModal('modalExpressIntro'); openModal('modalExpressPix')"
+                    class="express-btn express-confirm">Sim, quero acelerar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalExpressPix" class="express-modal-overlay">
+        <div class="express-modal-content">
+            <h3 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 0.5rem;">Pagamento Express</h3>
+            <p style="color: var(--slate-500);">Taxa única de liberação prioritária</p>
+
+            <div style="font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 1.5rem 0;">
+                R$
+                <?= number_format($expressValorModal, 2, ',', '.')?>
+            </div>
+
+            <p style="font-size: 0.9rem; color: var(--slate-400); margin-bottom: 1rem;">Copie a chave PIX abaixo:</p>
+
+            <div class="pix-code-box" id="pixCodeText">
+                <?= htmlspecialchars($expressPixKey)?>
+            </div>
+
+            <button onclick="copyExpressPix()" class="express-btn express-confirm"
+                style="width: 100%; margin-bottom: 1rem;">
+                <i class="far fa-copy"></i> Copiar Chave PIX
+            </button>
+            <button onclick="closeModal('modalExpressPix')" class="express-btn express-cancel"
+                style="background:transparent;">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        function copyExpressPix() {
+            const code = document.getElementById('pixCodeText').innerText.trim();
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Chave PIX copiada com sucesso!');
+            });
+        }
     </script>
 </body>
 
