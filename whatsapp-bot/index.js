@@ -564,6 +564,11 @@ function enforceCacheLimit(map, maxSize = MAX_CACHE_SIZE) {
   }
 }
 
+// ===== CONFIGURAÇÃO DE STORE =====
+const ENABLE_STORE = String(process.env.ENABLE_STORE || 'true').toLowerCase() === 'true'; // Habilitado por padrão
+const MAX_STORE_MESSAGES_MEMORY = 50; // Máximo 50 mensagens por chat
+const MAX_STORE_CHATS_MEMORY = 100; // Máximo 100 chats
+
 // Limpar contadores antigos periodicamente (mais frequente)
 setInterval(() => {
   const now = Date.now();
@@ -692,9 +697,7 @@ let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 
 // ===== CUSTOM SIMPLE STORE =====
 // Store de mensagens para o Baileys
-const ENABLE_STORE = String(process.env.ENABLE_STORE || 'true').toLowerCase() === 'true'; // Habilitado por padrão
-const MAX_STORE_MESSAGES_MEMORY = 50; // Máximo 50 mensagens por chat
-const MAX_STORE_CHATS_MEMORY = 100; // Máximo 100 chats
+// Variáveis movidas para cima (antes do setInterval)
 
 const simpleStore = {
   messages: {},
