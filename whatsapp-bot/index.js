@@ -779,9 +779,30 @@ const simpleStore = {
   }
 };
 
+// ===== CONFIGURAÇÃO DE DIRETÓRIOS =====
+const isProduction = process.env.NODE_ENV === 'production';
+const authDirName = 'auth_info_baileys';
+let authPath;
+
+if (isProduction) {
+  authPath = path.join(os.tmpdir(), authDirName);
+  console.log(`[INIT] Modo PRODUÇÃO detectado. Usando pasta temporária: ${authPath}`);
+} else {
+  authPath = path.resolve('./auth');
+  console.log(`[INIT] Modo MEUS ARQUIVOS. Usando pasta local: ${authPath}`);
+}
+
+// Garantir que a pasta existe
+if (!fs.existsSync(authPath)) {
+  console.log(`[INIT] Criando pasta de autenticação: ${authPath}`);
+  fs.mkdirSync(authPath, { recursive: true });
+}
+
+const storePath = path.join(authPath, 'baileys_store.json');
+
 // Inicializar Store
 const store = simpleStore;
-store.readFromFile('./baileys_store.json');
+store.readFromFile(storePath);
 
 if (ENABLE_STORE) {
   console.log(`📦 Store habilitado (${MAX_STORE_MESSAGES_MEMORY} msgs/chat, ${MAX_STORE_CHATS_MEMORY} chats)`);
@@ -2834,26 +2855,8 @@ async function start() {
   try {
     log.info('Iniciando conexão com WhatsApp...');
 
-    // DEFINIR CAMINHO DA PASTA AUTH (CRÍTICO PARA HOSTINGER)
-    // Se estiver em produção (NODE_ENV=production) ou se a pasta raiz não for gravável,
-    // usar o diretório temporário do sistema (/tmp)
-    const isProduction = process.env.NODE_ENV === 'production';
-    const authDirName = 'auth_info_baileys';
-    let authPath;
-
-    if (isProduction) {
-      authPath = path.join(os.tmpdir(), authDirName);
-      log.info(`[AUTH] Modo PRODUÇÃO detectado. Usando pasta temporária: ${authPath}`);
-    } else {
-      authPath = path.resolve('./auth');
-      log.info(`[AUTH] Modo MEUS ARQUIVOS. Usando pasta local: ${authPath}`);
-    }
-
-    // Garantir que a pasta existe
-    if (!fs.existsSync(authPath)) {
-      log.info(`[AUTH] Criando pasta de autenticação: ${authPath}`);
-      fs.mkdirSync(authPath, { recursive: true });
-    }
+    // Usar caminho de autenticação global já configurado
+    log.info(`[AUTH] Usando caminho de autenticação: ${authPath}`);
 
     const { version, isLatest } = await fetchLatestBaileysVersion();
     log.info(`WhatsApp Web version: ${version?.join('.')} (latest=${isLatest})`);
