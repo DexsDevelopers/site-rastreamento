@@ -48,23 +48,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const PORT = Number(process.env.PORT || process.env.API_PORT || 3000);
+
+// Rota de saúde imediata
 app.get('/', (req, res) => {
   res.send(`
     <html><body style="background:#111;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
       <div style="text-align:center">
-        <h3>🤖 Bot Online</h3>
+        <h3>🤖 Bot Iniciando...</h3>
         <p>Acesse <a href="/qr" style="color:#4fc3f7">/qr</a> para conectar</p>
-        <p><a href="/status" style="color:#4fc3f7">/status</a> para ver detalhes</p>
+        <p>Status: <span id="status">Aguardando</span></p>
+        <script>
+          fetch('/status').then(r => r.json()).then(d => {
+            document.getElementById('status').innerText = d.status || 'Desconhecido';
+          }).catch(() => document.getElementById('status').innerText = 'Erro ao buscar status');
+        </script>
       </div>
     </body></html>
   `);
 });
 
-const PORT = Number(process.env.PORT || process.env.API_PORT || 3000);
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
+// Iniciar servidor IMEDIATAMENTE antes de qualquer lógica pesada
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
+});
 
 // DEBUG: Ver porta configurada
-console.log('🔌 DEBUG - API_PORT do .env:', process.env.API_PORT || 'não definido (usando 3000)');
+console.log('🔌 DEBUG - API_PORT do .env:', process.env.API_PORT || 'não definido');
 console.log('🔌 DEBUG - Porta final:', PORT);
+console.log('🔌 DEBUG - Escutando em 0.0.0.0');
 
 // DEBUG: Ver exatamente o que está no .env
 const rawEnvToken = process.env.API_TOKEN;
@@ -4225,10 +4239,12 @@ function rand(min, max) {
 }
 
 // ===== INICIALIZAÇÃO =====
+/*
 app.listen(PORT, () => {
   log.success(`API WhatsApp rodando em http://localhost:${PORT}`);
   log.info('Endpoints: /status, /qr, /health, /send, /check, /send-poll, /reconnect');
 });
+*/
 
 // Iniciar conexão
 start().catch((err) => {
