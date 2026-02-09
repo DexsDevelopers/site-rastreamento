@@ -406,6 +406,7 @@ catch (Exception $e) {
             <nav class="sidebar-menu">
                 <div class="menu-label">Bot Rastreamento</div>
                 <a href="admin_bot.php" class="nav-item active"><i class="fas fa-gauge-high"></i> Dashboard</a>
+                <a href="admin_bot_logs.php" class="nav-item"><i class="fas fa-scroll"></i> Logs</a>
                 <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens</a>
 
                 <div class="menu-label">Sistema</div>
@@ -551,6 +552,13 @@ endif; ?>
                     <div>
                         <h3 class="section-title"><i class="fas fa-bolt"></i> Ações Rápidas</h3>
                         <div class="quick-actions">
+                            <a href="admin_bot_logs.php" class="action-card">
+                                <div class="action-icon"><i class="fas fa-scroll"></i></div>
+                                <div class="action-info">
+                                    <h4>Ver Logs</h4>
+                                    <p>Histórico de mensagens</p>
+                                </div>
+                            </a>
                             <a href="admin_mensagens.php" class="action-card">
                                 <div class="action-icon"><i class="fas fa-comment-dots"></i></div>
                                 <div class="action-info">

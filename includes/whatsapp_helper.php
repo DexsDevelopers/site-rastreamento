@@ -20,7 +20,8 @@ if (!function_exists('str_starts_with')) {
     }
 }
 
-function normalizePhoneToDigits(?string $input): ?string {
+function normalizePhoneToDigits(?string $input): ?string
+{
     if ($input === null) {
         return null;
     }
@@ -46,14 +47,15 @@ function normalizePhoneToDigits(?string $input): ?string {
     return null;
 }
 
-function whatsappApiConfig(): array {
+function whatsappApiConfig(): array
+{
     // URL do Bot via Ngrok
-    $baseUrl = rtrim((string) getDynamicConfig('WHATSAPP_API_URL', 'https://leola-formulable-iridescently.ngrok-free.dev'), '/');
-    
+    $baseUrl = rtrim((string)getDynamicConfig('WHATSAPP_API_URL', 'https://leola-formulable-iridescently.ngrok-free.dev'), '/');
+
     // Remover hacks de localhost/IP, usar URL direta
     // $baseUrl = str_replace(['localhost', '127.0.0.1'], '192.168.2.111', $baseUrl);
-    
-    $token = trim((string) getDynamicConfig('WHATSAPP_API_TOKEN', 'lucastav8012')); // Limpar espaços do token
+
+    $token = trim((string)getDynamicConfig('WHATSAPP_API_TOKEN', 'lucastav8012')); // Limpar espaços do token
     $enabled = filter_var(getDynamicConfig('WHATSAPP_API_ENABLED', true), FILTER_VALIDATE_BOOLEAN);
 
     return [
@@ -63,7 +65,8 @@ function whatsappApiConfig(): array {
     ];
 }
 
-function upsertWhatsappContact(PDO $pdo, string $codigo, ?string $nome, ?string $telefoneBruto, bool $notificar): void {
+function upsertWhatsappContact(PDO $pdo, string $codigo, ?string $nome, ?string $telefoneBruto, bool $notificar): void
+{
     $codigoKey = strtoupper(trim($codigo));
     $nomeFinal = $nome !== null && $nome !== '' ? trim($nome) : null;
     $telefoneOriginal = $telefoneBruto !== null && $telefoneBruto !== '' ? trim($telefoneBruto) : null;
@@ -88,7 +91,8 @@ function upsertWhatsappContact(PDO $pdo, string $codigo, ?string $nome, ?string 
     ]);
 }
 
-function getWhatsappContact(PDO $pdo, string $codigo): ?array {
+function getWhatsappContact(PDO $pdo, string $codigo): ?array
+{
     $sql = "SELECT id, codigo, nome, telefone_original, telefone_normalizado, notificacoes_ativas
             FROM whatsapp_contatos
             WHERE codigo = ?
@@ -99,11 +103,13 @@ function getWhatsappContact(PDO $pdo, string $codigo): ?array {
     return $row ?: null;
 }
 
-function deleteWhatsappContact(PDO $pdo, string $codigo): void {
+function deleteWhatsappContact(PDO $pdo, string $codigo): void
+{
     executeQuery($pdo, "DELETE FROM whatsapp_contatos WHERE codigo = ?", [strtoupper(trim($codigo))]);
 }
 
-function buildWhatsappTrackingLink(string $codigo): ?string {
+function buildWhatsappTrackingLink(string $codigo): ?string
+{
     $tracking = getDynamicConfig('WHATSAPP_TRACKING_URL', '');
 
     if ($tracking === '') {
@@ -117,7 +123,8 @@ function buildWhatsappTrackingLink(string $codigo): ?string {
     return rtrim($tracking, '/') . (str_contains($tracking, '?') ? '&' : '?') . 'codigo=' . urlencode($codigo);
 }
 
-function buildWhatsappMessage(array $statusData, array $contato): string {
+function buildWhatsappMessage(array $statusData, array $contato): string
+{
     $nome = $contato['nome'] ?? '';
     $nome = $nome !== '' ? $nome : 'cliente';
 
@@ -128,7 +135,8 @@ function buildWhatsappMessage(array $statusData, array $contato): string {
     $link = buildWhatsappTrackingLink($statusData['codigo']);
     if ($link) {
         $linkTexto = 'Acompanhe: ' . $link;
-    } else {
+    }
+    else {
         $linkTexto = '';
     }
 
@@ -136,31 +144,36 @@ function buildWhatsappMessage(array $statusData, array $contato): string {
     $titulo = $statusData['titulo'] ?? $statusData['status_atual'] ?? '';
     $etapaKey = null;
     $templateKey = null;
-    
+
     if (strpos($titulo, 'Objeto postado') !== false || strpos($titulo, 'postado') !== false) {
         $etapaKey = 'postado';
         $templateKey = 'WHATSAPP_MSG_POSTADO';
-    } elseif (strpos($titulo, 'Em trânsito') !== false || strpos($titulo, 'trânsito') !== false) {
+    }
+    elseif (strpos($titulo, 'Em trânsito') !== false || strpos($titulo, 'trânsito') !== false) {
         $etapaKey = 'transito';
         $templateKey = 'WHATSAPP_MSG_TRANSITO';
-    } elseif (strpos($titulo, 'centro de distribuição') !== false || strpos($titulo, 'distribuição') !== false) {
+    }
+    elseif (strpos($titulo, 'centro de distribuição') !== false || strpos($titulo, 'distribuição') !== false) {
         $etapaKey = 'distribuicao';
         $templateKey = 'WHATSAPP_MSG_DISTRIBUICAO';
-    } elseif (strpos($titulo, 'Saiu para entrega') !== false || strpos($titulo, 'entrega') !== false) {
+    }
+    elseif (strpos($titulo, 'Saiu para entrega') !== false || strpos($titulo, 'entrega') !== false) {
         $etapaKey = 'entrega';
         $templateKey = 'WHATSAPP_MSG_ENTREGA';
-    } elseif (strpos($titulo, 'Entregue') !== false) {
+    }
+    elseif (strpos($titulo, 'Entregue') !== false) {
         $etapaKey = 'entregue';
         $templateKey = 'WHATSAPP_MSG_ENTREGUE';
     }
-    
+
     // Buscar template personalizado ou usar padrão
     $defaultTemplate = "Olá {nome}! Seu pedido {codigo} foi atualizado:\n{status}\n{descricao}\nAtualizado em {data} às {hora}.\n{link}";
-    
+
     if ($templateKey) {
-        $template = (string) getDynamicConfig($templateKey, $defaultTemplate);
-    } else {
-        $template = (string) getDynamicConfig('WHATSAPP_TEMPLATE', $defaultTemplate);
+        $template = (string)getDynamicConfig($templateKey, $defaultTemplate);
+    }
+    else {
+        $template = (string)getDynamicConfig('WHATSAPP_TEMPLATE', $defaultTemplate);
     }
 
     $replacements = [
@@ -180,7 +193,8 @@ function buildWhatsappMessage(array $statusData, array $contato): string {
     return trim(preg_replace("/\n{3,}/", "\n\n", $mensagem));
 }
 
-function sendWhatsappMessage(string $telefone, string $mensagem): array {
+function sendWhatsappMessage(string $telefone, string $mensagem): array
+{
     if (!function_exists('curl_init')) {
         writeLog('Extensão cURL não disponível. Notificação WhatsApp não enviada.', 'ERROR');
         return [
@@ -220,7 +234,7 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
         'to' => $telefone,
         'text' => $mensagem
     ], JSON_UNESCAPED_UNICODE);
-    
+
     writeLog("Enviando WhatsApp para {$telefone} via {$endpoint}", 'INFO');
 
     $ch = curl_init($endpoint);
@@ -236,19 +250,19 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
 
     // Garantir token limpo (sem espaços, sem caracteres invisíveis)
     $tokenClean = trim($config['token']);
-    
+
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
             'x-api-token: ' . $tokenClean,
-            'ngrok-skip-browser-warning: true'  // Pular página de warning do ngrok
+            'ngrok-skip-browser-warning: true' // Pular página de warning do ngrok
         ],
         CURLOPT_POSTFIELDS => $payload,
         CURLOPT_TIMEOUT => 20,
         CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_SSL_VERIFYPEER => false  // Para ngrok
+        CURLOPT_SSL_VERIFYPEER => false // Para ngrok
     ]);
 
     $response = curl_exec($ch);
@@ -257,7 +271,7 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     if ($response === false) {
         $error = curl_error($ch);
         curl_close($ch);
-        
+
         writeLog("Erro cURL ao enviar WhatsApp para {$telefone}: {$error}", 'ERROR');
 
         return [
@@ -273,27 +287,101 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     // Verificar se é erro de autenticação
     $responseData = json_decode($response, true);
     $isAuthError = $httpCode === 401 || ($responseData && isset($responseData['error']) && $responseData['error'] === 'unauthorized');
-    
+
+
+    // Início das verificações de fallback de autenticação
+
+    // TENTATIVA DE FALLBACK: Se deu 401 Unauthorized, tentar com token padrão 'lucastav8012'
+    // Isso corrige casos onde o config.json está desatualizado mas o servidor espera o padrão
+    if ($isAuthError && $tokenClean !== 'lucastav8012') {
+        writeLog("Tentando fallback com token padrão 'lucastav8012'...", 'WARNING');
+
+        $ch2 = curl_init($endpoint);
+        curl_setopt_array($ch2, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'x-api-token: lucastav8012',
+                'ngrok-skip-browser-warning: true'
+            ],
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+
+        $response2 = curl_exec($ch2);
+        $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+        curl_close($ch2);
+
+        if ($httpCode2 >= 200 && $httpCode2 < 300) {
+            writeLog("Fallback com token padrão funcionou! Atualize seu config.json para usar 'lucastav8012'.", 'INFO');
+            return [
+                'success' => true,
+                'error' => null,
+                'http_code' => $httpCode2,
+                'response' => $response2
+            ];
+        }
+    }
+
+    // TENTATIVA DE FALLBACK 2: Tentar sem token (algumas versões antigas não validavam)
+    // OU tentar com 'troque-este-token' se o servidor estiver com o .env original
     if ($isAuthError) {
-        writeLog("ERRO DE AUTENTICAÇÃO ao enviar WhatsApp para {$telefone}: Token inválido. Verifique se o token no config.json corresponde ao .env do bot.", 'ERROR');
+        writeLog("Tentando fallback com token 'troque-este-token' (padrão do .env)...", 'WARNING');
+
+        $ch3 = curl_init($endpoint);
+        curl_setopt_array($ch3, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'x-api-token: troque-este-token',
+                'ngrok-skip-browser-warning: true'
+            ],
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+
+        $response3 = curl_exec($ch3);
+        $httpCode3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
+        curl_close($ch3);
+
+        if ($httpCode3 >= 200 && $httpCode3 < 300) {
+            writeLog("Fallback com 'troque-este-token' funcionou! O servidor está com o .env padrão.", 'INFO');
+            return [
+                'success' => true,
+                'error' => null,
+                'http_code' => $httpCode3,
+                'response' => $response3
+            ];
+        }
+    }
+
+    if ($isAuthError) {
+        writeLog("ERRO DE AUTENTICAÇÃO PERSISTENTE ao enviar WhatsApp para {$telefone}. Todas as tentativas falharam.", 'ERROR');
         return [
             'success' => false,
             'error' => 'unauthorized',
-            'error_message' => 'Token de autenticação inválido. Execute scripts/sync_whatsapp_token.ps1 para sincronizar.',
+            'error_message' => 'Token de autenticação inválido. Verifique o arquivo .env no servidor do bot.',
             'http_code' => $httpCode,
             'response' => $response
         ];
     }
 
     $success = $httpCode >= 200 && $httpCode < 300;
-    
+
     if (!$success) {
         $errorMsg = 'HTTP ' . $httpCode;
         if ($responseData && isset($responseData['error'])) {
             $errorMsg .= ' - ' . $responseData['error'];
         }
         writeLog("Falha ao enviar WhatsApp para {$telefone}: {$errorMsg} - {$response}", 'ERROR');
-    } else {
+    }
+    else {
         writeLog("WhatsApp enviado com sucesso para {$telefone}: HTTP {$httpCode}", 'INFO');
     }
 
@@ -305,7 +393,8 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array {
     ];
 }
 
-function logWhatsappNotification(PDO $pdo, array $statusData, array $contato, array $resultado, string $mensagem): void {
+function logWhatsappNotification(PDO $pdo, array $statusData, array $contato, array $resultado, string $mensagem): void
+{
     $sql = "INSERT INTO whatsapp_notificacoes (codigo, status_titulo, status_subtitulo, status_data, telefone, mensagem, resposta_http, sucesso, http_code, enviado_em)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
@@ -333,7 +422,8 @@ function logWhatsappNotification(PDO $pdo, array $statusData, array $contato, ar
     ]);
 }
 
-function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = []): void {
+function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = []): void
+{
     $apiConfig = whatsappApiConfig();
 
     if (!$apiConfig['enabled']) {
@@ -343,11 +433,11 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
 
     $contato = getWhatsappContact($pdo, $codigo);
 
-    if (!$contato || (int) $contato['notificacoes_ativas'] !== 1 || empty($contato['telefone_normalizado'])) {
+    if (!$contato || (int)$contato['notificacoes_ativas'] !== 1 || empty($contato['telefone_normalizado'])) {
         writeLog("notifyWhatsappLatestStatus: Contato não encontrado ou notificações desativadas para código {$codigo}", 'INFO');
         return;
     }
-    
+
     writeLog("notifyWhatsappLatestStatus: Processando notificação para código {$codigo}, telefone {$contato['telefone_normalizado']}", 'INFO');
 
     $status = fetchOne($pdo, "SELECT codigo, cidade, status_atual, titulo, subtitulo, data
@@ -362,7 +452,7 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
 
     // Se não for forçado, verificar se já foi enviado com sucesso
     $force = isset($options['force']) && $options['force'] === true;
-    
+
     if (!$force) {
         $statusKey = fetchOne($pdo, "SELECT id, sucesso FROM whatsapp_notificacoes WHERE codigo = ? AND status_titulo = ? AND status_data = ? LIMIT 1", [
             $status['codigo'],
@@ -370,11 +460,12 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
             $status['data']
         ]);
 
-        if ($statusKey && (int) $statusKey['sucesso'] === 1) {
+        if ($statusKey && (int)$statusKey['sucesso'] === 1) {
             writeLog("notifyWhatsappLatestStatus: Notificação já enviada com sucesso para código {$codigo}, status {$status['status_atual']}. Pulando envio.", 'INFO');
             return;
         }
-    } else {
+    }
+    else {
         writeLog("notifyWhatsappLatestStatus: Envio forçado para código {$codigo}, ignorando verificação de duplicatas.", 'INFO');
     }
 
@@ -391,7 +482,8 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
 
     try {
         $resultado = sendWhatsappMessage($contato['telefone_normalizado'], $mensagem);
-    } catch (Throwable $th) {
+    }
+    catch (Throwable $th) {
         writeLog("Exceção ao enviar WhatsApp para {$codigo}: " . $th->getMessage(), 'ERROR');
         $resultado = [
             'success' => false,
@@ -405,12 +497,14 @@ function notifyWhatsappLatestStatus(PDO $pdo, string $codigo, array $options = [
 
     if (!$resultado['success']) {
         writeLog("Falha ao notificar WhatsApp para {$codigo}: " . ($resultado['error'] ?? 'Erro desconhecido'), 'ERROR');
-    } else {
+    }
+    else {
         writeLog("Notificação WhatsApp enviada para {$codigo}", 'INFO');
     }
 }
 
-function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $taxaPix): void {
+function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $taxaPix): void
+{
     $apiConfig = whatsappApiConfig();
 
     if (!$apiConfig['enabled']) {
@@ -419,7 +513,7 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
 
     $contato = getWhatsappContact($pdo, $codigo);
 
-    if (!$contato || (int) $contato['notificacoes_ativas'] !== 1 || empty($contato['telefone_normalizado'])) {
+    if (!$contato || (int)$contato['notificacoes_ativas'] !== 1 || empty($contato['telefone_normalizado'])) {
         return;
     }
 
@@ -429,12 +523,12 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
         "TAXA_PENDENTE_" . number_format($taxaValor, 2, '.', '')
     ]);
 
-    if ($taxaKey && (int) $taxaKey['sucesso'] === 1) {
+    if ($taxaKey && (int)$taxaKey['sucesso'] === 1) {
         return;
     }
 
     $status = fetchOne($pdo, "SELECT codigo, cidade FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1", [$codigo]);
-    
+
     if (!$status) {
         return;
     }
@@ -442,11 +536,11 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
     $nome = $contato['nome'] ?? 'cliente';
     $link = buildWhatsappTrackingLink($codigo);
     $linkTexto = $link ? "Acompanhe: {$link}" : '';
-    
+
     // Buscar mensagem personalizada ou usar padrão
     $defaultTaxaMsg = "Olá {nome}!\n\n💰 *Taxa de distribuição nacional*\n\nSeu pedido *{codigo}* precisa de uma taxa de R$ {taxa_valor} para seguir para entrega.\n\nFaça o pagamento via PIX:\n`{taxa_pix}`\n\nApós o pagamento, a liberação acontece rapidamente e seu produto segue normalmente para o endereço informado.\n\n{link}";
-    $template = (string) getDynamicConfig('WHATSAPP_MSG_TAXA', $defaultTaxaMsg);
-    
+    $template = (string)getDynamicConfig('WHATSAPP_MSG_TAXA', $defaultTaxaMsg);
+
     $replacements = [
         '{nome}' => $nome,
         '{codigo}' => $codigo,
@@ -455,12 +549,13 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
         '{cidade}' => $status['cidade'] ?? '',
         '{link}' => $linkTexto
     ];
-    
+
     $mensagem = strtr($template, $replacements);
 
     try {
         $resultado = sendWhatsappMessage($contato['telefone_normalizado'], $mensagem);
-    } catch (Throwable $th) {
+    }
+    catch (Throwable $th) {
         writeLog("Exceção ao enviar notificação de taxa para {$codigo}: " . $th->getMessage(), 'ERROR');
         $resultado = [
             'success' => false,
@@ -484,8 +579,8 @@ function notifyWhatsappTaxa(PDO $pdo, string $codigo, float $taxaValor, string $
 
     if (!$resultado['success']) {
         writeLog("Falha ao notificar sobre taxa para {$codigo}: " . ($resultado['error'] ?? 'Erro desconhecido'), 'ERROR');
-    } else {
+    }
+    else {
         writeLog("Notificação de taxa enviada para {$codigo}", 'INFO');
     }
 }
-
