@@ -267,13 +267,17 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         content="Acompanhe seu pedido em tempo real com a Loggi. Tecnologia de ponta para entregas rápidas e seguras em todo o Brasil.">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.png">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
 </head>
 
 <body>
     <header class="header" id="mainHeader">
         <div class="container nav-container">
-            <a href="index.php" class="logo">loggi</a>
+            <a href="index.php" class="logo">
+                <img src="assets/images/logo.png" alt="Loggi"
+                    style="height: 42px; width: auto; vertical-align: middle; margin-right: 5px;">
+                loggi
+            </a>
 
             <div class="mobile-menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
@@ -485,7 +489,11 @@ endif; ?>
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col brand">
-                    <a href="index.php" class="logo">loggi</a>
+                    <a href="index.php" class="logo">
+                        <img src="assets/images/logo.png" alt="Loggi"
+                            style="height: 38px; width: auto; filter: brightness(0) invert(1); vertical-align: middle; margin-right: 5px;">
+                        loggi
+                    </a>
                     <p>Reinventando a logística brasileira através de tecnologia própria e excelência operacional.</p>
                     <div class="social-links">
                         <a href="#" class="cursor-pointer"><i class="fab fa-instagram"></i></a>
