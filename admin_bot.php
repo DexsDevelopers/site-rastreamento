@@ -21,22 +21,36 @@ $botStatus = [
     'reconnectAttempts' => 0
 ];
 
-$qrCode = null;
+$qrCodeUrl = '';
 $apiConfig = whatsappApiConfig();
+$debugInfo = [];
 
 if ($apiConfig['enabled']) {
     try {
         // Buscar status
-        $ch = curl_init($apiConfig['base_url'] . '/status');
+        $statusUrl = $apiConfig['base_url'] . '/status';
+        $debugInfo['status_url'] = $statusUrl;
+
+        $ch = curl_init($statusUrl);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 5,
-            CURLOPT_HTTPHEADER => ['ngrok-skip-browser-warning: true'],
-            CURLOPT_SSL_VERIFYPEER => false
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_HTTPHEADER => [
+                'ngrok-skip-browser-warning: true',
+                'x-api-token: ' . $apiConfig['token']
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FOLLOWLOCATION => true
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+
+        $debugInfo['status_http'] = $httpCode;
+        $debugInfo['status_error'] = $curlError;
+        $debugInfo['status_response'] = substr($response, 0, 500);
 
         if ($httpCode === 200 && $response) {
             $data = json_decode($response, true);
@@ -46,54 +60,40 @@ if ($apiConfig['enabled']) {
                     'ready' => $data['ready'] ?? false,
                     'uptime' => $data['uptime'] ?? 0,
                     'uptimeFormatted' => $data['uptimeFormatted'] ?? '0h 0m 0s',
-                    'memoryMB' => $data['memoryMB'] ?? 0,
+                    'memoryMB' => round($data['memoryMB'] ?? 0, 1),
                     'reconnectAttempts' => $data['reconnectAttempts'] ?? 0
                 ]);
             }
         }
-
-        // Buscar QR Code se não estiver conectado
-        if (!$botStatus['ready']) {
-            $ch = curl_init($apiConfig['base_url'] . '/qr');
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 5,
-                CURLOPT_HTTPHEADER => ['ngrok-skip-browser-warning: true'],
-                CURLOPT_SSL_VERIFYPEER => false
-            ]);
-            $qrResponse = curl_exec($ch);
-            curl_close($ch);
-
-            // Extrair imagem base64 do QR se existir
-            if (preg_match('/src="(data:image\/png;base64,[^"]+)"/', $qrResponse, $matches)) {
-                $qrCode = $matches[1];
-            }
-        }
     }
     catch (Exception $e) {
-    // Bot offline
+        $debugInfo['error'] = $e->getMessage();
     }
 }
 
-// Estatísticas de notificações
+// URL do QR Code (sempre externo)
+$qrCodeUrl = $apiConfig['base_url'] . '/qr';
+
+// Estatísticas de RASTREAMENTO (usar bot_automation_logs para estatísticas reais)
 $stats = [
-    'total_enviadas' => 0,
-    'hoje' => 0,
-    'sucesso' => 0,
-    'falhas' => 0
+    'total_automations' => 0,
+    'active_automations' => 0,
+    'total_usos' => 0,
+    'logs_hoje' => 0
 ];
 
 try {
-    $result = fetchOne($pdo, "SELECT COUNT(*) as total FROM whatsapp_notificacoes");
-    $stats['total_enviadas'] = $result['total'] ?? 0;
+    $result = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations");
+    $stats['total_automations'] = $result['total'] ?? 0;
 
-    $result = fetchOne($pdo, "SELECT COUNT(*) as total FROM whatsapp_notificacoes WHERE DATE(enviado_em) = CURDATE()");
-    $stats['hoje'] = $result['total'] ?? 0;
+    $result = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automations WHERE ativo = 1");
+    $stats['active_automations'] = $result['total'] ?? 0;
 
-    $result = fetchOne($pdo, "SELECT COUNT(*) as total FROM whatsapp_notificacoes WHERE sucesso = 1");
-    $stats['sucesso'] = $result['total'] ?? 0;
+    $result = fetchOne($pdo, "SELECT COALESCE(SUM(contador_uso), 0) as total FROM bot_automations");
+    $stats['total_usos'] = $result['total'] ?? 0;
 
-    $stats['falhas'] = $stats['total_enviadas'] - $stats['sucesso'];
+    $result = fetchOne($pdo, "SELECT COUNT(*) as total FROM bot_automation_logs WHERE DATE(criado_em) = CURDATE()");
+    $stats['logs_hoje'] = $result['total'] ?? 0;
 }
 catch (Exception $e) {
 // Tabela pode não existir
@@ -218,10 +218,18 @@ catch (Exception $e) {
             min-width: 280px;
         }
 
-        .qr-section img {
-            max-width: 200px;
+        .qr-frame {
+            background: white;
+            padding: 10px;
             border-radius: 12px;
+            display: inline-block;
             margin-bottom: 1rem;
+        }
+
+        .qr-frame iframe {
+            display: block;
+            border: none;
+            border-radius: 8px;
         }
 
         .qr-section .waiting-msg {
@@ -353,6 +361,22 @@ catch (Exception $e) {
             color: #0055FF;
         }
 
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            display: none;
+        }
+
+        .debug-info.show {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .status-hero {
                 grid-template-columns: 1fr;
@@ -382,8 +406,7 @@ catch (Exception $e) {
             <nav class="sidebar-menu">
                 <div class="menu-label">Bot Rastreamento</div>
                 <a href="admin_bot.php" class="nav-item active"><i class="fas fa-gauge-high"></i> Dashboard</a>
-                <a href="admin_bot_logs.php" class="nav-item"><i class="fas fa-scroll"></i> Logs</a>
-                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-cog"></i> Configurações</a>
+                <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens</a>
 
                 <div class="menu-label">Sistema</div>
                 <a href="admin.php" class="nav-item"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
@@ -429,7 +452,7 @@ catch (Exception $e) {
                                 <?php
 elseif ($botStatus['online']): ?>
                                 <div class="status-dot waiting"></div>
-                                <span class="status-text">⏳ Aguardando QR Code</span>
+                                <span class="status-text">⏳ Aguardando Conexão</span>
                                 <?php
 else: ?>
                                 <div class="status-dot offline"></div>
@@ -468,22 +491,14 @@ endif; ?>
 
                         <?php if (!$botStatus['ready']): ?>
                         <div class="qr-section">
-                            <?php if ($qrCode): ?>
-                            <img src="<?= $qrCode?>" alt="QR Code">
-                            <p class="waiting-msg">Escaneie o QR Code<br>com o WhatsApp</p>
-                            <?php
-    else: ?>
-                            <div style="padding: 2rem;">
-                                <i class="fas fa-qrcode"
-                                    style="font-size: 3rem; color: rgba(255,255,255,0.3); margin-bottom: 1rem;"></i>
-                                <p class="waiting-msg">QR Code não disponível<br>Aguardando geração...</p>
+                            <div class="qr-frame">
+                                <iframe src="<?= htmlspecialchars($qrCodeUrl)?>" width="200" height="230"
+                                    scrolling="no"></iframe>
                             </div>
-                            <?php
-    endif; ?>
-                            <a href="<?= htmlspecialchars($apiConfig['base_url'])?>/qr" target="_blank"
-                                class="btn btn-primary"
+                            <p class="waiting-msg">Escaneie o QR Code<br>com o WhatsApp</p>
+                            <a href="<?= htmlspecialchars($qrCodeUrl)?>" target="_blank" class="btn btn-primary"
                                 style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-external-link-alt"></i> Abrir QR em nova aba
+                                <i class="fas fa-external-link-alt"></i> Abrir em nova aba
                             </a>
                         </div>
                         <?php
@@ -499,35 +514,35 @@ endif; ?>
 
                     <!-- Estatísticas -->
                     <div>
-                        <h3 class="section-title"><i class="fas fa-chart-bar"></i> Estatísticas de Notificações</h3>
+                        <h3 class="section-title"><i class="fas fa-chart-bar"></i> Estatísticas do Bot</h3>
                         <div class="stats-grid">
                             <div class="stat-card">
-                                <div class="stat-icon blue"><i class="fas fa-paper-plane"></i></div>
+                                <div class="stat-icon blue"><i class="fas fa-robot"></i></div>
                                 <div class="stat-value">
-                                    <?= number_format($stats['total_enviadas'])?>
+                                    <?= number_format($stats['total_automations'])?>
                                 </div>
-                                <div class="stat-label">Total Enviadas</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon purple"><i class="fas fa-calendar-day"></i></div>
-                                <div class="stat-value">
-                                    <?= number_format($stats['hoje'])?>
-                                </div>
-                                <div class="stat-label">Enviadas Hoje</div>
+                                <div class="stat-label">Automações</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                                 <div class="stat-value">
-                                    <?= number_format($stats['sucesso'])?>
+                                    <?= number_format($stats['active_automations'])?>
                                 </div>
-                                <div class="stat-label">Sucesso</div>
+                                <div class="stat-label">Ativas</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="stat-icon purple"><i class="fas fa-play"></i></div>
                                 <div class="stat-value">
-                                    <?= number_format($stats['falhas'])?>
+                                    <?= number_format($stats['total_usos'])?>
                                 </div>
-                                <div class="stat-label">Falhas</div>
+                                <div class="stat-label">Usos Totais</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon orange"><i class="fas fa-calendar-day"></i></div>
+                                <div class="stat-value">
+                                    <?= number_format($stats['logs_hoje'])?>
+                                </div>
+                                <div class="stat-label">Logs Hoje</div>
                             </div>
                         </div>
                     </div>
@@ -536,20 +551,6 @@ endif; ?>
                     <div>
                         <h3 class="section-title"><i class="fas fa-bolt"></i> Ações Rápidas</h3>
                         <div class="quick-actions">
-                            <a href="admin_bot_logs.php" class="action-card">
-                                <div class="action-icon"><i class="fas fa-scroll"></i></div>
-                                <div class="action-info">
-                                    <h4>Ver Logs</h4>
-                                    <p>Histórico de mensagens e erros</p>
-                                </div>
-                            </a>
-                            <a href="admin_bot_config.php" class="action-card">
-                                <div class="action-icon"><i class="fas fa-cog"></i></div>
-                                <div class="action-info">
-                                    <h4>Configurações</h4>
-                                    <p>Ajustes do bot e automações</p>
-                                </div>
-                            </a>
                             <a href="admin_mensagens.php" class="action-card">
                                 <div class="action-icon"><i class="fas fa-comment-dots"></i></div>
                                 <div class="action-info">
@@ -557,17 +558,29 @@ endif; ?>
                                     <p>Personalizar textos enviados</p>
                                 </div>
                             </a>
-                            <a href="<?= htmlspecialchars($apiConfig['base_url'])?>/qr" target="_blank"
-                                class="action-card">
+                            <a href="<?= htmlspecialchars($qrCodeUrl)?>" target="_blank" class="action-card">
                                 <div class="action-icon"><i class="fas fa-qrcode"></i></div>
                                 <div class="action-info">
                                     <h4>QR Code</h4>
                                     <p>Reconectar WhatsApp</p>
                                 </div>
                             </a>
+                            <a href="admin.php" class="action-card">
+                                <div class="action-icon"><i class="fas fa-truck"></i></div>
+                                <div class="action-info">
+                                    <h4>Rastreamentos</h4>
+                                    <p>Gerenciar códigos e pedidos</p>
+                                </div>
+                            </a>
                         </div>
                     </div>
 
+                </div>
+
+                <!-- Debug info (hidden by default) -->
+                <div class="debug-info" id="debugInfo">
+                    <strong>Debug Info:</strong><br>
+                    <pre><?= htmlspecialchars(json_encode($debugInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))?></pre>
                 </div>
             </div>
         </main>
@@ -588,12 +601,17 @@ endif; ?>
             if (overlay) {
                 overlay.addEventListener('click', toggleSidebar);
             }
+
+            // Show debug with ?debug=1
+            if (window.location.search.includes('debug=1')) {
+                document.getElementById('debugInfo').classList.add('show');
+            }
         });
 
         // Auto-refresh a cada 30 segundos se não estiver conectado
-        <?php if (!$botStatus['ready']): ?>
+        <? php if (!$botStatus['ready']): ?>
             setTimeout(() => location.reload(), 30000);
-        <?php
+        <? php
 endif; ?>
     </script>
 </body>
