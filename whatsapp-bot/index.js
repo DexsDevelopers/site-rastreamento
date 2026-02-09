@@ -97,7 +97,7 @@ if (rawEnvToken) {
 }
 
 // Limpar token completamente - remover espaços e caracteres invisíveis
-let rawToken = process.env.API_TOKEN || 'troque-este-token';
+let rawToken = process.env.API_TOKEN || 'lucastav8012';
 // Remover todos os espaços e caracteres não alfanuméricos
 rawToken = String(rawToken).trim().replace(/\s+/g, '');
 // Manter apenas letras e números ASCII
