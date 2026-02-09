@@ -77,7 +77,7 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
 // Iniciar servidor IMEDIATAMENTE antes de qualquer lógica pesada
-const server = app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, () => {
   console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
 });
 
