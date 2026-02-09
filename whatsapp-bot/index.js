@@ -1,9 +1,9 @@
 /* WhatsApp Bot Centralizado - Baileys + Express
- * - Bot único para dois projetos: Rastreamento (/) e Financeiro (!)
+ * - Bot para projeto: Rastreamento (/)
  * - Exibe QR no console para logar
  * - Sistema de reconexão automática
  * - Heartbeat para manter conexão ativa
- * - Sistema de polls (enquetes) para o projeto financeiro
+ * - Sistema de polls (enquetes)
  * - Endpoints:
  *   GET  /status
  *   GET  /qr
