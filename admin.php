@@ -2937,7 +2937,7 @@ endif; ??
             }
         });
     </script>
-    <?php // Expor presets ao JS ?? ??
+    <?php // Expor presets ao JS ?>
     <script>
         window.STATUS_PRESETS = <?php echo json_encode(array_map(function ($p) {
     return ['label' => $p['label'], 'steps' => $p['steps']];
