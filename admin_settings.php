@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="menu-label">Gestão</div>
                 <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
-                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Configuração Bot</a>
+                <a href="admin_bot.php" class="nav-item"><i class="fas fa-robot"></i> Painel Bot</a>
                 <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-message"></i> Mensagens WPP</a>
 
                 <div class="menu-label">Configuração</div>
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 overlay.addEventListener('click', toggleSidebar);
             }
 
-            <?php if ($message): ?>
+            <? php if ($message): ?>
                 Swal.fire({
                     icon: '<?= $type?>',
                     title: '<?= $type == "success" ? "Sucesso" : "Erro"?>',
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     confirmButtonColor: '#0055FF',
                     timer: 2000
                 });
-            <?php
+            <? php
 endif; ?>
         });
     </script>

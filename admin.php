@@ -967,7 +967,7 @@ $semTaxa = $totalRastreios - $comTaxa;
 
                 <div class="menu-label">Gestão</div>
                 <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
-                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Painel Bot WhatsApp</a>
+                <a href="admin_bot.php" class="nav-item"><i class="fas fa-robot"></i> Painel Bot WhatsApp</a>
 
                 <div class="menu-label">Configuração</div>
                 <a href="admin_settings.php" class="nav-item"><i class="fas fa-gear"></i> Ajustes Expressa</a>

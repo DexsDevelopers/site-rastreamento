@@ -357,7 +357,7 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             </a>
 
             <!-- Painel do Bot -->
-            <a href="admin_bot_config.php" class="panel-card">
+            <a href="admin_bot.php" class="panel-card">
                 <div class="panel-icon">
                     <i class="fas fa-robot"></i>
                 </div>

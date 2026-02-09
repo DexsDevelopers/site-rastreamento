@@ -93,7 +93,7 @@ catch (Exception $e) {
 
                 <div class="menu-label">Gestão</div>
                 <a href="admin_homepage.php" class="nav-item"><i class="fas fa-pen-to-square"></i> Editar Site</a>
-                <a href="admin_bot_config.php" class="nav-item"><i class="fas fa-robot"></i> Configuração Bot</a>
+                <a href="admin_bot.php" class="nav-item"><i class="fas fa-robot"></i> Painel Bot</a>
                 <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-message"></i> Mensagens WPP</a>
 
                 <div class="menu-label">Configuração</div>
@@ -276,7 +276,7 @@ endif; ?>
                 overlay.addEventListener('click', toggleSidebar);
             }
 
-            <?php if (isset($success_message)): ?>
+            <? php if (isset($success_message)): ?>
                 Swal.fire({
                     icon: 'success',
                     title: 'Sucesso',
@@ -286,7 +286,7 @@ endif; ?>
                     confirmButtonColor: '#16A34A',
                     timer: 2000
                 });
-            <?php
+            <? php
 endif; ?>
         });
     </script>
