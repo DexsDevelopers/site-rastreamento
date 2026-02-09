@@ -66,7 +66,7 @@ $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
                 <a href="index.php#para-voce">Para você</a>
                 <a href="index.php#para-empresas">Para empresas</a>
                 <a href="sobre.php">Sobre</a>
-                <a href="login.php" class="btn-login">Entrar</a>
+                <a href="login_cliente.php" class="btn-login">Entrar</a>
             </nav>
         </div>
     </header>
