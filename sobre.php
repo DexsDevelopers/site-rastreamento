@@ -44,196 +44,212 @@ $badgeCidades = getHomepageConfig($pdo, 'badge_cidades', '247 Cidades');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sobre Nós - Loggi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Sobre Nós - Loggi | Excelência em Logística Inteligente</title>
+    <meta name="description"
+        content="Conheça a história e a tecnologia por trás da Loggi. Reinventando a logística brasileira para conectar pessoas e negócios.">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
-</head>
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.png">
 </head>
 
 <body>
+    <header class="header" id="mainHeader">
+        <div class="container nav-container">
+            <a href="index.php" class="logo">loggi</a>
 
-    <header class="header">
-        <div class="nav-container">
-            <a href="index.php" class="logo">
-                <i class="fas fa-shipping-fast"></i>
-                <?= htmlspecialchars($nomeEmpresa)?>
-            </a>
-            <nav class="nav-links">
-                <a href="index.php">Início</a>
-                <a href="sobre.php">Sobre</a>
-            </nav>
-            <button class="mobile-menu-toggle" onclick="toggleMenu()">
+            <div class="mobile-menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
-            </button>
-            <nav class="mobile-menu" id="mobileMenu">
+            </div>
+
+            <nav class="nav-links" id="navLinks">
                 <a href="index.php">Início</a>
+                <a href="index.php#para-voce">Para você</a>
+                <a href="index.php#para-empresas">Para empresas</a>
                 <a href="sobre.php">Sobre</a>
+                <a href="login.php" class="btn-login">Entrar</a>
             </nav>
         </div>
     </header>
 
-    <section class="hero">
-        <div class="container hero-content" style="text-align: center; align-items: center;">
-            <h1>Conectamos o Brasil</h1>
-            <p class="tagline" style="margin-bottom: 2rem;">A Loggi está em todo lugar. Entregamos tecnologia,
-                rapidez e
-                segurança para você e seu negócio.</p>
-
-            <div class="hero-actions" style="justify-content: center;">
-                <a href="index.php" class="btn-hero">
-                    Rastrear Agora
-                </a>
-                <a href="cadastro_objetivo.php" class="btn-hero secondary">
-                    Enviar agora
-                </a>
+    <section class="hero" style="min-height: 80vh; padding-top: 15rem;">
+        <div class="container hero-box">
+            <div class="hero-content reveal-on-scroll">
+                <h1 class="premium-title">
+                    Conectamos o Brasil de ponta a ponta
+                </h1>
+                <p class="hero-desc">
+                    A Loggi utiliza inteligência logística e tecnologia proprietária para tornar as entregas mais
+                    rápidas, seguras e eficientes para todos os brasileiros.
+                </p>
+                <div class="hero-actions">
+                    <a href="index.php" class="btn-cta primary">
+                        <i class="fas fa-search-location"></i> Rastrear agora
+                    </a>
+                </div>
             </div>
-
-            <div class="badges" style="justify-content: center; margin-top: 3rem;">
-                <span class="badge"><i class="fas fa-check-circle"></i> Loggi para você</span>
-                <span class="badge"><i class="fas fa-truck"></i> Loggi para empresas</span>
-                <span class="badge"><i class="fas fa-map-marker-alt"></i> Ajudar</span>
+            <div class="hero-image reveal-on-scroll" style="display: flex; flex-direction: column; gap: 2rem;">
+                <div class="proof-card highlight" style="padding: 3rem; transform: rotate(-2deg);">
+                    <div class="proof-value" style="font-size: 3.5rem;">+100M</div>
+                    <div class="proof-label">Objetos Entregues</div>
+                </div>
+                <div class="proof-card highlight" style="padding: 3rem; transform: rotate(2deg); margin-left: 4rem;">
+                    <div class="proof-value" style="font-size: 3.5rem;">4k+</div>
+                    <div class="proof-label">Cidades Atendidas</div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="section">
-        <h2 class="section-title">Nossa Tecnologia</h2>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <span class="feature-icon"><i class="fas fa-rocket"></i></span>
-                <h3>Inovação</h3>
-                <p>Usamos tecnologia de ponta para otimizar rotas e garantir a entrega mais rápida do Brasil.</p>
+    <section class="marketing-section reveal-on-scroll" style="background: white;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Nossa Tecnologia</h2>
+                <p class="section-subtitle">O que nos torna diferentes é a forma como usamos a inovação para resolver
+                    desafios logísticos complexos.</p>
             </div>
-
-            <div class="feature-card">
-                <span class="feature-icon"><i class="fas fa-shield-alt"></i></span>
-                <h3>Segurança</h3>
-                <p>Seus pacotes são monitorados 24h por dia, do despacho até a porta do destino.</p>
+            <div class="marketing-grid">
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-microchip"></i></div>
+                    <h3>Inteligência de Rotas</h3>
+                    <p>Nossos algoritmos calculam as rotas mais eficientes em milisegundos, garantindo economia e
+                        velocidade.</p>
+                </div>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-fingerprint"></i></div>
+                    <h3>Segurança Total</h3>
+                    <p>Monitoramento avançado e biometria em todas as etapas garantem que seu objeto chegue intacto ao
+                        destino.</p>
+                </div>
+                <div class="marketing-card premium">
+                    <div class="card-icon"><i class="fas fa-network-wired"></i></div>
+                    <h3>Malha Integrada</h3>
+                    <p>A maior rede de pontos de postagem e centros de distribuição conectada por um único sistema
+                        inteligente.</p>
+                </div>
             </div>
-
-            <div class="feature-card">
-                <span class="feature-icon"><i class="fas fa-globe-americas"></i></span>
-                <h3>Capilaridade</h3>
-                <p>Nossa rede logística alcança todas as regiões do país, conectando pessoas e negócios.</p>
-            </div>
-        </div>
-
-        <div class="features-grid" style="margin-top: 4rem;">
-            <div class="feature-card" style="text-align: center;">
-                <div class="feature-icon" style="margin: 0 auto 1.5rem;"><i class="fas fa-box-open"></i></div>
-                <div class="stat-number" style="font-size: 2.5rem; font-weight: 800; color: var(--primary);">+100M</div>
-                <div class="stat-label" style="color: var(--text-muted);">Entregas Realizadas</div>
-            </div>
-            <div class="feature-card" style="text-align: center;">
-                <div class="feature-icon" style="margin: 0 auto 1.5rem;"><i class="fas fa-globe-americas"></i></div>
-                <div class="stat-number" style="font-size: 2.5rem; font-weight: 800; color: var(--primary);">4000+</div>
-                <div class="stat-label" style="color: var(--text-muted);">Cidades Atendidas</div>
-            </div>
-            <div class="feature-card" style="text-align: center;">
-                <div class="feature-icon" style="margin: 0 auto 1.5rem;"><i class="fas fa-star"></i></div>
-                <div class="stat-number" style="font-size: 2.5rem; font-weight: 800; color: var(--primary);">4.8/5</div>
-                <div class="stat-label" style="color: var(--text-muted);">Taxa de Satisfação</div>
-            </div>
-        </div>
         </div>
     </section>
 
-    <section class="section">
-        <h2 class="section-title">❓ Perguntas Frequentes</h2>
+    <section class="marketing-section reveal-on-scroll" style="background: var(--slate-50);">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 6rem;">Perguntas Frequentes</h2>
+            <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+                <details
+                    style="background: white; padding: 2rem; border-radius: 24px; border: 1px solid var(--slate-200); cursor: pointer; transition: all 0.3s;">
+                    <summary
+                        style="font-weight: 800; font-size: 1.2rem; color: var(--secondary); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        Como faço para enviar um pacote?
+                        <i class="fas fa-plus" style="font-size: 1rem; color: var(--primary);"></i>
+                    </summary>
+                    <p style="margin-top: 1.5rem; color: var(--slate-500); line-height: 1.7; font-size: 1.1rem;">
+                        Basta acessar "Enviar agora" em nossa home, preencher os dados do objeto e realizar o pagamento.
+                        Depois, é só levar sua etiqueta a um Ponto Loggi parceiro próximo a você.
+                    </p>
+                </details>
 
-        <div class="container" style="max-width: 800px; margin: 0 auto;">
+                <details
+                    style="background: white; padding: 2rem; border-radius: 24px; border: 1px solid var(--slate-200); cursor: pointer; transition: all 0.3s;">
+                    <summary
+                        style="font-weight: 800; font-size: 1.2rem; color: var(--secondary); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        Qual o prazo de entrega padrão?
+                        <i class="fas fa-plus" style="font-size: 1rem; color: var(--primary);"></i>
+                    </summary>
+                    <p style="margin-top: 1.5rem; color: var(--slate-500); line-height: 1.7; font-size: 1.1rem;">
+                        Os prazos variam de acordo com a origem e o destino. Para envios locais, entregamos em até 24h.
+                        Para envios nacionais expressos, o prazo médio é de 3 dias úteis.
+                    </p>
+                </details>
 
-            <details class="feature-card" style="margin-bottom: 1rem; padding: 1.5rem; cursor: pointer;">
-                <summary class="faq-question"
-                    style="list-style: none; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-main);">
-                    <span>🔍 Como rastrear minha entrega?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </summary>
-                <div class="faq-answer" style="margin-top: 1rem; color: var(--text-muted); line-height: 1.6;">
-                    Acesse nosso site, insira o código de rastreamento fornecido e sua cidade de destino. Você terá
-                    acesso a todas as etapas do processo de entrega em tempo real.
-                </div>
-            </details>
-
-            <details class="feature-card" style="margin-bottom: 1rem; padding: 1.5rem; cursor: pointer;">
-                <summary class="faq-question"
-                    style="list-style: none; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-main);">
-                    <span>⏱️ Qual o prazo de entrega?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </summary>
-                <div class="faq-answer" style="margin-top: 1rem; color: var(--text-muted); line-height: 1.6;">
-                    O prazo varia conforme a distância e modalidade escolhida. A Loggi oferece diversas opções,
-                    desde
-                    entregas no mesmo dia até envios nacionais econômicos.
-                </div>
-            </details>
-
-            <details class="feature-card" style="margin-bottom: 1rem; padding: 1.5rem; cursor: pointer;">
-                <summary class="faq-question"
-                    style="list-style: none; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-main);">
-                    <span>🔒 Meus dados estão seguros?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </summary>
-                <div class="faq-answer" style="margin-top: 1rem; color: var(--text-muted); line-height: 1.6;">
-                    Sim. A Loggi utiliza os mais altos padrões de segurança e criptografia para proteger suas
-                    informações e garantir a privacidade dos dados de entrega.
-                </div>
-            </details>
+                <details
+                    style="background: white; padding: 2rem; border-radius: 24px; border: 1px solid var(--slate-200); cursor: pointer; transition: all 0.3s;">
+                    <summary
+                        style="font-weight: 800; font-size: 1.2rem; color: var(--secondary); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        É possível acelerar uma entrega em curso?
+                        <i class="fas fa-plus" style="font-size: 1rem; color: var(--primary);"></i>
+                    </summary>
+                    <p style="margin-top: 1.5rem; color: var(--slate-500); line-height: 1.7; font-size: 1.1rem;">
+                        Sim! Ao realizar o rastreio no nosso site, caso seu objeto seja elegível, você verá o botão
+                        "Acelerar Entrega". Siga as instruções para priorizar seu envio em nossa malha expressa.
+                    </p>
+                </details>
+            </div>
         </div>
     </section>
 
-
-
-    <div class="container" style="max-width: 900px; margin: 6rem auto;">
-        <div class="search-card" style="text-align: center; border-color: var(--primary);">
-            <h3 style="font-size: 2.2rem; margin-bottom: 1.5rem; justify-content: center;">Pronto para Começar?</h3>
-            <p style="color: var(--text-muted); margin-bottom: 2.5rem; font-size: 1.1rem;">
-                Rastreie suas encomendas ou indique amigos para ganhar benefícios exclusivos!
-            </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="index.php" class="btn-primary" style="width: auto; padding: 1rem 3rem;">
-                    Rastrear Agora
-                </a>
-                <a href="cadastro_objetivo.php" class="btn-hero" style="width: auto; padding: 1rem 3rem;">
-                    Enviar agora
-                </a>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col brand">
+                    <a href="index.php" class="logo">loggi</a>
+                    <p>Reinventando a logística brasileira através de tecnologia própria e excelência operacional.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Soluções</h4>
+                    <ul>
+                        <li><a href="#">Loggi para você</a></li>
+                        <li><a href="#">Loggi para empresas</a></li>
+                        <li><a href="#">E-commerce API</a></li>
+                        <li><a href="#">Loggi Pro</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Sobre</h4>
+                    <ul>
+                        <li><a href="sobre.php">Nossa História</a></li>
+                        <li><a href="#">Carreiras</a></li>
+                        <li><a href="#">Central de Ajuda</a></li>
+                        <li><a href="#">Termos de Uso</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>©
+                    <?= date('Y')?> Loggi Tecnologia LTDA.
+                </p>
+                <p>Feito com <i class="fas fa-heart" style="color: var(--error);"></i> para o Brasil</p>
             </div>
         </div>
-    </div>
-
-    <footer class="footer"
-        style="text-align: center; padding: 4rem 0; background: #F8F9FA; border-top: 1px solid #E2E8F0;">
-        <p>&copy; 2026 Loggi Technology. Todos os direitos reservados.</p>
     </footer>
 
     <script>
-        function toggleMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('active');
-        }
-
-        function toggleFaq(element) {
-            const faqItem = element.closest('.faq-item');
-            const answer = element.nextElementSibling;
-            const isActive = answer.classList.contains('active');
-
-            document.querySelectorAll('.faq-item').forEach(item => {
-                item.classList.remove('active');
-                item.querySelector('.faq-answer').classList.remove('active');
-            });
-
-            if (!isActive) {
-                faqItem.classList.add('active');
-                answer.classList.add('active');
+        // Header Scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('mainHeader');
+            if (header) {
+                if (window.scrollY > 50) header.classList.add('scrolled');
+                else header.classList.remove('scrolled');
             }
-        }
-    </script>
+        });
 
+        // Mobile Menu
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (menuToggle && navLinks) {
+            menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+                const icon = menuToggle.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            });
+        }
+
+        // Scroll Reveal
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+    </script>
 </body>
 
 </html>
