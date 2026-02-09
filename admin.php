@@ -1189,7 +1189,7 @@ if (!empty($dados_rastreios)) {
                                     <td style='text-align:right;'>
                                         <button class='btn btn-icon' onclick='abrirModal(\"{$row['codigo']}\")' title='Editar'><i class='fas fa-pencil'></i></button>
                                         <button class='btn btn-icon' onclick='viewDetails(\"{$row['codigo']}\")' title='Ver'><i class='fas fa-eye'></i></button>
-                                        <button class='btn btn-icon' style='color:#25D366' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='WhatsApp'><i class='fab fa-whatsapp'></i></button>
+                                        <button id='btn-wa-desktop-{$row['codigo']}' class='btn btn-icon' style='color:#25D366' onclick='enviarWhatsappManual(\"{$row['codigo']}\")' title='WhatsApp'><i class='fab fa-whatsapp'></i></button>
                                         <button class='btn btn-icon' style='color:var(--danger)' onclick='confirmarExclusao(\"form-delete-table-{$row['codigo']}\", \"rastreio\", \"{$row['codigo']}\")' title='Excluir'><i class='fas fa-trash'></i></button>
                                         <form id=\"form-delete-table-{$row['codigo']}\" method=\"POST\" style=\"display:none;\">
                                             <input type=\"hidden\" name=\"deletar\" value=\"1\">
@@ -1230,7 +1230,7 @@ else {
                                 onclick="event.stopPropagation(); abrirModal('<?= $row['codigo']?>')">
                                 <i class="fas fa-pencil"></i> Editar
                             </button>
-                            <button class="btn-mobile-action"
+                            <button id="btn-wa-mobile-<?= $row['codigo']?>" class="btn-mobile-action"
                                 style="background: rgba(37, 211, 102, 0.1); color: #25D366; border-color: rgba(37, 211, 102, 0.2);"
                                 onclick="event.stopPropagation(); enviarWhatsappManual('<?= $row['codigo']?>')">
                                 <i class="fab fa-whatsapp"></i> Zap
@@ -2007,20 +2007,20 @@ endif; ?>
         // Auto-refresh removido - atualização apenas manual
 
         // Mostrar notificações de sucesso do PHP
-        <? php if (isset($success_message)): ?>
+        <? php if (isset($success_message)): ??
             document.addEventListener('DOMContentLoaded', function () {
                 notifySuccess('<?= addslashes($success_message)?>');
             });
         <? php
-endif; ?>
+endif; ??
 
         // Mostrar notificações de erro do PHP
-        <? php if (isset($error_message)): ?>
+        <? php if (isset($error_message)): ??
             document.addEventListener('DOMContentLoaded', function () {
                 notifyError('<?= addslashes($error_message)?>');
             });
         <? php
-endif; ?>
+endif; ??
 
             // Inicializar sistema de automações
             document.addEventListener('DOMContentLoaded', function () {
@@ -2766,8 +2766,19 @@ endif; ?>
 
             console.log('[WhatsApp] Iniciando envio para código:', codigo);
 
-            // Desabilitar botão durante o envio
-            const buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"], button[onclick*='enviarWhatsappManual("${codigo}")']`);
+            // Tentar encontrar botões pelos IDs novos (mais robusto)
+            const btnDesktop = document.getElementById('btn-wa-desktop-' + codigo);
+            const btnMobile = document.getElementById('btn-wa-mobile-' + codigo);
+
+            let buttons = [];
+            if (btnDesktop) buttons.push(btnDesktop);
+            if (btnMobile) buttons.push(btnMobile);
+
+            // Fallback para querySelector se não achar por ID
+            if (buttons.length === 0) {
+                buttons = document.querySelectorAll(`button[onclick*="enviarWhatsappManual('${codigo}')"], button[onclick*='enviarWhatsappManual("${codigo}")']`);
+            }
+
             buttons.forEach(btn => {
                 btn.disabled = true;
                 const originalHTML = btn.innerHTML;
@@ -2926,7 +2937,7 @@ endif; ?>
             }
         });
     </script>
-    <?php // Expor presets ao JS ?? ?>
+    <?php // Expor presets ao JS ?? ??
     <script>
         window.STATUS_PRESETS = <?php echo json_encode(array_map(function ($p) {
     return ['label' => $p['label'], 'steps' => $p['steps']];
