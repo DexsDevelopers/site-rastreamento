@@ -79,6 +79,7 @@ app.get('/health', (req, res) => res.status(200).send('OK'));
 // Iniciar servidor IMEDIATAMENTE antes de qualquer lógica pesada
 const server = app.listen(PORT, () => {
   console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
+  if (process.send) process.send('ready');
 });
 
 // DEBUG: Ver porta configurada
@@ -2855,11 +2856,10 @@ async function start() {
                 type: 'menu_principal',
                 jid: pollJid,
                 commandMap: {
-                  0: '!saldo',
-                  1: '!receita',
-                  2: '!despesa',
-                  3: '!tarefas',
-                  4: '!menu'
+                  0: '/ajuda',
+                  1: '/pedido',
+                  2: '/status',
+                  3: '/menu'
                 }
               };
             }
@@ -4104,10 +4104,7 @@ app.listen(PORT, () => {
 });
 */
 
-// Iniciar conexão
-start().catch((err) => {
-  log.error(`Erro ao iniciar: ${err.message}`);
-});
+// Iniciar conexão (Movido para o final do arquivo para garantir que tudo foi carregado)
 
 // Monitoramento de memória
 // Monitoramento de memória mais frequente
@@ -4164,14 +4161,24 @@ setInterval(() => {
   }
 }, 15000); // A cada 15 segundos
 
-// Tratamento de erros não capturados
+// Tratamento de erros não capturados para estabilidade em produção
 process.on('uncaughtException', (err) => {
-  log.error(`Exceção não capturada: ${err.message}`);
+  log.error('❌ EXCEÇÃO NÃO CAPTURADA - RESTART DO PROCESSO NECESSÁRIO');
+  log.error(`Erro: ${err.message}`);
   log.error(err.stack);
+
+  // Dar tempo para o log ser gravado antes de sair
+  setTimeout(() => {
+    process.exit(1);
+  }, 1000);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  log.error(`Promise rejeitada: ${reason}`);
+  log.error('⚠️ PROMISE REJEITADA E NÃO TRATADA');
+  log.error(`Motivo: ${reason}`);
+  if (reason instanceof Error) {
+    log.error(reason.stack);
+  }
 });
 
 // Tratamento de sinais de término

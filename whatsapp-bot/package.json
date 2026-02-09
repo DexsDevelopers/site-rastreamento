@@ -6,10 +6,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --watch index.js",
-    "start": "node --max-old-space-size=4096 --expose-gc index.js",
-    "start:watch": "node --max-old-space-size=4096 --expose-gc --watch index.js",
-    "start:gc": "node --max-old-space-size=4096 --expose-gc index.js",
-    "start:8gb": "node --max-old-space-size=8192 --expose-gc index.js"
+    "start": "node --max-old-space-size=2048 --expose-gc index.js",
+    "pm2": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:restart": "pm2 restart ecosystem.config.cjs --env production",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:logs": "pm2 logs whatsapp-bot-rastreamento"
   },
   "engines": {
     "node": ">=18.0.0"
