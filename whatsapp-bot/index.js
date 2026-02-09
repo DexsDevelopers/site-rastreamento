@@ -48,6 +48,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send(`
+    <html><body style="background:#111;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
+      <div style="text-align:center">
+        <h3>🤖 Bot Online</h3>
+        <p>Acesse <a href="/qr" style="color:#4fc3f7">/qr</a> para conectar</p>
+        <p><a href="/status" style="color:#4fc3f7">/status</a> para ver detalhes</p>
+      </div>
+    </body></html>
+  `);
+});
+
 const PORT = Number(process.env.PORT || process.env.API_PORT || 3000);
 
 // DEBUG: Ver porta configurada
