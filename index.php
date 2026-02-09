@@ -747,5 +747,3 @@ $expressValorModal = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
         }
     </script>
 </body>
-
-</html>
