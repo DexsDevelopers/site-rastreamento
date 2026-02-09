@@ -11,6 +11,80 @@ require_once 'includes/whatsapp_helper.php';
 
 requireLogin();
 
+// Processar ações
+$message = '';
+$msgType = '';
+
+if (isset($_GET['action'])) {
+    $apiConfig = whatsappApiConfig();
+    $action = $_GET['action'];
+
+    if ($apiConfig['enabled']) {
+        $endpoint = '';
+        if ($action === 'reconnect')
+            $endpoint = '/reconnect';
+        if ($action === 'reset_loop')
+            $endpoint = '/reset-loop';
+
+        if ($endpoint) {
+            $ch = curl_init($apiConfig['base_url'] . $endpoint);
+            // Tentar com token configurado
+            $headers = [
+                'Content-Type: application/json',
+                'x-api-token: ' . $apiConfig['token'],
+                'ngrok-skip-browser-warning: true'
+            ];
+
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_SSL_VERIFYPEER => false
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode >= 200 && $httpCode < 300) {
+                $message = "Ação realizada com sucesso! Aguarde alguns segundos.";
+                $msgType = "success";
+            }
+            else {
+                // Tentar fallback com lucastav8012 se falhou auth
+                if ($httpCode === 401 && $apiConfig['token'] !== 'lucastav8012') {
+                    $ch2 = curl_init($apiConfig['base_url'] . $endpoint);
+                    $headers['x-api-token'] = 'lucastav8012';
+                    curl_setopt_array($ch2, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST => true,
+                        CURLOPT_HTTPHEADER => $headers,
+                        CURLOPT_TIMEOUT => 10,
+                        CURLOPT_SSL_VERIFYPEER => false
+                    ]);
+                    $response2 = curl_exec($ch2);
+                    $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+                    curl_close($ch2);
+
+                    if ($httpCode2 >= 200 && $httpCode2 < 300) {
+                        $message = "Ação realizada com sucesso (usando token padrão)!";
+                        $msgType = "success";
+                    }
+                    else {
+                        $message = "Erro ao executar ação: HTTP $httpCode";
+                        $msgType = "error";
+                    }
+                }
+                else {
+                    $message = "Erro ao executar ação: HTTP $httpCode";
+                    $msgType = "error";
+                }
+            }
+        }
+    }
+}
+
 // Buscar status do bot
 $botStatus = [
     'online' => false,
@@ -237,6 +311,15 @@ catch (Exception $e) {
             font-size: 0.9rem;
         }
 
+        .troubleshoot-btn {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -377,6 +460,25 @@ catch (Exception $e) {
             display: block;
         }
 
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
         @media (max-width: 768px) {
             .status-hero {
                 grid-template-columns: 1fr;
@@ -443,6 +545,13 @@ catch (Exception $e) {
             <div class="content-body">
                 <div class="bot-dashboard">
 
+                    <?php if ($message): ?>
+                    <div class="alert alert-<?= $msgType?>">
+                        <?= htmlspecialchars($message)?>
+                    </div>
+                    <?php
+endif; ?>
+
                     <!-- Status Principal -->
                     <div class="status-hero">
                         <div>
@@ -497,10 +606,24 @@ endif; ?>
                                     scrolling="no"></iframe>
                             </div>
                             <p class="waiting-msg">Escaneie o QR Code<br>com o WhatsApp</p>
-                            <a href="<?= htmlspecialchars($qrCodeUrl)?>" target="_blank" class="btn btn-primary"
-                                style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-external-link-alt"></i> Abrir em nova aba
-                            </a>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+                                <a href="<?= htmlspecialchars($qrCodeUrl)?>" target="_blank" class="btn btn-primary"
+                                    style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                    <i class="fas fa-external-link-alt"></i> Abrir em nova aba
+                                </a>
+
+                                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                    <a href="?action=reconnect" class="btn btn-secondary" title="Forçar reconexão"
+                                        style="padding: 0.5rem;">
+                                        <i class="fas fa-plug"></i> Reconectar
+                                    </a>
+                                    <a href="?action=reset_loop" class="btn btn-secondary" title="Resetar Loop"
+                                        style="padding: 0.5rem;">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                         <?php
 else: ?>
@@ -508,6 +631,9 @@ else: ?>
                             <i class="fas fa-check-circle"
                                 style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;"></i>
                             <p style="color: #10b981; font-weight: 600;">WhatsApp Conectado!</p>
+                            <a href="?action=reconnect"
+                                style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 0.5rem; display: block;">Forçar
+                                Reconexão</a>
                         </div>
                         <?php
 endif; ?>
@@ -617,9 +743,9 @@ endif; ?>
         });
 
         // Auto-refresh a cada 30 segundos se não estiver conectado
-        <? php if (!$botStatus['ready']): ?>
+        <?php if (!$botStatus['ready']): ?>
             setTimeout(() => location.reload(), 30000);
-        <? php
+        <?php
 endif; ?>
     </script>
 </body>

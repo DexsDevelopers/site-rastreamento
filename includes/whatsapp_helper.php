@@ -376,7 +376,13 @@ function sendWhatsappMessage(string $telefone, string $mensagem): array
 
     if (!$success) {
         $errorMsg = 'HTTP ' . $httpCode;
-        if ($responseData && isset($responseData['error'])) {
+
+        if ($httpCode === 503) {
+            $errorMsg .= ' - Bot desconectado ou reiniciando (Service Unavailable). Verifique o painel do bot.';
+            // Retornar erro amigável
+            $responseData['error'] = 'bot_disconnected';
+        }
+        elseif ($responseData && isset($responseData['error'])) {
             $errorMsg .= ' - ' . $responseData['error'];
         }
         writeLog("Falha ao enviar WhatsApp para {$telefone}: {$errorMsg} - {$response}", 'ERROR');
