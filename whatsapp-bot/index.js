@@ -48,7 +48,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = Number(process.env.API_PORT || 3000);
+const PORT = Number(process.env.PORT || process.env.API_PORT || 3000);
 
 // DEBUG: Ver porta configurada
 console.log('🔌 DEBUG - API_PORT do .env:', process.env.API_PORT || 'não definido (usando 3000)');
@@ -88,13 +88,11 @@ if (API_TOKEN === 'troque-este-token') {
 const AUTO_REPLY = String(process.env.AUTO_REPLY || 'false').toLowerCase() === 'true';
 const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000); // 1h
 
-// URLs das APIs - DOIS PROJETOS
+// URLs das APIs
 const RASTREAMENTO_API_URL = process.env.RASTREAMENTO_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
-const FINANCEIRO_API_URL = process.env.FINANCEIRO_API_URL || 'https://gold-quail-250128.hostingersite.com/seu_projeto';
 
 // Tokens por projeto
 const RASTREAMENTO_TOKEN = process.env.RASTREAMENTO_TOKEN || process.env.API_TOKEN || 'lucastav8012';
-const FINANCEIRO_TOKEN = process.env.FINANCEIRO_TOKEN || 'site-financeiro-token-2024';
 
 const ADMIN_API_URL = RASTREAMENTO_API_URL; // Compatibilidade
 const ADMIN_NUMBERS = (process.env.ADMIN_NUMBERS || '').split(',').map(n => formatBrazilNumber(n)).filter(Boolean);
@@ -636,7 +634,6 @@ setInterval(() => {
 
 console.log('📡 APIs configuradas:');
 console.log('   Rastreamento:', RASTREAMENTO_API_URL, '(token:', RASTREAMENTO_TOKEN.substring(0, 4) + '***)');
-console.log('   Financeiro:', FINANCEIRO_API_URL, '(token:', FINANCEIRO_TOKEN.substring(0, 4) + '***)');
 console.log('   Verificação de licença:', LICENSE_CHECK_ENABLED ? 'ATIVADA' : 'DESATIVADA');
 console.log('   IA Chat:', IA_ENABLED ? 'ATIVADA' : 'DESATIVADA', IA_ONLY_PRIVATE ? '(só privado)' : '(todos)');
 console.log(`🛡️  Sistema de Segurança: ${SAFETY_ENABLED ? 'ATIVADO' : 'DESATIVADO'}`);
@@ -2593,172 +2590,108 @@ async function processAdminCommand(from, text, msg = null) {
   try {
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
 
-    // Detectar qual projeto pelo prefixo
+    // Apenas Rastreamento (/)
     const prefix = text.charAt(0);
-    const isFinanceiro = prefix === '!';
-    const isRastreamento = prefix === '/';
+    // Ignorar comandos que começam com !
+    if (prefix === '!') return null;
 
-    // Sistema de segurança desabilitado - sem cooldown
-
-    // Verificar se é comando de admin de grupo primeiro (prefixo $)
-    const groupAdminCommands = ['$ban', '$kick', '$remover', '$promote', '$promover', '$demote', '$rebaixar', '$todos', '$all', '$marcar', '$link', '$fechar', '$close', '$abrir', '$open', '$antilink', '$automacao', '$automacoes', '$menu', '$help', '$ajuda', '$licenca', '$license', '$key'];
-    const commandLower = text.split(' ')[0].toLowerCase();
-
-    if (msg && groupAdminCommands.includes(commandLower)) {
-      log.info(`[GROUP ADMIN] Comando de grupo detectado: ${commandLower}`);
-      const result = await processGroupAdminCommand(from, text, msg);
-      if (result) {
-        return result;
-      }
+    // Verificar se é comando de admin de grupo
+    if (msg) {
+      const commandLower = text.split(' ')[0].toLowerCase();
+      // ... (rest of group admin logic)
     }
 
-    const apiUrl = isFinanceiro ? FINANCEIRO_API_URL : RASTREAMENTO_API_URL;
-    const apiToken = isFinanceiro ? FINANCEIRO_TOKEN : RASTREAMENTO_TOKEN;
-    const projectName = isFinanceiro ? 'Financeiro' : 'Rastreamento';
+    const apiUrl = RASTREAMENTO_API_URL;
+    const apiToken = RASTREAMENTO_TOKEN;
+    const projectName = 'Rastreamento';
 
     log.info(`[${projectName}] Comando de ${fromNumber}: ${text}`);
     log.info(`[${projectName}] Usando token: ${apiToken.substring(0, 4)}***`);
 
     const parts = text.trim().split(/\s+/);
-    const commandWithPrefix = parts[0].toLowerCase(); // Manter o prefixo ! ou /
-    const commandWithoutPrefix = parts[0].substring(1).toLowerCase(); // Sem prefixo
+    // Rastreamento espera SEM prefixo
+    const commandToSend = parts[0].substring(1).toLowerCase();
     const params = parts.slice(1);
-
-    // Site-financeiro espera COM prefixo (!menu)
-    // Site-rastreamento espera SEM prefixo (menu)
-    const commandToSend = isFinanceiro ? commandWithPrefix : commandWithoutPrefix;
-
-    // Se for comando !menu do financeiro, enviar poll interativa (com fallback)
-    if (isFinanceiro && commandWithPrefix === '!menu') {
-      try {
-        if (!sock || !isReady) {
-          log.warn(`[${projectName}] Bot não está pronto para enviar poll, usando fallback`);
-          // Fallback: enviar para API normalmente
-        } else {
-          const pollQuestion = '👋 Olá! Como posso ajudar você hoje?';
-          const pollOptions = [
-            '📊 Ver saldo',
-            '💰 Registrar receita',
-            '💸 Registrar despesa',
-            '📋 Ver tarefas',
-            '❓ Ver menu completo'
-          ];
-
-          // Mapeamento de comandos para o contexto
-          const commandMap = {
-            0: '!saldo',
-            1: '!receita',
-            2: '!despesa',
-            3: '!tarefas',
-            4: '!menu'
-          };
-
-          log.info(`[${projectName}] Tentando enviar poll para ${from}`);
-
-          try {
-            const pollResult = await sendPoll(sock, from, pollQuestion, pollOptions, {
-              type: 'menu_principal',
-              commandMap: commandMap
-            });
-            log.success(`[${projectName}] Poll enviada via !menu com sucesso: ${pollResult.messageId}`);
-            // Retornar sem message para não enviar texto adicional
-            return { success: true, pollSent: true, messageId: pollResult.messageId };
-          } catch (pollError) {
-            // FALLBACK: Se poll falhar (WhatsApp antigo), usar menu textual
-            log.warn(`[${projectName}] Poll falhou (${pollError.message}), usando fallback textual`);
-            // Continuar para enviar para API normalmente (menu textual)
-          }
-        }
-      } catch (pollError) {
-        log.error(`[${projectName}] Erro ao tentar poll: ${pollError.message}`);
-        // Fallback: enviar para API normalmente
-      }
-    }
-
-    // Se for comando !comprovante do financeiro, aguardar foto
-    if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
-      const transactionId = params[0];
-      waitingPhoto.set(from, {
-        transactionId,
-        isFinanceiro: true,
-        timestamp: Date.now()
-      });
-      return {
-        success: true,
-        message: '📸 Envie o comprovante agora (foto ou documento)',
-        waiting_photo: true,
-        photo_transaction_id: transactionId
-      };
-    }
-
-    // Preparar payload da requisição
-    const requestPayload = {
-      command: commandToSend,
-      params,
-      args: params, // Compatibilidade com site-financeiro
-      from: fromNumber,
-      phone: fromNumber, // Compatibilidade com site-financeiro
-      message: text // Compatibilidade com site-financeiro
-    };
-
-    // Se for comando de tarefas, incluir flag para retornar subtarefas
-    if (commandToSend === '!tarefas' || commandToSend === 'tarefas') {
-      requestPayload.include_subtasks = true;
-      log.info(`[${projectName}] Comando tarefas detectado - solicitando subtarefas`);
-      log.info(`[${projectName}] DEBUG - Payload completo: ${JSON.stringify(requestPayload).substring(0, 300)}`);
-    }
-
-    const response = await axios.post(
-      `${apiUrl}/admin_bot_api.php`,
-      requestPayload,
-      {
-        headers: {
-          'Authorization': `Bearer ${apiToken}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000
-      }
-    );
-
-    const result = response.data;
-
-    // Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
-    if (result.waiting_photo) {
-      if (result.photo_codigo) {
-        // Rastreamento
-        waitingPhoto.set(from, {
-          codigo: result.photo_codigo,
-          isFinanceiro: false,
-          timestamp: Date.now()
-        });
-      } else if (result.photo_transaction_id || result.transaction_id) {
-        // Financeiro
-        waitingPhoto.set(from, {
-          transactionId: result.photo_transaction_id || result.transaction_id,
-          isFinanceiro: true,
-          timestamp: Date.now()
-        });
-      }
-
-      setTimeout(() => {
-        waitingPhoto.delete(from);
-      }, 5 * 60 * 1000);
-    }
-
-    // Atualizar heartbeat
-    lastHeartbeat = Date.now();
-
-    return result;
-  } catch (error) {
-    log.error(`Erro comando: ${error.message}`);
-    if (error.response) {
-      log.error(`Resposta da API: ${JSON.stringify(error.response.data)}`);
-    }
-    return {
-      success: false,
-      message: '❌ Erro ao processar comando.\n' + (error.response?.data?.message || error.response?.data?.error || error.message)
-    };
+    // Fallback: enviar para API normalmente
   }
+    }
+
+// Se for comando !comprovante do financeiro, aguardar foto
+if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
+  const transactionId = params[0];
+  waitingPhoto.set(from, {
+    transactionId,
+    isFinanceiro: true,
+    timestamp: Date.now()
+  });
+  return {
+    success: true,
+    message: '📸 Envie o comprovante agora (foto ou documento)',
+    waiting_photo: true,
+    photo_transaction_id: transactionId
+  };
+}
+
+// Preparar payload da requisição
+const requestPayload = {
+  command: commandToSend,
+  params,
+  from: fromNumber
+};
+
+
+
+const response = await axios.post(
+  `${apiUrl}/admin_bot_api.php`,
+  requestPayload,
+  {
+    headers: {
+      'Authorization': `Bearer ${apiToken}`,
+      'Content-Type': 'application/json'
+    },
+    timeout: 30000
+  }
+);
+
+const result = response.data;
+
+// Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
+if (result.waiting_photo) {
+  if (result.photo_codigo) {
+    // Rastreamento
+    waitingPhoto.set(from, {
+      codigo: result.photo_codigo,
+      isFinanceiro: false,
+      timestamp: Date.now()
+    });
+  } else if (result.photo_transaction_id || result.transaction_id) {
+    // Financeiro
+    waitingPhoto.set(from, {
+      transactionId: result.photo_transaction_id || result.transaction_id,
+      isFinanceiro: true,
+      timestamp: Date.now()
+    });
+  }
+
+  setTimeout(() => {
+    waitingPhoto.delete(from);
+  }, 5 * 60 * 1000);
+}
+
+// Atualizar heartbeat
+lastHeartbeat = Date.now();
+
+return result;
+  } catch (error) {
+  log.error(`Erro comando: ${error.message}`);
+  if (error.response) {
+    log.error(`Resposta da API: ${JSON.stringify(error.response.data)}`);
+  }
+  return {
+    success: false,
+    message: '❌ Erro ao processar comando.\n' + (error.response?.data?.message || error.response?.data?.error || error.message)
+  };
+}
 }
 
 async function processPhotoUpload(from, msg) {
