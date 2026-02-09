@@ -16,6 +16,8 @@ import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-messa
 import { jidNormalizedUser } from '@whiskeysockets/baileys/lib/WABinary/jid-utils.js';
 import crypto from 'crypto';
 import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import qrcode from 'qrcode-terminal';
 import QRCodeImg from 'qrcode';
 import express from 'express';
@@ -2832,10 +2834,31 @@ async function start() {
   try {
     log.info('Iniciando conexão com WhatsApp...');
 
+    // DEFINIR CAMINHO DA PASTA AUTH (CRÍTICO PARA HOSTINGER)
+    // Se estiver em produção (NODE_ENV=production) ou se a pasta raiz não for gravável,
+    // usar o diretório temporário do sistema (/tmp)
+    const isProduction = process.env.NODE_ENV === 'production';
+    const authDirName = 'auth_info_baileys';
+    let authPath;
+
+    if (isProduction) {
+      authPath = path.join(os.tmpdir(), authDirName);
+      log.info(`[AUTH] Modo PRODUÇÃO detectado. Usando pasta temporária: ${authPath}`);
+    } else {
+      authPath = path.resolve('./auth');
+      log.info(`[AUTH] Modo MEUS ARQUIVOS. Usando pasta local: ${authPath}`);
+    }
+
+    // Garantir que a pasta existe
+    if (!fs.existsSync(authPath)) {
+      log.info(`[AUTH] Criando pasta de autenticação: ${authPath}`);
+      fs.mkdirSync(authPath, { recursive: true });
+    }
+
     const { version, isLatest } = await fetchLatestBaileysVersion();
     log.info(`WhatsApp Web version: ${version?.join('.')} (latest=${isLatest})`);
 
-    const { state, saveCreds } = await useMultiFileAuthState('./auth');
+    const { state, saveCreds } = await useMultiFileAuthState(authPath);
 
     // Logger personalizado que silencia TUDO do Baileys
     const silentLogger = pino({
