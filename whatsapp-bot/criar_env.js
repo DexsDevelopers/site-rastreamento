@@ -10,7 +10,7 @@ const envContent = `# Bot WhatsApp Unificado - Dois Projetos
 API_PORT=3001
 
 # URLs das APIs
-RASTREAMENTO_API_URL=https://cornflowerblue-fly-883408.hostingersite.com
+RASTREAMENTO_API_URL=https://transloggi.site
 FINANCEIRO_API_URL=https://gold-quail-250128.hostingersite.com/seu_projeto
 
 # Tokens por projeto

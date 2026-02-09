@@ -89,7 +89,7 @@ const AUTO_REPLY = String(process.env.AUTO_REPLY || 'false').toLowerCase() === '
 const AUTO_REPLY_WINDOW_MS = Number(process.env.AUTO_REPLY_WINDOW_MS || 3600000); // 1h
 
 // URLs das APIs
-const RASTREAMENTO_API_URL = process.env.RASTREAMENTO_API_URL || 'https://cornflowerblue-fly-883408.hostingersite.com';
+const RASTREAMENTO_API_URL = process.env.RASTREAMENTO_API_URL || 'https://transloggi.site';
 
 // Tokens por projeto
 const RASTREAMENTO_TOKEN = process.env.RASTREAMENTO_TOKEN || process.env.API_TOKEN || 'lucastav8012';
