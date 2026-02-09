@@ -158,7 +158,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
         if (strpos($statusLower, 'saiu') !== false || strpos($statusLower, 'entrega') !== false)
             $statusIcon = 'fa-truck-fast';
         elseif (strpos($statusLower, 'postado') !== false || strpos($statusLower, 'coletado') !== false)
-            $statusIcon = 'fa-paper-plane';
+            $statusIcon = 'fa-box';
         elseif (strpos($statusLower, 'entregue') !== false)
             $statusIcon = 'fa-house-chimney-check';
         elseif (strpos($statusLower, 'aguardando') !== false || strpos($statusLower, 'taxa') !== false || strpos($statusLower, 'pagamento') !== false)
@@ -300,7 +300,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                 </p>
                 <div class="hero-actions">
                     <a href="cadastro_objetivo.php" class="btn-cta primary">
-                        <i class="fas fa-paper-plane"></i> Enviar agora
+                        <i class="fas fa-box"></i> Enviar agora
                     </a>
                     <a href="calcular_frete.php" class="btn-cta secondary">
                         <i class="fas fa-calculator"></i> Calcular frete
@@ -380,7 +380,7 @@ endif; ?>
                 <div class="marketing-card premium">
                     <div class="card-icon"><i class="fas fa-shipping-fast"></i></div>
                     <h3>Loggi Express</h3>
-                    <p>Sua encomenda priorizada em nossa malha aérea para chegar ao destino em tempo recorde.</p>
+                    <p>Sua encomenda priorizada em nossa malha expressa para chegar ao destino em tempo recorde.</p>
                     <a href="solicitar_express_checkout.php" class="card-link">Pedir urgência <i
                             class="fas fa-arrow-right"></i></a>
                 </div>
@@ -698,7 +698,7 @@ $expressValorModal = getDynamicConfig('EXPRESS_FEE_VALUE', 29.90);
             </div>
             <h3 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--secondary);">Acelerar Entrega?</h3>
             <p style="color: var(--slate-500); line-height: 1.6;">Receba sua encomenda em até <strong>3 dias
-                    úteis</strong> utilizando nossa malha aérea expressa.</p>
+                    úteis</strong> utilizando nossa malha expressa prioritária.</p>
             <div class="express-actions">
                 <button onclick="closeModal('modalExpressIntro')" class="express-btn express-cancel">Agora não</button>
                 <button onclick="closeModal('modalExpressIntro'); openModal('modalExpressPix')"
