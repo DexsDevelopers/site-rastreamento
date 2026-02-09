@@ -18,6 +18,10 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import qrcode from 'qrcode-terminal';
 import QRCodeImg from 'qrcode';
 import express from 'express';
@@ -564,11 +568,6 @@ function enforceCacheLimit(map, maxSize = MAX_CACHE_SIZE) {
   }
 }
 
-// ===== CONFIGURAÇÃO DE STORE =====
-const ENABLE_STORE = String(process.env.ENABLE_STORE || 'true').toLowerCase() === 'true'; // Habilitado por padrão
-const MAX_STORE_MESSAGES_MEMORY = 50; // Máximo 50 mensagens por chat
-const MAX_STORE_CHATS_MEMORY = 100; // Máximo 100 chats
-
 // Limpar contadores antigos periodicamente (mais frequente)
 setInterval(() => {
   const now = Date.now();
@@ -697,7 +696,9 @@ let isReconnecting = false;     // Flag para evitar reconexões simultâneas
 
 // ===== CUSTOM SIMPLE STORE =====
 // Store de mensagens para o Baileys
-// Variáveis movidas para cima (antes do setInterval)
+const ENABLE_STORE = String(process.env.ENABLE_STORE || 'true').toLowerCase() === 'true'; // Habilitado por padrão
+const MAX_STORE_MESSAGES_MEMORY = 50; // Máximo 50 mensagens por chat
+const MAX_STORE_CHATS_MEMORY = 100; // Máximo 100 chats
 
 const simpleStore = {
   messages: {},
@@ -784,21 +785,36 @@ const simpleStore = {
 
 // ===== CONFIGURAÇÃO DE DIRETÓRIOS =====
 const isProduction = process.env.NODE_ENV === 'production';
-const authDirName = 'auth_info_baileys';
 let authPath;
 
 if (isProduction) {
-  authPath = path.join(os.tmpdir(), authDirName);
-  console.log(`[INIT] Modo PRODUÇÃO detectado. Usando pasta temporária: ${authPath}`);
+  // Tentar usar diretório persistente FORA do public_html (igual ao projeto Marketing)
+  // Isso evita que o deploy apague a sessão
+  authPath = path.join(__dirname, '..', '..', '.whatsapp-auth-rastreamento');
+  console.log(`[INIT] Modo PRODUÇÃO. Tentando usar pasta persistente: ${authPath}`);
 } else {
   authPath = path.resolve('./auth');
-  console.log(`[INIT] Modo MEUS ARQUIVOS. Usando pasta local: ${authPath}`);
+  console.log(`[INIT] Modo LOCAL. Usando pasta local: ${authPath}`);
 }
 
-// Garantir que a pasta existe
-if (!fs.existsSync(authPath)) {
-  console.log(`[INIT] Criando pasta de autenticação: ${authPath}`);
-  fs.mkdirSync(authPath, { recursive: true });
+// Garantir que a pasta existe com fallback para /tmp
+try {
+  if (!fs.existsSync(authPath)) {
+    console.log(`[INIT] Criando pasta de autenticação: ${authPath}`);
+    fs.mkdirSync(authPath, { recursive: true });
+  }
+  // Testar permissão de escrita
+  const testFile = path.join(authPath, '.test');
+  fs.writeFileSync(testFile, 'test');
+  fs.unlinkSync(testFile);
+} catch (err) {
+  console.error(`[INIT] ⚠️ Erro ao usar pasta persistente: ${err.message}`);
+  // Fallback para diretório temporário
+  authPath = path.join(os.tmpdir(), 'auth_info_baileys_rastreamento');
+  console.log(`[INIT] Usando FALLBACK temporário: ${authPath}`);
+  if (!fs.existsSync(authPath)) {
+    fs.mkdirSync(authPath, { recursive: true });
+  }
 }
 
 const storePath = path.join(authPath, 'baileys_store.json');
@@ -816,14 +832,14 @@ if (ENABLE_STORE) {
 // Salvar periodicamente
 setInterval(() => {
   if (ENABLE_STORE) {
-    store.writeToFile('./baileys_store.json');
+    store.writeToFile(storePath);
   }
 }, 10_000);
 
 // Controle simples para evitar auto-resposta repetida
 const lastReplyAt = new Map(); // key: jid, value: timestamp
 // Controle de comandos aguardando foto
-const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number, isFinanceiro?: boolean, transactionId?: string }
+const waitingPhoto = new Map(); // key: jid, value: { codigo: string, timestamp: number }
 // Configuração de anti-link por grupo
 const antilinkGroups = new Map(); // key: groupJid, value: { enabled: boolean, allowAdmins: boolean }
 // Grupos com automações desativadas
@@ -1260,95 +1276,14 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
 
     log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
 
-    // Mapeamento de mensagens personalizadas para comandos que precisam de argumentos
-    const commandsWithArgs = {
-      '!receita': {
-        title: '💰 Registrar Receita',
-        message: `✅ Você escolheu registrar uma receita!\n\n` +
-          `📝 *Como usar:*\n` +
-          `Digite: *!receita VALOR DESCRIÇÃO*\n\n` +
-          `💡 *Exemplos:*\n` +
-          `• \`!receita 1500 Salário\`\n` +
-          `• \`!receita 500 Venda de produtos\`\n` +
-          `• \`recebi 1200 Freelance\`\n\n` +
-          `Digite o comando acima para registrar sua receita.`
-      },
-      '!despesa': {
-        title: '💸 Registrar Despesa',
-        message: `✅ Você escolheu registrar uma despesa!\n\n` +
-          `📝 *Como usar:*\n` +
-          `Digite: *!despesa VALOR DESCRIÇÃO*\n\n` +
-          `💡 *Exemplos:*\n` +
-          `• \`!despesa 200 Supermercado\`\n` +
-          `• \`!despesa 50 Combustível\`\n` +
-          `• \`gastei 30 Almoço\`\n\n` +
-          `Digite o comando acima para registrar sua despesa.`
-      }
-    };
+    // Processar comando automaticamente
+    // OBS: O sistema de automação de polls para o projeto Financeiro foi removido.
+    // Se houver necessidade de automação de polls para Rastreamento, implementar aqui.
+    log.info(`[POLL] Voto recebido para comando: ${command}. Nenhuma automação configurada.`);
 
-    // Verificar se o comando precisa de argumentos
-    if (commandsWithArgs[command]) {
-      const cmdInfo = commandsWithArgs[command];
-      try {
-        await safeSendMessage(sock, jid, { text: cmdInfo.message });
-        log.success(`[POLL] ✅ Mensagem personalizada enviada para comando ${command}`);
-        return; // Não chamar a API para comandos que precisam de argumentos
-      } catch (sendError) {
-        log.error(`[POLL] Erro ao enviar mensagem personalizada: ${sendError.message}`);
-        // Continuar para tentar a API como fallback
-      }
-    }
+    // Opcional: Enviar mensagem de confirmação se necessário
+    // await safeSendMessage(sock, jid, { text: `✅ Você escolheu: ${command}` });
 
-    // Processar comando automaticamente (para comandos que não precisam de argumentos)
-    try {
-      const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
-      log.info(`[POLL] Enviando requisição para: ${apiUrl}`);
-
-      // Preparar payload da requisição
-      const requestPayload = {
-        phone: phoneNumber,
-        command: command,
-        args: [],
-        message: command,
-        source: 'poll',
-        pollContext: pollCtx.type
-      };
-
-      // Se for comando de tarefas, incluir flag para retornar subtarefas
-      if (command === '!tarefas' || command === 'tarefas') {
-        requestPayload.include_subtasks = true;
-        log.info(`[POLL] Comando tarefas detectado - solicitando subtarefas`);
-      }
-
-      const apiResponse = await axios.post(apiUrl, requestPayload, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
-        },
-        timeout: 30000
-      });
-
-      log.info(`[POLL] Resposta da API recebida: ${JSON.stringify(apiResponse.data).substring(0, 200)}`);
-
-      if (apiResponse && apiResponse.data && apiResponse.data.message) {
-        await safeSendMessage(sock, jid, { text: apiResponse.data.message });
-        log.success(`[POLL] ✅ Comando ${command} executado via poll (${pollCtx.type})`);
-      } else {
-        log.warn(`[POLL] API não retornou mensagem na resposta`);
-      }
-    } catch (apiError) {
-      log.error(`[POLL] Erro ao processar comando da poll: ${apiError.message}`);
-      if (apiError.response) {
-        log.error(`[POLL] Resposta de erro: ${JSON.stringify(apiError.response.data)}`);
-      }
-      try {
-        await safeSendMessage(sock, jid, {
-          text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.`
-        });
-      } catch (sendError) {
-        log.error(`[POLL] Erro ao enviar mensagem de erro: ${sendError.message}`);
-      }
-    }
   } catch (error) {
     log.error(`[POLL] Erro ao processar voto: ${error.message}`);
   }
@@ -2644,106 +2579,70 @@ async function processAdminCommand(from, text, msg = null) {
 
     // Apenas Rastreamento (/)
     const prefix = text.charAt(0);
-    // Ignorar comandos que começam com !
-    if (prefix === '!') return null;
-
-    // Verificar se é comando de admin de grupo
-    if (msg) {
-      const commandLower = text.split(' ')[0].toLowerCase();
-      // ... (rest of group admin logic)
-    }
+    // Ignorar comandos que não começam com / (rastreamento) ou comandos de admin de grupo ($)
+    if (prefix !== '/') return null;
 
     const apiUrl = RASTREAMENTO_API_URL;
     const apiToken = RASTREAMENTO_TOKEN;
     const projectName = 'Rastreamento';
 
     log.info(`[${projectName}] Comando de ${fromNumber}: ${text}`);
-    log.info(`[${projectName}] Usando token: ${apiToken.substring(0, 4)}***`);
 
     const parts = text.trim().split(/\s+/);
-    // Rastreamento espera SEM prefixo
+    // Rastreamento espera o comando sem a "/"
     const commandToSend = parts[0].substring(1).toLowerCase();
     const params = parts.slice(1);
-    // Fallback: enviar para API normalmente
-  }
+
+    // Preparar payload da requisição
+    const requestPayload = {
+      command: commandToSend,
+      params,
+      from: fromNumber
+    };
+
+    const response = await axios.post(
+      `${apiUrl}/admin_bot_api.php`,
+      requestPayload,
+      {
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+
+    const result = response.data;
+
+    // Verificar se a API pede uma foto
+    if (result.waiting_photo && result.photo_codigo) {
+      waitingPhoto.set(from, {
+        codigo: result.photo_codigo,
+        timestamp: Date.now()
+      });
+
+      // Remover automaticamente se não enviar em 5 minutos
+      setTimeout(() => {
+        if (waitingPhoto.get(from)?.codigo === result.photo_codigo) {
+          waitingPhoto.delete(from);
+        }
+      }, 5 * 60 * 1000);
     }
 
-// Se for comando !comprovante do financeiro, aguardar foto
-if (isFinanceiro && commandWithPrefix === '!comprovante' && params.length > 0) {
-  const transactionId = params[0];
-  waitingPhoto.set(from, {
-    transactionId,
-    isFinanceiro: true,
-    timestamp: Date.now()
-  });
-  return {
-    success: true,
-    message: '📸 Envie o comprovante agora (foto ou documento)',
-    waiting_photo: true,
-    photo_transaction_id: transactionId
-  };
-}
+    // Atualizar heartbeat
+    lastHeartbeat = Date.now();
 
-// Preparar payload da requisição
-const requestPayload = {
-  command: commandToSend,
-  params,
-  from: fromNumber
-};
-
-
-
-const response = await axios.post(
-  `${apiUrl}/admin_bot_api.php`,
-  requestPayload,
-  {
-    headers: {
-      'Authorization': `Bearer ${apiToken}`,
-      'Content-Type': 'application/json'
-    },
-    timeout: 30000
-  }
-);
-
-const result = response.data;
-
-// Suporte tanto para rastreamento (photo_codigo) quanto financeiro (transaction_id)
-if (result.waiting_photo) {
-  if (result.photo_codigo) {
-    // Rastreamento
-    waitingPhoto.set(from, {
-      codigo: result.photo_codigo,
-      isFinanceiro: false,
-      timestamp: Date.now()
-    });
-  } else if (result.photo_transaction_id || result.transaction_id) {
-    // Financeiro
-    waitingPhoto.set(from, {
-      transactionId: result.photo_transaction_id || result.transaction_id,
-      isFinanceiro: true,
-      timestamp: Date.now()
-    });
-  }
-
-  setTimeout(() => {
-    waitingPhoto.delete(from);
-  }, 5 * 60 * 1000);
-}
-
-// Atualizar heartbeat
-lastHeartbeat = Date.now();
-
-return result;
+    return result;
   } catch (error) {
-  log.error(`Erro comando: ${error.message}`);
-  if (error.response) {
-    log.error(`Resposta da API: ${JSON.stringify(error.response.data)}`);
+    log.error(`[RASTREAMENTO] Erro no comando: ${error.message}`);
+    if (error.response) {
+      log.error(`[RASTREAMENTO] Resposta da API: ${JSON.stringify(error.response.data)}`);
+    }
+    return {
+      success: false,
+      message: '❌ Erro ao processar comando rastreamento.\n' + (error.response?.data?.message || error.response?.data?.error || error.message)
+    };
   }
-  return {
-    success: false,
-    message: '❌ Erro ao processar comando.\n' + (error.response?.data?.message || error.response?.data?.error || error.message)
-  };
-}
 }
 
 async function processPhotoUpload(from, msg) {
@@ -2770,41 +2669,8 @@ async function processPhotoUpload(from, msg) {
     const fromNumber = from.replace('@s.whatsapp.net', '').replace('@lid', '').replace(/:.+$/, '');
     const form = new FormData();
 
-    // Determinar qual formato usar (rastreamento ou financeiro)
-    if (waiting.isFinanceiro && waiting.transactionId) {
-      // Formato financeiro
-      const apiToken = FINANCEIRO_TOKEN;
-      form.append('photo', buffer, {
-        filename: `comprovante_${waiting.transactionId}_${Date.now()}.jpg`,
-        contentType: 'image/jpeg'
-      });
-      form.append('transaction_id', waiting.transactionId);
-      form.append('phone', fromNumber);
-
-      const response = await axios.post(
-        `${FINANCEIRO_API_URL}/admin_bot_photo.php`,
-        form,
-        {
-          headers: {
-            ...form.getHeaders(),
-            'Authorization': `Bearer ${apiToken}`
-          },
-          timeout: 30000
-        }
-      );
-
-      waitingPhoto.delete(from);
-
-      if (response.data.success) {
-        await safeSendMessage(sock, from, {
-          text: `✅ Comprovante anexado ao ID #${waiting.transactionId}`
-        });
-      } else {
-        await safeSendMessage(sock, from, {
-          text: `❌ Erro ao anexar comprovante: ${response.data.error || 'Erro desconhecido'}`
-        });
-      }
-    } else if (waiting.codigo) {
+    // Processar upload de foto para Rastreamento
+    if (waiting.codigo) {
       // Formato rastreamento
       form.append('foto_pedido', buffer, {
         filename: `${waiting.codigo}.jpg`,
@@ -3302,45 +3168,8 @@ async function start() {
           log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
 
           // Processar comando automaticamente
-          try {
-            const apiUrl = `${FINANCEIRO_API_URL}/admin_bot_api.php`;
-            log.info(`[POLL] Enviando requisição para: ${apiUrl}`);
-            const apiResponse = await axios.post(apiUrl, {
-              phone: phoneNumber,
-              command: command,
-              args: [],
-              message: command,
-              source: 'poll',
-              pollContext: pollCtx.type
-            }, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${FINANCEIRO_TOKEN}`
-              },
-              timeout: 30000
-            });
-
-            log.info(`[POLL] Resposta da API recebida: ${JSON.stringify(apiResponse.data).substring(0, 200)}`);
-
-            if (apiResponse && apiResponse.data && apiResponse.data.message) {
-              await safeSendMessage(sock, jid, { text: apiResponse.data.message });
-              log.success(`[POLL] ✅ Comando ${command} executado via poll (${pollCtx.type})`);
-            } else {
-              log.warn(`[POLL] API não retornou mensagem na resposta`);
-            }
-          } catch (apiError) {
-            log.error(`[POLL] Erro ao processar comando da poll: ${apiError.message}`);
-            if (apiError.response) {
-              log.error(`[POLL] Resposta de erro: ${JSON.stringify(apiError.response.data)}`);
-            }
-            try {
-              await safeSendMessage(sock, jid, {
-                text: `❌ Erro ao processar sua escolha. Digite ${command} manualmente.`
-              });
-            } catch (sendError) {
-              log.error(`[POLL] Erro ao enviar mensagem de erro: ${sendError.message}`);
-            }
-          }
+          // OBS: O sistema de automação de polls para o projeto Financeiro foi removido.
+          log.info(`[POLL] Voto recebido para comando: ${command}. Nenhuma automação configurada.`);
         } catch (error) {
           log.error(`[POLL] Erro ao processar atualização de poll: ${error.message}`);
           if (error.stack) {
