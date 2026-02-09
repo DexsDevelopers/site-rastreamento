@@ -263,11 +263,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
                         <div class="input-group">
                             <i class="fas fa-barcode"></i>
                             <input type="text" name="codigo" placeholder="Código de rastreio" maxlength="12"
-                                class="tracking-input" required>
+                                class="tracking-input"
+                                value="<?= isset($_GET['codigo']) ? htmlspecialchars($_GET['codigo']) : ''?>" required>
                         </div>
                         <div class="input-group">
                             <i class="fas fa-city"></i>
-                            <input type="text" name="cidade" placeholder="Sua cidade" class="tracking-input" required>
+                            <input type="text" name="cidade" placeholder="Sua cidade" class="tracking-input"
+                                value="<?= isset($_GET['cidade']) ? htmlspecialchars($_GET['cidade']) : ''?>" required>
                         </div>
                         <button type="submit" class="btn-track cursor-pointer">
                             <i class="fas fa-search-location"></i> Rastrear agora
