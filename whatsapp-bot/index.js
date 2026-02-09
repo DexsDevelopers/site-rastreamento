@@ -4369,3 +4369,10 @@ log.info(`Heartbeat: ${HEARTBEAT_INTERVAL / 1000}s | Ping: ${PING_INTERVAL / 100
 
 // Iniciar Loops Extras
 startMarketingLoop();
+
+// INICIAR O BOT
+log.info('Chamando função start()...');
+start().catch((err) => {
+  log.error(`Erro crítico ao iniciar bot: ${err.message}`);
+  log.error(err.stack);
+});
