@@ -1034,7 +1034,7 @@ endif; ?>
         }
 
         // Processar sucesso/erro
-        <? php if ($success): ?>
+        <?php if ($success): ?>
             Swal.fire({
                 title: '✅ Pedido Enviado!',
                 html: `
@@ -1047,12 +1047,12 @@ endif; ?>
                             <i class="fab fa-whatsapp"></i> Enviamos uma mensagem no seu WhatsApp! Nossa equipe entrará em contato em breve.
                         </p>
                         <?php
-else: ?>
+    else: ?>
                         <p style="font-size: 14px; color: #888;">
                             Aguarde nosso contato via WhatsApp. Nossa equipe entrará em contato em breve para finalizar seu pedido.
                         </p>
                         <?php
-endif; ?>
+    endif; ?>
                     </div>
                 `,
                 icon: 'success',
@@ -1063,9 +1063,10 @@ endif; ?>
             }).then(() => {
                 window.location.href = 'pedido.php';
             });
-        <? php endif; ?>
+        <?php
+endif; ?>
 
-        <? php if ($error): ?>
+        <?php if ($error): ?>
             Swal.fire({
                 title: '❌ Erro',
                 text: '<?= addslashes($error)?>',
@@ -1075,7 +1076,8 @@ endif; ?>
                 color: '#ffffff',
                 confirmButtonColor: '#0055FF'
             });
-        <? php endif; ?>
+        <?php
+endif; ?>
     </script>
 </body>
 
