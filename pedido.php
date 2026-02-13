@@ -12,6 +12,41 @@ $success = false;
 $error = '';
 $whatsappEnviado = false;
 
+// Inicializar variáveis para manter os dados no formulário em caso de erro
+$nome = $_POST['nome'] ?? '';
+$cpf = $_POST['cpf'] ?? '';
+$telefone = $_POST['telefone'] ?? '';
+$email = $_POST['email'] ?? '';
+$cep = $_POST['cep'] ?? '';
+$estado = $_POST['estado'] ?? '';
+$cidade = $_POST['cidade'] ?? '';
+$bairro = $_POST['bairro'] ?? '';
+$rua = $_POST['rua'] ?? '';
+$numero = $_POST['numero'] ?? '';
+$complemento = $_POST['complemento'] ?? '';
+$observacoes = $_POST['observacoes'] ?? '';
+
+// Função de validação de CPF (Movida para escopo global)
+function isValidCPF($cpf)
+{
+    if (empty($cpf))
+        return false;
+    $cpf = preg_replace('/[^0-9]/', '', $cpf);
+    if (strlen($cpf) != 11)
+        return false;
+    if (preg_match('/(\d)\1{10}/', $cpf))
+        return false;
+    for ($t = 9; $t < 11; $t++) {
+        for ($d = 0, $c = 0; $c < $t; $c++) {
+            $d += $cpf[$c] * (($t + 1) - $c);
+        }
+        $d = ((10 * $d) % 11) % 10;
+        if ($cpf[$c] != $d)
+            return false;
+    }
+    return true;
+}
+
 // Processar formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -30,50 +65,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $observacoes = sanitizeInput($_POST['observacoes'] ?? '');
 
         // Validações básicas
-        if (
-        empty($nome) || empty($cpf) || empty($telefone) || empty($cep) || empty($estado) ||
-        empty($cidade) || empty($bairro) || empty($rua) || empty($numero)
-        ) {
+        if (empty($nome) || empty($cpf) || empty($telefone) || empty($cep) || empty($estado) ||
+        empty($cidade) || empty($bairro) || empty($rua) || empty($numero)) {
             throw new Exception('Por favor, preencha todos os campos obrigatórios.');
         }
 
         // Validar telefone
-        $telefoneOriginal = $telefone;
         $telefone = preg_replace('/[^0-9]/', '', $telefone);
         if (strlen($telefone) < 10) {
             throw new Exception('Telefone inválido.');
         }
 
-        // Validar CPF (Complex Validation)
+        // Validar CPF
         $cpfLimpo = preg_replace('/[^0-9]/', '', $cpf);
-        if (strlen($cpfLimpo) !== 11 || !isValidCPF($cpfLimpo)) {
+        if (!isValidCPF($cpfLimpo)) {
             throw new Exception('O CPF informado é inválido. Por favor, verifique os dados.');
-        }
-
-        function isValidCPF($cpf)
-        {
-            if (empty($cpf))
-                return false;
-            $cpf = preg_replace('/[^0-9]/', '', $cpf);
-            if (strlen($cpf) != 11)
-                return false;
-            if (preg_match('/(\d)\1{10}/', $cpf))
-                return false;
-            for ($t = 9; $t < 11; $t++) {
-                for ($d = 0, $c = 0; $c < $t; $c++) {
-                    $d += $cpf[$c] * (($t + 1) - $c);
-                }
-                $d = ((10 * $d) % 11) % 10;
-                if ($cpf[$c] != $d)
-                    return false;
-            }
-            return true;
         }
 
         // Validar CEP
         $cep = preg_replace('/[^0-9]/', '', $cep);
         if (strlen($cep) !== 8) {
             throw new Exception('CEP inválido. Digite apenas os 8 dígitos.');
+        }
+
+        // VERIFICAÇÃO AUTOMÁTICA DE COLUNA (CORREÇÃO DE SCHEMA)
+        try {
+            $checkCol = $pdo->query("SHOW COLUMNS FROM pedidos_pendentes LIKE 'cpf'");
+            if ($checkCol && $checkCol->rowCount() == 0) {
+                // Coluna não existe, criar
+                $pdo->exec("ALTER TABLE pedidos_pendentes ADD COLUMN cpf VARCHAR(20) NULL AFTER nome");
+            }
+        }
+        catch (Exception $schemaError) {
+        // Ignorar erro de schema se não for possível corrigir, o INSERT vai falhar e mostrar o erro real
         }
 
         // Inserir pedido pendente
@@ -125,7 +149,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         catch (Exception $whatsappError) {
             writeLog("Erro ao enviar WhatsApp para pedido: " . $whatsappError->getMessage(), 'WARNING');
-        // Não interrompe o fluxo se o WhatsApp falhar
         }
 
     }
@@ -692,14 +715,15 @@ endif; ?>
                     <div class="input-group">
                         <label>Nome Completo <span>*</span></label>
                         <input type="text" name="nome" class="input-control" required autocomplete="name"
-                            placeholder="Ex: Maria da Silva Santos">
+                            placeholder="Ex: Maria da Silva Santos" value="<?= htmlspecialchars($nome)?>">
                     </div>
 
                     <div class="form-row">
                         <div class="input-group">
                             <label>CPF <span>*</span></label>
                             <input type="text" name="cpf" id="cpf" class="input-control" required
-                                placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                                placeholder="000.000.000-00" inputmode="numeric" maxlength="14"
+                                value="<?= htmlspecialchars($cpf)?>">
                             <small id="cpf-error"
                                 style="color: #0055FF; display: none; margin-top: 5px; font-weight: 600;">
                                 <i class="fas fa-times-circle"></i> CPF Inválido
@@ -709,14 +733,15 @@ endif; ?>
                         <div class="input-group">
                             <label>WhatsApp <span>*</span></label>
                             <input type="tel" name="telefone" class="input-control" required
-                                placeholder="(11) 99999-9999" autocomplete="tel">
+                                placeholder="(11) 99999-9999" autocomplete="tel"
+                                value="<?= htmlspecialchars($telefone)?>">
                         </div>
                     </div>
 
                     <div class="input-group">
                         <label>E-mail (Opcional)</label>
                         <input type="email" name="email" class="input-control" placeholder="seuemail@exemplo.com"
-                            autocomplete="email">
+                            autocomplete="email" value="<?= htmlspecialchars($email)?>">
                     </div>
                 </div>
 
@@ -729,7 +754,7 @@ endif; ?>
                         <div class="input-group">
                             <label>CEP <span>*</span></label>
                             <input type="text" name="cep" id="cep" class="input-control" required maxlength="9"
-                                placeholder="00000-000" inputmode="numeric">
+                                placeholder="00000-000" inputmode="numeric" value="<?= htmlspecialchars($cep)?>">
                         </div>
 
                         <div class="input-group">
@@ -771,13 +796,13 @@ endif; ?>
                         <div class="input-group">
                             <label>Cidade <span>*</span></label>
                             <input type="text" name="cidade" id="cidade" class="input-control" required
-                                autocomplete="address-level2">
+                                autocomplete="address-level2" value="<?= htmlspecialchars($cidade)?>">
                         </div>
 
                         <div class="input-group">
                             <label>Bairro <span>*</span></label>
                             <input type="text" name="bairro" id="bairro" class="input-control" required
-                                autocomplete="address-level3">
+                                autocomplete="address-level3" value="<?= htmlspecialchars($bairro)?>">
                         </div>
                     </div>
 
@@ -785,24 +810,27 @@ endif; ?>
                         <div class="input-group">
                             <label>Logradouro (Rua/Av) <span>*</span></label>
                             <input type="text" name="rua" id="rua" class="input-control" required
-                                autocomplete="street-address" placeholder="Ex: Rua das Flores">
+                                autocomplete="street-address" placeholder="Ex: Rua das Flores"
+                                value="<?= htmlspecialchars($rua)?>">
                         </div>
 
                         <div class="input-group">
                             <label>Número <span>*</span></label>
-                            <input type="text" name="numero" class="input-control" required placeholder="123">
+                            <input type="text" name="numero" class="input-control" required placeholder="123"
+                                value="<?= htmlspecialchars($numero)?>">
                         </div>
                     </div>
 
                     <div class="input-group">
                         <label>Complemento (Opcional)</label>
-                        <input type="text" name="complemento" class="input-control" placeholder="Apto 101, Bloco A...">
+                        <input type="text" name="complemento" class="input-control" placeholder="Apto 101, Bloco A..."
+                            value="<?= htmlspecialchars($complemento)?>">
                     </div>
 
                     <div class="input-group">
                         <label>Observações para o Entregador</label>
                         <textarea name="observacoes" class="input-control" rows="2" style="resize: none;"
-                            placeholder="Ex: Portão azul, próximo ao mercado..."></textarea>
+                            placeholder="Ex: Portão azul, próximo ao mercado..."><?= htmlspecialchars($observacoes)?></textarea>
                     </div>
                 </div>
 
@@ -932,6 +960,16 @@ endif; ?>
         document.addEventListener('gesturechange', function (e) { e.preventDefault(); });
         document.addEventListener('gestureend', function (e) { e.preventDefault(); });
 
+        // Restore state selection if available
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedState = "<?= htmlspecialchars($estado)?>";
+            if (savedState) {
+                const stateSelect = document.getElementById('estado');
+                if (stateSelect) stateSelect.value = savedState;
+            }
+        });
+
+
         // Loading state do formulário
         function handleSubmit(e) {
             const form = document.getElementById('pedidoForm');
@@ -1009,12 +1047,12 @@ endif; ?>
                             <i class="fab fa-whatsapp"></i> Enviamos uma mensagem no seu WhatsApp! Nossa equipe entrará em contato em breve.
                         </p>
                         <?php
-    else: ?>
+else: ?>
                         <p style="font-size: 14px; color: #888;">
                             Aguarde nosso contato via WhatsApp. Nossa equipe entrará em contato em breve para finalizar seu pedido.
                         </p>
                         <?php
-    endif; ?>
+endif; ?>
                     </div>
                 `,
                 icon: 'success',
@@ -1025,8 +1063,7 @@ endif; ?>
             }).then(() => {
                 window.location.href = 'pedido.php';
             });
-        <? php
-endif; ?>
+        <? php endif; ?>
 
         <? php if ($error): ?>
             Swal.fire({
@@ -1038,8 +1075,7 @@ endif; ?>
                 color: '#ffffff',
                 confirmButtonColor: '#0055FF'
             });
-        <? php
-endif; ?>
+        <? php endif; ?>
     </script>
 </body>
 
