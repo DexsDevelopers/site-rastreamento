@@ -412,6 +412,15 @@ try {
                 </div>
             </div>
 
+            <div style="margin-bottom: 3rem; background: rgba(59, 130, 246, 0.05); border: 1px solid var(--border); border-radius: 20px; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
+                <div style="display: flex; gap: 2rem;">
+                    <span><i class="fas fa-link" style="color: var(--primary);"></i> <b>API:</b> <?= parse_url($apiConfig['base_url'], PHP_URL_HOST) ?></span>
+                    <span><i class="fas fa-shield-halved" style="color: var(--success);"></i> <b>AUTH:</b> JWT-Secure</span>
+                    <span><i class="fas fa-microchip" style="color: var(--text-dim);"></i> <b>Engine:</b> Baileys v6.7.x</span>
+                </div>
+                <div style="color: var(--text-dim);">Modo: <b>Elite Tracking v2.0</b></div>
+            </div>
+
             <div class="hero-grid">
                 <div class="glass-panel">
                     <h3 style="margin: 0 0 2rem; display:flex; align-items:center; gap:0.75rem;">

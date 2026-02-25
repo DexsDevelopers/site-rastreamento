@@ -1277,13 +1277,17 @@ async function processPollVote(messageId, jid, selectedOptionIndex, pollCtx) {
 
     log.info(`[POLL] Executando comando: ${command} (contexto: ${pollCtx.type})`);
 
-    // Processar comando automaticamente
-    // OBS: O sistema de automação de polls para o projeto Financeiro foi removido.
-    // Se houver necessidade de automação de polls para Rastreamento, implementar aqui.
-    log.info(`[POLL] Voto recebido para comando: ${command}. Nenhuma automação configurada.`);
+    // Processar comando automaticamente para Rastreamento
+    if (command && (command.startsWith('/') || command.startsWith('!'))) {
+      log.info(`[POLL] Encaminhando comando para processAdminCommand: ${command}`);
+      const result = await processAdminCommand(jid, command, null);
+      if (result && result.message) {
+        await safeSendMessage(sock, jid, { text: result.message });
+      }
+      return;
+    }
 
-    // Opcional: Enviar mensagem de confirmação se necessário
-    // await safeSendMessage(sock, jid, { text: `✅ Você escolheu: ${command}` });
+    log.info(`[POLL] Voto recebido para comando: ${command}. Nenhuma automação específica além de forwarding.`);
 
   } catch (error) {
     log.error(`[POLL] Erro ao processar voto: ${error.message}`);
@@ -3386,6 +3390,57 @@ async function start() {
           return;
         }
 
+        // NOVO: Menu Interativo Inteligente (Poll)
+        const lowerText = textTrimmed.toLowerCase();
+        const menuWords = ['bot', 'menu', 'ajuda', 'oi', 'ola', 'hello', 'hi', 'start', 'inicio'];
+        if (menuWords.includes(lowerText)) {
+          log.info(`[MENU] Enviando menu interativo para ${remoteJid}`);
+          try {
+            const pollOptions = [
+              '📦 Rastrear Pedido',
+              '💰 Ver Minhas Taxas',
+              '📸 Foto do Pedido',
+              '❓ Dúvidas Frequentes',
+              '📞 Falar com Atendente'
+            ];
+            // Mapear opções para comandos internos
+            const commandMap = {
+              0: '/rastrear',
+              1: '/taxa',
+              2: '/foto',
+              3: '/ajuda',
+              4: '/suporte'
+            };
+            await sendPoll(sock, remoteJid, "Olá! Sou seu assistente de logística. Como posso te ajudar hoje? 🚚💨", pollOptions, { type: 'main_menu', commandMap });
+            return;
+          } catch (e) {
+            log.error(`[MENU] Erro ao enviar poll: ${e.message}`);
+            // Fallback para texto se poll falhar
+            await safeSendMessage(sock, remoteJid, { text: "🤖 *MENU DE ATENDIMENTO*\n\nDigite o código de rastreio diretamente ou use:\n\n*/rastrear* CODIGO\n*/taxa* CODIGO\n*/foto* CODIGO\n*/ajuda*" });
+            return;
+          }
+        }
+
+        // NOVO: Detecção Inteligente de Código (Smart-Tracking)
+        // Padrão: 2 letras + 9 números + 2 letras (Internacional)
+        const trackRegex = /\b[A-Za-z]{2}\d{9}[A-Za-z]{2}\b/;
+        const match = textTrimmed.match(trackRegex);
+        if (match && !isCommand) {
+          const codigo = match[0].toUpperCase();
+          log.info(`[SMART-TRACK] Código detectado automaticamente: ${codigo}`);
+
+          // Simular digitação para parecer humano
+          try { await sock.sendPresenceUpdate('composing', remoteJid); } catch (e) { }
+          await new Promise(r => setTimeout(r, 1500));
+
+          const result = await processAdminCommand(remoteJid, `/rastrear ${codigo}`, msg);
+          if (result && result.message) {
+            await safeSendMessage(sock, remoteJid, { text: result.message });
+          }
+          return;
+        }
+
+
         // ===== AUTO ENTRAR EM GRUPOS (PRIVATE CHAT ONLY) =====
         const isGroup = isGroupJid(remoteJid);
 
@@ -3838,11 +3893,11 @@ app.post('/logout', auth, async (req, res) => {
   try {
     isReady = false;
     stopHeartbeat();
-    
+
     if (sock) {
       log.info('Solicitando logout do socket...');
-      try { await sock.logout(); } catch (e) {}
-      try { sock.end(); } catch (e) {}
+      try { await sock.logout(); } catch (e) { }
+      try { sock.end(); } catch (e) { }
     }
 
     // Aguardar um pouco para garantir que o socket fechou
@@ -3853,12 +3908,12 @@ app.post('/logout', auth, async (req, res) => {
       fs.rmSync(authPath, { recursive: true, force: true });
       log.success('Pasta de autenticação removida com sucesso');
     }
-    
-    res.json({ 
-        ok: true, 
-        message: 'Sessão encerrada com sucesso! O bot será reiniciado agora para gerar um novo QR Code.' 
+
+    res.json({
+      ok: true,
+      message: 'Sessão encerrada com sucesso! O bot será reiniciado agora para gerar um novo QR Code.'
     });
-    
+
     // Encerrar processo - o PM2 irá reiniciar automaticamente
     setTimeout(() => {
       log.info('Reiniciando processo via PM2...');

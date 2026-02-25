@@ -78,12 +78,30 @@ define('LOG_QUERIES', false);
 date_default_timezone_set('America/Sao_Paulo');
 
 // Headers de segurança
-if (!headers_sent()) {
+    // Headers de segurança com CSP flexível para o Bot
+    $botUrl = getDynamicConfig('WHATSAPP_API_URL', '');
+    $botDomain = '';
+    if ($botUrl) {
+        $parsed = parse_url($botUrl);
+        if (isset($parsed['host'])) {
+            $botDomain = $parsed['scheme'] . '://' . $parsed['host'];
+        }
+    }
+
     header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: DENY');
+    header('X-Frame-Options: SAMEORIGIN'); // Permitir iframes do mesmo domínio (melhor que DENY aqui)
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
-    header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com; style-src \'self\' \'unsafe-inline\' cdnjs.cloudflare.com fonts.googleapis.com; font-src \'self\' fonts.gstatic.com; img-src \'self\' data:;');
+    
+    $csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; ";
+    $csp .= "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; ";
+    $csp .= "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com fonts.googleapis.com; ";
+    $csp .= "font-src 'self' fonts.gstatic.com data:; ";
+    $csp .= "img-src 'self' data: *; "; // Permitir imagens de qualquer lugar (fotos de rastreio, qrs)
+    $csp .= "frame-src 'self' " . ($botDomain ?: "*") . " ; "; // Permitir iframe do bot
+    $csp .= "connect-src 'self' *; ";
+    
+    header("Content-Security-Policy: $csp");
 }
 
 // Função para obter configuração
