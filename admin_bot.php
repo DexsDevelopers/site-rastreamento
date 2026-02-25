@@ -601,9 +601,8 @@ endif; ?>
 
                         <?php if (!$botStatus['ready']): ?>
                         <div class="qr-section">
-                            <div class="qr-frame">
-                                <iframe src="<?= htmlspecialchars($qrCodeUrl)?>" width="200" height="230"
-                                    scrolling="no"></iframe>
+                            <div class="qr-frame" id="qrContainer" style="min-height: 230px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px;">
+                                <iframe id="qrIframe" src="<?= htmlspecialchars($qrCodeUrl) ?>" width="200" height="230" scrolling="no" style="border:none;"></iframe>
                             </div>
                             <p class="waiting-msg">Escaneie o QR Code<br>com o WhatsApp</p>
 
