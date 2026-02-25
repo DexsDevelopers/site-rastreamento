@@ -1,7 +1,7 @@
 <?php
 /**
  * Configurações do Sistema Loggi
- * Arquivo centralizado de configurações
+ * Arquivo centralizado de configurações - v1.0.1
  */
 
 // Configurações de segurança
