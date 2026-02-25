@@ -933,7 +933,7 @@ $semTaxa = $totalRastreios - $comTaxa;
     <title>Painel Admin - Loggi</title>
     <meta name="theme-color" content="#0055FF">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="assets/images/whatsapp-1.jpg">
+    <link rel="apple-touch-icon" href="assets/images/logo.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Helmer Admin">

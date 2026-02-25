@@ -34,24 +34,24 @@ try {
         ['badge_satisfacao', '98.7% de Satisfação', 'text', 'Texto do badge de satisfação'],
         ['badge_entregas', '5.247 Entregas', 'text', 'Texto do badge de entregas'],
         ['badge_cidades', '247 Cidades', 'text', 'Texto do badge de cidades'],
-        ['referencia_imagem_1', 'assets/images/whatsapp-1.jpg', 'image', 'Imagem de referência 1'],
-        ['referencia_nome_1', 'Luiz Gabriel - Petrópolis', 'text', 'Nome da referência 1'],
-        ['referencia_desc_1', 'Sistema de rastreamento básico funcionando perfeitamente', 'text', 'Descrição da referência 1'],
-        ['referencia_imagem_2', 'assets/images/whatsapp-2.jpg', 'image', 'Imagem de referência 2'],
-        ['referencia_nome_2', 'juuh santts - Ubá', 'text', 'Nome da referência 2'],
-        ['referencia_desc_2', 'Monitoramento oficial com status detalhado', 'text', 'Descrição da referência 2'],
-        ['referencia_imagem_3', 'assets/images/whatsapp-3.jpg', 'image', 'Imagem de referência 3'],
-        ['referencia_nome_3', 'RKZIN - Jardim Camburi', 'text', 'Nome da referência 3'],
-        ['referencia_desc_3', 'Sistema oficial de monitoramento em tempo real', 'text', 'Descrição da referência 3'],
-        ['referencia_imagem_4', 'assets/images/whatsapp-4.jpg', 'image', 'Imagem de referência 4'],
-        ['referencia_nome_4', 'Vitor João - AdolfoSP', 'text', 'Nome da referência 4'],
-        ['referencia_desc_4', 'Monitoramento com interface integrada ao WhatsApp', 'text', 'Descrição da referência 4'],
-        ['referencia_imagem_5', 'assets/images/whatsapp-5.jpg', 'image', 'Imagem de referência 5'],
-        ['referencia_nome_5', '', 'text', 'Nome da referência 5'],
-        ['referencia_desc_5', '', 'text', 'Descrição da referência 5'],
-        ['referencia_imagem_6', 'assets/images/whatsapp-6.jpg', 'image', 'Imagem de referência 6'],
-        ['referencia_nome_6', '', 'text', 'Nome da referência 6'],
-        ['referencia_desc_6', '', 'text', 'Descrição da referência 6'],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Seção "Como funciona"
         ['how_it_works_title', 'Como funciona', 'text', 'Título da seção Como funciona'],
         ['feature1_title', '1) Rastreie', 'text', 'Título do Feature 1'],
@@ -83,4 +83,5 @@ try {
 }
 
 echo "</pre>";
+
 

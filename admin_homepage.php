@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin - Configurações da Página Inicial
- * Editar nome, badges, fotos de referência, etc.
+ * Editar nome, badges, etc.
  */
 
 require_once 'includes/config.php';
@@ -252,7 +252,7 @@ $badgeCidades = $configArray['badge_cidades'] ?? '247 Cidades';
                 <h1 class="text-3xl font-bold mb-2">
                     <i class="fas fa-home"></i> Configurações da Página Inicial
                 </h1>
-                <p class="text-gray-400">Edite o nome, badges, fotos de referência e outros elementos da página inicial
+                <p class="text-gray-400">Edite o nome, badges e outros elementos da página inicial
                 </p>
             </div>
             <a href="admin.php" class="btn btn-primary">
