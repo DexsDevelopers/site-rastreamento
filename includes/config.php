@@ -78,30 +78,12 @@ define('LOG_QUERIES', false);
 date_default_timezone_set('America/Sao_Paulo');
 
 // Headers de segurança
-    // Headers de segurança com CSP flexível para o Bot
-    $botUrl = getDynamicConfig('WHATSAPP_API_URL', '');
-    $botDomain = '';
-    if ($botUrl) {
-        $parsed = parse_url($botUrl);
-        if (isset($parsed['host'])) {
-            $botDomain = $parsed['scheme'] . '://' . $parsed['host'];
-        }
-    }
-
+if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: SAMEORIGIN'); // Permitir iframes do mesmo domínio (melhor que DENY aqui)
+    header('X-Frame-Options: SAMEORIGIN');
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
-    
-    $csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; ";
-    $csp .= "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; ";
-    $csp .= "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com fonts.googleapis.com; ";
-    $csp .= "font-src 'self' fonts.gstatic.com data:; ";
-    $csp .= "img-src 'self' data: *; "; // Permitir imagens de qualquer lugar (fotos de rastreio, qrs)
-    $csp .= "frame-src 'self' " . ($botDomain ?: "*") . " ; "; // Permitir iframe do bot
-    $csp .= "connect-src 'self' *; ";
-    
-    header("Content-Security-Policy: $csp");
+    header("Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com fonts.googleapis.com; font-src 'self' fonts.gstatic.com data:; img-src 'self' data: *; frame-src 'self' *; connect-src 'self' *;");
 }
 
 // Função para obter configuração

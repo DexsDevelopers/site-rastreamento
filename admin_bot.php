@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 /**
  * Painel do Bot WhatsApp - Rastreamento PREMIUM ELITE
  * Interface de Comando Centralizada
