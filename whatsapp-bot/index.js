@@ -2753,7 +2753,7 @@ async function start() {
       auth: state,
       logger: silentLogger,
       version,
-      browser: Browsers.appropriate('Desktop'),
+      browser: ['Rastreamento Premium', 'Chrome', '111.0.0.0'],
       connectTimeoutMs: 60000,
       keepAliveIntervalMs: 20000,  // Keep-alive mais frequente (20s)
       retryRequestDelayMs: 500,
@@ -3830,6 +3830,45 @@ app.post('/reset-loop', auth, async (req, res) => {
   disconnectTimestamps = [];
   reconnectAttempts = 0;
   res.json({ ok: true, message: 'Estado de loop resetado. Use /reconnect para reconectar.' });
+});
+
+// Logout (Limpar sessão e gerar novo QR) - Útil para sessões travadas
+app.post('/logout', auth, async (req, res) => {
+  log.warn('🚨 SOLICITAÇÃO DE LOGOUT COMPLETO VIA API');
+  try {
+    isReady = false;
+    stopHeartbeat();
+    
+    if (sock) {
+      log.info('Solicitando logout do socket...');
+      try { await sock.logout(); } catch (e) {}
+      try { sock.end(); } catch (e) {}
+    }
+
+    // Aguardar um pouco para garantir que o socket fechou
+    await new Promise(r => setTimeout(r, 1000));
+
+    log.warn(`Limpando pasta de autenticação: ${authPath}`);
+    if (fs.existsSync(authPath)) {
+      fs.rmSync(authPath, { recursive: true, force: true });
+      log.success('Pasta de autenticação removida com sucesso');
+    }
+    
+    res.json({ 
+        ok: true, 
+        message: 'Sessão encerrada com sucesso! O bot será reiniciado agora para gerar um novo QR Code.' 
+    });
+    
+    // Encerrar processo - o PM2 irá reiniciar automaticamente
+    setTimeout(() => {
+      log.info('Reiniciando processo via PM2...');
+      process.exit(0);
+    }, 2000);
+
+  } catch (error) {
+    log.error(`Erro ao realizar logout: ${error.message}`);
+    res.status(500).json({ ok: false, error: error.message });
+  }
 });
 
 // Recarregar automações

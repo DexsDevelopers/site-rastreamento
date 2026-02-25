@@ -25,6 +25,8 @@ if (isset($_GET['action'])) {
             $endpoint = '/reconnect';
         if ($action === 'reset_loop')
             $endpoint = '/reset-loop';
+        if ($action === 'logout')
+            $endpoint = '/logout';
 
         if ($endpoint) {
             $ch = curl_init($apiConfig['base_url'] . $endpoint);
@@ -296,356 +298,288 @@ catch (Exception $e) {
             background: white;
             padding: 10px;
             border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 1rem;
+        :root {
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --bg-deep: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-surface: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(15, 23, 42, 0.8);
         }
 
-        .qr-frame iframe {
-            display: block;
-            border: none;
-            border-radius: 8px;
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
         }
 
-        .qr-section .waiting-msg {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .troubleshoot-btn {
-            display: block;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
-            text-decoration: underline;
-            cursor: pointer;
+        /* Sidebar Glassmorphism */
+        .sidebar {
+            width: 280px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
         }
 
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--text-main);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+        }
+
+        .nav-item.active i {
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            max-width: 1400px;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-title h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Dashboard Elite Cards */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
+            margin-bottom: 2.5rem;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
             padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
         }
 
         .stat-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-3px);
+            transform: translateY(-5px);
+            border-color: var(--primary);
         }
 
         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            margin: 0 auto 1rem;
-        }
-
-        .stat-icon.green {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-
-        .stat-icon.blue {
-            background: rgba(59, 130, 246, 0.15);
-            color: #3b82f6;
-        }
-
-        .stat-icon.purple {
-            background: rgba(139, 92, 246, 0.15);
-            color: #8b5cf6;
-        }
-
-        .stat-icon.orange {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 800;
-            color: white;
-            margin-bottom: 0.25rem;
         }
 
         .stat-label {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9rem;
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .quick-actions {
+        /* Bot Status Hero */
+        .bot-hero {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
         }
 
-        .action-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 1.5rem;
+        .hero-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-card {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-decoration: none;
-            color: white;
-            transition: all 0.3s;
-        }
-
-        .action-card:hover {
-            background: rgba(0, 85, 255, 0.1);
-            border-color: rgba(0, 85, 255, 0.3);
-            transform: translateX(5px);
-        }
-
-        .action-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 85, 255, 0.15);
-            border-radius: 12px;
-            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            color: #0055FF;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2rem;
+            color: #0f172a;
         }
 
-        .action-info h4 {
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .action-info p {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.85rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 1rem;
+        .qr-placeholder {
+            width: 250px;
+            height: 250px;
+            background: #f1f5f9;
+            border-radius: 12px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: center;
+            gap: 1rem;
+            border: 2px dashed #cbd5e1;
         }
 
-        .section-title i {
-            color: #0055FF;
+        /* Buttons Elite */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            text-decoration: none;
         }
 
-        .debug-info {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 2rem;
-            font-family: monospace;
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
-            display: none;
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px var(--primary-glow);
         }
 
-        .debug-info.show {
-            display: block;
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px var(--primary-glow);
         }
 
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-weight: 500;
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
-        .alert-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
         }
 
-        .alert-error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        /* Logs Section */
+        .logs-window {
+            background: #000000;
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        @media (max-width: 768px) {
-            .status-hero {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
+        .log-entry { margin-bottom: 0.25rem; }
+        .log-time { color: #64748b; margin-right: 0.5rem; }
+        .log-info { color: #3b82f6; }
+        .log-warn { color: #f59e0b; }
+        .log-error { color: #ef4444; font-weight: bold; }
 
-            .status-details {
-                justify-content: center;
-            }
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); transition: 0.3s; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .bot-hero { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 
 <body>
     <div class="admin-wrapper">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
-                <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <i class="fas fa-robot"></i> Bot WhatsApp
-                </div>
-                <button class="mobile-close-btn" onclick="toggleSidebar()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <i class="fas fa-robot"></i>
+                <span>BOT PREMIUM</span>
             </div>
 
-            <nav class="sidebar-menu">
-                <div class="menu-label">Bot Rastreamento</div>
+            <nav>
                 <a href="admin_bot.php" class="nav-item active"><i class="fas fa-gauge-high"></i> Dashboard</a>
-                <a href="admin_bot_logs.php" class="nav-item"><i class="fas fa-scroll"></i> Logs</a>
-                <a href="admin_mensagens.php" class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens</a>
-
-                <div class="menu-label">Sistema</div>
-                <a href="admin.php" class="nav-item"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
+                <a href="admin.php" class="nav-item"><i class="fas fa-box"></i> Rastreios</a>
+                <a href="admin_settings.php" class="nav-item"><i class="fas fa-gears"></i> Configurações</a>
+                <a href="admin_bot_logs.php" class="nav-item"><i class="fas fa-terminal"></i> Histórico Logs</a>
             </nav>
 
-            <div class="sidebar-footer">
-                <a href="admin.php?logout=1" class="nav-item" style="color: var(--primary);"><i
-                        class="fas fa-power-off"></i> Sair</a>
+            <div style="margin-top: auto; padding-top: 2rem;">
+                <a href="admin.php?logout=1" class="nav-item btn-danger">
+                    <i class="fas fa-power-off"></i> Sair do Painel
+                </a>
             </div>
         </aside>
 
-        <!-- Overlay Mobile -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <div style="display:flex; align-items:center; gap:1rem;">
-                    <button class="mobile-toggle" onclick="toggleSidebar()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="header-title">
-                        <h2>Dashboard do Bot</h2>
-                    </div>
+                <div class="header-title">
+                    <h2>Centro de Comando</h2>
+                    <p style="color: var(--text-dim);">Gestão elite de inteligência e logística</p>
                 </div>
-                <div style="display:flex; gap:1rem;">
-                    <button onclick="location.reload()" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
-                        <i class="fas fa-refresh"></i> Atualizar
-                    </button>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="?action=reconnect" class="btn btn-primary">
+                        <i class="fas fa-sync"></i> Sincronizar Agora
+                    </a>
                 </div>
             </header>
 
-            <div class="content-body">
-                <div class="bot-dashboard">
-
-                    <?php if ($message): ?>
-                    <div class="alert alert-<?= $msgType?>">
-                        <?= htmlspecialchars($message)?>
-                    </div>
-                    <?php
-endif; ?>
-
-                    <!-- Status Principal -->
-                    <div class="status-hero">
-                        <div>
-                            <div class="status-indicator">
-                                <?php if ($botStatus['ready']): ?>
-                                <div class="status-dot online"></div>
-                                <span class="status-text">✅ Bot Conectado</span>
-                                <?php
-elseif ($botStatus['online']): ?>
-                                <div class="status-dot waiting"></div>
-                                <span class="status-text">⏳ Aguardando Conexão</span>
-                                <?php
-else: ?>
-                                <div class="status-dot offline"></div>
-                                <span class="status-text">❌ Bot Offline</span>
-                                <?php
-endif; ?>
-                            </div>
-
-                            <div class="status-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Uptime</span>
-                                    <span class="detail-value">
-                                        <?= htmlspecialchars($botStatus['uptimeFormatted'])?>
-                                    </span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Memória</span>
-                                    <span class="detail-value">
-                                        <?= $botStatus['memoryMB']?> MB
-                                    </span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Reconexões</span>
-                                    <span class="detail-value">
-                                        <?= $botStatus['reconnectAttempts']?>
-                                    </span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Contatos Ativos</span>
-                                    <span class="detail-value">
-                                        <?= $contatosAtivos?>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <?php if (!$botStatus['ready']): ?>
-                        <div class="qr-section">
-                            <div class="qr-frame" id="qrContainer" style="min-height: 230px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px;">
-                                <iframe id="qrIframe" src="<?= htmlspecialchars($qrCodeUrl) ?>" width="200" height="230" scrolling="no" style="border:none;"></iframe>
-                            </div>
-                            <p class="waiting-msg">Escaneie o QR Code<br>com o WhatsApp</p>
-
-                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
-                                <a href="<?= htmlspecialchars($qrCodeUrl)?>" target="_blank" class="btn btn-primary"
-                                    style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                    <i class="fas fa-external-link-alt"></i> Abrir em nova aba
-                                </a>
-
-                                <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                                    <a href="?action=reconnect" class="btn btn-secondary" title="Forçar reconexão"
-                                        style="padding: 0.5rem;">
-                                        <i class="fas fa-plug"></i> Reconectar
-                                    </a>
-                                    <a href="?action=reset_loop" class="btn btn-secondary" title="Resetar Loop"
-                                        style="padding: 0.5rem;">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <?php
-else: ?>
-                        <div class="qr-section" style="background: rgba(16, 185, 129, 0.1);">
-                            <i class="fas fa-check-circle"
-                                style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;"></i>
-                            <p style="color: #10b981; font-weight: 600;">WhatsApp Conectado!</p>
-                            <a href="?action=reconnect"
-                                style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 0.5rem; display: block;">Forçar
-                                Reconexão</a>
-                        </div>
-                        <?php
-endif; ?>
-                    </div>
-
-                    <!-- Estatísticas -->
-                    <div>
-                        <h3 class="section-title"><i class="fas fa-chart-bar"></i> Estatísticas do Bot</h3>
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-icon blue"><i class="fas fa-robot"></i></div>
-                                <div class="stat-value">
-                                    <?= number_format($stats['total_automations'])?>
                                 </div>
                                 <div class="stat-label">Automações</div>
                             </div>
