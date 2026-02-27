@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
-    Users, Plus, Edit, Trash2, Search,
+    Plus, Edit, Trash2, Search,
     RefreshCw, Check, X, Phone, Truck, User
 } from 'lucide-react';
 
@@ -21,7 +21,7 @@ const Entregadores = () => {
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [form, setForm] = useState({ nome: '', telefone: '', veiculo: '', status: 'disponivel' as const });
+    const [form, setForm] = useState({ nome: '', telefone: '', veiculo: '', status: 'disponivel' as 'disponivel' | 'em_rota' | 'indisponivel' });
 
     const showToast = useCallback((msg: string, type: 'success' | 'error') => {
         setToast({ msg, type });
@@ -56,7 +56,7 @@ const Entregadores = () => {
             }
             setModalOpen(false);
             setEditingId(null);
-            setForm({ nome: '', telefone: '', veiculo: '', status: 'disponivel' });
+            setForm({ nome: '', telefone: '', veiculo: '', status: 'disponivel' as 'disponivel' });
             fetchEntregadores();
         } catch (err) {
             showToast('Erro ao salvar entregador', 'error');
@@ -119,7 +119,7 @@ const Entregadores = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button onClick={() => { setForm({ nome: '', telefone: '', veiculo: '', status: 'disponivel' }); setEditingId(null); setModalOpen(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button onClick={() => { setForm({ nome: '', telefone: '', veiculo: '', status: 'disponivel' as 'disponivel' }); setEditingId(null); setModalOpen(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Plus size={18} /> Novo Entregador
                     </button>
                 </div>
