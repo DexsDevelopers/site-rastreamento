@@ -1,47 +1,43 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const db = require('./db');
 const path = require('path');
+const db = require('./db');
 
 dotenv.config();
 
 const app = express();
+// Na Hostinger, a porta é passada automaticamente, mas forçamos 3000 caso não venha
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rota de Teste de Vida e Integração Hostinger
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        message: 'API Node.js rodando perfeitamente! Pronto para a Hostinger.'
+// Rota de Teste Simples (Se isso abrir, o 503 some)
+app.get('/api/test', (req, res) => {
+    res.send('O Backend está ONLINE na Hostinger! 🚀');
+});
+
+// Servir o Frontend (Tenta caminhos diferentes por segurança)
+const distPath = path.join(__dirname, '..', 'webapp', 'dist');
+app.use(express.static(distPath));
+
+// Rota coringa para o React
+app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'), (err) => {
+        if (err) {
+            res.status(500).send("O Frontend (webapp/dist) ainda não foi encontrado no servidor. Verifique se o build foi enviado.");
+        }
     });
 });
 
-// Exemplo de rota buscando do seu banco de dados atual
-app.get('/api/config', async (req, res) => {
-    try {
-        const [rows] = await db.query('SELECT 1 + 1 AS solution');
-        res.json({ status: 'success', database_connected: true, result: rows[0].solution });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: 'error', message: 'Erro ao conectar no banco' });
-    }
+// Tratamento de erro global para o site não cair
+process.on('uncaughtException', (err) => {
+    console.error('Erro Crítico:', err);
 });
 
-// Configurar o Node.js para servir o site visualmente (O Frontend React/Vite)
-app.use(express.static(path.join(__dirname, '../webapp/dist')));
-
-// Qualquer acesso que não for uma API, mandamos para o React lidar (ex: /login, /dashboard)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../webapp/dist/index.html'));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
 
-// Iniciando o servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor Node.js rodando na porta ${PORT}`);
-    console.log(`✅ Conexão com banco preparada para: ${process.env.DB_HOST}`);
-});
