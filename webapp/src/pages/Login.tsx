@@ -29,7 +29,7 @@ const Login = () => {
                     <p style={styles.subtitle}>Acesso restrito &bull; Plataforma Premium</p>
                 </div>
 
-                <form onSubmit={handleLogin} style={styles.form}>
+                <form onSubmit={handleLogin} style={styles.form} noValidate>
                     <div style={styles.inputGroup}>
                         <label style={styles.label}>Loggi ID ou E-mail</label>
                         <div style={styles.inputWrapper}>
