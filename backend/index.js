@@ -16,14 +16,19 @@ const mysql = require('mysql2/promise');
 let db;
 async function connectDB() {
     try {
+        const host = (process.env.DB_HOST === 'localhost' || !process.env.DB_HOST) ? '127.0.0.1' : process.env.DB_HOST;
+        console.log(`📡 Tentando conectar ao banco em: ${host}`);
+
         db = await mysql.createPool({
-            host: process.env.DB_HOST,
+            host: host,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             waitForConnections: true,
             connectionLimit: 10,
-            queueLimit: 0
+            queueLimit: 0,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         });
         console.log('✅ Banco de dados conectado com sucesso!');
     } catch (err) {
