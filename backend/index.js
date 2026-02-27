@@ -423,8 +423,8 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
         const { codigo } = req.params;
 
         // Buscar configuração da API do WhatsApp
-        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
-        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
 
         if (!apiUrl) {
             return res.json({ success: false, message: '❌ URL da API WhatsApp não configurada no .env' });
@@ -546,8 +546,8 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
         const { id } = req.params;
 
         // Buscar configuração da API do WhatsApp
-        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
-        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
 
         if (!apiUrl) return res.json({ success: false, message: '❌ API WhatsApp não configurada.' });
 
@@ -779,8 +779,8 @@ app.post('/api/admin/db-setup', async (req, res) => {
 // 10. WhatsApp Bot Proxy/Management
 app.get('/api/admin/bot/status', async (req, res) => {
     try {
-        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
-        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
         const response = await fetch(`${apiUrl}/status`, {
@@ -800,8 +800,8 @@ app.get('/api/admin/bot/status', async (req, res) => {
 
 app.get('/api/admin/bot/qr', async (req, res) => {
     try {
-        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
-        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
         const response = await fetch(`${apiUrl}/api/qr`, {
@@ -821,8 +821,8 @@ app.get('/api/admin/bot/qr', async (req, res) => {
 
 app.post('/api/admin/bot/restart', async (req, res) => {
     try {
-        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
-        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
         const response = await fetch(`${apiUrl}/reconnect`, {

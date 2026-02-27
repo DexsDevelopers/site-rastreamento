@@ -9,7 +9,7 @@ module.exports = {
             max_memory_restart: '1G', // Reiniciar se usar mais de 1GB
             env_production: {
                 NODE_ENV: 'production',
-                PORT: 3000 // Hostinger geralmente injeta a porta correta, mas deixamos um padrão
+                PORT: 3001 // Bot deve rodar na 3001 para não conflitar com a 3000 do WebServer principal
             },
             error_file: './logs/err.log',
             out_file: './logs/out.log',

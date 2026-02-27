@@ -53,8 +53,7 @@ function isGroupJid(jid) {
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-const PORT = Number(process.env.PORT || process.env.API_PORT || 3000);
+const PORT = Number(process.env.API_PORT || process.env.PORT || 3001); // Fix porta para 3001
 
 // Servir o Frontend Web App (React) que está na pasta webapp/dist
 app.use(express.static(path.join(__dirname, '../webapp/dist')));
