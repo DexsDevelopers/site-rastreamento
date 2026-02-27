@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import LoginCliente from './pages/LoginCliente';
 import Orders from './pages/Orders';
 import Clients from './pages/Clients';
 import Home from './pages/Home';
@@ -18,6 +19,7 @@ function App() {
         <Routes>
           {/* Rotas Públicas (Sem Sidebar) */}
           <Route path="/" element={<Home />} />
+          <Route path="/entrar" element={<LoginCliente />} />
           <Route path="/login" element={<Login />} />
           <Route path="/rastreio" element={<Tracking />} />
           <Route path="/sobre" element={<Sobre />} />
@@ -43,7 +45,6 @@ function App() {
   );
 }
 
-// Layout que envolve as páginas internas com a Sidebar
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
