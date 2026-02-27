@@ -582,10 +582,17 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
 app.get('/api/admin/whatsapp-templates', async (req, res) => {
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const [rows] = await db.query('SELECT * FROM whatsapp_templates');
+
+        let rows = [];
+        try {
+            const [data] = await db.query('SELECT * FROM whatsapp_templates');
+            rows = data;
+        } catch (err) {
+            // Tabela possivelmente não existe, usar fallback
+        }
 
         // Se não houver templates, retornar os padrões
-        if (rows.length === 0) {
+        if (!rows || rows.length === 0) {
             return res.json([
                 { slug: 'rastreio_update', titulo: 'Atualização de Rastreio', mensagem: '📦 *Atualização de Rastreio*\n\nCódigo: {codigo}\nStatus: {status}\n{subtitulo}\n\nAcompanhe seu pedido em nosso site!' },
                 { slug: 'cobranca_pendente', titulo: 'Cobrança de Pedido Pendente', mensagem: 'Olá {nome}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?' }

@@ -62,7 +62,7 @@ function App() {
 
 const AdminLayout = () => {
   return (
-    <div className="app-container" style={{ display: 'flex', width: '100%', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div className="app-container" style={{ display: 'flex', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
       <Sidebar />
       <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
         <Outlet />

@@ -85,10 +85,11 @@ const styles = {
     },
     nav: {
         flex: 1,
+        minHeight: 0,
         padding: '24px 16px',
         display: 'flex',
         flexDirection: 'column' as const,
-        gap: '8px',
+        gap: '6px',
         overflowY: 'auto' as const,
     },
     link: {
@@ -99,12 +100,13 @@ const styles = {
         borderRadius: 'var(--radius-md)',
         color: 'var(--text-secondary)',
         textDecoration: 'none',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.2s ease',
         fontWeight: 500,
+        borderLeft: '3px solid transparent', // Previne shift ao ficar ativo
     },
     linkActive: {
-        background: 'var(--accent-glow)',
-        color: 'var(--text-primary)',
+        background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%)',
+        color: 'var(--accent-primary)',
         borderLeft: '3px solid var(--accent-primary)',
     },
     footer: {

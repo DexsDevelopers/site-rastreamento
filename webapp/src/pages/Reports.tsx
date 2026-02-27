@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { BarChart3, TrendingUp, PieChart, Calendar, Download, Package, Users, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface ReportStats {
@@ -14,17 +15,30 @@ const Reports = () => {
     const [stats, setStats] = useState<ReportStats | null>(null);
 
     useEffect(() => {
-        // Simulação de carregamento de dados para demonstração visual
-        setTimeout(() => {
-            setStats({
-                totalOrders: 1247,
-                deliveredOrders: 980,
-                pendingOrdersPortion: 12, // %
-                newClientsThisMonth: 156,
-                revenueValue: '2.450,00',
-                efficiency: 94.5
-            });
-        }, 1000);
+        const fetchStats = async () => {
+            try {
+                const [statsRes, clientsRes] = await Promise.all([
+                    axios.get('/api/admin/stats'),
+                    axios.get('/api/clients')
+                ]);
+
+                const statsData = statsRes.data || { total: 0, entregues: 0, com_taxa: 0, sem_taxa: 0 };
+                const clientsData = clientsRes.data || [];
+
+                setStats({
+                    totalOrders: statsData.total || 0,
+                    deliveredOrders: statsData.entregues || 0,
+                    pendingOrdersPortion: statsData.com_taxa || 0,
+                    newClientsThisMonth: clientsData.length || 0,
+                    revenueValue: (statsData.com_taxa * 28.50).toFixed(2).replace('.', ','), // Simulação baseada em taxa pendente
+                    efficiency: statsData.total > 0 ? Number(((statsData.entregues / statsData.total) * 100).toFixed(1)) : 0
+                });
+            } catch (err) {
+                console.error("Erro ao buscar estatísticas dos relatórios", err);
+            }
+        };
+
+        fetchStats();
     }, []);
 
     return (
@@ -122,10 +136,9 @@ const Reports = () => {
                     </h3>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <StatusProgress label="Entregue" value={78} color="#22c55e" />
-                        <StatusProgress label="Em Trânsito" value={15} color="#3b82f6" />
-                        <StatusProgress label="Pendentes" value={5} color="#f59e0b" />
-                        <StatusProgress label="Extraviado/Erro" value={2} color="#ef4444" />
+                        <StatusProgress label="Entregue" value={stats?.totalOrders ? Math.round(((stats?.deliveredOrders || 0) / stats.totalOrders) * 100) : 0} color="#22c55e" />
+                        <StatusProgress label="Aguardando Taxa" value={stats?.totalOrders ? Math.round(((stats?.pendingOrdersPortion || 0) / stats.totalOrders) * 100) : 0} color="#f59e0b" />
+                        <StatusProgress label="Em Processamento" value={stats?.totalOrders ? Math.round(((stats.totalOrders - stats.deliveredOrders - stats.pendingOrdersPortion) / stats.totalOrders) * 100) : 0} color="#3b82f6" />
                     </div>
 
                     <div style={{ marginTop: '32px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', textAlign: 'center' }}>
