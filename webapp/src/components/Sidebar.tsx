@@ -23,7 +23,7 @@ const Sidebar = () => {
                     <Package2 size={20} />
                     <span>Rastreios</span>
                 </NavLink>
-                <NavLink to="/pedidos" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package size={20} />
                     <span>Pedidos</span>
                 </NavLink>

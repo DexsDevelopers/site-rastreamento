@@ -427,12 +427,108 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
     }
 });
 
+// 7.5. Pedidos Pendentes
+app.get('/api/admin/pedidos-pendentes', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query("SELECT * FROM pedidos_pendentes WHERE status = 'pendente' ORDER BY data_pedido DESC");
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/pedidos-pendentes/:id/aprovar', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { id } = req.params;
+        const { codigo_rastreio } = req.body;
+
+        if (!codigo_rastreio) return res.status(400).json({ error: 'Código de rastreio é obrigatório' });
+
+        // Buscar dados do pedido
+        const [[pedido]] = await db.query("SELECT * FROM pedidos_pendentes WHERE id = ?", [id]);
+        if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+
+        // Criar rastreio inicial
+        const cidade = `${pedido.cidade}/${pedido.estado}`;
+        await db.query(`
+            INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor)
+            VALUES (?, ?, ?, ?, ?, NOW(), ?)
+        `, [codigo_rastreio, cidade, '📦 Objeto postado', '📦 Objeto postado', 'Objeto recebido e postado para envio', '#16A34A']);
+
+        // Salvar contato
+        try {
+            await db.query(`
+                INSERT INTO whatsapp_contatos (codigo, nome, telefone_original, telefone_normalizado, notificacoes_ativas)
+                VALUES (?, ?, ?, ?, 1)
+                ON DUPLICATE KEY UPDATE nome = ?, telefone_original = ?, telefone_normalizado = ?
+            `, [
+                codigo_rastreio, pedido.nome, pedido.telefone,
+                pedido.telefone.replace(/\D/g, ''),
+                pedido.nome, pedido.telefone, pedido.telefone.replace(/\D/g, '')
+            ]);
+        } catch (e) { console.error('Erro ao salvar contato:', e.message); }
+
+        // Atualizar status do pedido
+        await db.query("UPDATE pedidos_pendentes SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?", [codigo_rastreio, id]);
+
+        res.json({ success: true, message: 'Pedido aprovado com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/pedidos-pendentes/:id/rejeitar', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { id } = req.params;
+        await db.query("UPDATE pedidos_pendentes SET status = 'rejeitado' WHERE id = ?", [id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { id } = req.params;
+
+        // Buscar configuração da API do WhatsApp
+        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
+        let apiUrl = process.env.WHATSAPP_API_URL || '';
+
+        if (!apiUrl) return res.json({ success: false, message: '❌ API WhatsApp não configurada.' });
+
+        const [[pedido]] = await db.query("SELECT * FROM pedidos_pendentes WHERE id = ?", [id]);
+        if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+
+        const telefone = pedido.telefone.replace(/\D/g, '');
+        const mensagem = `Olá ${pedido.nome}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?`;
+
+        const response = await fetch(`${apiUrl}/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-token': apiToken },
+            body: JSON.stringify({ to: telefone, message: mensagem }),
+        }).catch(() => null);
+
+        if (response && response.ok) {
+            res.json({ success: true, message: `✅ Cobrança enviada para ${telefone}!` });
+        } else {
+            res.json({ success: false, message: '❌ Falha ao enviar mensagem.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // 8. Saúde do Banco de Dados e Tabelas
 app.get('/api/admin/db-health', async (req, res) => {
     try {
         if (!db) throw new Error('Conexão com banco de dados não estabelecida.');
 
-        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos'];
+        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos', 'pedidos_pendentes'];
         const status = {
             connected: true,
             database: process.env.DB_NAME,
@@ -504,6 +600,27 @@ app.post('/api/admin/db-setup', async (req, res) => {
               \`telefone_normalizado\` varchar(50) DEFAULT NULL,
               \`notificacoes_ativas\` tinyint(1) DEFAULT 1,
               PRIMARY KEY (\`codigo\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        // Criar tabela de pedidos pendentes
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`pedidos_pendentes\` (
+              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+              \`nome\` varchar(255) DEFAULT NULL,
+              \`email\` varchar(255) DEFAULT NULL,
+              \`telefone\` varchar(50) DEFAULT NULL,
+              \`cpf\` varchar(20) DEFAULT NULL,
+              \`cep\` varchar(10) DEFAULT NULL,
+              \`rua\` varchar(255) DEFAULT NULL,
+              \`numero\` varchar(50) DEFAULT NULL,
+              \`bairro\` varchar(255) DEFAULT NULL,
+              \`cidade\` varchar(255) DEFAULT NULL,
+              \`estado\` varchar(50) DEFAULT NULL,
+              \`data_pedido\` datetime DEFAULT CURRENT_TIMESTAMP,
+              \`status\` varchar(50) DEFAULT 'pendente',
+              \`codigo_rastreio\` varchar(255) DEFAULT NULL,
+              PRIMARY KEY (\`id\`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 

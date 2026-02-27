@@ -13,6 +13,7 @@ import ParaVoce from './pages/ParaVoce';
 import ParaEmpresas from './pages/ParaEmpresas';
 import DatabaseDebug from './pages/DatabaseDebug';
 import AdminPanel from './pages/AdminPanel';
+import PedidosPendentes from './pages/PedidosPendentes';
 import DatabaseStatus from './pages/DatabaseStatus';
 import './index.css';
 
@@ -34,6 +35,7 @@ function App() {
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/pedidos-pendentes" element={<PedidosPendentes />} />
           <Route path="/pedidos" element={<Orders />} />
           <Route path="/clientes" element={<Clients />} />
           <Route path="/status" element={<DatabaseStatus />} />
