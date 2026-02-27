@@ -8,7 +8,7 @@ const Login = () => {
         e.preventDefault();
         // Navegar de forma forçada para visualizar o painel agora.
         // Mais tarde, ligaremos na API.
-        navigate('/');
+        navigate('/dashboard');
     };
 
     return (

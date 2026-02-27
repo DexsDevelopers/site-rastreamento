@@ -1,163 +1,130 @@
-import React from 'react';
-import { Truck, Shield, Search, Zap, Smartphone, ArrowRight, CheckCircle, Globe, Ship } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Truck, Shield, Search, Zap, ArrowRight, Globe } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
+    const [codigo, setCodigo] = useState('');
+    const navigate = useNavigate();
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (codigo) {
+            navigate('/rastreio');
+        }
+    };
+
     return (
         <div style={styles.container}>
             {/* Background Decorativo */}
             <div style={styles.bgGlow}></div>
+            <div style={styles.bgGlowSecondary}></div>
 
             {/* Nav Minimalista */}
             <nav style={styles.nav}>
                 <div style={styles.logo}>
                     <div style={styles.logoIcon}>
-                        <Truck size={24} color="white" />
+                        <Truck size={20} color="white" />
                     </div>
                     <span style={styles.logoText}>Loggi <span className="text-gradient">Premium</span></span>
                 </div>
                 <div style={styles.navLinks}>
                     <a href="#servicos" style={styles.navLink}>Serviços</a>
                     <a href="#rastreio" style={styles.navLink}>Rastreio</a>
-                    <a href="#sobre" style={styles.navLink}>Sobre</a>
-                    <Link to="/login" style={styles.loginBtn}>Portal Admin</Link>
+                    <Link to="/login" style={styles.loginBtn}>Acesso Admin</Link>
                 </div>
             </nav>
 
             {/* Hero Section */}
             <section style={styles.hero}>
                 <div style={styles.heroContent}>
-                    <div style={styles.badge} className="animate-fade">
-                        <CheckCircle size={14} />
-                        Sua encomenda em mãos seguras
+                    <div style={styles.heroBadge} className="animate-fade">
+                        <Shield size={14} />
+                        Sua logística em mãos profissionais
                     </div>
                     <h1 style={styles.heroTitle} className="animate-fade">
                         Logística que <br />
-                        <span className="text-gradient">Impulsiona</span> Negócios.
+                        <span className="text-gradient">Conecta</span> o Futuro.
                     </h1>
                     <p style={styles.heroSubtitle} className="animate-fade">
-                        Conectamos sua transportadora ao futuro com rastreamento dopaminérgico,
-                        inteligência artificial e notificações instantâneas via WhatsApp.
+                        Rastreamento em tempo real com notificações inteligentes via WhatsApp
+                        e inteligência artificial para otimização de rotas.
                     </p>
 
-                    <div style={styles.trackingContainer} id="rastreio" className="animate-fade">
-                        <div style={styles.searchBar} className="glass-card">
-                            <Search size={22} color="var(--accent-primary)" />
+                    <div style={styles.trackingWrapper} id="rastreio" className="animate-fade">
+                        <form onSubmit={handleSearch} style={styles.searchBar} className="glass-card">
+                            <Search size={22} color="var(--accent-primary)" style={{ opacity: 0.7 }} />
                             <input
                                 type="text"
-                                placeholder="Digite o código da encomenda (ex: LL123456789BR)"
+                                placeholder="Digite seu código (ex: LP123...)"
                                 style={styles.heroInput}
+                                value={codigo}
+                                onChange={(e) => setCodigo(e.target.value)}
                             />
-                            <button style={styles.trackBtn} className="btn-glow">
-                                Rastrear Agora
+                            <button type="submit" style={styles.trackBtn} className="btn-glow">
+                                Rastrear
                                 <ArrowRight size={18} />
                             </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
-                {/* Floating Elements (Visual) */}
-                <div style={styles.floatElement1} className="animate-float glass-card">
-                    <Zap size={20} color="var(--accent-primary)" />
-                    <span>Entrega Ultra-Rápida</span>
+                {/* Floating Indicators */}
+                <div style={styles.floatCard1} className="animate-float glass-card">
+                    <Zap size={18} color="var(--accent-primary)" />
+                    <span>Entrega Expressa ATIVA</span>
                 </div>
-                <div style={styles.floatElement2} className="animate-float glass-card">
-                    <Globe size={20} color="var(--accent-secondary)" />
-                    <span>Cobertura Global</span>
-                </div>
-            </section>
-
-            {/* Stats Preview */}
-            <section style={styles.statsSection}>
-                <div style={styles.statLine}></div>
-                <div style={styles.statsGrid}>
-                    <div style={styles.statItem}>
-                        <span style={styles.statVal}>99%</span>
-                        <span style={styles.statLab}>Sucesso nas Entregas</span>
-                    </div>
-                    <div style={styles.statItem}>
-                        <span style={styles.statVal}>+1M</span>
-                        <span style={styles.statLab}>Pacotes Rastreados</span>
-                    </div>
-                    <div style={styles.statItem}>
-                        <span style={styles.statVal}>&lt;2h</span>
-                        <span style={styles.statLab}>Tempo de Reação</span>
-                    </div>
+                <div style={styles.floatCard2} className="animate-float glass-card">
+                    <Globe size={18} color="var(--accent-secondary)" />
+                    <span>99.8% de Precisão</span>
                 </div>
             </section>
 
-            {/* Features (Dopaminergic Design) */}
-            <section id="servicos" style={styles.features}>
-                <div style={styles.sectionHeader}>
-                    <h2 style={styles.sectionTitle}>Tecnologia de <span className="text-gradient">Ponta</span></h2>
-                    <p style={styles.sectionSubtitle}>Não é apenas uma entrega. É uma experiência conectada.</p>
+            {/* Stats Bar */}
+            <section style={styles.statsBar}>
+                <div style={styles.statBox}>
+                    <span style={styles.statNum}>+50k</span>
+                    <span style={styles.statTitle}>Entregas/Mês</span>
                 </div>
+                <div style={styles.statDivider}></div>
+                <div style={styles.statBox}>
+                    <span style={styles.statNum}>100%</span>
+                    <span style={styles.statTitle}>Monitorado</span>
+                </div>
+                <div style={styles.statDivider}></div>
+                <div style={styles.statBox}>
+                    <span style={styles.statNum}>24/7</span>
+                    <span style={styles.statTitle}>Suporte Ativo</span>
+                </div>
+            </section>
 
-                <div style={styles.featureGrid}>
-                    <div className="glass-card" style={styles.featureCard}>
-                        <div style={{ ...styles.featureIcon, background: 'rgba(124, 77, 255, 0.1)' }}>
-                            <Smartphone size={32} color="var(--accent-primary)" />
-                        </div>
-                        <h3 style={styles.cardTitle}>WhatsApp IA</h3>
-                        <p style={styles.cardText}>Bot inteligente que avisa seu cliente no exato momento em que o entregador sai para rota.</p>
-                    </div>
-
-                    <div className="glass-card" style={styles.featureCard}>
-                        <div style={{ ...styles.featureIcon, background: 'rgba(0, 229, 255, 0.1)' }}>
-                            <Ship size={32} color="var(--accent-secondary)" />
-                        </div>
-                        <h3 style={styles.cardTitle}>Gestão de Cargas</h3>
-                        <p style={styles.cardText}>Dashboard completo para você controlar frotas, motoristas e entregas pendentes com um clique.</p>
-                    </div>
-
-                    <div className="glass-card" style={styles.featureCard}>
-                        <div style={{ ...styles.featureIcon, background: 'rgba(124, 77, 255, 0.1)' }}>
-                            <Shield size={32} color="var(--accent-primary)" />
-                        </div>
-                        <h3 style={styles.cardTitle}>Seguro Integrado</h3>
-                        <p style={styles.cardText}>Todas as encomendas são monitoradas e seguradas contra qualquer imprevisto logístico.</p>
+            {/* CTA Section */}
+            <section id="servicos" style={styles.ctaWrapper}>
+                <div style={styles.ctaCard} className="glass-card">
+                    <h2 style={styles.ctaTitle}>Pronto para transformar sua operação?</h2>
+                    <p style={styles.ctaText}>Junte-se à Loggi Premium e tenha controle total sobre seu fluxo logístico.</p>
+                    <div style={styles.ctaActions}>
+                        <button className="btn-primary" style={{ padding: '16px 32px' }}>Começar Agora</button>
+                        <button style={styles.outlineBtn}>Ver Demonstração</button>
                     </div>
                 </div>
             </section>
 
-            {/* CTA Final */}
-            <section style={styles.ctaBanner} className="glass-card">
-                <div style={styles.ctaContent}>
-                    <h2 style={styles.ctaTitle}>Pronto para modernizar sua transportadora?</h2>
-                    <p style={styles.ctaSubtitle}>Junte-se a centenas de empresas que já usam a Loggi Premium para crescer.</p>
-                    <button style={styles.ctaBtn} className="btn-glow">Falar com um Especialista</button>
-                </div>
-            </section>
-
-            {/* Footer Premium */}
-            <footer style={styles.footer} id="sobre">
-                <div style={styles.footerGrid}>
+            {/* Simple Footer */}
+            <footer style={styles.footer}>
+                <div style={styles.footerContent}>
                     <div style={styles.footerBrand}>
-                        <div style={styles.logo}>
-                            <div style={styles.logoIcon}><Truck size={20} color="white" /></div>
-                            <span style={styles.logoText}>Loggi</span>
-                        </div>
-                        <p style={styles.footerAbout}>
-                            Transformando a última milha em uma experiência memorável para clientes e empresas.
-                        </p>
+                        <span style={styles.footerLogo}>Loggi <span style={{ color: 'var(--accent-primary)' }}>Premium</span></span>
+                        <p>O padrão ouro em logística digital.</p>
                     </div>
-                    <div style={styles.footerLinksGroup}>
-                        <div style={styles.footerCol}>
-                            <h4>Links</h4>
-                            <a href="#">Serviços</a>
-                            <a href="#">Rastreio</a>
-                            <a href="#">Segurança</a>
-                        </div>
-                        <div style={styles.footerCol}>
-                            <h4>Suporte</h4>
-                            <a href="#">Central de Ajuda</a>
-                            <a href="#">Documentação API</a>
-                            <a href="#">Contato</a>
-                        </div>
+                    <div style={styles.footerLinks}>
+                        <a href="#">Privacidade</a>
+                        <a href="#">Termos</a>
+                        <a href="#">API</a>
+                        <a href="#">Suporte</a>
                     </div>
                 </div>
-                <div style={styles.copyright}>
-                    © 2026 Loggi Premium Logística. Desenvolvido com ❤️ para empresas modernas.
+                <div style={styles.footerCopy}>
+                    © 2026 Loggi Premium Logistics. Todos os direitos reservados.
                 </div>
             </footer>
         </div>
@@ -170,17 +137,28 @@ const styles = {
         color: 'var(--text-primary)',
         minHeight: '100vh',
         overflowX: 'hidden' as const,
+        position: 'relative' as const,
         fontFamily: "'Outfit', sans-serif",
     },
     bgGlow: {
         position: 'fixed' as const,
-        top: '-150px',
-        right: '-150px',
-        width: '600px',
-        height: '600px',
-        background: 'radial-gradient(circle, rgba(124, 77, 255, 0.1) 0%, transparent 70%)',
-        zIndex: 0,
+        top: '10%',
+        left: '10%',
+        width: '40vw',
+        height: '40vw',
+        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 60%)',
         pointerEvents: 'none' as const,
+        zIndex: 0,
+    },
+    bgGlowSecondary: {
+        position: 'fixed' as const,
+        bottom: '10%',
+        right: '10%',
+        width: '30vw',
+        height: '30vw',
+        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 60%)',
+        pointerEvents: 'none' as const,
+        zIndex: 0,
     },
     nav: {
         display: 'flex',
@@ -196,19 +174,19 @@ const styles = {
         gap: '12px',
     },
     logoIcon: {
-        width: '40px',
-        height: '40px',
+        width: '36px',
+        height: '36px',
         background: 'var(--accent-primary)',
-        borderRadius: '12px',
+        borderRadius: '10px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 8px 16px rgba(124, 77, 255, 0.3)',
+        boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
     },
     logoText: {
-        fontSize: '1.4rem',
+        fontSize: '1.25rem',
         fontWeight: 800,
-        letterSpacing: '-1px',
+        letterSpacing: '-0.5px',
     },
     navLinks: {
         display: 'flex',
@@ -218,101 +196,98 @@ const styles = {
     navLink: {
         color: 'var(--text-secondary)',
         textDecoration: 'none',
+        fontSize: '0.9rem',
         fontWeight: 500,
-        fontSize: '0.95rem',
-        transition: 'color 0.3s',
-        '&:hover': { color: 'var(--text-primary)' }
+        transition: 'color 0.2s',
     },
     loginBtn: {
         padding: '10px 20px',
-        background: 'rgba(255,255,255,0.05)',
+        background: 'rgba(255, 255, 255, 0.05)',
         border: '1px solid var(--border-glass)',
         borderRadius: '12px',
         color: 'var(--text-primary)',
         textDecoration: 'none',
+        fontSize: '0.85rem',
         fontWeight: 600,
-        fontSize: '0.9rem',
         transition: 'all 0.3s',
     },
     hero: {
-        padding: '120px 8% 160px',
-        textAlign: 'center' as const,
-        position: 'relative' as const,
+        padding: '100px 8% 120px',
         display: 'flex',
         flexDirection: 'column' as const,
         alignItems: 'center',
+        textAlign: 'center' as const,
+        position: 'relative' as const,
     },
     heroContent: {
-        maxWidth: '850px',
+        maxWidth: '800px',
         zIndex: 2,
     },
-    badge: {
+    heroBadge: {
         display: 'inline-flex',
         alignItems: 'center',
         gap: '8px',
-        background: 'rgba(124, 77, 255, 0.08)',
+        background: 'rgba(99, 102, 241, 0.1)',
         color: 'var(--accent-primary)',
         padding: '8px 16px',
         borderRadius: '100px',
-        fontSize: '0.85rem',
+        fontSize: '0.8rem',
         fontWeight: 600,
-        marginBottom: '32px',
-        border: '1px solid rgba(124, 77, 255, 0.2)',
+        marginBottom: '24px',
+        border: '1px solid rgba(99, 102, 241, 0.2)',
     },
     heroTitle: {
-        fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
-        fontWeight: 900,
+        fontSize: 'clamp(2.5rem, 8vw, 4rem)',
         lineHeight: 1.1,
-        letterSpacing: '-2px',
         marginBottom: '24px',
-        textAlign: 'center' as const,
+        letterSpacing: '-2px',
+        fontWeight: 900,
     },
     heroSubtitle: {
-        fontSize: '1.25rem',
+        fontSize: '1.1rem',
         color: 'var(--text-secondary)',
-        maxWidth: '700px',
         lineHeight: 1.6,
-        marginBottom: '56px',
+        maxWidth: '600px',
+        margin: '0 auto 48px',
     },
-    trackingContainer: {
+    trackingWrapper: {
         width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
+        maxWidth: '550px',
+        margin: '0 auto',
     },
     searchBar: {
-        padding: '10px 10px 10px 24px',
-        borderRadius: '24px',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
-        width: '100%',
-        maxWidth: '650px',
-        boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+        padding: '8px 8px 8px 24px',
+        borderRadius: '20px',
+        gap: '12px',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+        background: 'var(--bg-glass)',
+        border: '1px solid var(--border-glass)',
     },
     heroInput: {
         flex: 1,
         background: 'transparent',
         border: 'none',
-        color: 'var(--text-primary)',
-        fontSize: '1.1rem',
+        color: 'white',
+        fontSize: '1rem',
         outline: 'none',
-        padding: '10px 0',
+        padding: '12px 0',
     },
     trackBtn: {
         background: 'var(--accent-primary)',
         color: 'white',
         border: 'none',
-        padding: '14px 28px',
-        borderRadius: '18px',
-        fontSize: '1rem',
+        padding: '12px 24px',
+        borderRadius: '14px',
         fontWeight: 700,
+        fontSize: '0.9rem',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        boxShadow: '0 8px 20px rgba(124, 77, 255, 0.4)',
+        gap: '8px',
     },
-    floatElement1: {
+    floatCard1: {
         position: 'absolute' as const,
         top: '10%',
         left: '2%',
@@ -320,170 +295,137 @@ const styles = {
         borderRadius: '16px',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        fontSize: '0.8rem',
+        gap: '12px',
+        fontSize: '0.75rem',
         fontWeight: 600,
         zIndex: 1,
         opacity: 0.8,
     },
-    floatElement2: {
+    floatCard2: {
         position: 'absolute' as const,
-        bottom: '10%',
+        bottom: '15%',
         right: '2%',
         padding: '12px 20px',
         borderRadius: '16px',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        fontSize: '0.8rem',
+        gap: '12px',
+        fontSize: '0.75rem',
         fontWeight: 600,
         zIndex: 1,
         opacity: 0.8,
     },
-    statsSection: {
-        padding: '0 8%',
-        marginBottom: '100px',
-    },
-    statLine: {
-        height: '1px',
-        background: 'linear-gradient(90deg, transparent, var(--border-glass), transparent)',
-        marginBottom: '48px',
-    },
-    statsGrid: {
+    statsBar: {
         display: 'flex',
-        justifyContent: 'space-around',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '60px 8%',
+        gap: '6vw',
+        flexWrap: 'wrap' as const,
+        borderTop: '1px solid var(--border-glass)',
+        borderBottom: '1px solid var(--border-glass)',
+        background: 'rgba(255, 255, 255, 0.01)',
+        position: 'relative' as const,
+        zIndex: 2,
     },
-    statItem: {
+    statBox: {
         display: 'flex',
         flexDirection: 'column' as const,
         alignItems: 'center',
         gap: '4px',
     },
-    statVal: {
-        fontSize: '2.5rem',
+    statNum: {
+        fontSize: '1.8rem',
         fontWeight: 800,
-        color: 'var(--text-primary)',
     },
-    statLab: {
+    statTitle: {
+        fontSize: '0.7rem',
         color: 'var(--text-secondary)',
-        fontSize: '0.9rem',
-        fontWeight: 500,
+        textTransform: 'uppercase' as const,
+        letterSpacing: '1px',
     },
-    features: {
+    statDivider: {
+        width: '1px',
+        height: '40px',
+        background: 'var(--border-glass)',
+    },
+    ctaWrapper: {
         padding: '100px 8%',
+        position: 'relative' as const,
+        zIndex: 2,
     },
-    sectionHeader: {
+    ctaCard: {
+        maxWidth: '1000px',
+        margin: '0 auto',
+        padding: '60px 40px',
+        borderRadius: '32px',
         textAlign: 'center' as const,
-        marginBottom: '72px',
-    },
-    sectionTitle: {
-        fontSize: '3.5rem',
-        fontWeight: 800,
-        letterSpacing: '-2px',
-        marginBottom: '16px',
-    },
-    sectionSubtitle: {
-        fontSize: '1.2rem',
-        color: 'var(--text-secondary)',
-    },
-    featureGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '32px',
-    },
-    featureCard: {
-        padding: '40px',
-        borderRadius: '28px',
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
         border: '1px solid var(--border-glass)',
     },
-    featureIcon: {
-        width: '72px',
-        height: '72px',
-        borderRadius: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '24px',
-    },
-    cardTitle: {
-        fontSize: '1.5rem',
-        fontWeight: 700,
-        marginBottom: '16px',
-    },
-    cardText: {
-        color: 'var(--text-secondary)',
-        lineHeight: 1.6,
-        fontSize: '1rem',
-    },
-    ctaBanner: {
-        margin: '100px 8% 150px',
-        padding: '80px 40px',
-        borderRadius: '40px',
-        textAlign: 'center' as const,
-        background: 'linear-gradient(135deg, rgba(124, 77, 255, 0.1) 0%, rgba(0, 229, 255, 0.05) 100%)',
-        border: '1px solid rgba(124, 77, 255, 0.2)',
-    },
-    ctaContent: {
-        maxWidth: '600px',
-        margin: '0 auto',
-    },
     ctaTitle: {
-        fontSize: '2.5rem',
-        fontWeight: 800,
+        fontSize: '2.2rem',
         marginBottom: '20px',
+        fontWeight: 800,
     },
-    ctaSubtitle: {
-        fontSize: '1.1rem',
+    ctaText: {
         color: 'var(--text-secondary)',
+        fontSize: '1rem',
         marginBottom: '40px',
+        maxWidth: '600px',
+        margin: '0 auto 40px',
     },
-    ctaBtn: {
-        padding: '16px 40px',
-        background: 'var(--accent-primary)',
+    ctaActions: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '16px',
+        flexWrap: 'wrap' as const,
+    },
+    outlineBtn: {
+        padding: '16px 32px',
+        background: 'transparent',
+        border: '1px solid var(--border-glass)',
+        borderRadius: '12px',
         color: 'white',
-        border: 'none',
-        borderRadius: '16px',
-        fontSize: '1.1rem',
-        fontWeight: 700,
+        fontWeight: 600,
         cursor: 'pointer',
+        transition: 'all 0.3s',
+        fontSize: '0.9rem',
     },
     footer: {
-        padding: '100px 8% 40px',
+        padding: '80px 8% 40px',
         borderTop: '1px solid var(--border-glass)',
+        position: 'relative' as const,
+        zIndex: 2,
     },
-    footerGrid: {
+    footerContent: {
         display: 'flex',
         justifyContent: 'space-between',
-        marginBottom: '80px',
+        alignItems: 'flex-start',
+        flexWrap: 'wrap' as const,
+        gap: '40px',
+        marginBottom: '60px',
     },
     footerBrand: {
-        maxWidth: '350px',
+        maxWidth: '300px',
     },
-    footerAbout: {
-        marginTop: '24px',
-        color: 'var(--text-secondary)',
-        lineHeight: 1.6,
+    footerLogo: {
+        fontSize: '1.4rem',
+        fontWeight: 800,
+        display: 'block',
+        marginBottom: '16px',
     },
-    footerLinksGroup: {
+    footerLinks: {
         display: 'flex',
-        gap: '100px',
+        gap: '32px',
+        flexWrap: 'wrap' as const,
     },
-    footerCol: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        gap: '16px',
-        h4: { marginBottom: '8px', color: 'var(--text-primary)' },
-        a: {
-            color: 'var(--text-secondary)',
-            textDecoration: 'none',
-            fontSize: '0.9rem',
-            transition: 'color 0.3s'
-        }
-    },
-    copyright: {
+    footerCopy: {
         textAlign: 'center' as const,
-        color: 'rgba(255,255,255,0.2)',
-        fontSize: '0.8rem',
+        color: 'rgba(255, 255, 255, 0.2)',
+        fontSize: '0.75rem',
+        borderTop: '1px solid var(--border-glass)',
+        paddingTop: '32px',
     }
 };
 
