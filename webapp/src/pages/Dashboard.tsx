@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Package, Users, Activity, CheckCircle, Smartphone } from 'lucide-react';
+import { Package, Users, Activity, CheckCircle, Smartphone, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [counts, setCounts] = useState({
         orders: 0,
         clients: 0,
@@ -107,14 +109,10 @@ const Dashboard = () => {
                 </p>
 
                 <div style={styles.qrcodeArea}>
-                    <div style={styles.qrPlaceholder}>
-                        <Smartphone size={48} color="rgba(255,255,255,0.1)" />
-                        <span style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>QR Code disponível se a conexão cair</span>
-                    </div>
                     <div style={styles.botActions}>
-                        <button className="btn-primary" style={{ background: 'var(--accent-glow)', border: '1px solid var(--accent-primary)' }}>Gerar Nova Conexão</button>
-                        <button className="btn-primary" style={{ background: 'rgba(255, 255, 255, 0.05)' }}>Ver Logs do Bot</button>
-                        <button className="btn-primary" style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' }}>Parar Serviço</button>
+                        <button onClick={() => navigate('/whatsapp')} className="btn-primary" style={{ background: 'var(--accent-glow)', border: '1px solid var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            Gerenciar Conexão do Bot <ArrowRight size={18} />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -144,19 +142,6 @@ const styles = {
         gap: '32px',
         alignItems: 'center',
         flexWrap: 'wrap' as const,
-    },
-    qrPlaceholder: {
-        width: '200px',
-        height: '200px',
-        background: 'rgba(0,0,0,0.2)',
-        border: '1px dashed var(--border-glass)',
-        borderRadius: '20px',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center' as const,
-        padding: '24px',
     },
     botActions: {
         display: 'flex',
