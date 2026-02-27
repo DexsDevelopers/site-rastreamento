@@ -114,7 +114,7 @@ const ParaVoce: React.FC = () => {
                 {[
                     { icon: <QrCode size={32} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.1)', title: 'Geração de Etiqueta', desc: 'Crie etiquetas de envio online em segundos e poste em nossa rede de agências parceiras.', link: '/pedido' },
                     { icon: <Satellite size={32} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.1)', title: 'Rastreio Web v3', desc: 'O sistema de rastreamento mais preciso do mercado, com atualizações em cada etapa da jornada.', link: '/rastreio' },
-                    { icon: <MapPin size={32} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.1)', title: 'Perto de Você', desc: 'Milhares de pontos de coleta e entrega espalhados pelo Brasil para sua conveniência.', link: '#' }
+                    { icon: <MapPin size={32} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.1)', title: 'Perto de Você', desc: 'Milhares de pontos de coleta e entrega espalhados pelo Brasil para sua conveniência.', link: '/ajuda' }
                 ].map((s, i) => (
                     <div key={i} className={`service-card reveal reveal-delay-${i + 1}`}>
                         <div className="service-icon" style={{ background: s.bg }}>{s.icon}</div>

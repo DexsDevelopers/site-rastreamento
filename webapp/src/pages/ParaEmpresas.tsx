@@ -121,7 +121,7 @@ const ParaEmpresas: React.FC = () => {
                         <div className="ent-icon" style={{ background: s.bg }}>{s.icon}</div>
                         <h3>{s.title}</h3>
                         <p>{s.desc}</p>
-                        <Link to="#" className="nav-item" style={{ color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>Ver detalhes <ArrowRight size={16} /></Link>
+                        <Link to="/api-ecommerce" className="nav-item" style={{ color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>Ver detalhes <ArrowRight size={16} /></Link>
                     </div>
                 ))}
             </div>

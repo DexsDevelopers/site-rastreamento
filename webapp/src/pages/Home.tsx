@@ -861,13 +861,17 @@ const Home: React.FC = () => {
                     <div className="footer-links-wrap">
                         <div className="footer-col">
                             <h4>Soluções</h4>
-                            <a href="#">Loggi para você</a><a href="#">Loggi para empresas</a>
-                            <a href="#">E-commerce API</a><a href="#">Loggi Pro</a>
+                            <Link to="/para-voce">Loggi para você</Link>
+                            <Link to="/para-empresas">Loggi para empresas</Link>
+                            <Link to="/api-ecommerce">E-commerce API</Link>
+                            <Link to="/loggi-pro">Loggi Pro</Link>
                         </div>
                         <div className="footer-col">
                             <h4>Sobre</h4>
-                            <Link to="/sobre">Nossa História</Link><a href="#">Carreiras</a>
-                            <a href="#">Central de Ajuda</a><a href="#">Termos de Uso</a>
+                            <Link to="/sobre">Nossa História</Link>
+                            <Link to="/carreiras">Carreiras</Link>
+                            <Link to="/ajuda">Central de Ajuda</Link>
+                            <Link to="/termos">Termos de Uso</Link>
                         </div>
                     </div>
                 </div>
