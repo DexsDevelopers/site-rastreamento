@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database } from 'lucide-react';
+import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare } from 'lucide-react';
 
 const Sidebar = () => {
     return (
@@ -38,6 +38,10 @@ const Sidebar = () => {
                 <NavLink to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Smartphone size={20} />
                     <span>Bot WhatsApp</span>
+                </NavLink>
+                <NavLink to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                    <MessageSquare size={20} />
+                    <span>Modelos de Mensagens</span>
                 </NavLink>
                 <NavLink to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <BarChart3 size={20} />

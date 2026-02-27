@@ -21,6 +21,7 @@ import Entregadores from './pages/Entregadores';
 import WhatsAppConfig from './pages/WhatsAppConfig';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import WhatsAppTemplates from './pages/WhatsAppTemplates';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="/whatsapp" element={<WhatsAppConfig />} />
           <Route path="/relatorios" element={<Reports />} />
           <Route path="/configuracoes" element={<Settings />} />
+          <Route path="/whatsapp-templates" element={<WhatsAppTemplates />} />
         </Route>
 
         {/* Fallback */}
