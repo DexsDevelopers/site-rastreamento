@@ -6,6 +6,7 @@ import Orders from './pages/Orders';
 import Clients from './pages/Clients';
 import Home from './pages/Home';
 import Tracking from './pages/Tracking';
+import DatabaseDebug from './pages/DatabaseDebug';
 import './index.css';
 
 // Autenticação Falsa provisória para visualização
@@ -27,6 +28,7 @@ function App() {
           <Route path="/dashboard" element={<AdminLayout isAuth={isAuth}><Dashboard /></AdminLayout>} />
           <Route path="/pedidos" element={<AdminLayout isAuth={isAuth}><Orders /></AdminLayout>} />
           <Route path="/clientes" element={<AdminLayout isAuth={isAuth}><Clients /></AdminLayout>} />
+          <Route path="/debug-db" element={<AdminLayout isAuth={isAuth}><DatabaseDebug /></AdminLayout>} />
 
           <Route path="/entregadores" element={<AdminLayout isAuth={isAuth}><Placeholder title="Entregadores" /></AdminLayout>} />
           <Route path="/whatsapp" element={<AdminLayout isAuth={isAuth}><Placeholder title="Configuração Bot" /></AdminLayout>} />

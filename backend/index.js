@@ -10,6 +10,28 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configuração do Banco de Dados
+const mysql = require('mysql2/promise');
+
+let db;
+async function connectDB() {
+    try {
+        db = await mysql.createPool({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
+        });
+        console.log('✅ Banco de dados conectado com sucesso!');
+    } catch (err) {
+        console.error('❌ Erro ao conectar no banco de dados:', err.message);
+    }
+}
+connectDB();
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
