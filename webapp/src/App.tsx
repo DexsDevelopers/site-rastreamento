@@ -13,6 +13,7 @@ import ParaVoce from './pages/ParaVoce';
 import ParaEmpresas from './pages/ParaEmpresas';
 import DatabaseDebug from './pages/DatabaseDebug';
 import AdminPanel from './pages/AdminPanel';
+import DatabaseStatus from './pages/DatabaseStatus';
 import './index.css';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/pedidos" element={<Orders />} />
           <Route path="/clientes" element={<Clients />} />
+          <Route path="/status" element={<DatabaseStatus />} />
           <Route path="/debug-db" element={<DatabaseDebug />} />
           <Route path="/entregadores" element={<Placeholder title="Entregadores" />} />
           <Route path="/whatsapp" element={<Placeholder title="Configuração Bot" />} />

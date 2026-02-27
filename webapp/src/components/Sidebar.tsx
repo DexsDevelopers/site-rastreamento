@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3 } from 'lucide-react';
+import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database } from 'lucide-react';
 
 const Sidebar = () => {
     return (
@@ -14,6 +14,10 @@ const Sidebar = () => {
                 <NavLink to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Home size={20} />
                     <span>Dashboard</span>
+                </NavLink>
+                <NavLink to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                    <Database size={20} />
+                    <span>Status DB</span>
                 </NavLink>
                 <NavLink to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package2 size={20} />

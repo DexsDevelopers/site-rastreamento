@@ -178,8 +178,8 @@ const AdminPanel: React.FC = () => {
                 axios.get('/api/admin/rastreios'),
                 axios.get('/api/admin/stats'),
             ]);
-            setRastreios(ordersRes.data);
-            setStats(statsRes.data);
+            setRastreios(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+            setStats(statsRes.data || { total: 0, entregues: 0, com_taxa: 0, sem_taxa: 0 });
         } catch (err) {
             showToast('Erro ao carregar dados do servidor', 'error');
         } finally {

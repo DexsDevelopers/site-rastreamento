@@ -422,11 +422,44 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
     }
 });
 
+// 8. Saúde do Banco de Dados e Tabelas
+app.get('/api/admin/db-health', async (req, res) => {
+    try {
+        if (!db) throw new Error('Conexão com banco de dados não estabelecida.');
+
+        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos'];
+        const status = {
+            connected: true,
+            database: process.env.DB_NAME,
+            tables: []
+        };
+
+        for (const table of tablesToCheck) {
+            try {
+                const [info] = await db.query(`SHOW TABLES LIKE ?`, [table]);
+                const exists = info.length > 0;
+                let count = 0;
+                if (exists) {
+                    const [[{ total }]] = await db.query(`SELECT COUNT(*) as total FROM ??`, [table]);
+                    count = total;
+                }
+                status.tables.push({ name: table, exists, count });
+            } catch (err) {
+                status.tables.push({ name: table, exists: false, error: err.message });
+            }
+        }
+
+        res.json(status);
+    } catch (error) {
+        res.status(500).json({ connected: false, error: error.message });
+    }
+});
+
 // Servir o Frontend
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
 
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     const indexPath = path.join(distPath, 'index.html');
     res.sendFile(indexPath, (err) => {
         if (err) {
