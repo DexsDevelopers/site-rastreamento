@@ -78,13 +78,55 @@ app.get('/api/clients', async (req, res) => {
     }
 });
 
-// 3. Entregadores (Simulando ou criando do banco se existir)
+// 3. Entregadores
 app.get('/api/drivers', async (req, res) => {
-    // Por enquanto retornamos uma lista de teste se a tabela não existir
-    res.json([
-        { id: 1, nome: 'Carlos Motoboy', status: 'disponivel', veiculo: 'Moto' },
-        { id: 2, nome: 'Fernanda Loggi', status: 'em_rota', veiculo: 'Carro' }
-    ]);
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT * FROM entregadores ORDER BY nome ASC');
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/drivers', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { nome, telefone, veiculo, status } = req.body;
+        await db.query(
+            'INSERT INTO entregadores (nome, telefone, veiculo, status) VALUES (?, ?, ?, ?)',
+            [nome, telefone, veiculo, status || 'disponivel']
+        );
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/drivers/:id', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { id } = req.params;
+        const { nome, telefone, veiculo, status } = req.body;
+        await db.query(
+            'UPDATE entregadores SET nome = ?, telefone = ?, veiculo = ?, status = ? WHERE id = ?',
+            [nome, telefone, veiculo, status, id]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/drivers/:id', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { id } = req.params;
+        await db.query('DELETE FROM entregadores WHERE id = ?', [id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Rota de Teste de Banco
@@ -528,7 +570,7 @@ app.get('/api/admin/db-health', async (req, res) => {
     try {
         if (!db) throw new Error('Conexão com banco de dados não estabelecida.');
 
-        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos', 'pedidos_pendentes'];
+        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos', 'pedidos_pendentes', 'entregadores'];
         const status = {
             connected: true,
             database: process.env.DB_NAME,
@@ -624,7 +666,84 @@ app.post('/api/admin/db-setup', async (req, res) => {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 
+        // Criar tabela de entregadores
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`entregadores\` (
+              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+              \`nome\` varchar(255) DEFAULT NULL,
+              \`telefone\` varchar(50) DEFAULT NULL,
+              \`veiculo\` varchar(100) DEFAULT NULL,
+              \`status\` varchar(50) DEFAULT 'disponivel',
+              \`data_cadastro\` datetime DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (\`id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
         res.json({ success: true, message: 'Tabelas criadas ou já existentes com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 10. WhatsApp Bot Proxy/Management
+app.get('/api/admin/bot/status', async (req, res) => {
+    try {
+        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
+        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
+
+        const response = await fetch(`${apiUrl}/status`, {
+            headers: { 'x-api-token': apiToken }
+        }).catch(() => null);
+
+        if (response && response.ok) {
+            const data = await response.json();
+            res.json({ success: true, status: data });
+        } else {
+            res.json({ success: false, message: 'Bot offline' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/bot/qr', async (req, res) => {
+    try {
+        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
+        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
+
+        const response = await fetch(`${apiUrl}/api/qr`, {
+            headers: { 'x-api-token': apiToken }
+        }).catch(() => null);
+
+        if (response && response.ok) {
+            const data = await response.json();
+            res.json(data);
+        } else {
+            res.json({ success: false, message: 'QR não disponível' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/admin/bot/restart', async (req, res) => {
+    try {
+        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
+        let apiUrl = process.env.WHATSAPP_API_URL || '';
+        if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
+
+        const response = await fetch(`${apiUrl}/reconnect`, {
+            method: 'POST',
+            headers: { 'x-api-token': apiToken }
+        }).catch(() => null);
+
+        if (response && response.ok) {
+            res.json({ success: true });
+        } else {
+            res.json({ success: false });
+        }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

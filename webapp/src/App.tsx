@@ -17,6 +17,11 @@ import PedidosPendentes from './pages/PedidosPendentes';
 import DatabaseStatus from './pages/DatabaseStatus';
 import './index.css';
 
+import Entregadores from './pages/Entregadores';
+import WhatsAppConfig from './pages/WhatsAppConfig';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+
 function App() {
   return (
     <Router>
@@ -40,10 +45,10 @@ function App() {
           <Route path="/clientes" element={<Clients />} />
           <Route path="/status" element={<DatabaseStatus />} />
           <Route path="/debug-db" element={<DatabaseDebug />} />
-          <Route path="/entregadores" element={<Placeholder title="Entregadores" />} />
-          <Route path="/whatsapp" element={<Placeholder title="Configuração Bot" />} />
-          <Route path="/relatorios" element={<Placeholder title="Relatórios" />} />
-          <Route path="/configuracoes" element={<Placeholder title="Configurações" />} />
+          <Route path="/entregadores" element={<Entregadores />} />
+          <Route path="/whatsapp" element={<WhatsAppConfig />} />
+          <Route path="/relatorios" element={<Reports />} />
+          <Route path="/configuracoes" element={<Settings />} />
         </Route>
 
         {/* Fallback */}
@@ -64,11 +69,5 @@ const AdminLayout = () => {
   );
 };
 
-const Placeholder = ({ title }: { title: string }) => (
-  <div style={{ padding: 40, animation: 'fadeIn 0.5s ease' }}>
-    <h1 style={{ fontSize: '2.5rem', marginBottom: '16px' }}>{title} <span className="text-gradient">(Em breve)</span></h1>
-    <p style={{ color: 'var(--text-secondary)' }}>Esta funcionalidade está sendo preparada.</p>
-  </div>
-);
 
 export default App;

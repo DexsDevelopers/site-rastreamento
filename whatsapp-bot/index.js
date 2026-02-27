@@ -3693,7 +3693,7 @@ app.get('/status', (req, res) => {
   });
 });
 
-// QR Code
+// QR Code (HTML para acesso direto)
 app.get('/qr', async (req, res) => {
   if (!lastQR) {
     return res.status(404).send(`
@@ -3720,6 +3720,17 @@ app.get('/qr', async (req, res) => {
     `);
   } catch (e) {
     res.status(500).send('Falha ao gerar QR');
+  }
+});
+
+// QR Code (JSON para API)
+app.get('/api/qr', auth, async (req, res) => {
+  if (!lastQR) return res.json({ success: false, message: 'Nenhum QR disponível' });
+  try {
+    const dataUrl = await QRCodeImg.toDataURL(lastQR, { scale: 8, margin: 1 });
+    res.json({ success: true, qr: dataUrl });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
