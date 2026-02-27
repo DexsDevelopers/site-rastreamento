@@ -424,7 +424,7 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
 
         // Buscar configuração da API do WhatsApp
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
+        let apiUrl = 'http://127.0.0.1:3001';
 
         if (!apiUrl) {
             return res.json({ success: false, message: '❌ URL da API WhatsApp não configurada no .env' });
@@ -547,7 +547,7 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
 
         // Buscar configuração da API do WhatsApp
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
+        let apiUrl = 'http://127.0.0.1:3001';
 
         if (!apiUrl) return res.json({ success: false, message: '❌ API WhatsApp não configurada.' });
 
@@ -780,7 +780,7 @@ app.post('/api/admin/db-setup', async (req, res) => {
 app.get('/api/admin/bot/status', async (req, res) => {
     try {
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
+        let apiUrl = 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
         const response = await fetch(`${apiUrl}/status`, {
@@ -801,7 +801,7 @@ app.get('/api/admin/bot/status', async (req, res) => {
 app.get('/api/admin/bot/qr', async (req, res) => {
     try {
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
+        let apiUrl = 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
         const response = await fetch(`${apiUrl}/api/qr`, {
@@ -822,7 +822,7 @@ app.get('/api/admin/bot/qr', async (req, res) => {
 app.post('/api/admin/bot/restart', async (req, res) => {
     try {
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
+        let apiUrl = 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
         const response = await fetch(`${apiUrl}/logout`, {
@@ -859,9 +859,30 @@ app.get(/.*/, (req, res) => {
     });
 });
 
+const { fork } = require('child_process');
+const fs = require('fs');
 
 app.listen(PORT, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
+
+    // --- WHATSAPP BOT AUTO-START ---
+    const botPath = path.join(__dirname, '../whatsapp-bot/index.js');
+    if (fs.existsSync(botPath)) {
+        console.log('🤖 Iniciando Bot WhatsApp em segundo plano (Child Process)...');
+
+        const botProcess = fork(botPath, [], {
+            cwd: path.dirname(botPath),
+            env: {
+                ...process.env,
+                PORT: '3001', // O bot escuta na 3001
+                API_PORT: '3001',
+                API_TOKEN: process.env.WHATSAPP_API_TOKEN || 'lucastav8012'
+            },
+            stdio: 'inherit' // Permite ver os logs do bot na tela principal
+        });
+
+        botProcess.on('exit', (code) => {
+            console.log(`❌ Bot WhatsApp desligou com código ${code}.`);
+        });
+    }
 });
-
-
