@@ -89,6 +89,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'column' as const,
         gap: '8px',
+        overflowY: 'auto' as const,
     },
     link: {
         display: 'flex',
