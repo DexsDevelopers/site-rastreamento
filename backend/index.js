@@ -47,7 +47,7 @@ app.get('/api/db-check', async (req, res) => {
 });
 
 // Servir o Frontend
-const distPath = path.join(__dirname, '..', 'webapp', 'dist');
+const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
 
 app.get('*', (req, res) => {
@@ -55,15 +55,16 @@ app.get('*', (req, res) => {
     res.sendFile(indexPath, (err) => {
         if (err) {
             res.status(500).send(`
-                <h1>Erro de Inicialização</h1>
-                <p>O servidor Node está rodando, mas não encontrou o site (webapp/dist).</p>
+                <h1>Erro de Inicialização v2</h1>
+                <p>O servidor está ONLINE, mas não achou o arquivo index.html no novo local.</p>
                 <p>Caminho tentado: ${indexPath}</p>
                 <hr>
-                <p>Verifique se você rodou o comando de build ou se a pasta webapp/dist existe no FTP.</p>
+                <p>Por favor, verifique se a pasta 'backend/dist' existe no seu Gerenciador de Arquivos.</p>
             `);
         }
     });
 });
+
 
 app.listen(PORT, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
