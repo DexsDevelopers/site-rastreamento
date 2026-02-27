@@ -5,7 +5,6 @@ import { Database, CheckCircle, XCircle, RefreshCw, Server, ShieldCheck } from '
 const DatabaseDebug: React.FC = () => {
     const [status, setStatus] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [envVars, setEnvVars] = useState<any>(null);
 
     const checkConnection = async () => {
         setLoading(true);

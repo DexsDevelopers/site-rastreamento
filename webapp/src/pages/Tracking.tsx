@@ -1,14 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Package, MapPin, Clock, CheckCircle2, AlertCircle, ArrowRight, Share2, Printer, Map } from 'lucide-react';
-
-interface TrackingEvent {
-    id: number;
-    status: string;
-    local: string;
-    data: string;
-    detalhes: string;
-    completo: boolean;
-}
+import { useState } from 'react';
+import { Search, Package, MapPin, Clock, CheckCircle2, ArrowRight, Share2, Printer, Truck } from 'lucide-react';
 
 const TrackingPage: React.FC = () => {
     const [codigo, setCodigo] = useState('');
@@ -79,7 +70,6 @@ const TrackingPage: React.FC = () => {
                             </div>
                             <div style={styles.trackingId}>#{trackingData.codigo}</div>
                         </div>
-
 
                         <div style={styles.quickInfoGrid}>
                             <div style={styles.infoItem}>

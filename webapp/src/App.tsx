@@ -9,32 +9,29 @@ import Tracking from './pages/Tracking';
 import DatabaseDebug from './pages/DatabaseDebug';
 import './index.css';
 
-// Autenticação Falsa provisória para visualização
-const isAuthenticated = () => true;
-
 function App() {
-  const isAuth = isAuthenticated();
-
   return (
     <Router>
       <div className="app-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
         <Routes>
-          {/* Site Público (Sem Sidebar) */}
+          {/* Rotas Públicas (Sem Sidebar) */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/rastreio" element={<Tracking />} />
 
-          {/* Área Administrativa (Com Sidebar) */}
-          <Route path="/dashboard" element={<AdminLayout isAuth={isAuth}><Dashboard /></AdminLayout>} />
-          <Route path="/pedidos" element={<AdminLayout isAuth={isAuth}><Orders /></AdminLayout>} />
-          <Route path="/clientes" element={<AdminLayout isAuth={isAuth}><Clients /></AdminLayout>} />
-          <Route path="/debug-db" element={<AdminLayout isAuth={isAuth}><DatabaseDebug /></AdminLayout>} />
+          {/* Rotas Administrativas (Com Sidebar) */}
+          <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
+          <Route path="/pedidos" element={<AdminLayout><Orders /></AdminLayout>} />
+          <Route path="/clientes" element={<AdminLayout><Clients /></AdminLayout>} />
+          <Route path="/debug-db" element={<AdminLayout><DatabaseDebug /></AdminLayout>} />
 
-          <Route path="/entregadores" element={<AdminLayout isAuth={isAuth}><Placeholder title="Entregadores" /></AdminLayout>} />
-          <Route path="/whatsapp" element={<AdminLayout isAuth={isAuth}><Placeholder title="Configuração Bot" /></AdminLayout>} />
-          <Route path="/relatorios" element={<AdminLayout isAuth={isAuth}><Placeholder title="Relatórios" /></AdminLayout>} />
-          <Route path="/configuracoes" element={<AdminLayout isAuth={isAuth}><Placeholder title="Configurações" /></AdminLayout>} />
+          {/* Placeholders */}
+          <Route path="/entregadores" element={<AdminLayout><Placeholder title="Entregadores" /></AdminLayout>} />
+          <Route path="/whatsapp" element={<AdminLayout><Placeholder title="Configuração Bot" /></AdminLayout>} />
+          <Route path="/relatorios" element={<AdminLayout><Placeholder title="Relatórios" /></AdminLayout>} />
+          <Route path="/configuracoes" element={<AdminLayout><Placeholder title="Configurações" /></AdminLayout>} />
 
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
@@ -42,12 +39,12 @@ function App() {
   );
 }
 
-const AdminLayout = ({ children, isAuth }: { children: React.ReactNode, isAuth: boolean }) => {
-  if (!isAuth) return <Navigate to="/login" />;
+// Layout que envolve as páginas internas com a Sidebar
+const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
       <Sidebar />
-      <main className="main-content" style={{ flex: 1, padding: '20px', position: 'relative', zIndex: 1 }}>
+      <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
         {children}
       </main>
     </div>
