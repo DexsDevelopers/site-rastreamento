@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const db = require('./db');
+const path = require('path');
 
 dotenv.config();
 
@@ -31,8 +32,16 @@ app.get('/api/config', async (req, res) => {
     }
 });
 
+// Configurar o Node.js para servir o site visualmente (O Frontend React/Vite)
+app.use(express.static(path.join(__dirname, '../webapp/dist')));
+
+// Qualquer acesso que não for uma API, mandamos para o React lidar (ex: /login, /dashboard)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../webapp/dist/index.html'));
+});
+
 // Iniciando o servidor
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor Node.js (Backend Backend) rodando na porta ${PORT}`);
+    console.log(`🚀 Servidor Node.js rodando na porta ${PORT}`);
     console.log(`✅ Conexão com banco preparada para: ${process.env.DB_HOST}`);
 });
