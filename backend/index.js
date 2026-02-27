@@ -825,15 +825,15 @@ app.post('/api/admin/bot/restart', async (req, res) => {
         let apiUrl = process.env.WHATSAPP_API_URL || 'http://127.0.0.1:3001';
         if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
 
-        const response = await fetch(`${apiUrl}/reconnect`, {
+        const response = await fetch(`${apiUrl}/logout`, {
             method: 'POST',
             headers: { 'x-api-token': apiToken }
         }).catch(() => null);
 
         if (response && response.ok) {
-            res.json({ success: true });
+            res.json({ success: true, message: 'Bot reiniciado e pronto para gerar novo QR!' });
         } else {
-            res.json({ success: false });
+            res.json({ success: false, message: 'Falha ao reiniciar o bot.' });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

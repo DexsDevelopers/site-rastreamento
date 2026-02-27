@@ -68,7 +68,7 @@ const WhatsAppConfig = () => {
     }, [status]);
 
     const handleRestart = async () => {
-        if (!window.confirm('Deseja reiniciar a sessão do WhatsApp?')) return;
+        if (status?.connected && !window.confirm('Deseja reiniciar a sessão e desconectar o WhatsApp atual?')) return;
         setActionLoading(true);
         try {
             await axios.post('/api/admin/bot/restart');
@@ -169,11 +169,12 @@ const WhatsAppConfig = () => {
                                 O bot está aguardando autenticação. Escaneie o QR Code ao lado usando seu aplicativo WhatsApp.
                             </p>
                             <button
-                                onClick={fetchQR}
+                                onClick={handleRestart}
+                                disabled={actionLoading}
                                 className="btn-primary"
-                                style={{ marginTop: '20px', background: 'var(--accent-gradient)' }}
+                                style={{ marginTop: '20px', background: 'var(--danger)', border: 'none' }}
                             >
-                                Gerar novo QR Code
+                                {actionLoading ? 'Gerando...' : 'Forçar Novo QR Code'}
                             </button>
                         </div>
                     )}
