@@ -66,17 +66,18 @@ const Sidebar = () => {
 const styles = {
     sidebar: {
         width: '280px',
+        flexShrink: 0,
         height: 'calc(100vh - 32px)',
         margin: '16px 0 16px 16px',
         display: 'flex',
         flexDirection: 'column' as const,
         border: '1px solid var(--border-glass)',
-        position: 'sticky' as const,
-        top: '16px',
+        background: 'rgba(10, 10, 12, 0.65)',
+        backdropFilter: 'blur(20px)',
         borderRadius: 'var(--radius-lg)'
     },
     logoContainer: {
-        padding: '32px 24px',
+        padding: '24px 20px',
         borderBottom: '1px solid var(--border-glass)',
     },
     logoClass: {
@@ -86,28 +87,30 @@ const styles = {
     nav: {
         flex: 1,
         minHeight: 0,
-        padding: '24px 16px',
+        padding: '16px 14px',
         display: 'flex',
         flexDirection: 'column' as const,
-        gap: '6px',
+        gap: '4px',
         overflowY: 'auto' as const,
     },
     link: {
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        padding: '12px 16px',
-        borderRadius: 'var(--radius-md)',
+        padding: '10px 14px',
+        borderRadius: '8px',
         color: 'var(--text-secondary)',
         textDecoration: 'none',
-        transition: 'all 0.2s ease',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         fontWeight: 500,
-        borderLeft: '3px solid transparent', // Previne shift ao ficar ativo
+        fontSize: '0.95rem',
+        borderLeft: '3px solid transparent',
     },
     linkActive: {
-        background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%)',
-        color: 'var(--accent-primary)',
-        borderLeft: '3px solid var(--accent-primary)',
+        background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%)',
+        color: '#8b5cf6',
+        borderLeft: '3px solid #6366f1',
+        fontWeight: 600,
     },
     footer: {
         padding: '24px',
