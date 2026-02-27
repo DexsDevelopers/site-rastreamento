@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Truck, Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, MapPinned, Star, Heart, Menu, X, Calculator } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Truck, Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, MapPinned, Star, Heart, Menu, X, Calculator, Clock, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -12,6 +12,22 @@ const Home: React.FC = () => {
     const [trackError, setTrackError] = useState('');
     const [activeTab, setActiveTab] = useState<'voce' | 'empresas'>('voce');
     const [mobileMenu, setMobileMenu] = useState(false);
+    const [heroCounter, setHeroCounter] = useState(0);
+
+    // Contador animado
+    useEffect(() => {
+        const target = 10247;
+        const duration = 2000;
+        const steps = 60;
+        const increment = target / steps;
+        let current = 0;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) { setHeroCounter(target); clearInterval(timer); }
+            else setHeroCounter(Math.floor(current));
+        }, duration / steps);
+        return () => clearInterval(timer);
+    }, []);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,7 +49,6 @@ const Home: React.FC = () => {
                 setTrackError(data.message || 'Código não encontrado.');
             }
         } catch {
-            // Simulação para demonstrar o visual
             setTrackResult({
                 statusAtual: 'Em Trânsito',
                 cidade: cidade,
@@ -59,270 +74,732 @@ const Home: React.FC = () => {
         if (s.includes('trânsito') || s.includes('transito')) return '📦';
         if (s.includes('postado') || s.includes('coletado')) return '📬';
         if (s.includes('entregue')) return '✅';
-        if (s.includes('aguardando') || s.includes('pagamento')) return '⏳';
         return '📍';
     };
 
     return (
-        <div style={styles.page}>
-            {/* Efeitos de fundo */}
-            <div style={styles.bgOrb1}></div>
-            <div style={styles.bgOrb2}></div>
-            <div style={styles.gridOverlay}></div>
+        <div className="home-page">
+            <style>{`
+                .home-page {
+                    background: #06060b;
+                    color: #fff;
+                    min-height: 100vh;
+                    position: relative;
+                    overflow-x: hidden;
+                }
+                .home-page * { box-sizing: border-box; }
+
+                /* ===== BG EFFECTS ===== */
+                .bg-mesh {
+                    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+                    background:
+                        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+                        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08), transparent),
+                        radial-gradient(ellipse 50% 30% at 20% 80%, rgba(6, 182, 212, 0.06), transparent);
+                }
+                .bg-grid {
+                    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+                    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                                      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+                    background-size: 60px 60px;
+                    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+                }
+
+                /* ===== HEADER (Glass Card) ===== */
+                .site-header {
+                    position: sticky; top: 0; z-index: 100;
+                    padding: 10px 24px;
+                    background: transparent;
+                }
+                .header-glass {
+                    max-width: 1280px; margin: 0 auto;
+                    display: flex; justify-content: space-between; align-items: center;
+                    padding: 14px 28px;
+                    background: rgba(255, 255, 255, 0.03);
+                    backdrop-filter: blur(24px) saturate(1.4);
+                    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 20px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+                }
+                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
+                .logo-box {
+                    width: 38px; height: 38px;
+                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    border-radius: 12px;
+                    display: flex; align-items: center; justify-content: center;
+                    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+                }
+                .logo-name { font-size: 1.4rem; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
+                .desktop-nav { display: flex; align-items: center; gap: 28px; }
+                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+                .nav-item:hover { color: white; }
+                .nav-login-btn {
+                    padding: 10px 24px;
+                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    border-radius: 12px; color: white; text-decoration: none;
+                    font-weight: 700; font-size: 0.85rem;
+                    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+                    transition: all 0.3s;
+                }
+                .nav-login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5); }
+                .mobile-toggle { display: none; background: none; border: none; color: white; cursor: pointer; }
+                .mobile-nav {
+                    display: flex; flex-direction: column; gap: 8px;
+                    padding: 12px 24px 20px;
+                    max-width: 1280px; margin: 4px auto 0;
+                    background: rgba(255,255,255,0.03);
+                    backdrop-filter: blur(24px);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 16px;
+                    animation: fadeIn 0.3s ease;
+                }
+                .mobile-nav a {
+                    color: rgba(255,255,255,0.6); text-decoration: none; font-size: 1rem;
+                    padding: 10px 0; font-weight: 500;
+                }
+
+                /* ===== HERO ===== */
+                .hero-section {
+                    position: relative; z-index: 1;
+                    padding: 40px 24px 60px;
+                    max-width: 1280px; margin: 0 auto;
+                    display: flex; align-items: center; gap: 60px;
+                }
+                .hero-left { flex: 1; min-width: 0; }
+                .hero-glass-card {
+                    padding: 48px 40px;
+                    border-radius: 28px;
+                    background: rgba(255, 255, 255, 0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    box-shadow: 0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
+                    position: relative; overflow: hidden;
+                }
+                .hero-glass-card::before {
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+                    background: linear-gradient(90deg, #6366f1, #a855f7, #22d3ee);
+                }
+                .hero-right { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+                .hero-badge {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    padding: 8px 16px 8px 10px;
+                    background: rgba(99, 102, 241, 0.08);
+                    border: 1px solid rgba(99, 102, 241, 0.2);
+                    border-radius: 100px;
+                    font-size: 0.8rem; font-weight: 600;
+                    color: #a5b4fc;
+                    margin-bottom: 24px;
+                    animation: fadeIn 0.5s ease;
+                }
+                .hero-badge-dot {
+                    width: 8px; height: 8px; border-radius: 50%;
+                    background: #6366f1;
+                    box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+                    animation: pulse-dot 2s ease infinite;
+                }
+                @keyframes pulse-dot {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.5; transform: scale(1.5); }
+                }
+                .hero-title {
+                    font-size: clamp(2.2rem, 5.5vw, 4rem);
+                    font-weight: 900; line-height: 1.08;
+                    letter-spacing: -2px;
+                    margin-bottom: 20px;
+                    font-family: 'Outfit', sans-serif;
+                }
+                .hero-title .gradient-word {
+                    background: linear-gradient(135deg, #818cf8, #c084fc, #22d3ee);
+                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+                .hero-desc {
+                    color: rgba(255,255,255,0.5);
+                    font-size: clamp(0.95rem, 2vw, 1.1rem);
+                    line-height: 1.7; margin-bottom: 32px; max-width: 520px;
+                }
+                .hero-actions { display: flex; gap: 12px; margin-bottom: 48px; flex-wrap: wrap; }
+                .cta-primary {
+                    display: inline-flex; align-items: center; gap: 10px;
+                    padding: 16px 32px;
+                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    border-radius: 14px; color: white; text-decoration: none;
+                    font-weight: 700; font-size: 0.95rem;
+                    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    position: relative; overflow: hidden;
+                }
+                .cta-primary::after {
+                    content: ''; position: absolute; top: 0; left: -100%;
+                    width: 100%; height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+                    transition: left 0.6s;
+                }
+                .cta-primary:hover::after { left: 100%; }
+                .cta-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(99, 102, 241, 0.5); }
+                .cta-secondary {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    padding: 16px 28px;
+                    border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
+                    color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;
+                    background: rgba(255,255,255,0.03);
+                    transition: all 0.3s;
+                }
+                .cta-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
+                /* ===== TRACKING FORM ===== */
+                .track-form { max-width: 500px; }
+                .track-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+                .track-input-wrap {
+                    display: flex; align-items: center; gap: 12px;
+                    background: rgba(255,255,255,0.04);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 14px; padding: 4px 16px;
+                    transition: all 0.3s;
+                }
+                .track-input-wrap:focus-within {
+                    border-color: rgba(99, 102, 241, 0.5);
+                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+                    background: rgba(99, 102, 241, 0.04);
+                }
+                .track-input {
+                    flex: 1; background: transparent; border: none; color: white;
+                    padding: 14px 0; font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif;
+                }
+                .track-input::placeholder { color: rgba(255,255,255,0.25); }
+                .track-submit {
+                    width: 100%; padding: 16px; border: none; border-radius: 14px;
+                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    color: white; font-weight: 700; font-size: 1rem; cursor: pointer;
+                    font-family: 'Outfit', sans-serif;
+                    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+                    transition: all 0.3s;
+                }
+                .track-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5); }
+                .track-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+                /* ===== HERO RIGHT FLOATING CARDS ===== */
+                .float-card {
+                    padding: 28px 32px; border-radius: 24px;
+                    background: rgba(255,255,255,0.03);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    text-align: center; min-width: 220px;
+                    transition: all 0.4s;
+                }
+                .float-card:hover {
+                    border-color: rgba(99, 102, 241, 0.3);
+                    transform: translateY(-4px);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                }
+                .float-card-value {
+                    font-size: 2.8rem; font-weight: 900;
+                    font-family: 'Outfit', sans-serif;
+                    background: linear-gradient(135deg, #818cf8, #c084fc);
+                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+                .float-card-label { color: rgba(255,255,255,0.45); font-size: 0.85rem; margin-top: 6px; }
+
+                /* ===== RESULT AREA ===== */
+                .result-area {
+                    position: relative; z-index: 1;
+                    max-width: 800px; margin: 0 auto; padding: 0 24px 60px;
+                }
+                .error-card {
+                    padding: 48px; border-radius: 28px; text-align: center;
+                    background: rgba(255,255,255,0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                }
+                .result-card {
+                    padding: 32px; border-radius: 28px;
+                    background: rgba(255,255,255,0.02);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.08);
+                }
+                .status-header {
+                    display: flex; align-items: center; gap: 20px;
+                    padding: 24px; margin-bottom: 24px;
+                    background: rgba(99, 102, 241, 0.04);
+                    border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.1);
+                }
+                .status-icon-box {
+                    width: 64px; height: 64px; border-radius: 20px;
+                    background: rgba(99, 102, 241, 0.08);
+                    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                }
+                .tl-item { display: flex; gap: 20px; }
+                .tl-marker { display: flex; flex-direction: column; align-items: center; width: 20px; flex-shrink: 0; }
+                .tl-dot {
+                    width: 14px; height: 14px; border-radius: 50%;
+                    border: 2px solid rgba(255,255,255,0.08); flex-shrink: 0; z-index: 2;
+                }
+                .tl-line { width: 2px; flex: 1; background: rgba(255,255,255,0.06); min-height: 40px; }
+                .tl-content { flex: 1; padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; }
+                .express-box { text-align: center; padding: 24px 0 0; margin-top: 20px; border-top: 2px dashed rgba(255,255,255,0.06); }
+                .express-btn {
+                    padding: 16px 32px; border: none; border-radius: 16px;
+                    background: linear-gradient(135deg, #0096ff, #6366f1);
+                    color: white; font-weight: 800; font-size: 1rem; cursor: pointer;
+                    box-shadow: 0 8px 24px rgba(0, 150, 255, 0.3);
+                    font-family: 'Outfit', sans-serif;
+                    transition: all 0.3s;
+                }
+                .express-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 150, 255, 0.5); }
+
+                /* ===== TABS ===== */
+                .tabs-wrap {
+                    position: relative; z-index: 1;
+                    max-width: 1280px; margin: 0 auto;
+                    padding: 30px 24px 0;
+                }
+                .tabs-bar {
+                    display: inline-flex; gap: 4px; padding: 4px;
+                    background: rgba(255,255,255,0.03);
+                    border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);
+                }
+                .tab-btn {
+                    padding: 12px 28px; background: transparent; border: none;
+                    color: rgba(255,255,255,0.45); cursor: pointer;
+                    border-radius: 12px; font-weight: 600; font-size: 0.9rem;
+                    font-family: 'Outfit', sans-serif; transition: all 0.3s;
+                }
+                .tab-btn:hover { color: white; }
+                .tab-btn.active {
+                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    color: white; font-weight: 700;
+                    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+                }
+
+                /* ===== SECTION ===== */
+                .content-section {
+                    position: relative; z-index: 1;
+                    padding: 60px 24px 80px;
+                    max-width: 1280px; margin: 0 auto;
+                    animation: fadeIn 0.6s ease;
+                }
+                .section-header {
+                    margin-bottom: 48px;
+                }
+                .section-label {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    padding: 6px 14px;
+                    background: rgba(99, 102, 241, 0.08);
+                    border: 1px solid rgba(99, 102, 241, 0.15);
+                    border-radius: 100px;
+                    font-size: 0.78rem; font-weight: 600; color: #a5b4fc;
+                    margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em;
+                }
+                .section-title {
+                    font-size: clamp(1.8rem, 4vw, 2.8rem);
+                    font-weight: 900; letter-spacing: -1px;
+                    font-family: 'Outfit', sans-serif;
+                    line-height: 1.15;
+                }
+                .section-title .gradient-word {
+                    background: linear-gradient(135deg, #818cf8, #c084fc, #22d3ee);
+                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+                .section-subtitle {
+                    color: rgba(255,255,255,0.4);
+                    font-size: 1.05rem; margin-top: 12px; max-width: 500px;
+                }
+
+                /* ===== FEATURE CARDS ===== */
+                .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+                .feature-card {
+                    padding: 32px; border-radius: 24px;
+                    background: rgba(255,255,255,0.02);
+                    backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    display: flex; flex-direction: column; gap: 16px;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    transform-style: preserve-3d;
+                }
+                .feature-card:hover {
+                    background: rgba(255,255,255,0.05);
+                    border-color: rgba(99, 102, 241, 0.3);
+                    transform: translateY(-8px) rotateX(2deg);
+                    box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(99, 102, 241, 0.1);
+                }
+                .feature-icon {
+                    width: 56px; height: 56px; border-radius: 16px;
+                    display: flex; align-items: center; justify-content: center;
+                }
+                .feature-card h3 { font-size: 1.15rem; font-weight: 700; }
+                .feature-card p { color: rgba(255,255,255,0.4); line-height: 1.6; font-size: 0.9rem; flex: 1; }
+                .feature-link {
+                    color: #818cf8; text-decoration: none; font-weight: 700; font-size: 0.85rem;
+                    display: flex; align-items: center; gap: 6px; transition: gap 0.3s;
+                }
+                .feature-link:hover { gap: 10px; color: #a5b4fc; }
+
+                /* ===== METRICS BAR ===== */
+                .metrics-bar {
+                    position: relative; z-index: 1;
+                    padding: 40px 24px;
+                    max-width: 1280px; margin: 0 auto;
+                    display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+                }
+                .metric-card {
+                    padding: 32px 20px; border-radius: 24px; text-align: center;
+                    background: rgba(255,255,255,0.02);
+                    backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    transition: all 0.4s;
+                }
+                .metric-card:hover {
+                    border-color: rgba(99, 102, 241, 0.3);
+                    transform: translateY(-4px);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                }
+                .metric-icon {
+                    width: 48px; height: 48px; border-radius: 14px;
+                    display: flex; align-items: center; justify-content: center;
+                    margin: 0 auto 12px;
+                }
+                .metric-value {
+                    font-size: 2rem; font-weight: 900;
+                    font-family: 'Outfit', sans-serif;
+                    background: linear-gradient(135deg, #818cf8, #c084fc);
+                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+                .metric-label { color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-top: 4px; }
+
+                /* ===== TESTIMONIALS ===== */
+                .testimonials-section {
+                    position: relative; z-index: 1;
+                    padding: 100px 24px;
+                    background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.03), transparent);
+                    border-top: 1px solid rgba(255,255,255,0.04);
+                    border-bottom: 1px solid rgba(255,255,255,0.04);
+                }
+                .testimonials-inner { max-width: 1280px; margin: 0 auto; }
+                .testimonial-card {
+                    padding: 32px; border-radius: 24px;
+                    background: rgba(255,255,255,0.02);
+                    backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    display: flex; flex-direction: column; gap: 16px;
+                    transition: all 0.4s;
+                }
+                .testimonial-card:hover {
+                    border-color: rgba(99, 102, 241, 0.25);
+                    transform: translateY(-4px);
+                }
+                .testimonial-stars { display: flex; gap: 3px; }
+                .testimonial-text { color: rgba(255,255,255,0.45); line-height: 1.7; font-size: 0.95rem; font-style: italic; flex: 1; }
+
+                /* ===== FOOTER ===== */
+                .site-footer {
+                    position: relative; z-index: 1;
+                    border-top: 1px solid rgba(255,255,255,0.04);
+                    padding: 80px 24px 40px;
+                }
+                .footer-inner {
+                    max-width: 1280px; margin: 0 auto 60px;
+                    display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap;
+                }
+                .footer-brand-col { max-width: 320px; }
+                .footer-links-wrap { display: flex; gap: 60px; flex-wrap: wrap; }
+                .footer-col {
+                    display: flex; flex-direction: column; gap: 10px;
+                }
+                .footer-col h4 { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
+                .footer-col a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+                .footer-col a:hover { color: white; }
+                .footer-bottom {
+                    max-width: 1280px; margin: 0 auto;
+                    text-align: center; color: rgba(255,255,255,0.2); font-size: 0.8rem;
+                    border-top: 1px solid rgba(255,255,255,0.04); padding-top: 32px;
+                }
+
+                /* ===== ANIMATIONS ===== */
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes float {
+                    0%, 100% { transform: translateY(0) rotate(-2deg); }
+                    50% { transform: translateY(-12px) rotate(-1deg); }
+                }
+                @keyframes float2 {
+                    0%, 100% { transform: translateY(0) rotate(2deg); }
+                    50% { transform: translateY(-8px) rotate(3deg); }
+                }
+
+                /* ===== RESPONSIVO ===== */
+                @media (max-width: 1024px) {
+                    .hero-section { flex-direction: column; gap: 40px; }
+                    .hero-right { flex-direction: row; justify-content: center; }
+                    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+                    .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+                }
+                @media (max-width: 768px) {
+                    .desktop-nav { display: none !important; }
+                    .mobile-toggle { display: flex !important; }
+                    .hero-section { padding: 40px 16px 40px; }
+                    .hero-title { letter-spacing: -1px; }
+                    .hero-right { display: none !important; }
+                    .grid-3 { grid-template-columns: 1fr; }
+                    .metrics-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 16px; }
+                    .metric-card { padding: 24px 16px; }
+                    .metric-value { font-size: 1.6rem; }
+                    .tabs-wrap { padding: 20px 16px 0; }
+                    .content-section { padding: 40px 16px 60px; }
+                    .testimonials-section { padding: 60px 16px; }
+                    .site-footer { padding: 40px 16px 24px; }
+                    .footer-links-wrap { gap: 32px; }
+                    .track-submit { font-size: 0.95rem; padding: 14px; }
+                }
+                @media (max-width: 480px) {
+                    .hero-actions { flex-direction: column; }
+                    .cta-primary, .cta-secondary { justify-content: center; width: 100%; }
+                    .metrics-bar { grid-template-columns: 1fr 1fr; }
+                    .header-inner { padding: 12px 16px; }
+                }
+            `}</style>
+
+            <div className="bg-mesh"></div>
+            <div className="bg-grid"></div>
 
             {/* ===== HEADER ===== */}
-            <header style={styles.header}>
-                <div style={styles.headerInner}>
-                    <Link to="/" style={styles.logo}>
-                        <div style={styles.logoIcon}><Truck size={18} color="white" /></div>
-                        <span style={styles.logoText}>loggi</span>
+            <header className="site-header">
+                <div className="header-glass">
+                    <Link to="/" className="logo-link">
+                        <div className="logo-box"><Truck size={18} color="white" /></div>
+                        <span className="logo-name">loggi</span>
                     </Link>
-
-                    {/* Desktop Nav */}
-                    <nav style={styles.desktopNav}>
-                        <Link to="/" style={styles.navLink}>Início</Link>
-                        <a href="#para-voce" style={styles.navLink}>Para você</a>
-                        <a href="#para-empresas" style={styles.navLink}>Para empresas</a>
-                        <Link to="/sobre" style={styles.navLink}>Sobre</Link>
-                        <Link to="/entrar" style={styles.navBtnLogin}>Entrar</Link>
+                    <nav className="desktop-nav" style={{ display: 'flex' }}>
+                        <Link to="/" className="nav-item">Início</Link>
+                        <Link to="/para-voce" className="nav-item">Para você</Link>
+                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
+                        <Link to="/sobre" className="nav-item">Sobre</Link>
+                        <Link to="/entrar" className="nav-login-btn">Entrar</Link>
                     </nav>
-
-                    {/* Mobile Toggle */}
-                    <button style={styles.menuBtn} onClick={() => setMobileMenu(!mobileMenu)}>
+                    <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)}>
                         {mobileMenu ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
-
-                {/* Mobile Nav */}
                 {mobileMenu && (
-                    <nav style={styles.mobileNav} className="animate-fade">
-                        <Link to="/" style={styles.mobileLink} onClick={() => setMobileMenu(false)}>Início</Link>
-                        <a href="#para-voce" style={styles.mobileLink} onClick={() => setMobileMenu(false)}>Para você</a>
-                        <a href="#para-empresas" style={styles.mobileLink} onClick={() => setMobileMenu(false)}>Para empresas</a>
-                        <Link to="/sobre" style={styles.mobileLink} onClick={() => setMobileMenu(false)}>Sobre</Link>
-                        <Link to="/entrar" style={{ ...styles.mobileLink, color: 'var(--accent-primary)', fontWeight: 700 }} onClick={() => setMobileMenu(false)}>Entrar</Link>
+                    <nav className="mobile-nav">
+                        <Link to="/" onClick={() => setMobileMenu(false)}>Início</Link>
+                        <Link to="/para-voce" onClick={() => setMobileMenu(false)}>Para você</Link>
+                        <Link to="/para-empresas" onClick={() => setMobileMenu(false)}>Para empresas</Link>
+                        <Link to="/sobre" onClick={() => setMobileMenu(false)}>Sobre</Link>
+                        <Link to="/entrar" onClick={() => setMobileMenu(false)} style={{ color: '#818cf8', fontWeight: 700 }}>Entrar</Link>
                     </nav>
                 )}
             </header>
 
             {/* ===== HERO ===== */}
-            <section style={styles.hero}>
-                <div style={styles.heroInner}>
-                    <div style={styles.heroLeft} className="animate-fade">
-                        <h1 style={styles.heroTitle}>
-                            O rastreio do seu<br />envio é <span className="text-gradient">prático</span>
+            <section className="hero-section">
+                <div className="hero-left" style={{ animation: 'fadeIn 0.7s ease' }}>
+                    <div className="hero-glass-card">
+                        <div className="hero-badge">
+                            <div className="hero-badge-dot"></div>
+                            🚀 {heroCounter.toLocaleString('pt-BR')}+ entregas hoje
+                        </div>
+
+                        <h1 className="hero-title">
+                            Sua encomenda,<br />nossa <span className="gradient-word">tecnologia.</span>
                         </h1>
-                        <p style={styles.heroDesc}>
-                            Acompanhe seu pedido em tempo real com a Loggi. Frete grátis para todo o Brasil.
+
+                        <p className="hero-desc">
+                            Rastreie, envie e gerencie seus pacotes em tempo real. A maior malha logística do Brasil com frete grátis para todo o país.
                         </p>
 
-                        <div style={styles.heroActions}>
-                            <Link to="/pedido" className="btn-primary" style={styles.ctaBtn}>
+                        <div className="hero-actions">
+                            <Link to="/pedido" className="cta-primary">
                                 <Package size={18} /> Enviar agora
                             </Link>
-                            <Link to="/pedido" style={styles.ctaSecondary}>
+                            <Link to="/pedido" className="cta-secondary">
                                 <Calculator size={18} /> Calcular frete
                             </Link>
                         </div>
 
                         {/* Formulário de Rastreio */}
-                        <form onSubmit={handleSearch} style={styles.trackForm}>
-                            <div style={styles.trackFields}>
-                                <div style={styles.trackFieldWrap}>
-                                    <Search size={16} color="var(--accent-primary)" />
-                                    <input
-                                        type="text"
-                                        placeholder="Código de rastreio"
-                                        value={codigo}
-                                        onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-                                        maxLength={12}
-                                        required
-                                        style={styles.trackInput}
-                                    />
+                        <form onSubmit={handleSearch} className="track-form">
+                            <div className="track-fields">
+                                <div className="track-input-wrap">
+                                    <Search size={16} color="#6366f1" />
+                                    <input className="track-input" placeholder="Código de rastreio" value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())} maxLength={12} required />
                                 </div>
-                                <div style={styles.trackFieldWrap}>
-                                    <MapPinned size={16} color="var(--accent-primary)" />
-                                    <input
-                                        type="text"
-                                        placeholder="Sua cidade"
-                                        value={cidade}
-                                        onChange={(e) => setCidade(e.target.value)}
-                                        required
-                                        style={styles.trackInput}
-                                    />
+                                <div className="track-input-wrap">
+                                    <MapPinned size={16} color="#6366f1" />
+                                    <input className="track-input" placeholder="Sua cidade" value={cidade} onChange={e => setCidade(e.target.value)} required />
                                 </div>
                             </div>
-                            <button type="submit" className="btn-primary" style={styles.trackSubmit} disabled={loading}>
+                            <button type="submit" className="track-submit" disabled={loading}>
                                 {loading ? '⏳ Buscando...' : '🔍 Rastrear agora'}
                             </button>
                         </form>
+                    </div>{/* fim hero-glass-card */}
+                </div>
+
+                <div className="hero-right">
+                    <div className="float-card" style={{ animation: 'float 5s ease-in-out infinite', transform: 'rotate(-2deg)' }}>
+                        <div className="float-card-value">+100M</div>
+                        <div className="float-card-label">Objetos Entregues</div>
+                    </div>
+                    <div className="float-card" style={{ animation: 'float2 6s ease-in-out infinite', transform: 'rotate(2deg)' }}>
+                        <div className="float-card-value">4.8★</div>
+                        <div className="float-card-label">Satisfação dos Clientes</div>
                     </div>
                 </div>
             </section>
 
-            {/* ===== RESULTADO DO RASTREIO ===== */}
+            {/* ===== RESULTADO ===== */}
             {trackError && (
-                <div style={styles.resultArea} className="animate-fade">
-                    <div style={styles.errorCard} className="glass-card-3d">
-                        <span style={{ fontSize: '2.5rem' }}>❌</span>
-                        <h3 style={{ color: 'var(--danger)' }}>{trackError}</h3>
+                <div className="result-area" style={{ animation: 'fadeIn 0.5s ease' }}>
+                    <div className="error-card">
+                        <span style={{ fontSize: '3rem' }}>❌</span>
+                        <h3 style={{ color: '#ff6b6b', marginTop: '16px', fontSize: '1.2rem' }}>{trackError}</h3>
                     </div>
                 </div>
             )}
-
             {trackResult && (
-                <div style={styles.resultArea} className="animate-fade">
-                    <div style={styles.resultCard} className="glass-card-3d">
-                        {/* Status Header */}
-                        <div style={styles.statusHeader}>
-                            <div style={styles.statusIconBox}>
-                                <span style={{ fontSize: '2rem' }}>
-                                    {getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}
-                                </span>
+                <div className="result-area" style={{ animation: 'fadeIn 0.5s ease' }}>
+                    <div className="result-card">
+                        <div className="status-header">
+                            <div className="status-icon-box">
+                                <span style={{ fontSize: '2rem' }}>{getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}</span>
                             </div>
                             <div>
-                                <h3 style={styles.statusTitle}>{trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}</h3>
-                                <p style={styles.statusCity}>📍 {cidade}</p>
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>{trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}</h3>
+                                <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontSize: '0.9rem' }}>📍 {cidade}</p>
                             </div>
                         </div>
-
-                        {/* Timeline */}
-                        <div style={styles.timeline}>
-                            {trackResult.etapas.map((etapa: any, index: number) => {
-                                const isLast = index === trackResult.etapas.length - 1;
+                        <div>
+                            {trackResult.etapas.map((etapa: any, i: number) => {
+                                const isLast = i === trackResult.etapas.length - 1;
                                 return (
-                                    <div key={index} style={styles.tlItem}>
-                                        <div style={styles.tlMarkerCol}>
-                                            <div style={{
-                                                ...styles.tlDot,
-                                                background: isLast ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)',
-                                                boxShadow: isLast ? '0 0 16px var(--accent-glow)' : 'none',
+                                    <div key={i} className="tl-item">
+                                        <div className="tl-marker">
+                                            <div className="tl-dot" style={{
+                                                background: isLast ? '#6366f1' : 'rgba(255,255,255,0.08)',
+                                                boxShadow: isLast ? '0 0 16px rgba(99, 102, 241, 0.5)' : 'none',
                                             }}></div>
-                                            {index < trackResult.etapas.length - 1 && <div style={styles.tlLine}></div>}
+                                            {i < trackResult.etapas.length - 1 && <div className="tl-line"></div>}
                                         </div>
-                                        <div style={{
-                                            ...styles.tlContent,
+                                        <div className="tl-content" style={{
                                             background: isLast ? 'rgba(99, 102, 241, 0.06)' : 'transparent',
                                             border: isLast ? '1px solid rgba(99, 102, 241, 0.15)' : '1px solid transparent',
                                         }}>
-                                            <h4 style={{ color: isLast ? 'var(--accent-primary)' : 'var(--text-primary)', fontWeight: 700 }}>
-                                                {etapa.titulo}
-                                            </h4>
-                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0' }}>{etapa.subtitulo}</p>
-                                            <small style={{ color: 'var(--accent-primary)', fontWeight: 600, fontSize: '0.8rem' }}>
-                                                {formatDate(etapa.data)}
-                                            </small>
+                                            <h4 style={{ color: isLast ? '#818cf8' : 'white', fontWeight: 700 }}>{etapa.titulo}</h4>
+                                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', margin: '4px 0' }}>{etapa.subtitulo}</p>
+                                            <small style={{ color: '#818cf8', fontWeight: 600, fontSize: '0.8rem' }}>{formatDate(etapa.data)}</small>
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
-
-                        {/* Botão Express */}
-                        <div style={styles.expressBox}>
-                            <button className="btn-primary" style={styles.expressBtn}>
-                                ⚡ Acelerar por R$ 29,90
-                            </button>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '8px' }}>Receba em até 3 dias úteis</p>
+                        <div className="express-box">
+                            <button className="express-btn">⚡ Acelerar por R$ 29,90</button>
+                            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', marginTop: '8px' }}>Receba em até 3 dias úteis</p>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ===== TABS: Para Você / Para Empresas ===== */}
-            <div style={styles.tabsWrap}>
-                <div style={styles.tabsBar}>
-                    <button style={activeTab === 'voce' ? styles.tabActive : styles.tabBtn} onClick={() => setActiveTab('voce')}>Para você</button>
-                    <button style={activeTab === 'empresas' ? styles.tabActive : styles.tabBtn} onClick={() => setActiveTab('empresas')}>Para empresas</button>
+            {/* ===== TABS ===== */}
+            <div className="tabs-wrap">
+                <div className="tabs-bar">
+                    <button className={`tab-btn ${activeTab === 'voce' ? 'active' : ''}`} onClick={() => setActiveTab('voce')}>Para você</button>
+                    <button className={`tab-btn ${activeTab === 'empresas' ? 'active' : ''}`} onClick={() => setActiveTab('empresas')}>Para empresas</button>
                 </div>
             </div>
 
-            {/* Para Você */}
+            {/* ===== PARA VOCÊ ===== */}
             {activeTab === 'voce' && (
-                <section id="para-voce" style={styles.section} className="animate-fade">
-                    <div style={styles.sectionInner}>
-                        <h2 style={styles.sectionTitle}>A Loggi entrega onde você precisar</h2>
-                        <p style={styles.sectionSub}>A maior malha logística privada do Brasil à sua disposição.</p>
-                        <div style={styles.grid3}>
-                            {[
-                                { icon: <QrCode size={28} color="var(--accent-primary)" />, title: 'Postagem simples', desc: 'Gere sua etiqueta em poucos cliques e poste em qualquer ponto parceiro próximo a você.', link: '/pedido', linkText: 'Começar agora' },
-                                { icon: <Satellite size={28} color="var(--accent-secondary)" />, title: 'Monitoramento GPS', desc: 'Acompanhe cada curva da sua encomenda com tecnologia de rastreio via satélite em tempo real.', link: '#', linkText: 'Ver como funciona' },
-                                { icon: <Zap size={28} color="#06b6d4" />, title: 'Loggi Express', desc: 'Sua encomenda priorizada em nossa malha expressa para chegar ao destino em tempo recorde.', link: '#', linkText: 'Pedir urgência' },
-                            ].map((c, i) => (
-                                <div key={i} className="glass-card-3d" style={styles.featureCard}>
-                                    <div style={styles.featureIcon}>{c.icon}</div>
-                                    <h3 style={styles.featureTitle}>{c.title}</h3>
-                                    <p style={styles.featureDesc}>{c.desc}</p>
-                                    <Link to={c.link} style={styles.featureLink}>{c.linkText} <ArrowRight size={14} /></Link>
-                                </div>
-                            ))}
-                        </div>
+                <section id="para-voce" className="content-section">
+                    <div className="section-header">
+                        <div className="section-label"><Zap size={12} /> Soluções pessoais</div>
+                        <h2 className="section-title">A Loggi entrega onde<br />você <span className="gradient-word">precisar</span></h2>
+                        <p className="section-subtitle">A maior malha logística privada do Brasil à sua disposição.</p>
+                    </div>
+                    <div className="grid-3">
+                        {[
+                            { icon: <QrCode size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Postagem simples', desc: 'Gere sua etiqueta em poucos cliques e poste em qualquer ponto parceiro próximo a você.', link: '/pedido', linkText: 'Começar agora' },
+                            { icon: <Satellite size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'Monitoramento GPS', desc: 'Acompanhe cada curva da sua encomenda com tecnologia de rastreio via satélite em tempo real.', link: '#', linkText: 'Ver como funciona' },
+                            { icon: <Zap size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Loggi Express', desc: 'Sua encomenda priorizada em nossa malha expressa para chegar em tempo recorde.', link: '#', linkText: 'Pedir urgência' },
+                        ].map((c, i) => (
+                            <div key={i} className="feature-card">
+                                <div className="feature-icon" style={{ background: c.bg }}>{c.icon}</div>
+                                <h3>{c.title}</h3>
+                                <p>{c.desc}</p>
+                                <Link to={c.link} className="feature-link">{c.linkText} <ArrowRight size={14} /></Link>
+                            </div>
+                        ))}
                     </div>
                 </section>
             )}
 
-            {/* Para Empresas */}
+            {/* ===== PARA EMPRESAS ===== */}
             {activeTab === 'empresas' && (
-                <section id="para-empresas" style={styles.section} className="animate-fade">
-                    <div style={styles.sectionInner}>
-                        <h2 style={styles.sectionTitle}>Logística inteligente para negócios</h2>
-                        <p style={styles.sectionSub}>Potencialize suas vendas com a malha logística que mais cresce no país.</p>
-                        <div style={styles.grid3}>
-                            {[
-                                { icon: <Warehouse size={28} color="var(--accent-primary)" />, title: 'Coleta loggi', desc: 'Equipe dedicada para coletar seus envios diretamente no seu centro de distribuição.' },
-                                { icon: <GitBranch size={28} color="var(--accent-secondary)" />, title: 'API de Integração', desc: 'Conecte seu e-commerce diretamente com nosso sistema para automação total de fretes.' },
-                                { icon: <RotateCcw size={28} color="#06b6d4" />, title: 'Reversa Facilitada', desc: 'Gestão completa de trocas e devoluções para encantar seus clientes no pós-venda.' },
-                            ].map((c, i) => (
-                                <div key={i} className="glass-card-3d" style={styles.featureCard}>
-                                    <div style={styles.featureIcon}>{c.icon}</div>
-                                    <h3 style={styles.featureTitle}>{c.title}</h3>
-                                    <p style={styles.featureDesc}>{c.desc}</p>
-                                </div>
-                            ))}
-                        </div>
+                <section id="para-empresas" className="content-section">
+                    <div className="section-header">
+                        <div className="section-label"><TrendingUp size={12} /> Para negócios</div>
+                        <h2 className="section-title">Logística inteligente<br />para <span className="gradient-word">negócios</span></h2>
+                        <p className="section-subtitle">Potencialize suas vendas com a malha que mais cresce no país.</p>
+                    </div>
+                    <div className="grid-3">
+                        {[
+                            { icon: <Warehouse size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Coleta loggi', desc: 'Equipe dedicada para coletar envios diretamente no seu centro de distribuição.' },
+                            { icon: <GitBranch size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'API de Integração', desc: 'Conecte seu e-commerce diretamente com nosso sistema para automação total.' },
+                            { icon: <RotateCcw size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Reversa Facilitada', desc: 'Gestão completa de trocas e devoluções para encantar clientes no pós-venda.' },
+                        ].map((c, i) => (
+                            <div key={i} className="feature-card">
+                                <div className="feature-icon" style={{ background: c.bg }}>{c.icon}</div>
+                                <h3>{c.title}</h3>
+                                <p>{c.desc}</p>
+                            </div>
+                        ))}
                     </div>
                 </section>
             )}
 
-            {/* ===== PROVA SOCIAL ===== */}
-            <section style={styles.proofSection}>
-                <div style={styles.grid3}>
-                    <div className="glass-card-3d" style={styles.proofCard}>
-                        <Smile size={40} color="var(--accent-primary)" />
-                        <span style={styles.proofVal}>4.8/5</span>
-                        <span style={styles.proofLabel}>Satisfação dos Clientes</span>
+            {/* ===== MÉTRICAS ===== */}
+            <div className="metrics-bar">
+                {[
+                    { icon: <Smile size={24} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', val: '4.8/5', label: 'Satisfação' },
+                    { icon: <Package size={24} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', val: '10M+', label: 'Entregas' },
+                    { icon: <Globe size={24} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', val: '4.5k+', label: 'Cidades' },
+                    { icon: <Clock size={24} color="#34d399" />, bg: 'rgba(16, 185, 129, 0.08)', val: '24h', label: 'Entrega Local' },
+                ].map((m, i) => (
+                    <div key={i} className="metric-card">
+                        <div className="metric-icon" style={{ background: m.bg }}>{m.icon}</div>
+                        <div className="metric-value">{m.val}</div>
+                        <div className="metric-label">{m.label}</div>
                     </div>
-                    <div className="glass-card-3d" style={{ ...styles.proofCard, borderColor: 'rgba(99, 102, 241, 0.3)' }}>
-                        <Package size={48} color="var(--accent-primary)" />
-                        <span style={styles.proofVal}>10M+</span>
-                        <span style={styles.proofLabel}>Entregas Realizadas</span>
-                    </div>
-                    <div className="glass-card-3d" style={styles.proofCard}>
-                        <Globe size={40} color="var(--accent-secondary)" />
-                        <span style={styles.proofVal}>4.5k+</span>
-                        <span style={styles.proofLabel}>Cidades Atendidas</span>
-                    </div>
-                </div>
-            </section>
+                ))}
+            </div>
 
             {/* ===== DEPOIMENTOS ===== */}
-            <section style={styles.testimonialSection}>
-                <div style={styles.sectionInner}>
-                    <h2 style={{ ...styles.sectionTitle, textAlign: 'center' as const, marginBottom: '48px' }}>Confiança de <span className="text-gradient">quem usa</span></h2>
-                    <div style={styles.grid3}>
+            <section className="testimonials-section">
+                <div className="testimonials-inner">
+                    <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+                        <div className="section-label" style={{ margin: '0 auto 16px' }}><Star size={12} /> Depoimentos</div>
+                        <h2 className="section-title" style={{ textAlign: 'center' }}>Confiança de <span className="gradient-word">quem usa</span></h2>
+                    </div>
+                    <div className="grid-3">
                         {[
                             { name: 'Ricardo Mendes', role: 'CEO, TechCommerce', text: '"A tecnologia da Loggi é incomparável. Consigo gerir todos os meus envios com uma facilidade que nunca tive antes."' },
                             { name: 'Juliana Costa', role: 'Gerente Logística, ModaBR', text: '"O suporte é excelente e as entregas sempre dentro do prazo. Meus clientes estão muito mais satisfeitos."' },
                             { name: 'Felipe Silva', role: 'Vendedor Platinum', text: '"Postar meus pacotes ficou 10x mais rápido com os Pontos Loggi. Recomendo para todos os vendedores."' },
                         ].map((t, i) => (
-                            <div key={i} className="glass-card-3d" style={styles.testimonialCard}>
-                                <div style={styles.stars}>
+                            <div key={i} className="testimonial-card">
+                                <div className="testimonial-stars">
                                     {[...Array(5)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />)}
                                 </div>
-                                <p style={styles.testimonialText}>{t.text}</p>
+                                <p className="testimonial-text">{t.text}</p>
                                 <div>
                                     <strong>{t.name}</strong>
-                                    <span style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>{t.role}</span>
+                                    <span style={{ display: 'block', color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', marginTop: '4px' }}>{t.role}</span>
                                 </div>
                             </div>
                         ))}
@@ -331,142 +808,37 @@ const Home: React.FC = () => {
             </section>
 
             {/* ===== FOOTER ===== */}
-            <footer style={styles.footer}>
-                <div style={styles.footerInner}>
-                    <div style={styles.footerBrandCol}>
-                        <Link to="/" style={{ ...styles.logo, textDecoration: 'none', color: 'white' }}>
-                            <div style={styles.logoIcon}><Truck size={16} color="white" /></div>
-                            <span style={styles.logoText}>loggi</span>
+            <footer className="site-footer">
+                <div className="footer-inner">
+                    <div className="footer-brand-col">
+                        <Link to="/" className="logo-link">
+                            <div className="logo-box" style={{ width: 32, height: 32 }}><Truck size={14} color="white" /></div>
+                            <span className="logo-name">loggi</span>
                         </Link>
-                        <p style={{ color: 'var(--text-secondary)', marginTop: '16px', lineHeight: 1.6, fontSize: '0.9rem' }}>
+                        <p style={{ color: 'rgba(255,255,255,0.35)', marginTop: '16px', lineHeight: 1.6, fontSize: '0.9rem' }}>
                             Reinventando a logística brasileira através de tecnologia própria e excelência operacional.
                         </p>
                     </div>
-                    <div style={styles.footerLinksWrap}>
-                        <div style={styles.footerCol}>
-                            <h4 style={styles.footerColTitle}>Soluções</h4>
-                            <a href="#" style={styles.footerLink}>Loggi para você</a>
-                            <a href="#" style={styles.footerLink}>Loggi para empresas</a>
-                            <a href="#" style={styles.footerLink}>E-commerce API</a>
-                            <a href="#" style={styles.footerLink}>Loggi Pro</a>
+                    <div className="footer-links-wrap">
+                        <div className="footer-col">
+                            <h4>Soluções</h4>
+                            <a href="#">Loggi para você</a><a href="#">Loggi para empresas</a>
+                            <a href="#">E-commerce API</a><a href="#">Loggi Pro</a>
                         </div>
-                        <div style={styles.footerCol}>
-                            <h4 style={styles.footerColTitle}>Sobre</h4>
-                            <Link to="/sobre" style={styles.footerLink}>Nossa História</Link>
-                            <a href="#" style={styles.footerLink}>Carreiras</a>
-                            <a href="#" style={styles.footerLink}>Central de Ajuda</a>
-                            <a href="#" style={styles.footerLink}>Termos de Uso</a>
+                        <div className="footer-col">
+                            <h4>Sobre</h4>
+                            <Link to="/sobre">Nossa História</Link><a href="#">Carreiras</a>
+                            <a href="#">Central de Ajuda</a><a href="#">Termos de Uso</a>
                         </div>
                     </div>
                 </div>
-                <div style={styles.footerBottom}>
+                <div className="footer-bottom">
                     <p>© 2026 Loggi Tecnologia LTDA.</p>
-                    <p>Feito com <Heart size={14} fill="#ef4444" color="#ef4444" style={{ verticalAlign: 'middle' }} /> para o Brasil</p>
+                    <p style={{ marginTop: '8px' }}>Feito com <Heart size={14} fill="#ef4444" color="#ef4444" style={{ verticalAlign: 'middle' }} /> para o Brasil</p>
                 </div>
             </footer>
         </div>
     );
-};
-
-/* ===== ESTILOS ===== */
-const styles: { [key: string]: React.CSSProperties } = {
-    page: { background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh', position: 'relative', overflow: 'hidden' },
-    bgOrb1: { position: 'fixed', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)', top: '-150px', right: '-150px', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0 },
-    bgOrb2: { position: 'fixed', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%)', bottom: '-100px', left: '-100px', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0 },
-    gridOverlay: { position: 'fixed', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)', backgroundSize: '80px 80px', pointerEvents: 'none', zIndex: 0 },
-
-    // Header
-    header: { position: 'sticky', top: 0, zIndex: 100, backdropFilter: 'blur(20px) saturate(1.2)', borderBottom: '1px solid var(--border-glass)', background: 'rgba(6, 6, 11, 0.85)' },
-    headerInner: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', padding: '16px 24px' },
-    logo: { display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'white' },
-    logoIcon: { width: '36px', height: '36px', background: 'var(--accent-gradient)', borderRadius: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px var(--accent-glow)' },
-    logoText: { fontSize: '1.3rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif" },
-    desktopNav: { display: 'flex', alignItems: 'center', gap: '28px' },
-    navLink: { color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 },
-    navBtnLogin: { padding: '10px 22px', background: 'var(--accent-gradient)', borderRadius: '12px', color: 'white', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 4px 12px var(--accent-glow)' },
-    menuBtn: { display: 'none', background: 'none', border: 'none', color: 'white', cursor: 'pointer' },
-    mobileNav: { display: 'flex', flexDirection: 'column' as const, gap: '16px', padding: '16px 24px 24px', borderTop: '1px solid var(--border-glass)' },
-    mobileLink: { color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '1rem', fontWeight: 500, padding: '8px 0' },
-
-    // Hero
-    hero: { position: 'relative', zIndex: 1, padding: '80px 24px 60px', maxWidth: '1200px', margin: '0 auto' },
-    heroInner: { display: 'flex', alignItems: 'center', gap: '60px', flexWrap: 'wrap' as const },
-    heroLeft: { flex: 1, minWidth: '300px' },
-    heroTitle: { fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-1.5px', marginBottom: '20px' },
-    heroDesc: { color: 'var(--text-secondary)', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', lineHeight: 1.7, marginBottom: '32px', maxWidth: '550px' },
-    heroActions: { display: 'flex', gap: '12px', marginBottom: '40px', flexWrap: 'wrap' as const },
-    ctaBtn: { padding: '14px 28px', textDecoration: 'none', borderRadius: '14px', fontSize: '0.95rem', fontWeight: 700 },
-    ctaSecondary: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 24px', border: '1px solid var(--border-glass-strong)', borderRadius: '14px', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', background: 'rgba(255,255,255,0.03)', transition: 'all 0.3s' },
-
-    // Tracking Form
-    trackForm: { maxWidth: '480px' },
-    trackFields: { display: 'flex', flexDirection: 'column' as const, gap: '12px', marginBottom: '12px' },
-    trackFieldWrap: { display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', borderRadius: '14px', padding: '4px 16px', transition: 'border-color 0.3s' },
-    trackInput: { flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '14px 0', fontSize: '0.95rem', outline: 'none', fontFamily: "'Inter', sans-serif" },
-    trackSubmit: { width: '100%', padding: '16px', fontSize: '1rem', fontWeight: 700, borderRadius: '14px' },
-
-    // Result Area
-    resultArea: { position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto', padding: '0 24px 60px' },
-    errorCard: { padding: '48px', borderRadius: '28px', textAlign: 'center' as const, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '16px' },
-    resultCard: { padding: '32px', borderRadius: '28px' },
-    statusHeader: { display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', padding: '24px', background: 'rgba(99, 102, 241, 0.04)', borderRadius: '20px', border: '1px solid rgba(99, 102, 241, 0.1)' },
-    statusIconBox: { width: '64px', height: '64px', borderRadius: '20px', background: 'rgba(99, 102, 241, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    statusTitle: { fontSize: '1.3rem', fontWeight: 800 },
-    statusCity: { color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.9rem' },
-
-    // Timeline
-    timeline: { display: 'flex', flexDirection: 'column' as const },
-    tlItem: { display: 'flex', gap: '20px' },
-    tlMarkerCol: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', width: '20px', flexShrink: 0 },
-    tlDot: { width: '14px', height: '14px', borderRadius: '50%', border: '2px solid var(--border-glass)', flexShrink: 0, zIndex: 2 },
-    tlLine: { width: '2px', flex: 1, background: 'var(--border-glass)', minHeight: '40px' },
-    tlContent: { flex: 1, padding: '16px 20px', borderRadius: '16px', marginBottom: '12px' },
-
-    // Express
-    expressBox: { textAlign: 'center' as const, padding: '24px 0 0', marginTop: '24px', borderTop: '2px dashed var(--border-glass)' },
-    expressBtn: { padding: '16px 32px', fontSize: '1rem', fontWeight: 800, borderRadius: '16px', background: 'linear-gradient(135deg, #0096ff, #6366f1)', boxShadow: '0 8px 24px rgba(0, 150, 255, 0.3)' },
-
-    // Tabs
-    tabsWrap: { position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '20px 24px 0' },
-    tabsBar: { display: 'inline-flex', gap: '4px', padding: '4px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--border-glass)' },
-    tabBtn: { padding: '12px 28px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', borderRadius: '12px', fontWeight: 600, fontSize: '0.9rem', fontFamily: "'Outfit', sans-serif", transition: 'all 0.3s' },
-    tabActive: { padding: '12px 28px', background: 'var(--accent-primary)', border: 'none', color: 'white', cursor: 'pointer', borderRadius: '12px', fontWeight: 700, fontSize: '0.9rem', fontFamily: "'Outfit', sans-serif", boxShadow: '0 4px 16px var(--accent-glow)' },
-
-    // Sections
-    section: { position: 'relative', zIndex: 1, padding: '60px 24px 80px' },
-    sectionInner: { maxWidth: '1200px', margin: '0 auto' },
-    sectionTitle: { fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.5px' },
-    sectionSub: { color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '48px' },
-    grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' },
-
-    // Feature Cards
-    featureCard: { padding: '32px', borderRadius: '24px', display: 'flex', flexDirection: 'column' as const, gap: '16px' },
-    featureIcon: { width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(99, 102, 241, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    featureTitle: { fontSize: '1.15rem', fontWeight: 700 },
-    featureDesc: { color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.9rem', flex: 1 },
-    featureLink: { color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' },
-
-    // Proof
-    proofSection: { position: 'relative', zIndex: 1, padding: '40px 24px 80px', maxWidth: '1200px', margin: '0 auto' },
-    proofCard: { padding: '40px 24px', borderRadius: '24px', textAlign: 'center' as const, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '12px' },
-    proofVal: { fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 900 },
-    proofLabel: { color: 'var(--text-secondary)', fontSize: '0.9rem' },
-
-    // Testimonials
-    testimonialSection: { position: 'relative', zIndex: 1, padding: '80px 24px', background: 'rgba(99, 102, 241, 0.02)', borderTop: '1px solid var(--border-glass)', borderBottom: '1px solid var(--border-glass)' },
-    testimonialCard: { padding: '28px', borderRadius: '20px', display: 'flex', flexDirection: 'column' as const, gap: '16px' },
-    stars: { display: 'flex', gap: '3px' },
-    testimonialText: { color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.95rem', fontStyle: 'italic', flex: 1 },
-
-    // Footer
-    footer: { position: 'relative', zIndex: 1, borderTop: '1px solid var(--border-glass)', padding: '80px 24px 40px' },
-    footerInner: { display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: '40px', maxWidth: '1200px', margin: '0 auto 60px' },
-    footerBrandCol: { maxWidth: '320px' },
-    footerLinksWrap: { display: 'flex', gap: '60px', flexWrap: 'wrap' as const },
-    footerCol: { display: 'flex', flexDirection: 'column' as const, gap: '12px' },
-    footerColTitle: { fontWeight: 700, marginBottom: '4px', fontSize: '0.95rem' },
-    footerLink: { color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem', transition: 'color 0.2s' },
-    footerBottom: { textAlign: 'center' as const, color: 'rgba(255,255,255,0.25)', fontSize: '0.8rem', borderTop: '1px solid var(--border-glass)', paddingTop: '32px', maxWidth: '1200px', margin: '0 auto' },
 };
 
 export default Home;

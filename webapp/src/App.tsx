@@ -9,6 +9,8 @@ import Home from './pages/Home';
 import Tracking from './pages/Tracking';
 import Sobre from './pages/Sobre';
 import Pedido from './pages/Pedido';
+import ParaVoce from './pages/ParaVoce';
+import ParaEmpresas from './pages/ParaEmpresas';
 import DatabaseDebug from './pages/DatabaseDebug';
 import './index.css';
 
@@ -24,6 +26,8 @@ function App() {
           <Route path="/rastreio" element={<Tracking />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/pedido" element={<Pedido />} />
+          <Route path="/para-voce" element={<ParaVoce />} />
+          <Route path="/para-empresas" element={<ParaEmpresas />} />
 
           {/* Rotas Administrativas (Com Sidebar) */}
           <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
@@ -59,7 +63,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 const Placeholder = ({ title }: { title: string }) => (
   <div style={{ padding: 40, animation: 'fadeIn 0.5s ease' }}>
     <h1 style={{ fontSize: '2.5rem', marginBottom: '16px' }}>{title} <span className="text-gradient">(Em breve)</span></h1>
-    <p style={{ color: 'var(--text-secondary)' }}>Esta funcionalidade está sendo preparada para sua conta Premium.</p>
+    <p style={{ color: 'var(--text-secondary)' }}>Esta funcionalidade está sendo preparada.</p>
   </div>
 );
 
