@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -17,14 +17,14 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
+      <div className="app-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
         <Routes>
-          {/* Site Público */}
+          {/* Site Público (Sem Sidebar) */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/rastreio" element={<Tracking />} />
 
-          {/* Painel Administrativo */}
+          {/* Área Administrativa (Com Sidebar) */}
           <Route path="/dashboard" element={<AdminLayout isAuth={isAuth}><Dashboard /></AdminLayout>} />
           <Route path="/pedidos" element={<AdminLayout isAuth={isAuth}><Orders /></AdminLayout>} />
           <Route path="/clientes" element={<AdminLayout isAuth={isAuth}><Clients /></AdminLayout>} />
@@ -45,9 +45,9 @@ function App() {
 const AdminLayout = ({ children, isAuth }: { children: React.ReactNode, isAuth: boolean }) => {
   if (!isAuth) return <Navigate to="/login" />;
   return (
-    <div style={{ display: 'flex', width: '100%' }}>
+    <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
       <Sidebar />
-      <main className="main-content">
+      <main className="main-content" style={{ flex: 1, padding: '20px', position: 'relative', zIndex: 1 }}>
         {children}
       </main>
     </div>
