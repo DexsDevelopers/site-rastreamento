@@ -6,6 +6,8 @@ import Orders from './pages/Orders';
 import Clients from './pages/Clients';
 import Home from './pages/Home';
 import Tracking from './pages/Tracking';
+import Sobre from './pages/Sobre';
+import Pedido from './pages/Pedido';
 import DatabaseDebug from './pages/DatabaseDebug';
 import './index.css';
 
@@ -18,6 +20,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/rastreio" element={<Tracking />} />
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/pedido" element={<Pedido />} />
 
           {/* Rotas Administrativas (Com Sidebar) */}
           <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
