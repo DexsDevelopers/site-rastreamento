@@ -11,7 +11,7 @@ const Sidebar = () => {
             </div>
 
             <nav style={styles.nav}>
-                <NavLink to="/" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Home size={20} />
                     <span>Dashboard</span>
                 </NavLink>

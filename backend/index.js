@@ -14,26 +14,51 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rota de Teste de Vida Urgente
-app.get('/api/test', (req, res) => {
-    res.json({
-        status: 'online',
-        time: new Date().toISOString(),
-        env: {
-            db_host: process.env.DB_HOST ? 'Configurado' : 'Não encontrado',
-            node_env: process.env.NODE_ENV
-        }
-    });
+// ===== API ENDPOINTS =====
+
+// 1. Pedidos (Rastreios)
+app.get('/api/orders', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT * FROM rastreios_status ORDER BY data DESC LIMIT 100');
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// Tenta carregar o DB de forma segura
-let db;
-try {
-    db = require('./db');
-    console.log('✅ Módulo de banco de dados carregado');
-} catch (e) {
-    console.error('⚠️ Falha ao carregar módulo de banco:', e.message);
-}
+// Detalhes de um pedido específico
+app.get('/api/orders/:codigo', async (req, res) => {
+    const { codigo } = req.params;
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ?', [codigo]);
+        if (rows.length === 0) return res.status(404).json({ error: 'Pedido não encontrado' });
+        res.json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 2. Clientes
+app.get('/api/clients', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT * FROM clientes ORDER BY data_cadastro DESC');
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 3. Entregadores (Simulando ou criando do banco se existir)
+app.get('/api/drivers', async (req, res) => {
+    // Por enquanto retornamos uma lista de teste se a tabela não existir
+    res.json([
+        { id: 1, nome: 'Carlos Motoboy', status: 'disponivel', veiculo: 'Moto' },
+        { id: 2, nome: 'Fernanda Loggi', status: 'em_rota', veiculo: 'Carro' }
+    ]);
+});
 
 // Rota de Teste de Banco
 app.get('/api/db-check', async (req, res) => {
