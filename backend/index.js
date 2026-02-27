@@ -862,9 +862,15 @@ app.get(/.*/, (req, res) => {
         }
     });
 });
-
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    // Conectar ao banco DEPOIS de subir o servidor
+// Se carregado via bridge (index.js da raiz), exporta o app
+if (global._expressApp !== undefined || require.main !== module) {
+    global._expressApp = app;
+    console.log('✅ Express registrado na bridge HTTP');
     connectDB();
-});
+} else {
+    // Se executado diretamente
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor rodando na porta ${PORT}`);
+        connectDB();
+    });
+}
