@@ -196,9 +196,9 @@ const AdminPanel: React.FC = () => {
     // ===== FILTROS =====
     const filteredRastreios = rastreios.filter(r => {
         const matchSearch = !searchTerm ||
-            r.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.cidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.status_atual.toLowerCase().includes(searchTerm.toLowerCase());
+            (r.codigo?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (r.cidade?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (r.status_atual?.toLowerCase().includes(searchTerm.toLowerCase()));
         const matchFilter =
             filterType === 'all' ||
             (filterType === 'com_taxa' && r.taxa_valor && r.taxa_pix) ||

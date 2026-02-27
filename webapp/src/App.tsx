@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -18,45 +18,43 @@ import './index.css';
 function App() {
   return (
     <Router>
-      <div className="app-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
-        <Routes>
-          {/* Rotas Públicas (Sem Sidebar) */}
-          <Route path="/" element={<Home />} />
-          <Route path="/entrar" element={<LoginCliente />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/rastreio" element={<Tracking />} />
-          <Route path="/sobre" element={<Sobre />} />
-          <Route path="/pedido" element={<Pedido />} />
-          <Route path="/para-voce" element={<ParaVoce />} />
-          <Route path="/para-empresas" element={<ParaEmpresas />} />
+      <Routes>
+        {/* Rotas Públicas */}
+        <Route path="/" element={<Home />} />
+        <Route path="/entrar" element={<LoginCliente />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/rastreio" element={<Tracking />} />
+        <Route path="/sobre" element={<Sobre />} />
+        <Route path="/pedido" element={<Pedido />} />
+        <Route path="/para-voce" element={<ParaVoce />} />
+        <Route path="/para-empresas" element={<ParaEmpresas />} />
 
-          {/* Rotas Administrativas (Com Sidebar) */}
-          <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
-          <Route path="/admin" element={<AdminLayout><AdminPanel /></AdminLayout>} />
-          <Route path="/pedidos" element={<AdminLayout><Orders /></AdminLayout>} />
-          <Route path="/clientes" element={<AdminLayout><Clients /></AdminLayout>} />
-          <Route path="/debug-db" element={<AdminLayout><DatabaseDebug /></AdminLayout>} />
+        {/* Rotas Administrativas com Layout Fixo */}
+        <Route element={<AdminLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/pedidos" element={<Orders />} />
+          <Route path="/clientes" element={<Clients />} />
+          <Route path="/debug-db" element={<DatabaseDebug />} />
+          <Route path="/entregadores" element={<Placeholder title="Entregadores" />} />
+          <Route path="/whatsapp" element={<Placeholder title="Configuração Bot" />} />
+          <Route path="/relatorios" element={<Placeholder title="Relatórios" />} />
+          <Route path="/configuracoes" element={<Placeholder title="Configurações" />} />
+        </Route>
 
-          {/* Placeholders */}
-          <Route path="/entregadores" element={<AdminLayout><Placeholder title="Entregadores" /></AdminLayout>} />
-          <Route path="/whatsapp" element={<AdminLayout><Placeholder title="Configuração Bot" /></AdminLayout>} />
-          <Route path="/relatorios" element={<AdminLayout><Placeholder title="Relatórios" /></AdminLayout>} />
-          <Route path="/configuracoes" element={<AdminLayout><Placeholder title="Configurações" /></AdminLayout>} />
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </div>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </Router>
   );
 }
 
-const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+const AdminLayout = () => {
   return (
-    <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
+    <div className="app-container" style={{ display: 'flex', width: '100%', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <Sidebar />
       <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
-        {children}
+        <Outlet />
       </main>
     </div>
   );
