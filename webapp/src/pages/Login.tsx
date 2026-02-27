@@ -1,14 +1,22 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        // Navegar de forma forçada para visualizar o painel agora.
-        // Mais tarde, ligaremos na API.
-        navigate('/dashboard');
+
+        // Validação de segurança básica para o Painel Admin
+        if (email === 'admin@transloggi.site' && password === 'loggi2026') {
+            navigate('/dashboard');
+        } else {
+            setError('E-mail ou senha incorretos.');
+        }
     };
 
     return (
@@ -29,6 +37,12 @@ const Login = () => {
                     <p style={styles.subtitle}>Acesso restrito &bull; Plataforma Premium</p>
                 </div>
 
+                {error && (
+                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '12px', borderRadius: '12px', textAlign: 'center', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleLogin} style={styles.form} noValidate>
                     <div style={styles.inputGroup}>
                         <label style={styles.label}>Loggi ID ou E-mail</label>
@@ -39,6 +53,8 @@ const Login = () => {
                                 placeholder="Ex: admin@transloggi.site"
                                 className="input-field"
                                 style={styles.paddedInput}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
@@ -56,6 +72,8 @@ const Login = () => {
                                 placeholder="••••••••"
                                 className="input-field"
                                 style={styles.paddedInput}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                         </div>
