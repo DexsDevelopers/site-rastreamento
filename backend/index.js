@@ -455,6 +455,59 @@ app.get('/api/admin/db-health', async (req, res) => {
     }
 });
 
+// 9. Configuração inicial do Banco (Criar Tabelas)
+app.post('/api/admin/db-setup', async (req, res) => {
+    try {
+        if (!db) throw new Error('DB não disponível');
+
+        // Criar tabela de rastreios
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`rastreios_status\` (
+              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+              \`codigo\` varchar(255) DEFAULT NULL,
+              \`cidade\` varchar(255) DEFAULT NULL,
+              \`status_atual\` varchar(255) DEFAULT NULL,
+              \`titulo\` varchar(255) DEFAULT NULL,
+              \`subtitulo\` text DEFAULT NULL,
+              \`data\` datetime DEFAULT NULL,
+              \`cor\` varchar(50) DEFAULT NULL,
+              \`taxa_valor\` decimal(10,2) DEFAULT NULL,
+              \`taxa_pix\` text DEFAULT NULL,
+              PRIMARY KEY (\`id\`),
+              KEY \`idx_codigo\` (\`codigo\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        // Criar tabela de clientes
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`clientes\` (
+              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+              \`nome\` varchar(255) DEFAULT NULL,
+              \`email\` varchar(255) DEFAULT NULL,
+              \`whatsapp\` varchar(50) DEFAULT NULL,
+              \`data_cadastro\` datetime DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (\`id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        // Criar tabela de contatos whatsapp
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`whatsapp_contatos\` (
+              \`codigo\` varchar(255) NOT NULL,
+              \`nome\` varchar(255) DEFAULT NULL,
+              \`telefone_original\` varchar(50) DEFAULT NULL,
+              \`telefone_normalizado\` varchar(50) DEFAULT NULL,
+              \`notificacoes_ativas\` tinyint(1) DEFAULT 1,
+              PRIMARY KEY (\`codigo\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        res.json({ success: true, message: 'Tabelas criadas ou já existentes com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Servir o Frontend
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));

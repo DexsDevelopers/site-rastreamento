@@ -19,6 +19,7 @@ interface DBStatus {
 const DatabaseStatus = () => {
     const [status, setStatus] = useState<DBStatus | null>(null);
     const [loading, setLoading] = useState(true);
+    const [setupLoading, setSetupLoading] = useState(false);
 
     const checkStatus = async () => {
         setLoading(true);
@@ -35,6 +36,20 @@ const DatabaseStatus = () => {
         }
     };
 
+    const handleSetup = async () => {
+        if (!window.confirm('Deseja tentar criar as tabelas automáticas agora?')) return;
+        setSetupLoading(true);
+        try {
+            const res = await axios.post('/api/admin/db-setup');
+            alert(res.data.message);
+            checkStatus();
+        } catch (err: any) {
+            alert('Erro ao criar tabelas: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setSetupLoading(false);
+        }
+    };
+
     useEffect(() => {
         checkStatus();
     }, []);
@@ -46,15 +61,25 @@ const DatabaseStatus = () => {
                     <h1 style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Status do <span className="text-gradient">Sistema</span></h1>
                     <p style={{ color: 'var(--text-secondary)' }}>Verificação de integridade do banco de dados e tabelas.</p>
                 </div>
-                <button
-                    onClick={checkStatus}
-                    className="btn-primary"
-                    disabled={loading}
-                    style={{ padding: '10px 20px' }}
-                >
-                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} style={{ marginRight: '8px' }} />
-                    Atualizar
-                </button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                        onClick={handleSetup}
+                        className="btn-primary"
+                        disabled={setupLoading}
+                        style={{ padding: '10px 20px', background: 'var(--accent-gradient)', opacity: setupLoading ? 0.7 : 1 }}
+                    >
+                        {setupLoading ? 'Instalando...' : 'Instalar Tabelas'}
+                    </button>
+                    <button
+                        onClick={checkStatus}
+                        className="btn-primary"
+                        disabled={loading}
+                        style={{ padding: '10px 20px' }}
+                    >
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} style={{ marginRight: '8px' }} />
+                        Atualizar
+                    </button>
+                </div>
             </header>
 
             <div style={{ display: 'grid', gap: '24px' }}>
