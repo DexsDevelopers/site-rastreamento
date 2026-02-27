@@ -56,23 +56,8 @@ app.use(express.json());
 
 const PORT = Number(process.env.PORT || process.env.API_PORT || 3000);
 
-// Rota de saúde imediata
-app.get('/', (req, res) => {
-  res.send(`
-    <html><body style="background:#111;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
-      <div style="text-align:center">
-        <h3>🤖 Bot Iniciando...</h3>
-        <p>Acesse <a href="/qr" style="color:#4fc3f7">/qr</a> para conectar</p>
-        <p>Status: <span id="status">Aguardando</span></p>
-        <script>
-          fetch('/status').then(r => r.json()).then(d => {
-            document.getElementById('status').innerText = d.status || 'Desconhecido';
-          }).catch(() => document.getElementById('status').innerText = 'Erro ao buscar status');
-        </script>
-      </div>
-    </body></html>
-  `);
-});
+// Servir o Frontend Web App (React) que está na pasta webapp/dist
+app.use(express.static(path.join(__dirname, '../webapp/dist')));
 
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
@@ -4302,6 +4287,12 @@ startMarketingLoop();
 
 // INICIAR O BOT
 log.info('Chamando função start()...');
+
+// Adicionar a rota coringa para o React Router por último (para não interceptar APIs)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../webapp/dist/index.html'));
+});
+
 start().catch((err) => {
   log.error(`Erro crítico ao iniciar bot: ${err.message}`);
   log.error(err.stack);
