@@ -40,7 +40,6 @@ async function connectDB() {
         console.error('❌ Erro ao conectar no banco de dados:', err.message);
     }
 }
-connectDB();
 
 app.use(cors());
 app.use(express.json());
@@ -866,4 +865,6 @@ app.get(/.*/, (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    // Conectar ao banco DEPOIS de subir o servidor
+    connectDB();
 });
