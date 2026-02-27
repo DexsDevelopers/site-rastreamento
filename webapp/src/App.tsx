@@ -12,6 +12,7 @@ import Pedido from './pages/Pedido';
 import ParaVoce from './pages/ParaVoce';
 import ParaEmpresas from './pages/ParaEmpresas';
 import DatabaseDebug from './pages/DatabaseDebug';
+import AdminPanel from './pages/AdminPanel';
 import './index.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
 
           {/* Rotas Administrativas (Com Sidebar) */}
           <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
+          <Route path="/admin" element={<AdminLayout><AdminPanel /></AdminLayout>} />
           <Route path="/pedidos" element={<AdminLayout><Orders /></AdminLayout>} />
           <Route path="/clientes" element={<AdminLayout><Clients /></AdminLayout>} />
           <Route path="/debug-db" element={<AdminLayout><DatabaseDebug /></AdminLayout>} />

@@ -93,6 +93,335 @@ app.get('/api/db-check', async (req, res) => {
     }
 });
 
+// ===== ADMIN API =====
+
+// Estatísticas do painel admin
+app.get('/api/admin/stats', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+
+        const [[{ total }]] = await db.query(
+            'SELECT COUNT(DISTINCT codigo) as total FROM rastreios_status'
+        );
+
+        // Entregues: último status de cada código contém 'Entregue'
+        const [[{ entregues }]] = await db.query(`
+            SELECT COUNT(*) as entregues FROM (
+                SELECT status_atual FROM rastreios_status t1
+                WHERE data = (SELECT MAX(data) FROM rastreios_status t2 WHERE t2.codigo = t1.codigo)
+                GROUP BY codigo
+                HAVING status_atual LIKE '%Entregue%'
+            ) sub
+        `);
+
+        // Com taxa pendente
+        const [[{ com_taxa }]] = await db.query(`
+            SELECT COUNT(*) as com_taxa FROM (
+                SELECT taxa_valor FROM rastreios_status t1
+                WHERE data = (SELECT MAX(data) FROM rastreios_status t2 WHERE t2.codigo = t1.codigo)
+                GROUP BY codigo
+                HAVING taxa_valor IS NOT NULL AND taxa_valor > 0
+            ) sub
+        `);
+
+        res.json({ total, entregues, com_taxa, sem_taxa: total - com_taxa });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Listar todos os rastreios (último status por código)
+app.get('/api/admin/rastreios', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+
+        const [codigos] = await db.query(
+            "SELECT DISTINCT codigo FROM rastreios_status WHERE codigo IS NOT NULL AND codigo != '' ORDER BY codigo DESC"
+        );
+
+        const rastreios = [];
+        for (const { codigo } of codigos) {
+            const [[row]] = await db.query(
+                'SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1',
+                [codigo]
+            );
+            if (row) rastreios.push(row);
+        }
+
+        res.json(rastreios);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Detalhes de um rastreio (todas etapas + contato)
+app.get('/api/admin/rastreios/:codigo/detalhes', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigo } = req.params;
+
+        const [rows] = await db.query(
+            'SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC',
+            [codigo]
+        );
+
+        if (!rows.length) return res.status(404).json({ error: 'Rastreio não encontrado' });
+
+        const etapaMap = {
+            '📦 Objeto postado': 'postado',
+            '🚚 Em trânsito': 'transito',
+            '🏢 No centro de distribuição': 'distribuicao',
+            '🚀 Saiu para entrega': 'entrega',
+            '✅ Entregue': 'entregue',
+        };
+
+        const etapas = rows.map(r => {
+            const key = Object.keys(etapaMap).find(k => r.titulo && r.titulo.includes(k.replace(/📦|🚚|🏢|🚀|✅/g, '').trim()));
+            for (const [titulo, etKey] of Object.entries(etapaMap)) {
+                if (r.titulo === titulo || (r.status_atual && r.status_atual === titulo)) return etKey;
+            }
+            return r.titulo;
+        });
+
+        // Tentar buscar contato do whatsapp
+        let contato = null;
+        try {
+            const [[c]] = await db.query(
+                'SELECT * FROM whatsapp_contatos WHERE codigo = ? LIMIT 1',
+                [codigo]
+            );
+            contato = c || null;
+        } catch (e) { /* tabela pode não existir */ }
+
+        const ultimo = rows[rows.length - 1];
+        const foto_url = ultimo.foto_url || null;
+
+        res.json({
+            codigo: codigo,
+            cidade: rows[0].cidade,
+            data_inicial: rows[0].data ? rows[0].data.toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+            taxa_valor: ultimo.taxa_valor || null,
+            taxa_pix: ultimo.taxa_pix || null,
+            etapas,
+            cliente_nome: contato?.nome || null,
+            cliente_whatsapp: contato?.telefone_original || null,
+            cliente_notificar: contato ? (contato.notificacoes_ativas === 1) : false,
+            foto_url,
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Criar novo rastreio
+app.post('/api/admin/rastreios', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigo, cidade, data_inicial, taxa_valor, taxa_pix, cliente_nome, cliente_whatsapp, cliente_notificar, etapas } = req.body;
+
+        if (!codigo || !cidade) return res.status(400).json({ error: 'Código e cidade são obrigatórios' });
+
+        // Verificar se já existe
+        const [[existe]] = await db.query(
+            'SELECT 1 as e FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? LIMIT 1',
+            [codigo.toUpperCase().trim()]
+        );
+        if (existe) return res.status(409).json({ error: `O código ${codigo} já existe no sistema` });
+
+        const etapasMap = {
+            postado: ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', '#16A34A'],
+            transito: ['🚚 Em trânsito', 'A caminho do centro de distribuição', '#F59E0B'],
+            distribuicao: ['🏢 No centro de distribuição', 'Processando encaminhamento', '#FBBF24'],
+            entrega: ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', '#0055FF'],
+            entregue: ['✅ Entregue', 'Objeto entregue com sucesso', '#16A34A'],
+        };
+
+        let dia = 0;
+        const inicio = data_inicial ? new Date(data_inicial) : new Date();
+
+        for (const [key, dados] of Object.entries(etapasMap)) {
+            if (etapas && etapas[key]) {
+                const dataEtapa = new Date(inicio);
+                dataEtapa.setDate(dataEtapa.getDate() + dia);
+                await db.query(
+                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor, taxa_valor, taxa_pix) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [codigo, cidade, dados[0], dados[0], dados[1], dataEtapa, dados[2], taxa_valor || null, taxa_pix || null]
+                );
+                dia++;
+            }
+        }
+
+        // Salvar contato
+        if (cliente_whatsapp) {
+            try {
+                await db.query(
+                    `INSERT INTO whatsapp_contatos (codigo, nome, telefone_original, notificacoes_ativas)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE nome = VALUES(nome), telefone_original = VALUES(telefone_original), notificacoes_ativas = VALUES(notificacoes_ativas)`,
+                    [codigo, cliente_nome || null, cliente_whatsapp, cliente_notificar ? 1 : 0]
+                );
+            } catch (e) { /* ignorar se tabela não existe */ }
+        }
+
+        res.json({ success: true, message: `Rastreio ${codigo} criado com sucesso!` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Atualizar rastreio
+app.put('/api/admin/rastreios/:codigo', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigo } = req.params;
+        const { cidade, data_inicial, taxa_valor, taxa_pix, etapas, cliente_nome, cliente_whatsapp, cliente_notificar } = req.body;
+
+        // Deletar registros existentes
+        await db.query('DELETE FROM rastreios_status WHERE codigo = ?', [codigo]);
+
+        const etapasMap = {
+            postado: ['📦 Objeto postado', 'Objeto recebido no ponto de coleta', '#16A34A'],
+            transito: ['🚚 Em trânsito', 'A caminho do centro de distribuição', '#F59E0B'],
+            distribuicao: ['🏢 No centro de distribuição', 'Processando encaminhamento', '#FBBF24'],
+            entrega: ['🚀 Saiu para entrega', 'Saiu para entrega ao destinatário', '#0055FF'],
+            entregue: ['✅ Entregue', 'Objeto entregue com sucesso', '#16A34A'],
+        };
+
+        let dia = 0;
+        const inicio = data_inicial ? new Date(data_inicial) : new Date();
+
+        for (const [key, dados] of Object.entries(etapasMap)) {
+            if (etapas && etapas.includes(key)) {
+                const dataEtapa = new Date(inicio);
+                dataEtapa.setDate(dataEtapa.getDate() + dia);
+                await db.query(
+                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor, taxa_valor, taxa_pix) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [codigo, cidade, dados[0], dados[0], dados[1], dataEtapa, dados[2], taxa_valor || null, taxa_pix || null]
+                );
+                dia++;
+            }
+        }
+
+        // Atualizar contato
+        if (cliente_whatsapp !== undefined) {
+            try {
+                await db.query(
+                    `INSERT INTO whatsapp_contatos (codigo, nome, telefone_original, notificacoes_ativas)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE nome = VALUES(nome), telefone_original = VALUES(telefone_original), notificacoes_ativas = VALUES(notificacoes_ativas)`,
+                    [codigo, cliente_nome || null, cliente_whatsapp || null, cliente_notificar ? 1 : 0]
+                );
+            } catch (e) { /* ignorar */ }
+        }
+
+        res.json({ success: true, message: `Rastreio ${codigo} atualizado!` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Deletar rastreio
+app.delete('/api/admin/rastreios/:codigo', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigo } = req.params;
+        await db.query('DELETE FROM rastreios_status WHERE codigo = ?', [codigo]);
+        try { await db.query('DELETE FROM whatsapp_contatos WHERE codigo = ?', [codigo]); } catch (e) { }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Exclusão em lote
+app.post('/api/admin/rastreios/bulk-delete', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigos } = req.body;
+        if (!Array.isArray(codigos) || !codigos.length) return res.status(400).json({ error: 'Nenhum código informado' });
+        const placeholders = codigos.map(() => '?').join(',');
+        await db.query(`DELETE FROM rastreios_status WHERE codigo IN (${placeholders})`, codigos);
+        try { await db.query(`DELETE FROM whatsapp_contatos WHERE codigo IN (${placeholders})`, codigos); } catch (e) { }
+        res.json({ success: true, count: codigos.length });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Edição em lote
+app.post('/api/admin/rastreios/bulk-edit', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigos, cidade, taxa_valor, taxa_pix } = req.body;
+        if (!Array.isArray(codigos) || !codigos.length) return res.status(400).json({ error: 'Nenhum código informado' });
+
+        const placeholders = codigos.map(() => '?').join(',');
+        if (cidade) {
+            await db.query(`UPDATE rastreios_status SET cidade = ? WHERE codigo IN (${placeholders})`, [cidade, ...codigos]);
+        }
+        if (taxa_valor && taxa_pix) {
+            await db.query(`UPDATE rastreios_status SET taxa_valor = ?, taxa_pix = ? WHERE codigo IN (${placeholders})`, [taxa_valor, taxa_pix, ...codigos]);
+        }
+
+        res.json({ success: true, count: codigos.length });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Enviar WhatsApp manual
+app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigo } = req.params;
+
+        // Buscar configuração da API do WhatsApp
+        let apiToken = process.env.WHATSAPP_API_TOKEN || '';
+        let apiUrl = process.env.WHATSAPP_API_URL || '';
+
+        if (!apiUrl) {
+            return res.json({ success: false, message: '❌ URL da API WhatsApp não configurada no .env' });
+        }
+
+        // Buscar contato
+        let contato = null;
+        try {
+            const [[c]] = await db.query('SELECT * FROM whatsapp_contatos WHERE codigo = ? LIMIT 1', [codigo]);
+            contato = c;
+        } catch (e) {
+            return res.json({ success: false, message: '❌ Tabela de contatos não encontrada' });
+        }
+
+        if (!contato) return res.json({ success: false, message: '❌ Contato WhatsApp não encontrado para este código' });
+        if (!contato.notificacoes_ativas) return res.json({ success: false, message: '❌ Notificações desativadas para este código' });
+        if (!contato.telefone_normalizado && !contato.telefone_original) return res.json({ success: false, message: '❌ Telefone não cadastrado' });
+
+        const [[ultimoStatus]] = await db.query(
+            'SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1',
+            [codigo]
+        );
+
+        if (!ultimoStatus) return res.json({ success: false, message: '❌ Nenhum status encontrado para este código' });
+
+        const telefone = contato.telefone_normalizado || contato.telefone_original;
+        const mensagem = `📦 *Atualização de Rastreio*\n\nCódigo: ${codigo}\nStatus: ${ultimoStatus.status_atual}\n${ultimoStatus.subtitulo || ''}\n\nAcompanhe seu pedido em nosso site!`;
+
+        const response = await fetch(`${apiUrl}/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-token': apiToken },
+            body: JSON.stringify({ to: telefone, message: mensagem }),
+        }).catch(() => null);
+
+        if (response && response.ok) {
+            res.json({ success: true, message: `✅ Mensagem enviada para ${telefone}!` });
+        } else {
+            res.json({ success: false, message: '❌ Falha ao enviar mensagem. Verifique se o bot está online.' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: '❌ Erro interno: ' + error.message });
+    }
+});
+
 // Servir o Frontend
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
