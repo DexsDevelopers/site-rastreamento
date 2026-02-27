@@ -1,31 +1,54 @@
-import { useState } from 'react';
-import { Search, Package, MapPin, Clock, CheckCircle2, ArrowRight, Share2, Printer, Truck } from 'lucide-react';
+// src/pages/Tracking.tsx
+import React, { useState, useEffect } from 'react';
+import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const TrackingPage: React.FC = () => {
     const [codigo, setCodigo] = useState('');
     const [trackingData, setTrackingData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [scrollY, setScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => setScrollY(window.scrollY);
+        window.addEventListener('scroll', handleScroll);
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            observer.disconnect();
+        };
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (!codigo) return;
 
         setLoading(true);
-        // Simulação de busca para demonstrar o visual dopaminérgico
         setTimeout(() => {
             setTrackingData({
                 codigo: codigo.toUpperCase(),
-                status: 'Em Trânsito',
+                status: 'Em rota de entrega',
                 ultimaAtualizacao: '27 Fev 2026 às 15:45',
                 previsao: '01 Mar 2026',
                 destinatário: 'Usuário Premium',
                 origem: 'São Paulo, SP',
                 destino: 'Rio de Janeiro, RJ',
+                etapaAtual: 3,
                 eventos: [
-                    { id: 4, status: 'Em rota de entrega', local: 'Unidade RJ', data: '27 Fev 2026 - 15:45', detalhes: 'O objeto saiu para entrega ao destinatário', completo: false },
-                    { id: 3, status: 'Em trânsito', local: 'São Paulo -> Rio', data: '26 Fev 2026 - 22:10', detalhes: 'Objeto encaminhado para Unidade de Tratamento', completo: true },
-                    { id: 2, status: 'Postado', local: 'Agência Central', data: '26 Fev 2026 - 10:30', detalhes: 'Objeto recebido na agência de postagem', completo: true },
-                    { id: 1, status: 'Pedido Criado', local: 'Sistema', data: '25 Fev 2026 - 18:00', detalhes: 'Informações enviadas para a transportadora', completo: true },
+                    { id: 4, status: 'Objeto saiu para entrega', local: 'Unidade RJ', data: '27 Fev 2026 - 15:45', detalhes: 'O objeto saiu para entrega ao destinatário', icon: <Truck size={20} /> },
+                    { id: 3, status: 'Em trânsito', local: 'São Paulo -> Rio', data: '26 Fev 2026 - 22:10', detalhes: 'Objeto encaminhado para Unidade de Tratamento', icon: <Package size={20} /> },
+                    { id: 2, status: 'Postado', local: 'Agência Central', data: '26 Fev 2026 - 10:30', detalhes: 'Objeto recebido na agência de postagem', icon: <MapPin size={20} /> },
+                    { id: 1, status: 'Pedido Criado', local: 'Sistema', data: '25 Fev 2026 - 18:00', detalhes: 'Informações enviadas para a transportadora', icon: <CheckCircle2 size={20} /> },
                 ]
             });
             setLoading(false);
@@ -33,383 +56,170 @@ const TrackingPage: React.FC = () => {
     };
 
     return (
-        <div style={styles.container}>
-            {/* Header / Search */}
-            <div style={styles.heroSection}>
-                <div style={styles.bgGlow}></div>
-                <h1 style={styles.title} className="animate-fade">Rastreie sua <span className="text-gradient">Emoção.</span></h1>
-                <p style={styles.subtitle} className="animate-fade">Cada atualização é um passo mais perto da sua felicidade.</p>
+        <div className="tr-page">
+            <style>{`
+                .tr-page { background: #06060b; color: #fff; min-height: 100vh; position: relative; overflow-x: hidden; font-family: 'Outfit', sans-serif; }
+                .tr-page * { box-sizing: border-box; }
+                .bg-mesh {
+                    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+                    background:
+                        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+                        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08), transparent),
+                        radial-gradient(ellipse 50% 30% at 20% 80%, rgba(6, 182, 212, 0.06), transparent);
+                }
+                
+                .reveal { opacity: 0; transform: translateY(30px) scale(0.95); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0) scale(1); }
 
-                <form onSubmit={handleSearch} style={styles.searchForm} className="animate-fade">
-                    <div style={styles.searchBox} className="glass-card">
-                        <Search size={24} color="var(--accent-primary)" />
-                        <input
-                            type="text"
-                            placeholder="Insira seu código de 13 dígitos..."
-                            style={styles.input}
-                            value={codigo}
-                            onChange={(e) => setCodigo(e.target.value)}
-                        />
-                        <button type="submit" style={styles.btn} className="btn-glow" disabled={loading}>
-                            {loading ? 'Buscando...' : 'Localizar'}
-                            <ArrowRight size={20} />
-                        </button>
-                    </div>
+                .site-header { position: sticky; top: 0; z-index: 100; padding: 20px 24px; transition: all 0.3s; }
+                .site-header.scrolled { padding: 10px 24px; }
+                .header-glass {
+                    max-width: 1200px; margin: 0 auto;
+                    display: flex; justify-content: space-between; align-items: center;
+                    padding: 14px 28px; background: rgba(10, 10, 12, 0.4); backdrop-filter: blur(20px) saturate(1.8);
+                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                }
+                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
+                .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+                .logo-name { font-size: 1.4rem; font-weight: 800; }
+                
+                .desktop-nav { display: flex; align-items: center; gap: 28px; }
+                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+                .nav-item:hover { color: white; }
+
+                .search-hero { padding: 80px 24px 40px; text-align: center; position: relative; z-index: 1; }
+                .search-box-premium {
+                    max-width: 600px; margin: 0 auto;
+                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+                    backdrop-filter: blur(20px); border-radius: 32px; padding: 12px;
+                    display: flex; gap: 12px; align-items: center;
+                }
+                .search-input-premium { flex: 1; background: transparent; border: none; color: white; padding: 10px 20px; font-size: 1.1rem; outline: none; }
+                .btn-track { padding: 14px 32px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 22px; color: white; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); }
+                
+                .tracking-container { max-width: 900px; margin: 0 auto 100px; padding: 0 24px; position: relative; z-index: 1; }
+                .status-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(32px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 48px; margin-bottom: 40px; }
+                .tl-item { display: flex; gap: 24px; margin-bottom: 32px; }
+                .tl-point { width: 50px; height: 50px; border-radius: 16px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; color: #818cf8; flex-shrink: 0; position: relative; }
+                .tl-line { position: absolute; top: 58px; left: 24px; width: 2px; height: calc(100% - 10px); background: rgba(255,255,255,0.05); }
+                .tl-content { flex: 1; padding-bottom: 40px; }
+                .tl-content h4 { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+                .tl-content p { color: rgba(255,255,255,0.4); line-height: 1.6; }
+                
+                .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 80px 24px 40px; text-align: center; }
+                .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 24px; }
+                .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; transition: 0.3s; }
+                .footer-links a:hover { color: white; }
+                
+                @media (max-width: 768px) { .desktop-nav { display: none; } .status-card { padding: 24px; } .search-box-premium { border-radius: 20px; flex-direction: column; padding: 20px; } .btn-track { width: 100%; } }
+            `}</style>
+
+            <div className="bg-mesh"></div>
+
+            <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
+                <div className="header-glass">
+                    <Link to="/" className="logo-link">
+                        <div className="logo-box"><Truck size={18} color="white" /></div>
+                        <span className="logo-name">loggi</span>
+                    </Link>
+                    <nav className="desktop-nav">
+                        <Link to="/" className="nav-item">Início</Link>
+                        <Link to="/para-voce" className="nav-item">Para você</Link>
+                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
+                        <Link to="/sobre" className="nav-item">Sobre</Link>
+                        <Link to="/entrar" className="btn-track" style={{ padding: '8px 24px', fontSize: '0.85rem' }}>Entrar</Link>
+                    </nav>
+                </div>
+            </header>
+
+            <section className="search-hero">
+                <div className="reveal">
+                    <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, marginBottom: '24px', letterSpacing: '-2px' }}>Onde está seu <span style={{ color: '#818cf8' }}>pacote?</span></h1>
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1.1rem', marginBottom: '48px' }}>Monitore sua entrega em tempo real com precisão de metros.</p>
+                </div>
+
+                <form onSubmit={handleSearch} className="search-box-premium reveal">
+                    <Search size={24} color="#6366f1" />
+                    <input type="text" className="search-input-premium" placeholder="Cole seu código de rastreio aqui..." value={codigo} onChange={e => setCodigo(e.target.value)} />
+                    <button type="submit" className="btn-track" disabled={loading}>
+                        {loading ? 'Processando...' : 'Localizar'} <ArrowRight size={20} />
+                    </button>
                 </form>
+            </section>
+
+            <div className="tracking-container">
+                {trackingData ? (
+                    <div className="reveal">
+                        <div className="status-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
+                                <div>
+                                    <div style={{ display: 'inline-flex', padding: '6px 16px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, color: '#34d399', marginBottom: '12px' }}>{trackingData.status}</div>
+                                    <h2 style={{ fontSize: '1.8rem', fontWeight: 900 }}>{trackingData.codigo}</h2>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>Previsão de Entrega</p>
+                                    <p style={{ fontSize: '1.2rem', fontWeight: 800, color: '#818cf8' }}>{trackingData.previsao}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '48px' }}>
+                                {[1, 2, 3, 4].map(step => (
+                                    <div key={step} style={{ flex: 1, height: '4px', background: step <= trackingData.etapaAtual ? '#818cf8' : 'rgba(255,255,255,0.05)', borderRadius: '2px', boxShadow: step === trackingData.etapaAtual ? '0 0 10px #818cf8' : 'none' }}></div>
+                                ))}
+                            </div>
+
+                            <div className="timeline-list">
+                                {trackingData.eventos.map((ev: any, i: number) => (
+                                    <div key={i} className="tl-item">
+                                        <div className="tl-point">
+                                            {ev.icon}
+                                            {i < trackingData.eventos.length - 1 && <div className="tl-line"></div>}
+                                        </div>
+                                        <div className="tl-content">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <h4>{ev.status}</h4>
+                                                <span style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700 }}>{ev.data}</span>
+                                            </div>
+                                            <p>{ev.detalhes}</p>
+                                            <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>📍 {ev.local}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                            <button className="nav-item" style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Share2 size={16} /> Compartilhar</button>
+                            <button className="nav-item" style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Printer size={16} /> Imprimir</button>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.3 }} className="reveal">
+                        <Package size={80} style={{ marginBottom: '24px' }} />
+                        <p>Digite o seu código para ver a mágica acontecer.</p>
+                    </div>
+                )}
             </div>
 
-            {/* Results Section */}
-            {trackingData && (
-                <div style={styles.resultsContainer} className="animate-fade">
-                    {/* Status Card Principal */}
-                    <div style={styles.mainCard} className="glass-card">
-                        <div style={styles.cardHeader}>
-                            <div style={styles.badge}>
-                                <div style={styles.pulse}></div>
-                                {trackingData.status}
-                            </div>
-                            <div style={styles.trackingId}>#{trackingData.codigo}</div>
-                        </div>
-
-                        <div style={styles.quickInfoGrid}>
-                            <div style={styles.infoItem}>
-                                <Clock size={16} />
-                                <span>Previsão: <strong>{trackingData.previsao}</strong></span>
-                            </div>
-                            <div style={styles.infoItem}>
-                                <MapPin size={16} />
-                                <span>Origem: <strong>{trackingData.origem}</strong></span>
-                            </div>
-                        </div>
-
-                        {/* Barra de Progresso Visual */}
-                        <div style={styles.progressSection}>
-                            <div style={styles.progressBar}>
-                                <div style={styles.progressFill}></div>
-                                <div style={{ ...styles.dot, left: '0%', background: 'var(--accent-primary)' }}></div>
-                                <div style={{ ...styles.dot, left: '33%', background: 'var(--accent-primary)' }}></div>
-                                <div style={{ ...styles.dot, left: '66%', background: 'var(--accent-primary)', boxShadow: '0 0 15px var(--accent-primary)' }}></div>
-                                <div style={{ ...styles.dot, left: '100%', background: 'rgba(255,255,255,0.2)' }}></div>
-                            </div>
-                            <div style={styles.progressLabels}>
-                                <span>Coleta</span>
-                                <span>Trânsito</span>
-                                <span style={{ color: 'var(--accent-primary)' }}>Saiu p/ Entrega</span>
-                                <span>Entregue</span>
-                            </div>
-                        </div>
-
-                        <div style={styles.cardActions}>
-                            <button style={styles.secondaryBtn}><Share2 size={16} /> Compartilhar</button>
-                            <button style={styles.secondaryBtn}><Printer size={16} /> Imprimir</button>
-                        </div>
-                    </div>
-
-                    {/* Timeline de Eventos */}
-                    <div style={styles.timelineSection}>
-                        <h3 style={styles.sectionTitle}>Histórico do Objeto</h3>
-                        <div style={styles.timeline}>
-                            {trackingData.eventos.map((evento: any, index: number) => (
-                                <div key={evento.id} style={styles.timelineItem} className="animate-fade">
-                                    <div style={styles.timelineIconContainer}>
-                                        <div style={{
-                                            ...styles.timelineLine,
-                                            display: index === trackingData.eventos.length - 1 ? 'none' : 'block'
-                                        }}></div>
-                                        <div style={{
-                                            ...styles.timelineIcon,
-                                            background: index === 0 ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
-                                            borderColor: index === 0 ? 'var(--accent-primary)' : 'var(--border-glass)'
-                                        }}>
-                                            {index === 0 ? <Truck size={14} color="white" /> : <CheckCircle2 size={14} color="var(--text-secondary)" />}
-                                        </div>
-                                    </div>
-                                    <div style={{
-                                        ...styles.timelineContent,
-                                        background: index === 0 ? 'rgba(124, 77, 255, 0.05)' : 'transparent',
-                                        border: index === 0 ? '1px solid rgba(124, 77, 255, 0.1)' : '1px solid transparent'
-                                    }}>
-                                        <div style={styles.timeHeader}>
-                                            <span style={styles.eventData}>{evento.data}</span>
-                                            <span style={styles.eventLocal}>{evento.local}</span>
-                                        </div>
-                                        <h4 style={{
-                                            ...styles.eventStatus,
-                                            color: index === 0 ? 'var(--accent-primary)' : 'var(--text-primary)'
-                                        }}>{evento.status}</h4>
-                                        <p style={styles.eventDesc}>{evento.detalhes}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+            <footer className="site-footer">
+                <Link to="/" className="logo-link" style={{ justifyContent: 'center', marginBottom: '32px' }}>
+                    <div className="logo-box"><Truck size={18} color="white" /></div>
+                    <span className="logo-name">loggi</span>
+                </Link>
+                <div className="footer-links">
+                    <Link to="/sobre">Sobre</Link>
+                    <Link to="/para-voce">Para Você</Link>
+                    <Link to="/para-empresas">Empresas</Link>
+                    <Link to="/api-ecommerce">API</Link>
+                    <Link to="/loggi-pro">Loggi Pro</Link>
+                    <Link to="/carreiras">Carreiras</Link>
+                    <Link to="/termos">Termos de Uso</Link>
+                    <Link to="/ajuda">Ajuda</Link>
                 </div>
-            )}
-
-            {!trackingData && !loading && (
-                <div style={styles.emptyState} className="animate-fade">
-                    <div style={styles.emptyIcon}><Package size={60} color="rgba(255,255,255,0.1)" /></div>
-                    <p>Aguardando seu código para iniciar a jornada...</p>
-                </div>
-            )}
+            </footer>
         </div>
     );
-};
-
-const styles = {
-    container: {
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
-        minHeight: '100vh',
-        fontFamily: "'Outfit', sans-serif",
-    },
-    heroSection: {
-        padding: '100px 5% 60px',
-        textAlign: 'center' as const,
-        position: 'relative' as const,
-    },
-    bgGlow: {
-        position: 'absolute' as const,
-        top: '0',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '100%',
-        maxWidth: '800px',
-        height: '400px',
-        background: 'radial-gradient(circle, rgba(124, 77, 255, 0.08) 0%, transparent 70%)',
-        zIndex: 0,
-        pointerEvents: 'none' as const,
-    },
-    title: {
-        fontSize: '3.5rem',
-        fontWeight: 900,
-        marginBottom: '16px',
-        letterSpacing: '-2px',
-        position: 'relative' as const,
-    },
-    subtitle: {
-        fontSize: '1.2rem',
-        color: 'var(--text-secondary)',
-        marginBottom: '48px',
-        position: 'relative' as const,
-    },
-    searchForm: {
-        maxWidth: '700px',
-        margin: '0 auto',
-        position: 'relative' as const,
-        zIndex: 10,
-    },
-    searchBox: {
-        display: 'flex',
-        alignItems: 'center',
-        padding: '10px 10px 10px 24px',
-        borderRadius: '24px',
-        gap: '16px',
-    },
-    input: {
-        flex: 1,
-        background: 'transparent',
-        border: 'none',
-        color: 'white',
-        fontSize: '1.1rem',
-        outline: 'none',
-        textTransform: 'uppercase' as const,
-    },
-    btn: {
-        background: 'var(--accent-primary)',
-        color: 'white',
-        border: 'none',
-        padding: '14px 28px',
-        borderRadius: '18px',
-        fontSize: '1rem',
-        fontWeight: 700,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-    },
-    resultsContainer: {
-        padding: '0 5% 100px',
-        maxWidth: '900px',
-        margin: '0 auto',
-    },
-    mainCard: {
-        padding: '40px',
-        borderRadius: '32px',
-        marginBottom: '48px',
-        boxShadow: '0 40px 80px rgba(0,0,0,0.5)',
-    },
-    cardHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '32px',
-    },
-    badge: {
-        background: 'rgba(0, 229, 255, 0.1)',
-        color: 'var(--accent-secondary)',
-        padding: '8px 20px',
-        borderRadius: '100px',
-        fontSize: '0.9rem',
-        fontWeight: 800,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        border: '1px solid rgba(0, 229, 255, 0.2)',
-    },
-    pulse: {
-        width: '8px',
-        height: '8px',
-        background: 'var(--accent-secondary)',
-        borderRadius: '50%',
-        animation: 'pulse-glow 2s infinite',
-    },
-    trackingId: {
-        fontSize: '1.5rem',
-        fontWeight: 700,
-        color: 'rgba(255,255,255,0.4)',
-        letterSpacing: '2px',
-    },
-    quickInfoGrid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '24px',
-        marginBottom: '40px',
-    },
-    infoItem: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        color: 'var(--text-secondary)',
-        fontSize: '1rem',
-    },
-    progressSection: {
-        marginBottom: '40px',
-    },
-    progressBar: {
-        height: '4px',
-        background: 'rgba(255,255,255,0.05)',
-        borderRadius: '10px',
-        position: 'relative' as const,
-        marginBottom: '16px',
-    },
-    progressFill: {
-        width: '66%',
-        height: '100%',
-        background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))',
-        borderRadius: '10px',
-    },
-    dot: {
-        width: '12px',
-        height: '12px',
-        borderRadius: '50%',
-        position: 'absolute' as const,
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        border: '2px solid var(--bg-primary)',
-    },
-    progressLabels: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '0.8rem',
-        color: 'var(--text-secondary)',
-        fontWeight: 600,
-    },
-    cardActions: {
-        display: 'flex',
-        gap: '16px',
-        borderTop: '1px solid var(--border-glass)',
-        paddingTop: '32px',
-    },
-    secondaryBtn: {
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid var(--border-glass)',
-        color: 'var(--text-primary)',
-        padding: '10px 20px',
-        borderRadius: '12px',
-        fontSize: '0.9rem',
-        fontWeight: 600,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        transition: 'all 0.3s',
-    },
-    timelineSection: {
-        padding: '0 20px',
-    },
-    sectionTitle: {
-        fontSize: '1.5rem',
-        fontWeight: 800,
-        marginBottom: '32px',
-    },
-    timeline: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-    },
-    timelineItem: {
-        display: 'flex',
-        gap: '24px',
-    },
-    timelineIconContainer: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        alignItems: 'center',
-        width: '28px',
-    },
-    timelineLine: {
-        width: '2px',
-        flex: 1,
-        background: 'var(--border-glass)',
-    },
-    timelineIcon: {
-        width: '28px',
-        height: '28px',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2,
-        border: '1px solid',
-    },
-    timelineContent: {
-        flex: 1,
-        padding: '0 24px 40px',
-        borderRadius: '20px',
-    },
-    timeHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginBottom: '8px',
-    },
-    eventData: {
-        fontSize: '0.85rem',
-        color: 'var(--accent-primary)',
-        fontWeight: 700,
-    },
-    eventLocal: {
-        fontSize: '0.85rem',
-        color: 'var(--text-secondary)',
-    },
-    eventStatus: {
-        fontSize: '1.2rem',
-        fontWeight: 800,
-        marginBottom: '8px',
-    },
-    eventDesc: {
-        fontSize: '0.95rem',
-        color: 'var(--text-secondary)',
-        lineHeight: 1.5,
-    },
-    emptyState: {
-        textAlign: 'center' as const,
-        padding: '80px 0',
-        color: 'var(--text-secondary)',
-    },
-    emptyIcon: {
-        marginBottom: '24px',
-        animation: 'float 6s ease-in-out infinite',
-    }
 };
 
 export default TrackingPage;

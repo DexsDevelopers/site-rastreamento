@@ -13,6 +13,28 @@ const Home: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'voce' | 'empresas'>('voce');
     const [mobileMenu, setMobileMenu] = useState(false);
     const [heroCounter, setHeroCounter] = useState(0);
+    const [scrollY, setScrollY] = useState(0);
+
+    // Efeito de Parallax / Scroll
+    useEffect(() => {
+        const handleScroll = () => setScrollY(window.scrollY);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Observer para Animação de Entrada
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, [activeTab]);
 
     // Contador animado
     useEffect(() => {
@@ -105,23 +127,40 @@ const Home: React.FC = () => {
                     mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
                 }
 
+                /* ===== REVEAL ANIMATION ===== */
+                .reveal {
+                    opacity: 0;
+                    transform: translateY(30px) scale(0.95);
+                    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .reveal-active {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+                .reveal-delay-1 { transition-delay: 0.1s; }
+                .reveal-delay-2 { transition-delay: 0.2s; }
+                .reveal-delay-3 { transition-delay: 0.3s; }
+
                 /* ===== HEADER (Glass Card) ===== */
                 .site-header {
                     position: sticky; top: 0; z-index: 100;
-                    padding: 10px 24px;
-                    background: transparent;
+                    padding: 20px 24px;
+                    transition: all 0.3s;
                 }
+                .site-header.scrolled { padding: 10px 24px; }
                 .header-glass {
-                    max-width: 1280px; margin: 0 auto;
+                    max-width: 1200px; margin: 0 auto;
                     display: flex; justify-content: space-between; align-items: center;
                     padding: 14px 28px;
-                    background: rgba(255, 255, 255, 0.03);
-                    backdrop-filter: blur(24px) saturate(1.4);
-                    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+                    background: rgba(10, 10, 12, 0.4);
+                    backdrop-filter: blur(20px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
                     border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 20px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+                    border-radius: 24px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+                    transition: all 0.3s;
                 }
+                .scrolled .header-glass { background: rgba(10, 10, 12, 0.8); border-color: rgba(99, 102, 241, 0.2); }
                 .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
                 .logo-box {
                     width: 38px; height: 38px;
@@ -568,7 +607,7 @@ const Home: React.FC = () => {
             <div className="bg-grid"></div>
 
             {/* ===== HEADER ===== */}
-            <header className="site-header">
+            <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
                 <div className="header-glass">
                     <Link to="/" className="logo-link">
                         <div className="logo-box"><Truck size={18} color="white" /></div>
@@ -707,7 +746,7 @@ const Home: React.FC = () => {
             )}
 
             {/* ===== TABS ===== */}
-            <div className="tabs-wrap">
+            <div className="tabs-wrap reveal">
                 <div className="tabs-bar">
                     <button className={`tab-btn ${activeTab === 'voce' ? 'active' : ''}`} onClick={() => setActiveTab('voce')}>Para você</button>
                     <button className={`tab-btn ${activeTab === 'empresas' ? 'active' : ''}`} onClick={() => setActiveTab('empresas')}>Para empresas</button>
@@ -716,7 +755,7 @@ const Home: React.FC = () => {
 
             {/* ===== PARA VOCÊ ===== */}
             {activeTab === 'voce' && (
-                <section id="para-voce" className="content-section">
+                <section id="para-voce" className="content-section reveal">
                     <div className="section-header">
                         <div className="section-label"><Zap size={12} /> Soluções pessoais</div>
                         <h2 className="section-title">A Loggi entrega onde<br />você <span className="gradient-word">precisar</span></h2>
@@ -741,7 +780,7 @@ const Home: React.FC = () => {
 
             {/* ===== PARA EMPRESAS ===== */}
             {activeTab === 'empresas' && (
-                <section id="para-empresas" className="content-section">
+                <section id="para-empresas" className="content-section reveal">
                     <div className="section-header">
                         <div className="section-label"><TrendingUp size={12} /> Para negócios</div>
                         <h2 className="section-title">Logística inteligente<br />para <span className="gradient-word">negócios</span></h2>
@@ -764,7 +803,7 @@ const Home: React.FC = () => {
             )}
 
             {/* ===== MÉTRICAS ===== */}
-            <div className="metrics-bar">
+            <div className="metrics-bar reveal">
                 {[
                     { icon: <Smile size={24} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', val: '4.8/5', label: 'Satisfação' },
                     { icon: <Package size={24} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', val: '10M+', label: 'Entregas' },
@@ -780,7 +819,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* ===== DEPOIMENTOS ===== */}
-            <section className="testimonials-section">
+            <section className="testimonials-section reveal">
                 <div className="testimonials-inner">
                     <div style={{ textAlign: 'center', marginBottom: '56px' }}>
                         <div className="section-label" style={{ margin: '0 auto 16px' }}><Star size={12} /> Depoimentos</div>

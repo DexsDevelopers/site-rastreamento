@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+// src/pages/LoginCliente.tsx
+import React, { useState, useEffect } from 'react';
 import { Truck, Mail, Lock, User, ArrowRight, Eye, EyeOff, Phone, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const LoginCliente: React.FC = () => {
     const [tab, setTab] = useState<'login' | 'cadastro'>('login');
     const [showPassword, setShowPassword] = useState(false);
+    const [scrollY, setScrollY] = useState(0);
     const navigate = useNavigate();
     const [form, setForm] = useState({ nome: '', email: '', telefone: '', senha: '', confirmarSenha: '' });
+
+    useEffect(() => {
+        const handleScroll = () => setScrollY(window.scrollY);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let { name, value } = e.target;
@@ -20,374 +28,142 @@ const LoginCliente: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Por enquanto, navega direto
         navigate('/');
     };
 
     return (
-        <div style={styles.page}>
-            {/* Efeitos de fundo */}
-            <div style={styles.bgOrb1}></div>
-            <div style={styles.bgOrb2}></div>
-            <div style={styles.bgOrb3}></div>
-            <div style={styles.gridOverlay}></div>
+        <div className="lc-page">
+            <style>{`
+                .lc-page { background: #06060b; color: #fff; min-height: 100vh; position: relative; overflow-x: hidden; font-family: 'Outfit', sans-serif; }
+                .lc-page * { box-sizing: border-box; }
+                .bg-mesh {
+                    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+                    background:
+                        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+                        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08), transparent),
+                        radial-gradient(ellipse 50% 30% at 20% 80%, rgba(6, 182, 212, 0.06), transparent);
+                }
+                
+                .site-header { position: sticky; top: 0; z-index: 100; padding: 20px 24px; transition: all 0.3s; }
+                .site-header.scrolled { padding: 10px 24px; }
+                .header-glass {
+                    max-width: 1200px; margin: 0 auto;
+                    display: flex; justify-content: space-between; align-items: center;
+                    padding: 14px 28px; background: rgba(10, 10, 12, 0.4); backdrop-filter: blur(20px) saturate(1.8);
+                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                }
+                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
+                .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 
-            <div style={styles.container}>
-                {/* Logo */}
-                <Link to="/" style={styles.logoLink}>
-                    <div style={styles.logoBox}>
-                        <Truck size={22} color="white" />
+                .login-container { max-width: 440px; margin: 40px auto 100px; padding: 0 24px; position: relative; z-index: 1; }
+                .login-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(32px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 48px; position: relative; overflow: hidden; }
+                .login-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #a855f7); }
+                
+                .tabs { display: flex; gap: 4px; padding: 4px; background: rgba(255,255,255,0.03); border-radius: 14px; margin-bottom: 32px; border: 1px solid rgba(255,255,255,0.1); }
+                .tab-btn { flex: 1; padding: 12px; background: transparent; border: none; border-radius: 11px; color: rgba(255,255,255,0.5); font-weight: 600; cursor: pointer; transition: all 0.3s; }
+                .tab-btn.active { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3); }
+                
+                .input-field { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px 14px 44px; color: white; outline: none; transition: 0.3s; }
+                .input-field:focus { border-color: #818cf8; background: rgba(129, 140, 248, 0.04); box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1); }
+                .field-icon { position: absolute; left: 16px; top: 15px; color: rgba(255,255,255,0.3); }
+                
+                .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 16px; color: white; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 24px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); }
+                
+                .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 80px 24px 40px; text-align: center; }
+                .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 24px; }
+                .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; }
+                
+                @media (max-width: 480px) { .login-card { padding: 32px 20px; } }
+            `}</style>
+
+            <div className="bg-mesh"></div>
+
+            <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
+                <div className="header-glass">
+                    <Link to="/" className="logo-link">
+                        <div className="logo-box"><Truck size={18} color="white" /></div>
+                        <span className="logo-name">loggi</span>
+                    </Link>
+                    <Link to="/" className="nav-item">Voltar ao Início</Link>
+                </div>
+            </header>
+
+            <div className="login-container">
+                <div className="login-card">
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 900, textAlign: 'center', marginBottom: '8px' }}>Bem-vindo</h2>
+                    <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: '32px' }}>Acesse sua conta para gerenciar envios</p>
+
+                    <div className="tabs">
+                        <button className={`tab-btn ${tab === 'login' ? 'active' : ''}`} onClick={() => setTab('login')}>Entrar</button>
+                        <button className={`tab-btn ${tab === 'cadastro' ? 'active' : ''}`} onClick={() => setTab('cadastro')}>Criar Conta</button>
                     </div>
-                    <span style={styles.logoText}>loggi</span>
-                </Link>
 
-                {/* Card Principal */}
-                <div style={styles.card} className="glass-card-3d">
-                    {/* Borda gradient no topo */}
-                    <div style={styles.topGradient}></div>
-
-                    {/* Tabs */}
-                    <div style={styles.tabs}>
-                        <button
-                            style={tab === 'login' ? styles.tabActive : styles.tabInactive}
-                            onClick={() => setTab('login')}
-                        >Entrar</button>
-                        <button
-                            style={tab === 'cadastro' ? styles.tabActive : styles.tabInactive}
-                            onClick={() => setTab('cadastro')}
-                        >Criar Conta</button>
-                    </div>
-
-                    <form onSubmit={handleSubmit} style={styles.form}>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {tab === 'cadastro' && (
-                            <div style={styles.field}>
-                                <label style={styles.label}>Nome Completo</label>
-                                <div style={styles.inputWrap}>
-                                    <User size={18} color="var(--text-secondary)" style={styles.inputIcon} />
-                                    <input
-                                        name="nome"
-                                        value={form.nome}
-                                        onChange={handleChange}
-                                        placeholder="Seu nome completo"
-                                        required
-                                        className="input-field"
-                                        style={styles.inputPadded}
-                                    />
-                                </div>
+                            <div style={{ position: 'relative' }}>
+                                <User className="field-icon" size={18} />
+                                <input name="nome" value={form.nome} onChange={handleChange} className="input-field" placeholder="Nome completo" required />
                             </div>
                         )}
 
-                        <div style={styles.field}>
-                            <label style={styles.label}>E-mail</label>
-                            <div style={styles.inputWrap}>
-                                <Mail size={18} color="var(--text-secondary)" style={styles.inputIcon} />
-                                <input
-                                    name="email"
-                                    type="email"
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    placeholder="seuemail@exemplo.com"
-                                    required
-                                    className="input-field"
-                                    style={styles.inputPadded}
-                                />
-                            </div>
+                        <div style={{ position: 'relative' }}>
+                            <Mail className="field-icon" size={18} />
+                            <input name="email" type="email" value={form.email} onChange={handleChange} className="input-field" placeholder="E-mail" required />
                         </div>
 
                         {tab === 'cadastro' && (
-                            <div style={styles.field}>
-                                <label style={styles.label}>WhatsApp</label>
-                                <div style={styles.inputWrap}>
-                                    <Phone size={18} color="var(--text-secondary)" style={styles.inputIcon} />
-                                    <input
-                                        name="telefone"
-                                        value={form.telefone}
-                                        onChange={handleChange}
-                                        placeholder="(11) 99999-9999"
-                                        required
-                                        className="input-field"
-                                        style={styles.inputPadded}
-                                    />
-                                </div>
+                            <div style={{ position: 'relative' }}>
+                                <Phone className="field-icon" size={18} />
+                                <input name="telefone" value={form.telefone} onChange={handleChange} className="input-field" placeholder="WhatsApp (11) 99999-9999" required />
                             </div>
                         )}
 
-                        <div style={styles.field}>
-                            <div style={styles.labelRow}>
-                                <label style={styles.label}>Senha</label>
-                                {tab === 'login' && (
-                                    <a href="#" style={styles.forgotLink}>Esqueci a senha</a>
-                                )}
-                            </div>
-                            <div style={styles.inputWrap}>
-                                <Lock size={18} color="var(--text-secondary)" style={styles.inputIcon} />
-                                <input
-                                    name="senha"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={form.senha}
-                                    onChange={handleChange}
-                                    placeholder="••••••••"
-                                    required
-                                    className="input-field"
-                                    style={styles.inputPadded}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    style={styles.eyeBtn}
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
+                        <div style={{ position: 'relative' }}>
+                            <Lock className="field-icon" size={18} />
+                            <input name="senha" type={showPassword ? 'text' : 'password'} value={form.senha} onChange={handleChange} className="input-field" placeholder="Senha" required />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '15px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
 
-                        {tab === 'cadastro' && (
-                            <div style={styles.field}>
-                                <label style={styles.label}>Confirmar Senha</label>
-                                <div style={styles.inputWrap}>
-                                    <Lock size={18} color="var(--text-secondary)" style={styles.inputIcon} />
-                                    <input
-                                        name="confirmarSenha"
-                                        type="password"
-                                        value={form.confirmarSenha}
-                                        onChange={handleChange}
-                                        placeholder="••••••••"
-                                        required
-                                        className="input-field"
-                                        style={styles.inputPadded}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <button type="submit" className="btn-primary" style={styles.submitBtn}>
-                            {tab === 'login' ? 'Entrar na minha conta' : 'Criar minha conta'}
-                            <ArrowRight size={18} />
+                        <button type="submit" className="btn-submit">
+                            {tab === 'login' ? 'Entrar agora' : 'Criar minha conta'} <ArrowRight size={20} />
                         </button>
                     </form>
 
-                    {/* Divider */}
-                    <div style={styles.divider}>
-                        <span style={styles.dividerLine}></span>
-                        <span style={styles.dividerText}>ou</span>
-                        <span style={styles.dividerLine}></span>
+                    <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>
+                        {tab === 'login' ? (
+                            <>Não tem conta? <span onClick={() => setTab('cadastro')} style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 700 }}>Cadastre-se grátis</span></>
+                        ) : (
+                            <>Já possui conta? <span onClick={() => setTab('login')} style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 700 }}>Faça login</span></>
+                        )}
                     </div>
 
-                    {/* Switch tab */}
-                    <p style={styles.switchText}>
-                        {tab === 'login'
-                            ? 'Ainda não tem conta? '
-                            : 'Já possui uma conta? '}
-                        <button
-                            style={styles.switchBtn}
-                            onClick={() => setTab(tab === 'login' ? 'cadastro' : 'login')}
-                        >
-                            {tab === 'login' ? 'Criar conta grátis' : 'Entrar agora'}
-                        </button>
-                    </p>
-
-                    {/* Trust */}
-                    <div style={styles.trustBar}>
-                        <ShieldCheck size={14} color="var(--success)" />
-                        <span>Seus dados estão protegidos com criptografia de ponta</span>
+                    <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
+                        <ShieldCheck size={16} /> Protegido por Loggi Shield
                     </div>
                 </div>
-
-                {/* Admin link discreto */}
-                <Link to="/login" style={styles.adminLink}>
-                    Acesso Administrativo →
-                </Link>
             </div>
+
+            <footer className="site-footer">
+                <Link to="/" className="logo-link" style={{ justifyContent: 'center', marginBottom: '32px' }}>
+                    <div className="logo-box"><Truck size={18} color="white" /></div>
+                    <span className="logo-name">loggi</span>
+                </Link>
+                <div className="footer-links" style={{ fontSize: '0.8rem' }}>
+                    <Link to="/sobre">Sobre</Link>
+                    <Link to="/para-voce">Para Você</Link>
+                    <Link to="/para-empresas">Empresas</Link>
+                    <Link to="/api-ecommerce">API</Link>
+                    <Link to="/loggi-pro">Loggi Pro</Link>
+                    <Link to="/carreiras">Carreiras</Link>
+                    <Link to="/termos">Termos de Uso</Link>
+                    <Link to="/ajuda">Ajuda</Link>
+                </div>
+            </footer>
         </div>
     );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-    page: {
-        minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-primary)',
-        position: 'relative',
-        overflow: 'hidden',
-        padding: '20px',
-    },
-    bgOrb1: {
-        position: 'absolute',
-        width: '500px', height: '500px',
-        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%)',
-        top: '-100px', right: '-100px',
-        borderRadius: '50%',
-        filter: 'blur(60px)',
-        pointerEvents: 'none',
-    },
-    bgOrb2: {
-        position: 'absolute',
-        width: '400px', height: '400px',
-        background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%)',
-        bottom: '-80px', left: '-80px',
-        borderRadius: '50%',
-        filter: 'blur(60px)',
-        pointerEvents: 'none',
-    },
-    bgOrb3: {
-        position: 'absolute',
-        width: '300px', height: '300px',
-        background: 'radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 70%)',
-        top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        borderRadius: '50%',
-        filter: 'blur(80px)',
-        pointerEvents: 'none',
-    },
-    gridOverlay: {
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-        backgroundSize: '60px 60px',
-        pointerEvents: 'none',
-    },
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        zIndex: 10,
-        width: '100%',
-        maxWidth: '440px',
-    },
-    logoLink: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        textDecoration: 'none',
-        color: 'white',
-        marginBottom: '40px',
-    },
-    logoBox: {
-        width: '44px', height: '44px',
-        background: 'var(--accent-gradient)',
-        borderRadius: '14px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 8px 24px var(--accent-glow)',
-    },
-    logoText: { fontSize: '1.6rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif" },
-    card: {
-        width: '100%',
-        padding: '40px 32px',
-        borderRadius: '28px',
-        position: 'relative',
-        overflow: 'hidden',
-    },
-    topGradient: {
-        position: 'absolute',
-        top: 0, left: 0, right: 0,
-        height: '3px',
-        background: 'var(--accent-gradient)',
-    },
-    tabs: {
-        display: 'flex',
-        gap: '4px',
-        padding: '4px',
-        background: 'rgba(255,255,255,0.03)',
-        borderRadius: '14px',
-        marginBottom: '32px',
-        border: '1px solid var(--border-glass)',
-    },
-    tabActive: {
-        flex: 1,
-        padding: '12px',
-        background: 'var(--accent-primary)',
-        border: 'none',
-        borderRadius: '11px',
-        color: 'white',
-        fontWeight: 700,
-        fontSize: '0.9rem',
-        cursor: 'pointer',
-        fontFamily: "'Outfit', sans-serif",
-        transition: 'all 0.3s',
-    },
-    tabInactive: {
-        flex: 1,
-        padding: '12px',
-        background: 'transparent',
-        border: 'none',
-        borderRadius: '11px',
-        color: 'var(--text-secondary)',
-        fontWeight: 500,
-        fontSize: '0.9rem',
-        cursor: 'pointer',
-        fontFamily: "'Outfit', sans-serif",
-        transition: 'all 0.3s',
-    },
-    form: { display: 'flex', flexDirection: 'column', gap: '20px' },
-    field: { display: 'flex', flexDirection: 'column', gap: '8px' },
-    label: { fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)' },
-    labelRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    forgotLink: { fontSize: '0.8rem', color: 'var(--accent-primary)', textDecoration: 'none' },
-    inputWrap: { position: 'relative', display: 'flex', alignItems: 'center' },
-    inputIcon: { position: 'absolute', left: '16px', zIndex: 2, pointerEvents: 'none' },
-    inputPadded: { paddingLeft: '46px' },
-    eyeBtn: {
-        position: 'absolute',
-        right: '14px',
-        background: 'none',
-        border: 'none',
-        color: 'var(--text-secondary)',
-        cursor: 'pointer',
-        zIndex: 2,
-        padding: '4px',
-    },
-    submitBtn: {
-        width: '100%',
-        padding: '16px',
-        fontSize: '1rem',
-        fontWeight: 700,
-        marginTop: '8px',
-        borderRadius: '14px',
-    },
-    divider: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        margin: '24px 0',
-    },
-    dividerLine: { flex: 1, height: '1px', background: 'var(--border-glass)' },
-    dividerText: { color: 'var(--text-secondary)', fontSize: '0.8rem' },
-    switchText: {
-        textAlign: 'center',
-        color: 'var(--text-secondary)',
-        fontSize: '0.9rem',
-    },
-    switchBtn: {
-        background: 'none',
-        border: 'none',
-        color: 'var(--accent-primary)',
-        cursor: 'pointer',
-        fontWeight: 700,
-        fontSize: '0.9rem',
-    },
-    trustBar: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        marginTop: '24px',
-        paddingTop: '20px',
-        borderTop: '1px solid var(--border-glass)',
-        color: 'var(--text-secondary)',
-        fontSize: '0.75rem',
-    },
-    adminLink: {
-        marginTop: '24px',
-        fontSize: '0.8rem',
-        color: 'rgba(255,255,255,0.2)',
-        textDecoration: 'none',
-        transition: 'color 0.2s',
-    },
 };
 
 export default LoginCliente;

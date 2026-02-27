@@ -7,10 +7,15 @@ import Orders from './pages/Orders';
 import Clients from './pages/Clients';
 import Home from './pages/Home';
 import Tracking from './pages/Tracking';
-import Sobre from './pages/Sobre';
+import LoggiPro from './pages/LoggiPro';
+import About from './pages/About';
+import Careers from './pages/Careers';
+import HelpCenter from './pages/HelpCenter';
+import TermsOfUse from './pages/TermsOfUse';
 import Pedido from './pages/Pedido';
 import ParaVoce from './pages/ParaVoce';
 import ParaEmpresas from './pages/ParaEmpresas';
+import ApiEcommerce from './pages/ApiEcommerce';
 import DatabaseDebug from './pages/DatabaseDebug';
 import AdminPanel from './pages/AdminPanel';
 import PedidosPendentes from './pages/PedidosPendentes';
@@ -32,10 +37,15 @@ function App() {
         <Route path="/entrar" element={<LoginCliente />} />
         <Route path="/login" element={<Login />} />
         <Route path="/rastreio" element={<Tracking />} />
-        <Route path="/sobre" element={<Sobre />} />
+        <Route path="/sobre" element={<About />} />
         <Route path="/pedido" element={<Pedido />} />
         <Route path="/para-voce" element={<ParaVoce />} />
         <Route path="/para-empresas" element={<ParaEmpresas />} />
+        <Route path="/api-ecommerce" element={<ApiEcommerce />} />
+        <Route path="/loggi-pro" element={<LoggiPro />} />
+        <Route path="/carreiras" element={<Careers />} />
+        <Route path="/ajuda" element={<HelpCenter />} />
+        <Route path="/termos" element={<TermsOfUse />} />
 
         {/* Rotas Administrativas com Layout Fixo */}
         <Route element={<AdminLayout />}>
