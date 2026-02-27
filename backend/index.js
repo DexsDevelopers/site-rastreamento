@@ -451,7 +451,15 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
         if (!ultimoStatus) return res.json({ success: false, message: '❌ Nenhum status encontrado para este código' });
 
         const telefone = contato.telefone_normalizado || contato.telefone_original;
-        const mensagem = `📦 *Atualização de Rastreio*\n\nCódigo: ${codigo}\nStatus: ${ultimoStatus.status_atual}\n${ultimoStatus.subtitulo || ''}\n\nAcompanhe seu pedido em nosso site!`;
+
+        // Buscar template
+        const [[template]] = await db.query("SELECT mensagem FROM whatsapp_templates WHERE slug = 'rastreio_update' LIMIT 1");
+        let mensagem = template?.mensagem || `📦 *Atualização de Rastreio*\n\nCódigo: {codigo}\nStatus: {status}\n{subtitulo}\n\nAcompanhe seu pedido em nosso site!`;
+
+        mensagem = mensagem
+            .replace('{codigo}', codigo)
+            .replace('{status}', ultimoStatus.status_atual)
+            .replace('{subtitulo}', ultimoStatus.subtitulo || '');
 
         const response = await fetch(`${apiUrl}/send`, {
             method: 'POST',
@@ -547,7 +555,12 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
         if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
 
         const telefone = pedido.telefone.replace(/\D/g, '');
-        const mensagem = `Olá ${pedido.nome}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?`;
+
+        // Buscar template
+        const [[template]] = await db.query("SELECT mensagem FROM whatsapp_templates WHERE slug = 'cobranca_pendente' LIMIT 1");
+        let mensagem = template?.mensagem || `Olá {nome}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?`;
+
+        mensagem = mensagem.replace('{nome}', pedido.nome);
 
         const response = await fetch(`${apiUrl}/send`, {
             method: 'POST',
@@ -560,6 +573,42 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
         } else {
             res.json({ success: false, message: '❌ Falha ao enviar mensagem.' });
         }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 7.6. Templates de WhatsApp
+app.get('/api/admin/whatsapp-templates', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT * FROM whatsapp_templates');
+
+        // Se não houver templates, retornar os padrões
+        if (rows.length === 0) {
+            return res.json([
+                { slug: 'rastreio_update', titulo: 'Atualização de Rastreio', mensagem: '📦 *Atualização de Rastreio*\n\nCódigo: {codigo}\nStatus: {status}\n{subtitulo}\n\nAcompanhe seu pedido em nosso site!' },
+                { slug: 'cobranca_pendente', titulo: 'Cobrança de Pedido Pendente', mensagem: 'Olá {nome}, identificamos que seu pedido está pendente. Para que possamos fazer o envio, é necessário finalizar o pagamento. Precisa de alguma ajuda?' }
+            ]);
+        }
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/whatsapp-templates', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { templates } = req.body; // Array de { slug, titulo, mensagem }
+
+        for (const t of templates) {
+            await db.query(
+                'INSERT INTO whatsapp_templates (slug, titulo, mensagem) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), mensagem = VALUES(mensagem)',
+                [t.slug, t.titulo, t.mensagem]
+            );
+        }
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -676,6 +725,16 @@ app.post('/api/admin/db-setup', async (req, res) => {
               \`status\` varchar(50) DEFAULT 'disponivel',
               \`data_cadastro\` datetime DEFAULT CURRENT_TIMESTAMP,
               PRIMARY KEY (\`id\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        // Criar tabela de templates whatsapp
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`whatsapp_templates\` (
+              \`slug\` varchar(100) NOT NULL,
+              \`titulo\` varchar(255) DEFAULT NULL,
+              \`mensagem\` text DEFAULT NULL,
+              PRIMARY KEY (\`slug\`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 
