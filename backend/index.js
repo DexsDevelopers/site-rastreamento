@@ -626,7 +626,7 @@ app.get('/api/admin/db-health', async (req, res) => {
     try {
         if (!db) throw new Error('Conexão com banco de dados não estabelecida.');
 
-        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos', 'pedidos_pendentes', 'entregadores'];
+        const tablesToCheck = ['rastreios_status', 'clientes', 'whatsapp_contatos', 'pedidos_pendentes', 'entregadores', 'whatsapp_templates'];
         const status = {
             connected: true,
             database: process.env.DB_NAME,
