@@ -859,30 +859,6 @@ app.get(/.*/, (req, res) => {
     });
 });
 
-const { fork } = require('child_process');
-const fs = require('fs');
-
 app.listen(PORT, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
-
-    // --- WHATSAPP BOT AUTO-START ---
-    const botPath = path.join(__dirname, '../whatsapp-bot/index.js');
-    if (fs.existsSync(botPath)) {
-        console.log('🤖 Iniciando Bot WhatsApp em segundo plano (Child Process)...');
-
-        const botProcess = fork(botPath, [], {
-            cwd: path.dirname(botPath),
-            env: {
-                ...process.env,
-                PORT: '3001', // O bot escuta na 3001
-                API_PORT: '3001',
-                API_TOKEN: process.env.WHATSAPP_API_TOKEN || 'lucastav8012'
-            },
-            stdio: 'inherit' // Permite ver os logs do bot na tela principal
-        });
-
-        botProcess.on('exit', (code) => {
-            console.log(`❌ Bot WhatsApp desligou com código ${code}.`);
-        });
-    }
 });
