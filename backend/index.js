@@ -3,6 +3,11 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
+// Garante que fetch está disponível (Node <18 não tem nativo)
+if (!globalThis.fetch) {
+    globalThis.fetch = require('node-fetch');
+}
+
 // Carrega .env da raiz ou da pasta backend
 dotenv.config();
 dotenv.config({ path: path.join(__dirname, '.env') });
