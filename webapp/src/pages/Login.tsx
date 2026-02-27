@@ -35,7 +35,7 @@ const Login = () => {
                         <div style={styles.inputWrapper}>
                             <Mail size={18} color="var(--text-secondary)" style={styles.inputIcon} />
                             <input
-                                type="email"
+                                type="text"
                                 placeholder="Ex: admin@transloggi.site"
                                 className="input-field"
                                 style={styles.paddedInput}
