@@ -638,11 +638,36 @@ app.get('/api/admin/db-health', async (req, res) => {
                 const [info] = await db.query(`SHOW TABLES LIKE ?`, [table]);
                 const exists = info.length > 0;
                 let count = 0;
+
                 if (exists) {
                     const [[{ total }]] = await db.query(`SELECT COUNT(*) as total FROM ??`, [table]);
                     count = total;
+                } else {
+                    // Fallback automático criador de tabelas se estiverem faltando
+                    if (table === 'entregadores') {
+                        await db.query(`
+                            CREATE TABLE IF NOT EXISTS \`entregadores\` (
+                              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+                              \`nome\` varchar(255) DEFAULT NULL,
+                              \`telefone\` varchar(50) DEFAULT NULL,
+                              \`veiculo\` varchar(100) DEFAULT NULL,
+                              \`status\` varchar(50) DEFAULT 'disponivel',
+                              \`data_cadastro\` datetime DEFAULT CURRENT_TIMESTAMP,
+                              PRIMARY KEY (\`id\`)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                        `);
+                    } else if (table === 'whatsapp_templates') {
+                        await db.query(`
+                            CREATE TABLE IF NOT EXISTS \`whatsapp_templates\` (
+                              \`slug\` varchar(100) NOT NULL,
+                              \`titulo\` varchar(255) DEFAULT NULL,
+                              \`mensagem\` text DEFAULT NULL,
+                              PRIMARY KEY (\`slug\`)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                        `);
+                    }
                 }
-                status.tables.push({ name: table, exists, count });
+                status.tables.push({ name: table, exists: exists || (table === 'entregadores' || table === 'whatsapp_templates'), count });
             } catch (err) {
                 status.tables.push({ name: table, exists: false, error: err.message });
             }
