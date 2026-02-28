@@ -79,7 +79,7 @@ const Settings = () => {
 
                             <div className="form-group">
                                 <label className="form-label">WhatsApp API URL</label>
-                                <input className="input-field" placeholder="https://api.seuservidor.com" defaultValue="https://transloggi.site" />
+                                <input className="input-field" placeholder="https://api.seuservidor.com" defaultValue="http://localhost:3000" />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">API Token</label>
