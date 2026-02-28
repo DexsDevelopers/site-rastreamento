@@ -47,6 +47,21 @@ async function runMigrations() {
             }
         } catch (e) { }
 
+        // Tabela de configurações
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`configuracoes\` (
+              \`chave\` varchar(100) NOT NULL,
+              \`valor\` text DEFAULT NULL,
+              PRIMARY KEY (\`chave\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        // Valor padrão para centavos_aleatorios se não existir
+        const [configRows] = await db.query("SELECT valor FROM configuracoes WHERE chave = 'centavos_aleatorios'");
+        if (configRows.length === 0) {
+            await db.query("INSERT INTO configuracoes (chave, valor) VALUES ('centavos_aleatorios', 'true')");
+        }
+
     } catch (err) {
         console.error('⚠️ Erro nas migrações:', err.message);
     }
@@ -1029,6 +1044,46 @@ app.post('/api/admin/bot/restart', async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 11. Configurações do Sistema
+app.get('/api/admin/config', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT * FROM configuracoes');
+        const config = {};
+        rows.forEach(r => config[r.chave] = r.valor);
+        res.json({ success: true, config });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/admin/config', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const updates = req.body; // { chave: valor, ... }
+        for (const [chave, valor] of Object.entries(updates)) {
+            await db.query(
+                'INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)',
+                [chave, String(valor)]
+            );
+        }
+        res.json({ success: true, message: 'Configurações atualizadas!' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Endpoint público para pegar se centavos estão ativos
+app.get('/api/config/centavos', async (req, res) => {
+    try {
+        if (!db) return res.json({ active: true });
+        const [rows] = await db.query("SELECT valor FROM configuracoes WHERE chave = 'centavos_aleatorios'");
+        res.json({ active: rows.length > 0 ? rows[0].valor === 'true' : true });
+    } catch (e) {
+        res.json({ active: true });
     }
 });
 

