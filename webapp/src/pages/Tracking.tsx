@@ -49,9 +49,8 @@ const TrackingPage: React.FC = () => {
         };
     }, []);
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!codigo) return;
+    const fetchTrackingData = async (searchCode: string) => {
+        if (!searchCode) return;
 
         setLoading(true);
         setTrackingData(null);
@@ -61,7 +60,7 @@ const TrackingPage: React.FC = () => {
             const res = await fetch(`${apiBase}/api/rastreio-publico`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ codigo: codigo.toUpperCase() }),
+                body: JSON.stringify({ codigo: searchCode.toUpperCase() }),
             });
             const data = await res.json();
 
@@ -111,6 +110,21 @@ const TrackingPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        const hash = window.location.hash;
+        const match = hash.match(/[?&]codigo=([^&]+)/);
+        if (match && match[1]) {
+            const urlCodigo = match[1].toUpperCase();
+            setCodigo(urlCodigo);
+            fetchTrackingData(urlCodigo);
+        }
+    }, []);
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        fetchTrackingData(codigo);
     };
 
     return (
