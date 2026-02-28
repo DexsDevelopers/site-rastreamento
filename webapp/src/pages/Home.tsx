@@ -16,6 +16,28 @@ const Home: React.FC = () => {
     const [heroCounter, setHeroCounter] = useState(0);
     const [showExpressModal, setShowExpressModal] = useState(false);
 
+    // PixGo Integration State
+    const [pixLoading, setPixLoading] = useState(false);
+    const [pixData, setPixData] = useState<any>(null);
+    const [pixPaid, setPixPaid] = useState(false);
+
+    useEffect(() => {
+        let interval: any;
+        if (pixData && !pixPaid) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/pix/status/${pixData.payment_id}`);
+                    const json = await res.json();
+                    if (json && json.success && json.data?.status === 'completed') {
+                        setPixPaid(true);
+                        clearInterval(interval);
+                    }
+                } catch (e) { }
+            }, 5000);
+        }
+        return () => clearInterval(interval);
+    }, [pixData, pixPaid]);
+
     // Observer para Animação de Entrada
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -770,19 +792,59 @@ const Home: React.FC = () => {
                             Ao acelerar, seu pacote ganha prioridade máxima em nossa malha e será entregue em até <strong>3 dias úteis</strong>.
                         </p>
 
-                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>R$ 29,90</div>
-                            <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
-                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020126580014BR.GOV.BCB.PIX013666d6ed5c-9d62-4b2a-8c8a-7e1e6f966b96520400005303986540529.905802BR5913TRANS-LOGGI6009SAO-PAULO62070503***6304E21D`} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
-                            </div>
-                            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)' }}>Escaneie o código acima ou pague pela chave vinculada.</p>
-                        </div>
+                        {!pixData && !pixLoading && (
+                            <button onClick={async () => {
+                                setPixLoading(true);
+                                try {
+                                    const res = await fetch(`${API_BASE}/api/pix/create`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ amount: 29.90, description: 'Acelerar Entrega Rastreamento' })
+                                    });
+                                    const data = await res.json();
+                                    if (data && data.success) {
+                                        setPixData(data.data);
+                                    } else {
+                                        alert('Erro ao gerar PIX: ' + (data.error || 'Tente novamente.'));
+                                    }
+                                } catch (e) {
+                                    alert('Erro de conexão ao gerar o PIX.');
+                                } finally {
+                                    setPixLoading(false);
+                                }
+                            }} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)' }}>
+                                Pagar R$ 29,90 via PIX Agora
+                            </button>
+                        )}
+                        {pixLoading && (
+                            <div style={{ color: '#818cf8', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
+                        )}
 
-                        <button onClick={() => setShowExpressModal(false)} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)' }}>
-                            Já realizei o pagamento
-                        </button>
-                        <button onClick={() => setShowExpressModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>Talvez mais tarde</button>
+                        {pixData && !pixPaid && (
+                            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                                <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>R$ 29,90</div>
+                                <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
+                                    <img src={pixData.qr_image_url} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
+                                </div>
+                                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all' }}>
+                                    {pixData.qr_code}
+                                </div>
+                                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <button onClick={() => { navigator.clipboard.writeText(pixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#4f46e5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
+                                <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
+                            </div>
+                        )}
+
+                        {pixPaid && (
+                            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                                <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
+                                <div style={{ fontSize: '1.2rem', color: '#10b981', fontWeight: 800 }}>Pagamento Confirmado!</div>
+                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', marginTop: '8px' }}>Seu processo de aceleração foi ativado. Você receberá atualizações em breve.</p>
+                            </div>
+                        )}
+
+                        <button onClick={() => setShowExpressModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{pixPaid ? 'Fechar' : 'Talvez mais tarde'}</button>
                     </div>
                 </div>
             )}

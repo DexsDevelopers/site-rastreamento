@@ -144,6 +144,50 @@ app.get('/api/db-check', async (req, res) => {
     }
 });
 
+// Integração PixGo API
+const PIXGO_API_KEY = 'pk_c8e1450b597c3a1cd95b5e6856ca2dde7637a7fbe8abde58ae3eadb06135f7d6';
+const PIXGO_API_URL = 'https://pixgo.org/api/v1';
+
+app.post('/api/pix/create', async (req, res) => {
+    try {
+        const { amount, description } = req.body;
+        const response = await fetch(`${PIXGO_API_URL}/payment/create`, {
+            method: 'POST',
+            headers: {
+                'x-api-key': PIXGO_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount: parseFloat(amount) || 29.90, description: description || 'Acelerar Entrega' })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            res.json(data);
+        } else {
+            console.error('[PIXGO ERROR]', data);
+            res.status(400).json({ success: false, error: data.message || 'Erro na API PixGo' });
+        }
+    } catch (error) {
+        console.error('[PIXGO CREATE ERROR]', error.message);
+        res.status(500).json({ success: false, error: 'Erro no servidor' });
+    }
+});
+
+app.get('/api/pix/status/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const response = await fetch(`${PIXGO_API_URL}/payment/${id}/status`, {
+            method: 'GET',
+            headers: { 'x-api-key': PIXGO_API_KEY }
+        });
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('[PIXGO STATUS ERROR]', error.message);
+        res.status(500).json({ success: false, error: 'Erro no servidor' });
+    }
+});
+
 // Busca Pública de Rastreio (Usado na Home e Tracking)
 app.post(['/api/rastreio', '/api/rastreio-publico'], async (req, res) => {
     try {
