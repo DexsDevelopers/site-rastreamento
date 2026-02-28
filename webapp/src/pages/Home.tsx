@@ -65,15 +65,7 @@ const Home: React.FC = () => {
                 setTrackError(data.message || 'Código não encontrado.');
             }
         } catch {
-            setTrackResult({
-                statusAtual: 'Em Trânsito',
-                cidade: cidade,
-                etapas: [
-                    { titulo: 'Objeto postado', subtitulo: 'Pacote recebido na agência', data: '2026-02-25 10:30:00', status_atual: 'Postado' },
-                    { titulo: 'Em trânsito', subtitulo: 'Objeto encaminhado para unidade de tratamento', data: '2026-02-26 22:10:00', status_atual: 'Em trânsito' },
-                    { titulo: 'Saiu para entrega', subtitulo: 'O objeto saiu para entrega ao destinatário', data: '2026-02-27 15:45:00', status_atual: 'Em rota' },
-                ],
-            });
+            setTrackError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
         } finally {
             setLoading(false);
         }

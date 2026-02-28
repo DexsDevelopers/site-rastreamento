@@ -25,30 +25,55 @@ const TrackingPage: React.FC = () => {
         };
     }, []);
 
-    const handleSearch = (e: React.FormEvent) => {
+    const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!codigo) return;
 
         setLoading(true);
-        setTimeout(() => {
-            setTrackingData({
-                codigo: codigo.toUpperCase(),
-                status: 'Em rota de entrega',
-                ultimaAtualizacao: '27 Fev 2026 às 15:45',
-                previsao: '01 Mar 2026',
-                destinatário: 'Usuário Premium',
-                origem: 'São Paulo, SP',
-                destino: 'Rio de Janeiro, RJ',
-                etapaAtual: 3,
-                eventos: [
-                    { id: 4, status: 'Objeto saiu para entrega', local: 'Unidade RJ', data: '27 Fev 2026 - 15:45', detalhes: 'O objeto saiu para entrega ao destinatário', icon: <Truck size={20} /> },
-                    { id: 3, status: 'Em trânsito', local: 'São Paulo -> Rio', data: '26 Fev 2026 - 22:10', detalhes: 'Objeto encaminhado para Unidade de Tratamento', icon: <Package size={20} /> },
-                    { id: 2, status: 'Postado', local: 'Agência Central', data: '26 Fev 2026 - 10:30', detalhes: 'Objeto recebido na agência de postagem', icon: <MapPin size={20} /> },
-                    { id: 1, status: 'Pedido Criado', local: 'Sistema', data: '25 Fev 2026 - 18:00', detalhes: 'Informações enviadas para a transportadora', icon: <CheckCircle2 size={20} /> },
-                ]
+        setTrackingData(null);
+
+        try {
+            const apiBase = import.meta.env.VITE_API_URL || '';
+            const res = await fetch(`${apiBase}/api/rastreio-publico`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codigo: codigo.toUpperCase() }),
             });
+            const data = await res.json();
+
+            if (data.success) {
+                // Mapear os dados do banco para o formato da UI
+                const statusMap: any = {
+                    'postado': <CheckCircle2 size={20} />,
+                    'transito': <Package size={20} />,
+                    'distribuicao': <MapPin size={20} />,
+                    'saiu': <Truck size={20} />
+                };
+
+                const mappedData = {
+                    codigo: data.codigo,
+                    status: data.etapas[data.etapas.length - 1]?.status_atual || 'Pendente',
+                    previsao: 'Em breve',
+                    eventos: data.etapas.reverse().map((e: any, i: number) => ({
+                        id: i,
+                        status: e.status_atual,
+                        local: data.cidade,
+                        data: new Date(e.data).toLocaleString('pt-BR'),
+                        detalhes: e.status_atual,
+                        icon: statusMap[e.status_slug] || <Package size={20} />
+                    })),
+                    etapaAtual: data.etapas.length
+                };
+                setTrackingData(mappedData);
+            } else {
+                alert(data.message || 'Código não encontrado.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao buscar rastreio.');
+        } finally {
             setLoading(false);
-        }, 1500);
+        }
     };
 
     return (
