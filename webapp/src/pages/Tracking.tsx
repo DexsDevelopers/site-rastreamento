@@ -7,6 +7,7 @@ const TrackingPage: React.FC = () => {
     const [codigo, setCodigo] = useState('');
     const [trackingData, setTrackingData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [showExpressModal, setShowExpressModal] = useState(false);
     useEffect(() => {
 
         const observer = new IntersectionObserver((entries) => {
@@ -75,7 +76,7 @@ const TrackingPage: React.FC = () => {
                     display: flex; gap: 12px; align-items: center;
                 }
                 .search-input-premium { flex: 1; background: transparent; border: none; color: white; padding: 10px 20px; font-size: 1.1rem; outline: none; }
-                .btn-track { padding: 14px 32px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 22px; color: white; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); }
+                .btn-track { padding: 14px 32px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 22px; color: white; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); white-space: nowrap; justify-content: center; }
                 
                 .tracking-container { max-width: 900px; margin: 0 auto 100px; padding: 0 24px; position: relative; z-index: 1; }
                 .status-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(32px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 48px; margin-bottom: 40px; }
@@ -85,6 +86,17 @@ const TrackingPage: React.FC = () => {
                 .tl-content { flex: 1; padding-bottom: 40px; }
                 .tl-content h4 { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
                 .tl-content p { color: rgba(255,255,255,0.4); line-height: 1.6; }
+                
+                .express-box { text-align: center; padding: 32px 0 0; margin-top: 32px; border-top: 2px dashed rgba(255,255,255,0.06); }
+                .express-btn {
+                    padding: 16px 40px; border: none; border-radius: 18px;
+                    background: linear-gradient(135deg, #0096ff, #6366f1);
+                    color: white; font-weight: 800; font-size: 1.05rem; cursor: pointer;
+                    box-shadow: 0 8px 32px rgba(0, 150, 255, 0.3);
+                    font-family: 'Outfit', sans-serif;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .express-btn:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0, 150, 255, 0.5); }
                 
                 @media (max-width: 768px) { .status-card { padding: 24px; } .search-box-premium { border-radius: 20px; flex-direction: column; padding: 20px; } .btn-track { width: 100%; } }
 
@@ -148,6 +160,11 @@ const TrackingPage: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            <div className="express-box">
+                                <button className="express-btn" onClick={() => setShowExpressModal(true)}>⚡ Acelerar por R$ 29,90</button>
+                                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.9rem', marginTop: '12px' }}>Receba seu pacote prioritariamente em até 3 dias.</p>
+                            </div>
                         </div>
 
                         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
@@ -164,6 +181,35 @@ const TrackingPage: React.FC = () => {
             </div>
 
             <Footer />
+
+            {/* Modal Acelerar */}
+            {showExpressModal && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowExpressModal(false)}>
+                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                            <Truck size={40} color="#6366f1" />
+                        </div>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Acelerar Entrega</h2>
+                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                            Ao acelerar, seu pacote ganha prioridade máxima em nossa malha e será entregue em até <strong>3 dias úteis</strong>.
+                        </p>
+
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pagamento Instantâneo</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>R$ 29,90</div>
+                            <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
+                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020126580014BR.GOV.BCB.PIX013666d6ed5c-9d62-4b2a-8c8a-7e1e6f966b96520400005303986540529.905802BR5913TRANS-LOGGI6009SAO-PAULO62070503***6304E21D`} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)' }}>Escaneie o QR Code PIX para confirmar a prioridade.</p>
+                        </div>
+
+                        <button onClick={() => setShowExpressModal(false)} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)' }}>
+                            Já realizei o pagamento
+                        </button>
+                        <button onClick={() => setShowExpressModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
