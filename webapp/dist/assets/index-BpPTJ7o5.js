@@ -305,6 +305,7 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                     box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     position: relative; overflow: hidden;
+                    white-space: nowrap; justify-content: center;
                 }
                 .cta-primary::after {
                     content: ''; position: absolute; top: 0; left: -100%;
@@ -321,6 +322,7 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                     color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;
                     background: rgba(255,255,255,0.03);
                     transition: all 0.3s;
+                    white-space: nowrap; justify-content: center;
                 }
                 .cta-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
 
@@ -618,8 +620,9 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                 @media (max-width: 768px) {
                     .desktop-nav { display: none !important; }
                     .mobile-toggle { display: flex !important; }
-                    .hero-section { padding: 40px 16px 40px; }
-                    .hero-title { letter-spacing: -1px; }
+                    .hero-title { letter-spacing: -1px; font-size: 2.2rem !important; }
+                    .hero-desc { font-size: 0.95rem !important; }
+                    .hero-glass-card { padding: 32px 20px; }
                     .hero-right { display: none !important; }
                     .grid-3 { grid-template-columns: 1fr; }
                     .metrics-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 16px; }
@@ -862,16 +865,7 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                 .reveal-delay-1 { transition-delay: 0.1s; }
                 .reveal-delay-2 { transition-delay: 0.2s; }
 
-                .scrolled .header-glass { background: rgba(10, 10, 12, 0.8); border-color: rgba(99, 102, 241, 0.2); }
-                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
-                .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
-                .logo-name { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
-                
-                .desktop-nav { display: flex; align-items: center; gap: 28px; }
-                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-                .nav-item:hover { color: white; }
-                .nav-item.active { color: #818cf8; }
-                .nav-login-btn { padding: 10px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35); }
+                .nav-login-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
 
                 .hero-section { position: relative; z-index: 1; padding: 60px 24px 40px; max-width: 1200px; margin: 0 auto; text-align: center; }
                 .hero-glass { padding: 80px 48px; border-radius: 40px; background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 16px 48px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
@@ -884,10 +878,15 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                 .service-card h3 { font-size: 1.5rem; margin-bottom: 16px; font-weight: 800; }
                 .service-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
                 
-                .service-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
-                
-                @media (max-width: 768px) { .desktop-nav { display: none; } }
-            `}),l.jsx("div",{className:"bg-mesh"}),l.jsx(Kt,{}),l.jsx("section",{className:"hero-section",children:l.jsxs("div",{className:"hero-glass reveal",children:[l.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 18px",background:"rgba(99, 102, 241, 0.08)",border:"1px solid rgba(99, 102, 241, 0.2)",borderRadius:"100px",fontSize:"0.8rem",fontWeight:600,color:"#a5b4fc",marginBottom:"24px",textTransform:"uppercase"},children:[l.jsx(vs,{size:12})," Soluções pessoais"]}),l.jsxs("h1",{style:{fontSize:"clamp(2.5rem, 6vw, 4rem)",fontWeight:900,lineHeight:1.1,letterSpacing:"-2px",marginBottom:"24px"},children:["Entregas para ",l.jsx("span",{className:"gradient-text",children:"você"})]}),l.jsx("p",{style:{color:"rgba(255,255,255,0.45)",fontSize:"1.2rem",maxWidth:"700px",margin:"0 auto 40px"},children:"Facilitamos o envio de seus objetos pessoais e compras online com segurança, rapidez e transparência total."}),l.jsx(pe,{to:"/pedido",className:"nav-login-btn",style:{padding:"18px 48px",fontSize:"1.1rem"},children:"Fazer um envio agora"})]})}),l.jsx("div",{className:"services-grid",children:[{icon:l.jsx(Ou,{size:32,color:"#818cf8"}),bg:"rgba(99, 102, 241, 0.1)",title:"Geração de Etiqueta",desc:"Crie etiquetas de envio online em segundos e poste em nossa rede de agências parceiras.",link:"/pedido"},{icon:l.jsx(th,{size:32,color:"#c084fc"}),bg:"rgba(168, 85, 247, 0.1)",title:"Rastreio Web v3",desc:"O sistema de rastreamento mais preciso do mercado, com atualizações em cada etapa da jornada.",link:"/rastreio"},{icon:l.jsx(Ti,{size:32,color:"#22d3ee"}),bg:"rgba(6, 182, 212, 0.1)",title:"Perto de Você",desc:"Milhares de pontos de coleta e entrega espalhados pelo Brasil para sua conveniência.",link:"/ajuda"}].map((i,o)=>l.jsxs("div",{className:`service-card reveal reveal-delay-${o+1}`,children:[l.jsx("div",{className:"service-icon",style:{background:i.bg},children:i.icon}),l.jsx("h3",{children:i.title}),l.jsx("p",{children:i.desc}),l.jsxs(pe,{to:i.link,className:"nav-item",style:{color:"#818cf8",fontWeight:700,display:"flex",alignItems:"center",gap:"8px"},children:["Saiba mais ",l.jsx(fa,{size:16})]})]},o))}),l.jsx(Wt,{})]})),Gv=()=>(j.useEffect(()=>{const i=new IntersectionObserver(o=>{o.forEach(u=>{u.isIntersecting&&u.target.classList.add("reveal-active")})},{threshold:.1});return document.querySelectorAll(".reveal").forEach(o=>i.observe(o)),()=>{i.disconnect()}},[]),l.jsxs("div",{className:"pe-page",children:[l.jsx("style",{children:`
+                @media (max-width: 768px) { 
+                    .desktop-nav { display: none; } 
+                    .hero-glass { padding: 48px 24px; }
+                    .hero-section { padding: 100px 20px 40px; }
+                    .hero-section h1 { font-size: 2.5rem !important; }
+                    .hero-section p { font-size: 1rem !important; }
+                    .cta-button { padding: 14px 32px !important; font-size: 0.95rem !important; width: 100%; display: block; text-align: center; }
+                }
+            `}),l.jsx("div",{className:"bg-mesh"}),l.jsx(Kt,{}),l.jsx("section",{className:"hero-section",children:l.jsxs("div",{className:"hero-glass reveal",children:[l.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 18px",background:"rgba(99, 102, 241, 0.08)",border:"1px solid rgba(99, 102, 241, 0.2)",borderRadius:"100px",fontSize:"0.8rem",fontWeight:600,color:"#a5b4fc",marginBottom:"24px",textTransform:"uppercase"},children:[l.jsx(vs,{size:12})," Soluções pessoais"]}),l.jsxs("h1",{style:{fontSize:"clamp(2.5rem, 6vw, 4rem)",fontWeight:900,lineHeight:1.1,letterSpacing:"-2px",marginBottom:"24px"},children:["Entregas para ",l.jsx("span",{className:"gradient-text",children:"você"})]}),l.jsx("p",{style:{color:"rgba(255,255,255,0.45)",fontSize:"1.2rem",maxWidth:"700px",margin:"0 auto 40px"},children:"Facilitamos o envio de seus objetos pessoais e compras online com segurança, rapidez e transparência total."}),l.jsx(pe,{to:"/pedido",className:"nav-login-btn cta-button",style:{padding:"18px 48px",fontSize:"1.1rem",whiteSpace:"nowrap",display:"inline-block"},children:"Fazer um envio agora"})]})}),l.jsx("div",{className:"services-grid",children:[{icon:l.jsx(Ou,{size:32,color:"#818cf8"}),bg:"rgba(99, 102, 241, 0.1)",title:"Geração de Etiqueta",desc:"Crie etiquetas de envio online em segundos e poste em nossa rede de agências parceiras.",link:"/pedido"},{icon:l.jsx(th,{size:32,color:"#c084fc"}),bg:"rgba(168, 85, 247, 0.1)",title:"Rastreio Web v3",desc:"O sistema de rastreamento mais preciso do mercado, com atualizações em cada etapa da jornada.",link:"/rastreio"},{icon:l.jsx(Ti,{size:32,color:"#22d3ee"}),bg:"rgba(6, 182, 212, 0.1)",title:"Perto de Você",desc:"Milhares de pontos de coleta e entrega espalhados pelo Brasil para sua conveniência.",link:"/ajuda"}].map((i,o)=>l.jsxs("div",{className:`service-card reveal reveal-delay-${o+1}`,children:[l.jsx("div",{className:"service-icon",style:{background:i.bg},children:i.icon}),l.jsx("h3",{children:i.title}),l.jsx("p",{children:i.desc}),l.jsxs(pe,{to:i.link,className:"nav-item",style:{color:"#818cf8",fontWeight:700,display:"flex",alignItems:"center",gap:"8px"},children:["Saiba mais ",l.jsx(fa,{size:16})]})]},o))}),l.jsx(Wt,{})]})),Gv=()=>(j.useEffect(()=>{const i=new IntersectionObserver(o=>{o.forEach(u=>{u.isIntersecting&&u.target.classList.add("reveal-active")})},{threshold:.1});return document.querySelectorAll(".reveal").forEach(o=>i.observe(o)),()=>{i.disconnect()}},[]),l.jsxs("div",{className:"pe-page",children:[l.jsx("style",{children:`
                 .pe-page { background: #06060b; color: #fff; min-height: 100vh; position: relative; overflow-x: hidden; font-family: 'Outfit', sans-serif; }
                 .pe-page * { box-sizing: border-box; }
                 .bg-mesh {
@@ -903,16 +902,7 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                 .reveal-delay-1 { transition-delay: 0.1s; }
                 .reveal-delay-2 { transition-delay: 0.2s; }
 
-                .scrolled .header-glass { background: rgba(10, 10, 12, 0.8); border-color: rgba(99, 102, 241, 0.2); }
-                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
-                .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
-                .logo-name { font-size: 1.4rem; font-weight: 800; }
-                
-                .desktop-nav { display: flex; align-items: center; gap: 28px; }
-                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-                .nav-item:hover { color: white; }
-                .nav-item.active { color: #818cf8; }
-                .nav-login-btn { padding: 10px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35); }
+                .nav-login-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
 
                 .hero-section { position: relative; z-index: 1; padding: 60px 24px 40px; max-width: 1200px; margin: 0 auto; text-align: center; }
                 .hero-glass { padding: 80px 48px; border-radius: 40px; background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
@@ -925,11 +915,17 @@ Please change the parent <Route path="${R}"> to <Route path="${R==="/"?"*":`${R}
                 .ent-card h3 { font-size: 1.5rem; margin-bottom: 16px; font-weight: 800; }
                 .ent-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
                 
-                .ent-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
-                
                 @media (max-width: 1024px) { .enterprise-grid { grid-template-columns: repeat(2, 1fr); } }
-                @media (max-width: 768px) { .enterprise-grid { grid-template-columns: 1fr; } .desktop-nav { display: none; } }
-            `}),l.jsx("div",{className:"bg-mesh"}),l.jsx(Kt,{}),l.jsx("section",{className:"hero-section",children:l.jsxs("div",{className:"hero-glass reveal",children:[l.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 18px",background:"rgba(52, 211, 153, 0.08)",border:"1px solid rgba(52, 211, 153, 0.2)",borderRadius:"100px",fontSize:"0.8rem",fontWeight:600,color:"#6ee7b7",marginBottom:"24px",textTransform:"uppercase"},children:[l.jsx(Mu,{size:12})," Soluções Corporativas"]}),l.jsxs("h1",{style:{fontSize:"clamp(2.5rem, 6vw, 4rem)",fontWeight:900,lineHeight:1.1,letterSpacing:"-2px",marginBottom:"24px"},children:["Potencialize seu ",l.jsx("span",{className:"gradient-text",children:"Ecommerce"})]}),l.jsx("p",{style:{color:"rgba(255,255,255,0.45)",fontSize:"1.2rem",maxWidth:"700px",margin:"0 auto 40px"},children:"Tecnologia de ponta e uma malha robusta para que você foque nas vendas enquanto cuidamos de toda a sua entrega."}),l.jsx(pe,{to:"/api-ecommerce",className:"nav-login-btn",style:{padding:"18px 48px",fontSize:"1.1rem",background:"linear-gradient(135deg, #10b981, #6366f1)",boxShadow:"0 8px 32px rgba(16, 185, 129, 0.3)"},children:"Consultar API"})]})}),l.jsx("div",{className:"enterprise-grid",children:[{icon:l.jsx(nh,{size:32,color:"#10b981"}),bg:"rgba(52, 211, 153, 0.1)",title:"Coleta em Lote",desc:"Agenciamos coletas diárias em seu CD ou loja, otimizando seu fluxo operacional de saída."},{icon:l.jsx(Fm,{size:32,color:"#6366f1"}),bg:"rgba(99, 102, 241, 0.1)",title:"Integração ERP",desc:"Conecte seu sistema (Tiny, Bling, etc) diretamente à Loggi para emissão automatizada de etiquetas."},{icon:l.jsx(Cu,{size:32,color:"#a855f7"}),bg:"rgba(168, 85, 247, 0.1)",title:"Logística Reversa",desc:"Módulo completo para devoluções e trocas, garantindo a satisfação do seu cliente final."}].map((i,o)=>l.jsxs("div",{className:`ent-card reveal reveal-delay-${o+1}`,children:[l.jsx("div",{className:"ent-icon",style:{background:i.bg},children:i.icon}),l.jsx("h3",{children:i.title}),l.jsx("p",{children:i.desc}),l.jsxs(pe,{to:"/api-ecommerce",className:"nav-item",style:{color:"#10b981",fontWeight:700,display:"flex",alignItems:"center",gap:"8px"},children:["Ver detalhes ",l.jsx(fa,{size:16})]})]},o))}),l.jsx(Wt,{})]})),Vv=()=>(j.useEffect(()=>{const i=new IntersectionObserver(o=>{o.forEach(u=>{u.isIntersecting&&u.target.classList.add("reveal-active")})},{threshold:.1});return document.querySelectorAll(".reveal").forEach(o=>i.observe(o)),()=>i.disconnect()},[]),l.jsxs("div",{className:"pe-page",children:[l.jsx("style",{children:`
+                @media (max-width: 768px) { 
+                    .enterprise-grid { grid-template-columns: 1fr; } 
+                    .desktop-nav { display: none; } 
+                    .hero-glass { padding: 48px 24px; }
+                    .hero-section { padding: 100px 20px 40px; }
+                    .hero-section h1 { font-size: 2.5rem !important; }
+                    .hero-section p { font-size: 1rem !important; }
+                    .cta-button { padding: 14px 32px !important; font-size: 0.95rem !important; width: 100%; display: block; text-align: center; }
+                }
+            `}),l.jsx("div",{className:"bg-mesh"}),l.jsx(Kt,{}),l.jsx("section",{className:"hero-section",children:l.jsxs("div",{className:"hero-glass reveal",children:[l.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 18px",background:"rgba(52, 211, 153, 0.08)",border:"1px solid rgba(52, 211, 153, 0.2)",borderRadius:"100px",fontSize:"0.8rem",fontWeight:600,color:"#6ee7b7",marginBottom:"24px",textTransform:"uppercase"},children:[l.jsx(Mu,{size:12})," Soluções Corporativas"]}),l.jsxs("h1",{style:{fontSize:"clamp(2.5rem, 6vw, 4rem)",fontWeight:900,lineHeight:1.1,letterSpacing:"-2px",marginBottom:"24px"},children:["Potencialize seu ",l.jsx("span",{className:"gradient-text",children:"Ecommerce"})]}),l.jsx("p",{style:{color:"rgba(255,255,255,0.45)",fontSize:"1.2rem",maxWidth:"700px",margin:"0 auto 40px"},children:"Tecnologia de ponta e uma malha robusta para que você foque nas vendas enquanto cuidamos de toda a sua entrega."}),l.jsx(pe,{to:"/api-ecommerce",className:"nav-login-btn cta-button",style:{padding:"18px 48px",fontSize:"1.1rem",background:"linear-gradient(135deg, #10b981, #6366f1)",boxShadow:"0 8px 32px rgba(16, 185, 129, 0.3)",whiteSpace:"nowrap",display:"inline-block"},children:"Consultar API"})]})}),l.jsx("div",{className:"enterprise-grid",children:[{icon:l.jsx(nh,{size:32,color:"#10b981"}),bg:"rgba(52, 211, 153, 0.1)",title:"Coleta em Lote",desc:"Agenciamos coletas diárias em seu CD ou loja, otimizando seu fluxo operacional de saída."},{icon:l.jsx(Fm,{size:32,color:"#6366f1"}),bg:"rgba(99, 102, 241, 0.1)",title:"Integração ERP",desc:"Conecte seu sistema (Tiny, Bling, etc) diretamente à Loggi para emissão automatizada de etiquetas."},{icon:l.jsx(Cu,{size:32,color:"#a855f7"}),bg:"rgba(168, 85, 247, 0.1)",title:"Logística Reversa",desc:"Módulo completo para devoluções e trocas, garantindo a satisfação do seu cliente final."}].map((i,o)=>l.jsxs("div",{className:`ent-card reveal reveal-delay-${o+1}`,children:[l.jsx("div",{className:"ent-icon",style:{background:i.bg},children:i.icon}),l.jsx("h3",{children:i.title}),l.jsx("p",{children:i.desc}),l.jsxs(pe,{to:"/api-ecommerce",className:"nav-item",style:{color:"#10b981",fontWeight:700,display:"flex",alignItems:"center",gap:"8px"},children:["Ver detalhes ",l.jsx(fa,{size:16})]})]},o))}),l.jsx(Wt,{})]})),Vv=()=>(j.useEffect(()=>{const i=new IntersectionObserver(o=>{o.forEach(u=>{u.isIntersecting&&u.target.classList.add("reveal-active")})},{threshold:.1});return document.querySelectorAll(".reveal").forEach(o=>i.observe(o)),()=>i.disconnect()},[]),l.jsxs("div",{className:"pe-page",children:[l.jsx("style",{children:`
                 .pe-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; position: relative; overflow-x: hidden; }
                 .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%); z-index: 0; pointer-events: none; }
                 .page-hero { padding: 160px 5% 80px; text-align: center; position: relative; z-index: 10; }

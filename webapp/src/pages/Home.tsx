@@ -204,6 +204,7 @@ const Home: React.FC = () => {
                     box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     position: relative; overflow: hidden;
+                    white-space: nowrap; justify-content: center;
                 }
                 .cta-primary::after {
                     content: ''; position: absolute; top: 0; left: -100%;
@@ -220,6 +221,7 @@ const Home: React.FC = () => {
                     color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;
                     background: rgba(255,255,255,0.03);
                     transition: all 0.3s;
+                    white-space: nowrap; justify-content: center;
                 }
                 .cta-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
 
@@ -517,8 +519,9 @@ const Home: React.FC = () => {
                 @media (max-width: 768px) {
                     .desktop-nav { display: none !important; }
                     .mobile-toggle { display: flex !important; }
-                    .hero-section { padding: 40px 16px 40px; }
-                    .hero-title { letter-spacing: -1px; }
+                    .hero-title { letter-spacing: -1px; font-size: 2.2rem !important; }
+                    .hero-desc { font-size: 0.95rem !important; }
+                    .hero-glass-card { padding: 32px 20px; }
                     .hero-right { display: none !important; }
                     .grid-3 { grid-template-columns: 1fr; }
                     .metrics-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 16px; }

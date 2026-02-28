@@ -40,16 +40,7 @@ const ParaVoce: React.FC = () => {
                 .reveal-delay-1 { transition-delay: 0.1s; }
                 .reveal-delay-2 { transition-delay: 0.2s; }
 
-                .scrolled .header-glass { background: rgba(10, 10, 12, 0.8); border-color: rgba(99, 102, 241, 0.2); }
-                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
-                .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
-                .logo-name { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
-                
-                .desktop-nav { display: flex; align-items: center; gap: 28px; }
-                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-                .nav-item:hover { color: white; }
-                .nav-item.active { color: #818cf8; }
-                .nav-login-btn { padding: 10px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35); }
+                .nav-login-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
 
                 .hero-section { position: relative; z-index: 1; padding: 60px 24px 40px; max-width: 1200px; margin: 0 auto; text-align: center; }
                 .hero-glass { padding: 80px 48px; border-radius: 40px; background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 16px 48px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
@@ -62,9 +53,14 @@ const ParaVoce: React.FC = () => {
                 .service-card h3 { font-size: 1.5rem; margin-bottom: 16px; font-weight: 800; }
                 .service-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
                 
-                .service-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
-                
-                @media (max-width: 768px) { .desktop-nav { display: none; } }
+                @media (max-width: 768px) { 
+                    .desktop-nav { display: none; } 
+                    .hero-glass { padding: 48px 24px; }
+                    .hero-section { padding: 100px 20px 40px; }
+                    .hero-section h1 { font-size: 2.5rem !important; }
+                    .hero-section p { font-size: 1rem !important; }
+                    .cta-button { padding: 14px 32px !important; font-size: 0.95rem !important; width: 100%; display: block; text-align: center; }
+                }
             `}</style>
 
             <div className="bg-mesh"></div>
@@ -76,7 +72,7 @@ const ParaVoce: React.FC = () => {
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 18px', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 600, color: '#a5b4fc', marginBottom: '24px', textTransform: 'uppercase' as const }}><Zap size={12} /> Soluções pessoais</div>
                     <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-2px', marginBottom: '24px' }}>Entregas para <span className="gradient-text">você</span></h1>
                     <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.2rem', maxWidth: '700px', margin: '0 auto 40px' }}>Facilitamos o envio de seus objetos pessoais e compras online com segurança, rapidez e transparência total.</p>
-                    <Link to="/pedido" className="nav-login-btn" style={{ padding: '18px 48px', fontSize: '1.1rem' }}>Fazer um envio agora</Link>
+                    <Link to="/pedido" className="nav-login-btn cta-button" style={{ padding: '18px 48px', fontSize: '1.1rem', whiteSpace: 'nowrap', display: 'inline-block' }}>Fazer um envio agora</Link>
                 </div>
             </section>
 
