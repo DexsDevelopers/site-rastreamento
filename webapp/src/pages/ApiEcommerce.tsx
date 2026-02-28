@@ -1,8 +1,21 @@
+import { useEffect } from 'react';
 import { Code, Terminal, Zap, ShieldCheck } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const ApiEcommerce = () => {
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, []);
 
     return (
         <div className="pe-page">
@@ -10,22 +23,6 @@ const ApiEcommerce = () => {
                 {`
                 .pe-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; position: relative; overflow-x: hidden; }
                 .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%); z-index: 0; pointer-events: none; }
-                .site-header { position: fixed; top: 0; left: 0; right: 0; padding: 20px 5%; z-index: 100; transition: all 0.3s; }
-                .header-glass { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); padding: 12px 32px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-                .logo-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; }
-                .logo-box { width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); }
-                .logo-name { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
-                .desktop-nav { display: none; align-items: center; gap: 32px; }
-                @media(min-width: 900px) { .desktop-nav { display: flex; } }
-                .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: all 0.3s; }
-                .nav-item:hover, .nav-item.active { color: white; }
-                .nav-login-btn { padding: 10px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; }
-                .mobile-toggle { display: block; background: none; border: none; color: white; cursor: pointer; padding: 8px; }
-                @media(min-width: 900px) { .mobile-toggle { display: none; } }
-                .mobile-nav { position: absolute; top: calc(100% + 10px); left: 5%; right: 5%; background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 24px; display: flex; flexDirection: column; gap: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-                .mobile-nav a { color: white; text-decoration: none; font-size: 1.1rem; font-weight: 600; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-                .mobile-nav a:last-child { border-bottom: none; padding-bottom: 0; }
-                
                 .page-hero { padding: 160px 5% 80px; text-align: center; position: relative; z-index: 10; }
                 .hero-glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 40px; padding: 60px 20px; max-width: 1000px; margin: 0 auto; backdrop-filter: blur(10px); position: relative; overflow: hidden; }
                 .gradient-word { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -46,8 +43,12 @@ const ApiEcommerce = () => {
                 .code-block { background: rgba(0,0,0,0.5); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); font-family: monospace; color: #a5b4fc; text-align: left; overflow-x: auto; margin-top: 40px; }
                 
                 .site-footer { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); }
-                .site-footer a { color: rgba(255,255,255,0.3); text-decoration: none; margin: 0 10px; transition: color 0.3s; }
-                .site-footer a:hover { color: white; }
+                
+                .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0); }
+                .delay-1 { transition-delay: 0.1s; }
+                .delay-2 { transition-delay: 0.2s; }
+                .delay-3 { transition-delay: 0.3s; }
                 `}
             </style>
 
@@ -56,7 +57,7 @@ const ApiEcommerce = () => {
             <Header />
 
             <section className="page-hero">
-                <div className="hero-glass">
+                <div className="hero-glass reveal">
                     <div className="page-badge">
                         <Code size={12} /> Para Desenvolvedores
                     </div>
@@ -89,14 +90,14 @@ const ApiEcommerce = () => {
 
             <section className="content-section">
                 <div className="grid-2">
-                    <div className="api-card">
+                    <div className="api-card reveal delay-1">
                         <div className="api-icon" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
                             <Zap size={32} color="#818cf8" />
                         </div>
                         <h3>Milisegundos de Latência</h3>
                         <p>Infraestrutura global distribuída para garantir respostas em tempo real para cálculo de frete no checkout do seu e-commerce.</p>
                     </div>
-                    <div className="api-card">
+                    <div className="api-card reveal delay-2">
                         <div className="api-icon" style={{ background: 'rgba(168, 85, 247, 0.1)' }}>
                             <ShieldCheck size={32} color="#c084fc" />
                         </div>

@@ -1,7 +1,8 @@
 // src/pages/Pedido.tsx
 import React, { useState, useEffect } from 'react';
-import { Truck, User, MapPin, Send, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, MapPin, Send, CheckCircle } from 'lucide-react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const ESTADOS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -17,10 +18,17 @@ const Pedido: React.FC = () => {
     const [, setError] = useState('');
 
     useEffect(() => {
-        const handleScroll = () => { };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, [success]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         let { name, value } = e.target;
@@ -86,18 +94,25 @@ const Pedido: React.FC = () => {
         return (
             <div className="pd-page success">
                 <style>{`
-                    .pd-page { background: #06060b; color: #fff; min-height: 100vh; font-family: 'Outfit', sans-serif; display: flex; align-items: center; justify-content: center; }
-                    .success-card { background: rgba(253, 253, 255, 0.02); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 60px 40px; text-align: center; max-width: 500px; }
+                    .pd-page { background: #06060b; color: #fff; min-height: 100vh; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; }
+                    .success-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; position: relative; z-index: 1; }
+                    .success-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 60px 40px; text-align: center; max-width: 500px; }
                     .gradient-text { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                    .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                    .reveal-active { opacity: 1; transform: translateY(0); }
                 `}</style>
-                <div className="success-card">
-                    <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
-                        <CheckCircle size={40} color="white" />
+                <Header />
+                <div className="success-container">
+                    <div className="success-card reveal">
+                        <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+                            <CheckCircle size={40} color="white" />
+                        </div>
+                        <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: 16 }}>Pedido <span className="gradient-text">Recebido!</span></h2>
+                        <p style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, marginBottom: 40 }}>Obrigado por escolher a Loggi. Nossa central de envios já está processando suas informações.</p>
+                        <button onClick={() => window.location.href = '#/'} style={{ padding: '16px 40px', background: 'white', color: 'black', borderRadius: 16, border: 'none', cursor: 'pointer', fontWeight: 800 }}>Voltar ao Início</button>
                     </div>
-                    <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: 16 }}>Pedido <span className="gradient-text">Recebido!</span></h2>
-                    <p style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, marginBottom: 40 }}>Obrigado por escolher a Loggi. Nossa central de envios já está processando suas informações.</p>
-                    <Link to="/" style={{ padding: '16px 40px', background: 'white', color: 'black', borderRadius: 16, textDecoration: 'none', fontWeight: 800 }}>Voltar ao Início</Link>
                 </div>
+                <Footer />
             </div>
         );
     }
@@ -114,40 +129,28 @@ const Pedido: React.FC = () => {
                         radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08), transparent);
                 }
                 
-                .site-header { position: sticky; top: 0; z-index: 100; padding: 20px 24px; transition: all 0.3s; }
-                .header-glass {
-                    max-width: 1200px; margin: 0 auto;
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 14px 28px; background: rgba(10, 10, 12, 0.4); backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
-                }
-                
                 .form-container { max-width: 600px; margin: 40px auto 100px; padding: 0 24px; position: relative; z-index: 1; }
                 .form-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(32px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; padding: 48px; }
                 .form-section-title { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-bottom: 24px; color: #818cf8; }
                 
-                .input-field { width: 100%; height: 52px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 0 20px; color: white; outline: none; margin-bottom: 16px; transition: 0.3s; }
+                .input-field { width: 100%; height: 52px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 0 20px; color: white; outline: none; margin-bottom: 16px; transition: 0.3s; font-family: inherit; font-size: 0.95rem; }
                 .input-field:focus { border-color: #818cf8; background: rgba(129, 140, 248, 0.04); }
+                .input-field option { background: #06060b; color: white; padding: 10px; }
                 
                 .btn-submit { width: 100%; padding: 18px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 18px; color: white; font-weight: 800; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 32px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); }
                 
-                .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 80px 24px 40px; text-align: center; color: rgba(255,255,255,0.3); }
+                .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0); }
+                .delay-1 { transition-delay: 0.1s; }
+                .delay-2 { transition-delay: 0.2s; }
             `}</style>
 
             <div className="bg-mesh"></div>
 
-            <header className="site-header">
-                <div className="header-glass">
-                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'white' }}>
-                        <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Truck size={18} /></div>
-                        <span style={{ fontSize: '1.4rem', fontWeight: 800 }}>loggi</span>
-                    </Link>
-                    <Link to="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem' }}>Voltar</Link>
-                </div>
-            </header>
+            <Header />
 
             <div className="form-container">
-                <div className="form-card">
+                <div className="form-card reveal">
                     <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: 8 }}>Finalizar Pedido</h2>
                     <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 40 }}>Preencha os dados abaixo para gerar seu envio.</p>
 
@@ -163,7 +166,7 @@ const Pedido: React.FC = () => {
                         <div style={{ display: 'flex', gap: 14 }}>
                             <input className="input-field" name="cep" placeholder="CEP" value={form.cep} onChange={handleChange} required />
                             <select className="input-field" name="estado" value={form.estado} onChange={handleChange} required>
-                                <option value="">UF</option>
+                                <option value="" style={{ color: 'rgba(255,255,255,0.3)' }}>UF</option>
                                 {ESTADOS.map(uf => <option key={uf} value={uf}>{uf}</option>)}
                             </select>
                         </div>
@@ -184,11 +187,10 @@ const Pedido: React.FC = () => {
                 </div>
             </div>
 
-            <footer className="site-footer">
-                <p>© 2026 Loggi Tecnologia LTDA.</p>
-            </footer>
+            <Footer />
         </div>
     );
 };
 
 export default Pedido;
+

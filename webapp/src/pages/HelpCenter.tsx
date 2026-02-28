@@ -1,8 +1,21 @@
+import { useEffect } from 'react';
 import { Package, Search, MessageCircle, FileText, Phone } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const HelpCenter = () => {
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, []);
     const categories = [
         { icon: <Package size={24} />, title: 'Rastreamento', desc: 'Como localizar seu pedido e entender os status.' },
         { icon: <FileText size={24} />, title: 'Segunda Via e NF', desc: 'Baixe faturas e documentos fiscais.' },
@@ -16,18 +29,6 @@ const HelpCenter = () => {
                 {`
                 .help-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; overflow-x: hidden; position: relative; }
                 .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%); z-index: 0; pointer-events: none; }
-                
-                .site-header { position: fixed; top: 0; left: 0; right: 0; padding: 20px 5%; z-index: 100; transition: all 0.3s; }
-                .header-glass { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); padding: 12px 32px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-                .logo-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; }
-                .logo-box { width: 36px; height: 36px; background: var(--accent-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-                .logo-name { font-size: 1.4rem; font-weight: 800; }
-                
-                .desktop-nav { display: none; align-items: center; gap: 32px; }
-                @media(min-width: 900px) { .desktop-nav { display: flex; } }
-                .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: all 0.3s; }
-                .nav-item:hover { color: white; }
-                .nav-login-btn { padding: 10px 24px; background: var(--accent-gradient); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; }
                 
                 .hero { padding: 160px 5% 60px; text-align: center; max-width: 800px; margin: 0 auto; }
                 .hero-title { font-size: 3rem; font-weight: 900; margin-bottom: 32px; }
@@ -45,9 +46,13 @@ const HelpCenter = () => {
                 .cat-card p { color: rgba(255,255,255,0.4); font-size: 0.95rem; line-height: 1.5; }
                 
                 .site-footer { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.3); border-top: 1px solid rgba(255,255,255,0.05); }
-                .footer-links { margin-top: 24px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-                .footer-links a { color: inherit; text-decoration: none; transition: 0.3s; }
-                .footer-links a:hover { color: white; }
+
+                .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0); }
+                .delay-1 { transition-delay: 0.1s; }
+                .delay-2 { transition-delay: 0.2s; }
+                .delay-3 { transition-delay: 0.3s; }
+                
                 `}
             </style>
 
@@ -55,7 +60,7 @@ const HelpCenter = () => {
 
             <Header />
 
-            <section className="hero">
+            <section className="hero reveal">
                 <h1 className="hero-title">Como podemos ajudar?</h1>
                 <div className="search-box">
                     <Search className="search-icon" size={24} />
@@ -66,7 +71,7 @@ const HelpCenter = () => {
             <section className="section">
                 <div className="grid-categories">
                     {categories.map((cat, i) => (
-                        <div key={i} className="cat-card">
+                        <div key={i} className={`cat-card reveal delay-${i + 1}`}>
                             <div className="cat-icon">{cat.icon}</div>
                             <h3>{cat.title}</h3>
                             <p>{cat.desc}</p>

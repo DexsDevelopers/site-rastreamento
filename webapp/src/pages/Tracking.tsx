@@ -66,6 +66,8 @@ const TrackingPage: React.FC = () => {
                 .reveal { opacity: 0; transform: translateY(30px) scale(0.95); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
                 .reveal-active { opacity: 1; transform: translateY(0) scale(1); }
 
+                .search-hero { padding: 120px 24px 60px; text-align: center; max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+
                 .search-box-premium {
                     max-width: 600px; margin: 0 auto;
                     background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
@@ -84,12 +86,8 @@ const TrackingPage: React.FC = () => {
                 .tl-content h4 { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
                 .tl-content p { color: rgba(255,255,255,0.4); line-height: 1.6; }
                 
-                .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 80px 24px 40px; text-align: center; }
-                .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 24px; }
-                .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; transition: 0.3s; }
-                .footer-links a:hover { color: white; }
-                
-                @media (max-width: 768px) { .desktop-nav { display: none; } .status-card { padding: 24px; } .search-box-premium { border-radius: 20px; flex-direction: column; padding: 20px; } .btn-track { width: 100%; } }
+                @media (max-width: 768px) { .status-card { padding: 24px; } .search-box-premium { border-radius: 20px; flex-direction: column; padding: 20px; } .btn-track { width: 100%; } }
+
             `}</style>
 
             <div className="bg-mesh"></div>

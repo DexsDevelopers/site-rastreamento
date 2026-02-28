@@ -1,8 +1,21 @@
+import { useEffect } from 'react';
 import { Shield, Star, Rocket, RefreshCcw } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const LoggiPro = () => {
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, []);
 
     return (
         <div className="lp-page">
@@ -10,22 +23,6 @@ const LoggiPro = () => {
                 {`
                 .lp-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; position: relative; overflow-x: hidden; }
                 .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 100%, hsla(339,49%,20%,0.2) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(225,39%,20%,0.2) 0, transparent 50%); z-index: 0; pointer-events: none; }
-                .site-header { position: fixed; top: 0; left: 0; right: 0; padding: 20px 5%; z-index: 100; transition: all 0.3s; }
-                .header-glass { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); padding: 12px 32px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-                .logo-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; }
-                .logo-box { width: 36px; height: 36px; background: linear-gradient(135deg, #ef4444, #f97316); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4); }
-                .logo-name { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
-                .desktop-nav { display: none; align-items: center; gap: 32px; }
-                @media(min-width: 900px) { .desktop-nav { display: flex; } }
-                .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: all 0.3s; }
-                .nav-item:hover, .nav-item.active { color: white; }
-                .nav-login-btn { padding: 10px 24px; background: linear-gradient(135deg, #ef4444, #f97316); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3); }
-                .mobile-toggle { display: block; background: none; border: none; color: white; cursor: pointer; padding: 8px; }
-                @media(min-width: 900px) { .mobile-toggle { display: none; } }
-                .mobile-nav { position: absolute; top: calc(100% + 10px); left: 5%; right: 5%; background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 24px; display: flex; flexDirection: column; gap: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-                .mobile-nav a { color: white; text-decoration: none; font-size: 1.1rem; font-weight: 600; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-                .mobile-nav a:last-child { border-bottom: none; padding-bottom: 0; }
-                
                 .page-hero { padding: 160px 5% 80px; text-align: center; position: relative; z-index: 10; }
                 .gradient-word { background: linear-gradient(135deg, #f87171, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 .page-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: #f87171; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -45,8 +42,12 @@ const LoggiPro = () => {
                 .features-list li { margin-bottom: 16px; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.8); }
                 
                 .site-footer { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 80px;}
-                .site-footer a { color: rgba(255,255,255,0.3); text-decoration: none; margin: 0 10px; transition: color 0.3s; }
-                .site-footer a:hover { color: white; }
+
+                .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0); }
+                .delay-1 { transition-delay: 0.1s; }
+                .delay-2 { transition-delay: 0.2s; }
+                
                 `}
             </style>
 
@@ -54,7 +55,7 @@ const LoggiPro = () => {
 
             <Header />
 
-            <section className="page-hero">
+            <section className="page-hero reveal">
                 <div className="page-badge">
                     <Star size={12} /> Assinatura Premium
                 </div>
@@ -64,7 +65,7 @@ const LoggiPro = () => {
                 </p>
             </section>
 
-            <div className="pricing-cards">
+            <div className="pricing-cards reveal delay-1">
                 <div className="price-card">
                     <h3>Padrão</h3>
                     <p style={{ color: "rgba(255,255,255,0.5)" }}>Para envios casuais e compradores finais.</p>

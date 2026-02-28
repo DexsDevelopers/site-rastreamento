@@ -1,9 +1,22 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp, Users, Target } from 'lucide-react';
+import { ArrowRight, TrendingUp, Users, Target, ChevronDown } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const About = () => {
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, []);
 
     return (
         <div className="about-page">
@@ -37,9 +50,14 @@ const About = () => {
                 .testimonial-text { font-style: italic; color: rgba(255,255,255,0.6); margin-bottom: 20px; line-height: 1.6; }
 
                 details > summary { list-style: none; }
-                
-                details > summary { list-style: none; }
                 details > summary::-webkit-details-marker { display: none; }
+
+                .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0); }
+                .delay-1 { transition-delay: 0.1s; }
+                .delay-2 { transition-delay: 0.2s; }
+                .delay-3 { transition-delay: 0.3s; }
+                
                 `}
             </style>
 
@@ -47,7 +65,7 @@ const About = () => {
 
             <Header />
 
-            <section className="page-hero">
+            <section className="page-hero reveal">
                 <div className="hero-badge">A NOSSA JORNADA</div>
                 <h1 className="hero-title">Redefinindo a <span className="gradient-word">logística<br />no Brasil</span></h1>
                 <p className="hero-desc">
@@ -139,9 +157,6 @@ const Star = ({ size, fill, color }: { size: number, fill: string, color: string
     <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
 );
 
-const ChevronDown = ({ size }: { size: number }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-);
-
 export default About;
+
 
