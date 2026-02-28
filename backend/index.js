@@ -19,6 +19,39 @@ const PORT = process.env.PORT || 3000;
 const mysql = require('mysql2/promise');
 
 let db;
+async function runMigrations() {
+    if (!db) return;
+    try {
+        // Verificar se a tabela clientes existe antes de migrar
+        const [tables] = await db.query("SHOW TABLES LIKE 'clientes'");
+        if (tables.length === 0) return;
+
+        const [columns] = await db.query('SHOW COLUMNS FROM clientes');
+        const columnNames = columns.map(c => c.Field);
+
+        if (!columnNames.includes('senha')) {
+            await db.query('ALTER TABLE clientes ADD COLUMN senha varchar(255) DEFAULT NULL');
+            console.log('✅ Migration: Coluna "senha" adicionada à tabela clientes');
+        }
+        if (!columnNames.includes('whatsapp')) {
+            await db.query('ALTER TABLE clientes ADD COLUMN whatsapp varchar(50) DEFAULT NULL');
+            console.log('✅ Migration: Coluna "whatsapp" adicionada à tabela clientes');
+        }
+
+        // UNIQUE Index
+        try {
+            const [indexes] = await db.query("SHOW INDEX FROM clientes WHERE Key_name = 'idx_email'");
+            if (indexes.length === 0) {
+                await db.query('ALTER TABLE clientes ADD UNIQUE INDEX idx_email (email)');
+                console.log('✅ Migration: Index UNIQUE adicionado ao email');
+            }
+        } catch (e) { }
+
+    } catch (err) {
+        console.error('⚠️ Erro nas migrações:', err.message);
+    }
+}
+
 async function connectDB() {
     try {
         const host = (process.env.DB_HOST === 'localhost' || !process.env.DB_HOST) ? '127.0.0.1' : process.env.DB_HOST;
@@ -36,6 +69,7 @@ async function connectDB() {
             keepAliveInitialDelay: 0
         });
         console.log('✅ Banco de dados conectado com sucesso!');
+        await runMigrations(); // Garante colunas novas
     } catch (err) {
         console.error('❌ Erro ao conectar no banco de dados:', err.message);
     }
