@@ -298,7 +298,7 @@ a:hover {
 }
 
 .input-field::placeholder {
-  color: rgba(122, 127, 154, 0.6);
+  color: rgba(122, 127, 154, 0.8);
 }
 
 /* ====== TEXTOS ====== */

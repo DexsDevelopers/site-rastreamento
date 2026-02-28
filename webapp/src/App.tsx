@@ -30,6 +30,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import WhatsAppTemplates from './pages/WhatsAppTemplates';
 
+import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
         <Route path="/carreiras" element={<Careers />} />
         <Route path="/ajuda" element={<HelpCenter />} />
         <Route path="/termos" element={<TermsOfUse />} />
+        <Route path="/perfil" element={<Profile />} />
 
         {/* Rotas Administrativas com Layout Fixo */}
         <Route element={<AdminLayout />}>

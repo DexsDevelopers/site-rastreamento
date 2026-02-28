@@ -10,7 +10,13 @@ const LoginCliente: React.FC = () => {
     const navigate = useNavigate();
     const [form, setForm] = useState({ nome: '', email: '', telefone: '', senha: '', confirmarSenha: '' });
 
+    const [user, setUser] = useState<any>(null);
+    const location = useLocation();
+
     useEffect(() => {
+        const savedUser = localStorage.getItem('loggi_user_session');
+        if (savedUser) setUser(JSON.parse(savedUser));
+
         const handleScroll = () => setScrollY(window.scrollY);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
@@ -28,6 +34,14 @@ const LoginCliente: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Simulação de Login de Cliente
+        const userData = {
+            id: 'CL-' + Math.floor(Math.random() * 9999),
+            nome: form.nome || 'Cliente Loggi',
+            email: form.email,
+            telefone: form.telefone || '(11) 99999-9999'
+        };
+        localStorage.setItem('loggi_user_session', JSON.stringify(userData));
         navigate('/');
     };
 
@@ -85,7 +99,16 @@ const LoginCliente: React.FC = () => {
                         <div className="logo-box"><Truck size={18} color="white" /></div>
                         <span className="logo-name">loggi</span>
                     </Link>
-                    <Link to="/" className="nav-item">Voltar ao Início</Link>
+                    {user ? (
+                        <Link to="/perfil" className="nav-login-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '20px', height: '20px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
+                                {user.nome[0].toUpperCase()}
+                            </div>
+                            Olá, {user.nome.split(' ')[0]}
+                        </Link>
+                    ) : (
+                        <Link to="/entrar" className="nav-login-btn">Entrar</Link>
+                    )}
                 </div>
             </header>
 

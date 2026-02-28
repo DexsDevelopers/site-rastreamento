@@ -200,7 +200,20 @@ const TrackingPage: React.FC = () => {
                 }
                 .express-btn:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0, 150, 255, 0.5); }
                 
-                @media (max-width: 768px) { .status-card { padding: 24px; } .search-box-premium { border-radius: 20px; flex-direction: column; padding: 20px; } .btn-track { width: 100%; } }
+                @media (max-width: 768px) { 
+                    .search-hero { padding: 150px 20px 40px !important; }
+                    .status-card { padding: 24px; } 
+                    .search-box-premium { 
+                        border-radius: 20px; flex-direction: column; padding: 20px; gap: 12px;
+                        background: rgba(255,255,255,0.05);
+                    } 
+                    .search-input-premium { text-align: center; }
+                    .btn-track { width: 100%; justify-content: center; padding: 16px; } 
+                    .st-header { flex-direction: column !important; text-align: center; gap: 24px; }
+                    .st-badges { justify-content: center; flex-wrap: wrap; }
+                    .st-right { text-align: center !important; }
+                    .st-code { font-size: 1.5rem !important; margin-top: 8px; }
+                }
 
             `}</style>
 
@@ -267,17 +280,17 @@ const TrackingPage: React.FC = () => {
                                 </div>
                             )}
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
+                            <div className="st-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                    <div className="st-badges" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                                         <div style={{ display: 'inline-flex', padding: '6px 16px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, color: '#34d399' }}>{trackingData.status}</div>
                                         {trackingData.taxa_valor && (
                                             <div style={{ display: 'inline-flex', padding: '6px 16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, color: '#ef4444' }}>TAXA PENDENTE</div>
                                         )}
                                     </div>
-                                    <h2 style={{ fontSize: '1.8rem', fontWeight: 900 }}>{trackingData.codigo}</h2>
+                                    <h2 className="st-code" style={{ fontSize: '1.8rem', fontWeight: 900 }}>{trackingData.codigo}</h2>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
+                                <div className="st-right" style={{ textAlign: 'right' }}>
                                     <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>Previsão de Entrega</p>
                                     <p style={{ fontSize: '1.2rem', fontWeight: 800, color: '#818cf8' }}>{trackingData.previsao}</p>
                                 </div>

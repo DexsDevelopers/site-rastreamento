@@ -555,12 +555,41 @@ const Home: React.FC = () => {
                     .metrics-bar { grid-template-columns: repeat(2, 1fr); }
                 }
                 @media (max-width: 768px) {
+                    .status-card { padding: 20px; }
+                    .search-box-premium {
+                        border-radius: 20px;
+                        flex-direction: column;
+                        padding: 15px;
+                        gap: 15px;
+                        background: rgba(255,255,255,0.05);
+                    }
+                    .search-input-premium {
+                        text-align: center;
+                        font-size: 1.1rem;
+                        padding: 10px;
+                    }
+                    .btn-track {
+                        width: 100%;
+                        padding: 15px;
+                        justify-content: center;
+                    }
                     .desktop-nav { display: none !important; }
                     .mobile-toggle { display: flex !important; }
-                    .hero-title { letter-spacing: -1px; font-size: 2.2rem !important; }
+                    .hero-section { padding-top: 140px !important; flex-direction: column; gap: 40px; }
+                    .status-header { flex-direction: column; text-align: center; gap: 20px; align-items: center !important; }
+                    .status-icon-box { margin: 0 auto; width: 64px; height: 64px; }
+                    .status-header h3 { flex-direction: column !important; gap: 10px !important; font-size: 1.25rem !important; }
+                    .tax-badge { font-size: 0.65rem !important; padding: 4px 10px !important; }
+                    .hero-title { letter-spacing: -1px; font-size: 2.2rem !important; margin-top: 20px; }
                     .hero-desc { font-size: 0.95rem !important; }
                     .hero-glass-card { padding: 32px 20px; }
                     .hero-right { display: none !important; }
+                    .track-form-grid { grid-template-columns: 1fr; }
+                    .track-input-wrap { padding: 12px; }
+                    .track-submit { width: 100%; padding: 18px; }
+                    .result-card { padding: 20px; }
+                    .tax-box { flex-direction: column; text-align: center; }
+                    .tax-btn { width: 100%; margin-top: 10px; }
                     .grid-3 { grid-template-columns: 1fr; }
                     .metrics-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 16px; }
                     .metric-card { padding: 24px 16px; }
@@ -656,39 +685,43 @@ const Home: React.FC = () => {
                     <div className="result-card">
                         {trackResult.taxa_valor && (
                             <div style={{
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid rgba(239, 68, 68, 0.2)',
-                                borderRadius: '20px',
-                                padding: '20px',
-                                marginBottom: '24px',
+                                background: 'rgba(239, 68, 68, 0.15)',
+                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                borderRadius: '24px',
+                                padding: '24px',
+                                marginBottom: '32px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
-                                gap: '16px'
+                                gap: '16px',
+                                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.15)'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ width: '40px', height: '40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Calculator size={20} color="#ef4444" />
+                                    <div style={{ width: '44px', height: '44px', background: 'rgba(239, 68, 68, 0.2)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Calculator size={24} color="#ef4444" />
                                     </div>
                                     <div style={{ textAlign: 'left' }}>
-                                        <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.85rem', textTransform: 'uppercase' }}>Taxa Pendente</div>
-                                        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem' }}>Aguardando pagamento para liberação.</div>
+                                        <div style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Taxa Pendente Detectada</div>
+                                        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>Efetue o pagamento para liberar sua encomenda.</div>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowTaxModal(true)}
+                                    className="tax-btn"
                                     style={{
                                         background: '#ef4444',
                                         color: '#fff',
                                         border: 'none',
-                                        padding: '8px 16px',
-                                        borderRadius: '10px',
-                                        fontWeight: 800,
-                                        fontSize: '0.85rem',
-                                        cursor: 'pointer'
+                                        padding: '12px 24px',
+                                        borderRadius: '14px',
+                                        fontWeight: 900,
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)',
+                                        transition: 'all 0.3s ease'
                                     }}
                                 >
-                                    Pagar R$ {trackResult.taxa_valor}
+                                    Pagar Taxa: R$ {trackResult.taxa_valor}
                                 </button>
                             </div>
                         )}
@@ -700,7 +733,7 @@ const Home: React.FC = () => {
                                 <h3 style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     {trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}
                                     {trackResult.taxa_valor && (
-                                        <span style={{
+                                        <span className="tax-badge" style={{
                                             background: '#ef4444',
                                             color: '#fff',
                                             fontSize: '0.7rem',
