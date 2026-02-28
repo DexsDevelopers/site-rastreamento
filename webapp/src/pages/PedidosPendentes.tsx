@@ -209,39 +209,58 @@ const PedidosPendentes = () => {
                                 </div>
                             </div>
 
-                            <div className="tracking-action-box" style={{ background: 'rgba(0,0,0,0.2)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', gap: '16px', alignItems: 'flex-end' }}>
+                            <div className="tracking-action-box" style={{
+                                background: 'rgba(0,0,0,0.3)',
+                                padding: '32px',
+                                borderRadius: '24px',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '20px',
+                                alignItems: 'stretch'
+                            }}>
                                 <div style={{ flex: 1, minWidth: '0' }}>
-                                    <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '10px', display: 'block', fontWeight: 600 }}>Vincular Código de Rastreio</label>
+                                    <label style={{ fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '12px', display: 'block', fontWeight: 700 }}>
+                                        Vincular Código de Rastreio
+                                    </label>
                                     <input
                                         type="text"
-                                        placeholder="EX: AA123456789BR"
+                                        placeholder="Digite o código (Ex: AA123456789BR)"
                                         className="input-field"
                                         style={{
                                             marginBottom: 0,
-                                            fontFamily: 'Outfit, monospace',
-                                            fontWeight: 700,
+                                            fontFamily: 'Outfit, sans-serif',
+                                            fontWeight: 800,
                                             letterSpacing: '0.05em',
-                                            fontSize: '1.1rem',
-                                            padding: '16px 20px',
-                                            minHeight: '56px',
-                                            background: 'rgba(255,255,255,0.04)',
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                            transition: 'all 0.2s ease',
+                                            fontSize: '1.4rem',
+                                            padding: '20px 24px',
+                                            height: '70px',
+                                            background: 'rgba(255,255,255,0.05)',
+                                            border: '2px solid rgba(255,255,255,0.15)',
+                                            borderRadius: '16px',
                                             display: 'block',
-                                            width: '100%'
+                                            width: '100%',
+                                            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                                            color: '#fff'
                                         }}
-                                        onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-                                        onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                        onFocus={(e) => {
+                                            e.target.style.borderColor = 'var(--accent-primary)';
+                                            e.target.style.boxShadow = '0 0 0 4px var(--accent-glow)';
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = 'rgba(255,255,255,0.15)';
+                                            e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+                                        }}
                                         value={trackingCodes[pedido.id] || ''}
                                         onChange={(e) => setTrackingCodes({ ...trackingCodes, [pedido.id]: e.target.value.toUpperCase() })}
                                     />
                                 </div>
-                                <div className="tracking-btns" style={{ display: 'flex', gap: '12px' }}>
+                                <div className="tracking-btns" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                     <button
                                         disabled={!!processingId}
                                         onClick={() => handleRejeitar(pedido.id)}
                                         className="btn-primary"
-                                        style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '16px 24px' }}
+                                        style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ff4d4d', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '16px 28px', flex: 1, minWidth: '120px' }}
                                     >
                                         Rejeitar
                                     </button>
@@ -249,7 +268,7 @@ const PedidosPendentes = () => {
                                         disabled={!!processingId}
                                         onClick={() => handleAprovar(pedido.id)}
                                         className="btn-primary"
-                                        style={{ padding: '16px 32px' }}
+                                        style={{ padding: '16px 32px', flex: 2, minWidth: '200px', fontSize: '1.1rem' }}
                                     >
                                         {processingId === pedido.id ? 'Processando...' : 'Aprovar Pedido'}
                                     </button>
@@ -267,10 +286,12 @@ const PedidosPendentes = () => {
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .text-gradient { background: linear-gradient(135deg, var(--accent-primary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
-                @media (max-width: 640px) {
-                    .tracking-action-box { flex-direction: column; align-items: stretch !important; padding: 20px !important; }
-                    .tracking-btns { width: 100%; display: grid !important; grid-template-columns: 1fr 1fr; }
-                    .tracking-btns button { padding: 14px !important; font-size: 0.9rem !important; }
+                @media (max-width: 768px) {
+                    .tracking-action-box { padding: 16px !important; gap: 16px !important; }
+                    .tracking-action-box label { font-size: 0.85rem !important; margin-bottom: 8px !important; }
+                    .tracking-action-box input { height: 60px !important; font-size: 1.2rem !important; padding: 0 16px !important; }
+                    .tracking-btns { flex-direction: column; width: 100%; }
+                    .tracking-btns button { width: 100%; min-width: 0 !important; }
                 }
             `}</style>
         </div>
