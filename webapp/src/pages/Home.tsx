@@ -571,7 +571,7 @@ const Home: React.FC = () => {
                             <div className="track-fields">
                                 <div className="track-input-wrap">
                                     <Search size={16} color="#6366f1" />
-                                    <input className="track-input" placeholder="Código de rastreio" value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())} maxLength={12} required />
+                                    <input className="track-input" placeholder="Código de rastreio" value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())} maxLength={30} required />
                                 </div>
                                 <div className="track-input-wrap">
                                     <MapPinned size={16} color="#6366f1" />

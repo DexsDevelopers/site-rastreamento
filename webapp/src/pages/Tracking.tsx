@@ -152,7 +152,7 @@ const TrackingPage: React.FC = () => {
 
                 <form onSubmit={handleSearch} className="search-box-premium reveal">
                     <Search size={24} color="#6366f1" />
-                    <input type="text" className="search-input-premium" placeholder="Cole seu código de rastreio aqui..." value={codigo} onChange={e => setCodigo(e.target.value)} />
+                    <input type="text" className="search-input-premium" placeholder="Cole seu código de rastreio aqui..." value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())} maxLength={30} />
                     <button type="submit" className="btn-track" disabled={loading}>
                         {loading ? 'Processando...' : 'Localizar'} <ArrowRight size={20} />
                     </button>
