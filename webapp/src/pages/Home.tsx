@@ -697,8 +697,22 @@ const Home: React.FC = () => {
                                 {getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                <h3 style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     {trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}
+                                    {trackResult.taxa_valor && (
+                                        <span style={{
+                                            background: '#ef4444',
+                                            color: '#fff',
+                                            fontSize: '0.7rem',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            WebkitTextFillColor: '#fff',
+                                            fontWeight: 800,
+                                            boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)'
+                                        }}>
+                                            TAXA PENDENTE
+                                        </span>
+                                    )}
                                 </h3>
                                 <p style={{ color: 'rgba(255,255,255,0.45)', marginTop: '4px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <MapPinned size={14} /> {trackResult.cidade || cidade}

@@ -210,6 +210,9 @@ app.post(['/api/rastreio', '/api/rastreio-publico'], async (req, res) => {
         // No momento vamos apenas retornar os dados encontrados
         const lastStatus = rows[rows.length - 1];
 
+        // CORREÇÃO: Pegar taxa de qualquer linha que tenha, pois novas linhas podem ser inseridas sem o valor
+        const taxaRow = rows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00') || lastStatus;
+
         const etapas = rows.map(r => ({
             titulo: r.titulo || r.status_atual,
             subtitulo: r.subtitulo || '',
@@ -223,8 +226,8 @@ app.post(['/api/rastreio', '/api/rastreio-publico'], async (req, res) => {
             codigo: lastStatus.codigo,
             cidade: lastStatus.cidade,
             statusAtual: lastStatus.status_atual,
-            taxa_valor: lastStatus.taxa_valor,
-            taxa_pix: lastStatus.taxa_pix,
+            taxa_valor: taxaRow.taxa_valor,
+            taxa_pix: taxaRow.taxa_pix,
             etapas: etapas
         });
 
@@ -335,14 +338,17 @@ app.get('/api/admin/rastreios/:codigo/detalhes', async (req, res) => {
         } catch (e) { /* tabela pode não existir */ }
 
         const ultimo = rows[rows.length - 1];
+
+        // CORREÇÃO: Pegar taxa de qualquer linha que tenha
+        const taxaRow = rows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00') || ultimo;
         const foto_url = ultimo.foto_url || null;
 
         res.json({
             codigo: codigo,
             cidade: rows[0].cidade,
             data_inicial: rows[0].data ? rows[0].data.toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
-            taxa_valor: ultimo.taxa_valor || null,
-            taxa_pix: ultimo.taxa_pix || null,
+            taxa_valor: taxaRow.taxa_valor || null,
+            taxa_pix: taxaRow.taxa_pix || null,
             etapas,
             cliente_nome: contato?.nome || null,
             cliente_whatsapp: contato?.telefone_original || null,
