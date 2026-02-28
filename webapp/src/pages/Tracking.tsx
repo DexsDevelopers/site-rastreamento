@@ -41,32 +41,45 @@ const TrackingPage: React.FC = () => {
             });
             const data = await res.json();
 
-            if (data.success) {
+            if (res.ok && data.success) {
                 // Mapear os dados do banco para o formato da UI
                 const statusMap: any = {
                     'postado': <CheckCircle2 size={20} />,
                     'transito': <Package size={20} />,
                     'distribuicao': <MapPin size={20} />,
-                    'saiu': <Truck size={20} />
+                    'entrega': <Truck size={20} />,
+                    'saiu': <Truck size={20} />,
+                    'entregue': <CheckCircle2 size={20} />
                 };
 
                 const mappedData = {
                     codigo: data.codigo,
-                    status: data.etapas[data.etapas.length - 1]?.status_atual || 'Pendente',
+                    status: data.statusAtual || 'Pendente',
                     previsao: 'Em breve',
-                    eventos: data.etapas.reverse().map((e: any, i: number) => ({
-                        id: i,
-                        status: e.status_atual,
-                        local: data.cidade,
-                        data: new Date(e.data).toLocaleString('pt-BR'),
-                        detalhes: e.status_atual,
-                        icon: statusMap[e.status_slug] || <Package size={20} />
-                    })),
+                    eventos: ([...data.etapas].reverse()).map((e: any, i: number) => {
+                        // Tentar encontrar o melhor ícone baseado no título ou slug
+                        let icon = <Package size={20} />;
+                        const titleLower = (e.titulo || '').toLowerCase();
+                        if (titleLower.includes('postado')) icon = statusMap['postado'];
+                        else if (titleLower.includes('transito')) icon = statusMap['transito'];
+                        else if (titleLower.includes('distribuição') || titleLower.includes('distribuicao') || titleLower.includes('centro')) icon = statusMap['distribuicao'];
+                        else if (titleLower.includes('saiu') || titleLower.includes('rota')) icon = statusMap['entrega'];
+                        else if (titleLower.includes('entregue')) icon = statusMap['entregue'];
+
+                        return {
+                            id: i,
+                            status: e.titulo,
+                            local: data.cidade,
+                            data: new Date(e.data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                            detalhes: e.subtitulo || e.titulo,
+                            icon: icon
+                        };
+                    }),
                     etapaAtual: data.etapas.length
                 };
                 setTrackingData(mappedData);
             } else {
-                alert(data.message || 'Código não encontrado.');
+                alert(data.message || 'Código não encontrado ou erro na busca.');
             }
         } catch (err) {
             console.error(err);
