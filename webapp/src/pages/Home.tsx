@@ -134,63 +134,6 @@ const Home: React.FC = () => {
                 .reveal-delay-2 { transition-delay: 0.2s; }
                 .reveal-delay-3 { transition-delay: 0.3s; }
 
-                /* ===== HEADER (Glass Card) ===== */
-                .site-header {
-                    position: sticky; top: 0; z-index: 100;
-                    padding: 20px 24px;
-                    transition: all 0.3s;
-                }
-                .site-header.scrolled { padding: 10px 24px; }
-                .header-glass {
-                    max-width: 1200px; margin: 0 auto;
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 14px 28px;
-                    background: rgba(10, 10, 12, 0.4);
-                    backdrop-filter: blur(20px) saturate(1.8);
-                    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 24px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-                    transition: all 0.3s;
-                }
-                .scrolled .header-glass { background: rgba(10, 10, 12, 0.8); border-color: rgba(99, 102, 241, 0.2); }
-                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
-                .logo-box {
-                    width: 38px; height: 38px;
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
-                    border-radius: 12px;
-                    display: flex; align-items: center; justify-content: center;
-                    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-                }
-                .logo-name { font-size: 1.4rem; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
-                .desktop-nav { display: flex; align-items: center; gap: 28px; }
-                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-                .nav-item:hover { color: white; }
-                .nav-login-btn {
-                    padding: 10px 24px;
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
-                    border-radius: 12px; color: white; text-decoration: none;
-                    font-weight: 700; font-size: 0.85rem;
-                    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
-                    transition: all 0.3s;
-                }
-                .nav-login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5); }
-                .mobile-toggle { display: none; background: none; border: none; color: white; cursor: pointer; }
-                .mobile-nav {
-                    display: flex; flex-direction: column; gap: 8px;
-                    padding: 12px 24px 20px;
-                    max-width: 1280px; margin: 4px auto 0;
-                    background: rgba(255,255,255,0.03);
-                    backdrop-filter: blur(24px);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 16px;
-                    animation: fadeIn 0.3s ease;
-                }
-                .mobile-nav a {
-                    color: rgba(255,255,255,0.6); text-decoration: none; font-size: 1rem;
-                    padding: 10px 0; font-weight: 500;
-                }
-
                 /* ===== HERO ===== */
                 .hero-section {
                     position: relative; z-index: 1;

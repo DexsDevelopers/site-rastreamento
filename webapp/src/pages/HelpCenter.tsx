@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Package, Search, MessageCircle, FileText, Phone } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';

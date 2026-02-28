@@ -28,9 +28,12 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import WhatsAppTemplates from './pages/WhatsAppTemplates';
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Rotas Públicas */}
         <Route path="/" element={<Home />} />

@@ -12,18 +12,6 @@ const About = () => {
                 .about-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; overflow-x: hidden; position: relative; }
                 .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%); z-index: 0; pointer-events: none; }
                 
-                .site-header { position: fixed; top: 0; left: 0; right: 0; padding: 20px 5%; z-index: 100; transition: all 0.3s; }
-                .header-glass { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); padding: 12px 32px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-                .logo-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; }
-                .logo-box { width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); }
-                .logo-name { font-size: 1.4rem; font-weight: 800; }
-                
-                .desktop-nav { display: none; align-items: center; gap: 32px; }
-                @media(min-width: 900px) { .desktop-nav { display: flex; } }
-                .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: all 0.3s; }
-                .nav-item:hover, .nav-item.active { color: white; }
-                .nav-login-btn { padding: 10px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35); }
-                
                 .page-hero { padding: 160px 20px 100px; text-align: center; position: relative; z-index: 10; max-width: 900px; margin: 0 auto; }
                 .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 100px; font-size: 0.85rem; font-weight: 600; color: #818cf8; margin-bottom: 24px; }
                 .hero-title { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px; }
@@ -48,9 +36,7 @@ const About = () => {
                 .testimonial-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 32px; border-radius: 24px; }
                 .testimonial-text { font-style: italic; color: rgba(255,255,255,0.6); margin-bottom: 20px; line-height: 1.6; }
 
-                .site-footer { text-align: center; padding: 80px 20px 40px; color: rgba(255,255,255,0.3); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 80px;}
-                .site-footer a { color: rgba(255,255,255,0.3); text-decoration: none; margin: 0 10px; transition: color 0.3s; }
-                .site-footer a:hover { color: white; }
+                details > summary { list-style: none; }
                 
                 details > summary { list-style: none; }
                 details > summary::-webkit-details-marker { display: none; }

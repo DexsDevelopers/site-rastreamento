@@ -40,15 +40,6 @@ const ParaVoce: React.FC = () => {
                 .reveal-delay-1 { transition-delay: 0.1s; }
                 .reveal-delay-2 { transition-delay: 0.2s; }
 
-                .site-header { position: sticky; top: 0; z-index: 100; padding: 20px 24px; transition: all 0.3s; }
-                .site-header.scrolled { padding: 10px 24px; }
-                .header-glass {
-                    max-width: 1200px; margin: 0 auto;
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 14px 28px; background: rgba(10, 10, 12, 0.4); backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-                }
                 .scrolled .header-glass { background: rgba(10, 10, 12, 0.8); border-color: rgba(99, 102, 241, 0.2); }
                 .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
                 .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
@@ -71,10 +62,7 @@ const ParaVoce: React.FC = () => {
                 .service-card h3 { font-size: 1.5rem; margin-bottom: 16px; font-weight: 800; }
                 .service-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
                 
-                .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 80px 24px 40px; text-align: center; }
-                .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 24px; }
-                .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; transition: 0.3s; }
-                .footer-links a:hover { color: white; }
+                .service-card p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 24px; }
                 
                 @media (max-width: 768px) { .desktop-nav { display: none; } }
             `}</style>
