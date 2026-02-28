@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Truck, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 const Footer: React.FC = () => {
     return (
@@ -106,8 +106,8 @@ const Footer: React.FC = () => {
             <div className="footer-inner">
                 <div className="footer-brand-col">
                     <Link to="/" className="logo-link">
-                        <div className="logo-box"><Truck size={20} color="white" /></div>
-                        <span className="logo-name">loggi</span>
+                        <img src="/favicon.png" alt="Loggi Logo" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
+                        <span className="logo-name">LOGGI</span>
                     </Link>
                     <p>
                         Reinventando a logística brasileira através de tecnologia própria e excelência operacional. A maior malha de entregas do país ao seu alcance.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Truck } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,10 +74,8 @@ const Header = () => {
 
             <div className="header-glass">
                 <Link to="/" className="logo-link">
-                    <div className="logo-box">
-                        <Truck size={18} color="white" />
-                    </div>
-                    <span className="logo-name">loggi</span>
+                    <img src="/favicon.png" alt="Loggi Logo" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
+                    <span className="logo-name">LOGGI</span>
                 </Link>
 
                 <nav className="desktop-nav">

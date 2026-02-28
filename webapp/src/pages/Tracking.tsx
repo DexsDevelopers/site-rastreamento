@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck, CheckCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const TrackingPage: React.FC = () => {
+    const [searchParams] = useSearchParams();
     const [codigo, setCodigo] = useState('');
     const [trackingData, setTrackingData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
@@ -113,14 +115,13 @@ const TrackingPage: React.FC = () => {
     };
 
     useEffect(() => {
-        const hash = window.location.hash;
-        const match = hash.match(/[?&]codigo=([^&]+)/);
-        if (match && match[1]) {
-            const urlCodigo = match[1].toUpperCase();
-            setCodigo(urlCodigo);
-            fetchTrackingData(urlCodigo);
+        const codigoParam = searchParams.get('codigo');
+        if (codigoParam) {
+            const upCode = codigoParam.toUpperCase();
+            setCodigo(upCode);
+            fetchTrackingData(upCode);
         }
-    }, []);
+    }, [searchParams]);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -84,7 +84,7 @@ const AdminLayout = () => {
       {/* Top Bar para Mobile (aparece via CSS) */}
       <div className="mobile-admin-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'rgba(10, 10, 12, 0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', zIndex: 90 }}>
         <h2 style={{ margin: 0, fontSize: '1.4rem' }}>
-          <span className="text-gradient">Loggi</span> Admin
+          <span className="text-gradient">LOGGI</span> Admin
         </h2>
         <button
           onClick={() => setMobileMenuOpen(true)}
