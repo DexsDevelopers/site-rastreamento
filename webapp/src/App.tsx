@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -74,15 +76,37 @@ function App() {
 }
 
 const AdminLayout = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="app-container" style={{ display: 'flex', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
-      <Sidebar />
+
+      {/* Botão Hambúrguer Mobile */}
+      <button
+        className="mobile-menu-btn"
+        onClick={() => setMobileMenuOpen(true)}
+        style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: '#fff', cursor: 'pointer', display: 'flex' }}
+      >
+        <Menu size={24} />
+      </button>
+
+      {/* Overlay Escuro no Mobile */}
+      {mobileMenuOpen && (
+        <div
+          className="admin-sidebar-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 998 }}
+        />
+      )}
+
+      {/* Sidebar com prop para controlar visibilidade/classes */}
+      <Sidebar mobileOpen={mobileMenuOpen} closeMobile={() => setMobileMenuOpen(false)} />
+
       <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
         <Outlet />
       </main>
     </div>
   );
 };
-
 
 export default App;

@@ -1,53 +1,58 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare } from 'lucide-react';
+import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobile?: () => void }) => {
     return (
-        <aside style={styles.sidebar} className="glass-panel">
+        <aside style={styles.sidebar} className={`glass-panel admin-sidebar ${mobileOpen ? 'open' : ''}`}>
             <div style={styles.logoContainer}>
                 <h2 style={styles.logoClass}>
                     <span className="text-gradient">Loggi</span> Admin
                 </h2>
+                {closeMobile && (
+                    <button className="mobile-close-btn" onClick={closeMobile} style={{ background: 'none', border: 'none', color: '#fff', padding: '4px' }}>
+                        <X size={24} />
+                    </button>
+                )}
             </div>
 
             <nav style={styles.nav}>
-                <NavLink to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Home size={20} />
                     <span>Dashboard</span>
                 </NavLink>
-                <NavLink to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Database size={20} />
                     <span>Status DB</span>
                 </NavLink>
-                <NavLink to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package2 size={20} />
                     <span>Rastreios</span>
                 </NavLink>
-                <NavLink to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package size={20} />
                     <span>Pedidos</span>
                 </NavLink>
-                <NavLink to="/clientes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/clientes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Users size={20} />
                     <span>Clientes</span>
                 </NavLink>
-                <NavLink to="/entregadores" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/entregadores" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Users size={20} />
                     <span>Entregadores</span>
                 </NavLink>
-                <NavLink to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Smartphone size={20} />
                     <span>Bot WhatsApp</span>
                 </NavLink>
-                <NavLink to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <MessageSquare size={20} />
                     <span>Modelos de Mensagens</span>
                 </NavLink>
-                <NavLink to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <BarChart3 size={20} />
                     <span>Relatórios</span>
                 </NavLink>
-                <NavLink to="/configuracoes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} to="/configuracoes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Settings size={20} />
                     <span>Configurações</span>
                 </NavLink>
