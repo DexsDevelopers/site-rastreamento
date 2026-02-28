@@ -301,6 +301,20 @@ a:hover {
   color: rgba(122, 127, 154, 0.8);
 }
 
+.mega-input-admin {
+  font-size: 1.8rem !important;
+  height: 84px !important;
+  padding: 12px 24px !important;
+  border: 3px solid #6366f1 !important;
+  border-radius: 20px !important;
+  background: #000 !important;
+  color: #fff !important;
+  text-align: center !important;
+  font-weight: 900 !important;
+  width: 100% !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
 /* ====== TEXTOS ====== */
 .text-gradient {
   background: var(--accent-gradient);

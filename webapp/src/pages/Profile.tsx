@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, User, MapPin, LogOut, ChevronRight, Clock, Star, Shield, Trash2, Bell, Share2, Clipboard } from 'lucide-react';
+import { Package, User, ChevronRight, LogOut, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';

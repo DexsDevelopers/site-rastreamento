@@ -1,5 +1,5 @@
-// src/pages/LoginCliente.tsx
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Truck, Mail, Lock, User, ArrowRight, Eye, EyeOff, Phone, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -10,8 +10,9 @@ const LoginCliente: React.FC = () => {
     const navigate = useNavigate();
     const [form, setForm] = useState({ nome: '', email: '', telefone: '', senha: '', confirmarSenha: '' });
 
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
-    const location = useLocation();
 
     useEffect(() => {
         const savedUser = localStorage.getItem('loggi_user_session');
@@ -30,19 +31,54 @@ const LoginCliente: React.FC = () => {
             else value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
         }
         setForm(prev => ({ ...prev, [name]: value }));
+        setError('');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const validateForm = () => {
+        if (!form.email.includes('@')) return 'E-mail inválido';
+        if (form.senha.length < 4) return 'A senha deve ter pelo menos 4 caracteres';
+        if (tab === 'cadastro') {
+            if (!form.nome) return 'Nome é obrigatório';
+            if (!form.telefone) return 'Telefone é obrigatório';
+        }
+        return null;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulação de Login de Cliente
-        const userData = {
-            id: 'CL-' + Math.floor(Math.random() * 9999),
-            nome: form.nome || 'Cliente Loggi',
-            email: form.email,
-            telefone: form.telefone || '(11) 99999-9999'
-        };
-        localStorage.setItem('loggi_user_session', JSON.stringify(userData));
-        navigate('/');
+        const err = validateForm();
+        if (err) return setError(err);
+
+        setLoading(true);
+        setError('');
+
+        try {
+            if (tab === 'login') {
+                const res = await axios.post('/api/auth/login', {
+                    email: form.email,
+                    senha: form.senha
+                });
+                if (res.data.success) {
+                    localStorage.setItem('loggi_user_session', JSON.stringify(res.data.user));
+                    navigate('/');
+                }
+            } else {
+                const res = await axios.post('/api/auth/register', {
+                    nome: form.nome,
+                    email: form.email,
+                    senha: form.senha,
+                    whatsapp: form.telefone
+                });
+                if (res.data.success) {
+                    setTab('login');
+                    setError('Cadastro realizado! Faça login agora.');
+                }
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Erro ao conectar com o servidor');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -82,8 +118,10 @@ const LoginCliente: React.FC = () => {
                 .input-field:focus { border-color: #818cf8; background: rgba(129, 140, 248, 0.04); box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1); }
                 .field-icon { position: absolute; left: 16px; top: 15px; color: rgba(255,255,255,0.3); }
                 
-                .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 16px; color: white; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 24px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); }
+                .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, #6366f1, #a855f7); border: none; border-radius: 16px; color: white; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 24px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4); opacity: ${loading ? 0.7 : 1}; }
                 
+                .error-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px; border-radius: 12px; font-size: 0.85rem; text-align: center; margin-bottom: 16px; font-weight: 600; }
+
                 .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 80px 24px 40px; text-align: center; }
                 .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 24px; }
                 .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; }
@@ -102,9 +140,9 @@ const LoginCliente: React.FC = () => {
                     {user ? (
                         <Link to="/perfil" className="nav-login-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ width: '20px', height: '20px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
-                                {user.nome[0].toUpperCase()}
+                                {user.nome ? user.nome[0].toUpperCase() : 'U'}
                             </div>
-                            Olá, {user.nome.split(' ')[0]}
+                            Olá, {user.nome ? user.nome.split(' ')[0] : 'Usuário'}
                         </Link>
                     ) : (
                         <Link to="/entrar" className="nav-login-btn">Entrar</Link>
@@ -118,9 +156,11 @@ const LoginCliente: React.FC = () => {
                     <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: '32px' }}>Acesse sua conta para gerenciar envios</p>
 
                     <div className="tabs">
-                        <button className={`tab-btn ${tab === 'login' ? 'active' : ''}`} onClick={() => setTab('login')}>Entrar</button>
-                        <button className={`tab-btn ${tab === 'cadastro' ? 'active' : ''}`} onClick={() => setTab('cadastro')}>Criar Conta</button>
+                        <button className={`tab-btn ${tab === 'login' ? 'active' : ''}`} onClick={() => { setTab('login'); setError(''); }}>Entrar</button>
+                        <button className={`tab-btn ${tab === 'cadastro' ? 'active' : ''}`} onClick={() => { setTab('cadastro'); setError(''); }}>Criar Conta</button>
                     </div>
+
+                    {error && <div className="error-box">{error}</div>}
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {tab === 'cadastro' && (
@@ -150,16 +190,16 @@ const LoginCliente: React.FC = () => {
                             </button>
                         </div>
 
-                        <button type="submit" className="btn-submit">
-                            {tab === 'login' ? 'Entrar agora' : 'Criar minha conta'} <ArrowRight size={20} />
+                        <button type="submit" className="btn-submit" disabled={loading}>
+                            {loading ? 'Aguarde...' : (tab === 'login' ? 'Entrar agora' : 'Criar minha conta')} <ArrowRight size={20} />
                         </button>
                     </form>
 
                     <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>
                         {tab === 'login' ? (
-                            <>Não tem conta? <span onClick={() => setTab('cadastro')} style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 700 }}>Cadastre-se grátis</span></>
+                            <>Não tem conta? <span onClick={() => { setTab('cadastro'); setError(''); }} style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 700 }}>Cadastre-se grátis</span></>
                         ) : (
-                            <>Já possui conta? <span onClick={() => setTab('login')} style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 700 }}>Faça login</span></>
+                            <>Já possui conta? <span onClick={() => { setTab('login'); setError(''); }} style={{ color: '#818cf8', cursor: 'pointer', fontWeight: 700 }}>Faça login</span></>
                         )}
                     </div>
 

@@ -45,6 +45,62 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ===== AUTH API =====
+
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { nome, email, senha, whatsapp } = req.body;
+
+        if (!nome || !email || !senha) {
+            return res.status(400).json({ success: false, message: 'Campos obrigatórios faltando' });
+        }
+
+        // Verificar se já existe
+        const [rows] = await db.query('SELECT id FROM clientes WHERE email = ?', [email]);
+        if (rows.length > 0) {
+            return res.status(400).json({ success: false, message: 'Este e-mail já está cadastrado' });
+        }
+
+        await db.query(
+            'INSERT INTO clientes (nome, email, senha, whatsapp) VALUES (?, ?, ?, ?)',
+            [nome, email, senha, whatsapp || null]
+        );
+
+        res.json({ success: true, message: 'Cadastro realizado com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { email, senha } = req.body;
+
+        const [rows] = await db.query('SELECT * FROM clientes WHERE email = ? AND senha = ?', [email, senha]);
+
+        if (rows.length === 0) {
+            return res.status(401).json({ success: false, message: 'E-mail ou senha incorretos' });
+        }
+
+        const user = rows[0];
+        delete user.senha; // Não enviar a senha de volta
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                nome: user.nome,
+                email: user.email,
+                telefone: user.whatsapp
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // ===== API ENDPOINTS =====
 
 // 1. Pedidos (Rastreios)
@@ -808,9 +864,11 @@ app.post('/api/admin/db-setup', async (req, res) => {
               \`id\` int(11) NOT NULL AUTO_INCREMENT,
               \`nome\` varchar(255) DEFAULT NULL,
               \`email\` varchar(255) DEFAULT NULL,
+              \`senha\` varchar(255) DEFAULT NULL,
               \`whatsapp\` varchar(50) DEFAULT NULL,
               \`data_cadastro\` datetime DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY (\`id\`)
+              PRIMARY KEY (\`id\`),
+              UNIQUE KEY \`idx_email\` (\`email\`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 

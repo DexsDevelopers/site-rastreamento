@@ -210,67 +210,43 @@ const PedidosPendentes = () => {
                             </div>
 
                             <div className="tracking-action-box" style={{
-                                background: 'rgba(0,0,0,0.3)',
-                                padding: '32px',
-                                borderRadius: '24px',
-                                border: '1px solid rgba(255,255,255,0.12)',
+                                background: 'rgba(10, 10, 15, 0.95)',
+                                padding: '32px 20px',
+                                borderRadius: '28px',
+                                border: '2px solid var(--accent-primary)',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '20px',
-                                alignItems: 'stretch'
+                                gap: '24px',
+                                alignItems: 'stretch',
+                                boxShadow: '0 20px 60px rgba(0,0,0,0.6)'
                             }}>
                                 <div style={{ flex: 1, minWidth: '0' }}>
-                                    <label style={{ fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '12px', display: 'block', fontWeight: 700 }}>
-                                        Vincular Código de Rastreio
+                                    <label style={{ fontSize: '1rem', color: '#fff', marginBottom: '16px', display: 'block', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                        ⚠️ Digite o Código Abaixo:
                                     </label>
                                     <input
                                         type="text"
-                                        placeholder="Digite o código (Ex: AA123456789BR)"
-                                        className="input-field"
-                                        style={{
-                                            marginBottom: 0,
-                                            fontFamily: 'Outfit, sans-serif',
-                                            fontWeight: 800,
-                                            letterSpacing: '0.05em',
-                                            fontSize: '1.4rem',
-                                            padding: '20px 24px',
-                                            height: '70px',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            border: '2px solid rgba(255,255,255,0.15)',
-                                            borderRadius: '16px',
-                                            display: 'block',
-                                            width: '100%',
-                                            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                                            color: '#fff'
-                                        }}
-                                        onFocus={(e) => {
-                                            e.target.style.borderColor = 'var(--accent-primary)';
-                                            e.target.style.boxShadow = '0 0 0 4px var(--accent-glow)';
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.borderColor = 'rgba(255,255,255,0.15)';
-                                            e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
-                                        }}
+                                        placeholder="!! CODIGO DE RASTREIO !!"
+                                        className="mega-input-admin"
                                         value={trackingCodes[pedido.id] || ''}
                                         onChange={(e) => setTrackingCodes({ ...trackingCodes, [pedido.id]: e.target.value.toUpperCase() })}
                                     />
                                 </div>
-                                <div className="tracking-btns" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                    <button
-                                        disabled={!!processingId}
-                                        onClick={() => handleRejeitar(pedido.id)}
-                                        className="btn-primary"
-                                        style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ff4d4d', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '16px 28px', flex: 1, minWidth: '120px' }}
-                                    >
-                                        Rejeitar
-                                    </button>
+                                <div className="tracking-btns" style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
                                     <button
                                         disabled={!!processingId}
                                         onClick={() => handleAprovar(pedido.id)}
                                         className="btn-primary"
-                                        style={{ padding: '16px 32px', flex: 2, minWidth: '200px', fontSize: '1.1rem' }}
+                                        style={{ height: '70px', fontSize: '1.3rem', fontWeight: 900, borderRadius: '20px', background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
                                     >
-                                        {processingId === pedido.id ? 'Processando...' : 'Aprovar Pedido'}
+                                        {processingId === pedido.id ? 'PROCESSANDO...' : 'APROVAR AGORA'}
+                                    </button>
+                                    <button
+                                        disabled={!!processingId}
+                                        onClick={() => handleRejeitar(pedido.id)}
+                                        style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '14px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}
+                                    >
+                                        RECUSAR PEDIDO
                                     </button>
                                 </div>
                             </div>
@@ -286,12 +262,10 @@ const PedidosPendentes = () => {
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .text-gradient { background: linear-gradient(135deg, var(--accent-primary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
-                @media (max-width: 768px) {
-                    .tracking-action-box { padding: 16px !important; gap: 16px !important; }
-                    .tracking-action-box label { font-size: 0.85rem !important; margin-bottom: 8px !important; }
-                    .tracking-action-box input { height: 60px !important; font-size: 1.2rem !important; padding: 0 16px !important; }
-                    .tracking-btns { flex-direction: column; width: 100%; }
-                    .tracking-btns button { width: 100%; min-width: 0 !important; }
+                /* Garantir que nada reduza o tamanho no mobile */
+                .mega-input-admin {
+                    height: 90px !important;
+                    font-size: 2rem !important;
                 }
             `}</style>
         </div>
