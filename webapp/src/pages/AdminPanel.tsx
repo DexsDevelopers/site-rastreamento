@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
     Package, CheckCircle, DollarSign, Search, Plus,
     Edit, Trash2, Eye, MessageCircle, Download, X, Save,
-    RefreshCw, Filter, BarChart2
+    RefreshCw, Filter, BarChart2, Copy
 } from 'lucide-react';
 
 // ===== TIPOS =====
@@ -346,6 +346,16 @@ const AdminPanel: React.FC = () => {
         showToast(`📥 ${filteredRastreios.length} rastreios exportados!`, 'success');
     };
 
+    const copyTrackingLink = (codigo: string) => {
+        const resetUrl = window.location.origin + window.location.pathname;
+        const url = `${resetUrl}#/rastreio?codigo=${codigo}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('Link de rastreio copiado!', 'success');
+        }).catch(() => {
+            showToast('Erro ao copiar link', 'error');
+        });
+    };
+
     // ===== RENDER =====
     return (
         <div style={{ padding: '32px', animation: 'fadeIn 0.4s ease', maxWidth: '1600px' }}>
@@ -540,6 +550,7 @@ const AdminPanel: React.FC = () => {
                                     <td style={{ ...tdStyle, textAlign: 'right', paddingRight: '24px' }}>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                             <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={16} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: '#8b5cf6', background: 'rgba(139,92,246,0.05)' }}><Copy size={16} /></button>
                                             <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.05)' }}><Edit size={16} /></button>
                                             <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: '#10b981', background: 'rgba(16,185,129,0.05)' }}><MessageCircle size={16} /></button>
                                             <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.05)' }}><Trash2 size={16} /></button>
