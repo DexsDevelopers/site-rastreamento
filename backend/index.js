@@ -144,6 +144,52 @@ app.get('/api/db-check', async (req, res) => {
     }
 });
 
+// Busca Pública de Rastreio (Usado na Home e Tracking)
+app.post(['/api/rastreio', '/api/rastreio-publico'], async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { codigo, cidade } = req.body;
+
+        if (!codigo) return res.status(400).json({ success: false, message: 'Código é obrigatório' });
+
+        // Buscar todos os status do código
+        const [rows] = await db.query(
+            'SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC',
+            [codigo.toUpperCase().trim()]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Código de rastreio não encontrado.' });
+        }
+
+        // Se a cidade foi enviada (pela Home), podemos validar, mas opcional
+        // No momento vamos apenas retornar os dados encontrados
+        const lastStatus = rows[rows.length - 1];
+
+        const etapas = rows.map(r => ({
+            titulo: r.titulo || r.status_atual,
+            subtitulo: r.subtitulo || '',
+            data: r.data,
+            status_atual: r.status_atual,
+            status_slug: r.status_atual ? r.status_atual.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "") : 'transito'
+        }));
+
+        res.json({
+            success: true,
+            codigo: lastStatus.codigo,
+            cidade: lastStatus.cidade,
+            statusAtual: lastStatus.status_atual,
+            taxa_valor: lastStatus.taxa_valor,
+            taxa_pix: lastStatus.taxa_pix,
+            etapas: etapas
+        });
+
+    } catch (error) {
+        console.error('Erro na busca pública:', error);
+        res.status(500).json({ success: false, message: 'Erro interno ao buscar rastreio.' });
+    }
+});
+
 // ===== ADMIN API =====
 
 // Estatísticas do painel admin
