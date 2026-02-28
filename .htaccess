@@ -1,3 +1,19 @@
+# Configurações para priorizar o NOVO site (React)
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Redirecionar chamadas antigas para as rotas novas se necessário
+  RewriteRule ^sobre\.php$ /#/sobre [R=301,L,NE]
+  
+  # Se o arquivo não existe, manda pro index.html (SPA)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
 # Configurações para evitar cache - Helmer Logistics
 # Aplicado em: 29/01/2025
 

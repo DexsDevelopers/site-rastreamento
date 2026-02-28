@@ -844,8 +844,8 @@ app.post('/api/admin/bot/restart', async (req, res) => {
     }
 });
 
-// Servir o Frontend
-const distPath = path.join(__dirname, 'dist');
+// Servir o Frontend (da raiz do repositório)
+const distPath = path.join(__dirname, '..');
 app.use(express.static(distPath));
 
 app.get(/.*/, (req, res) => {
