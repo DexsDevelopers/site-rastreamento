@@ -438,9 +438,9 @@ const AdminPanel: React.FC = () => {
             </div>
 
             {/* TABELA PRINCIPAL */}
-            <div style={{
+            <div className="table-wrapper" style={{
                 background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '24px', overflow: 'hidden', backdropFilter: 'blur(20px)',
+                borderRadius: '24px', overflowX: 'auto', backdropFilter: 'blur(20px)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
             }}>
                 {/* TOOLBAR */}

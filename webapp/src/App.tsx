@@ -79,32 +79,38 @@ const AdminLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="app-container" style={{ display: 'flex', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+    <div className="app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
 
-      {/* Botão Hambúrguer Mobile */}
-      <button
-        className="mobile-menu-btn"
-        onClick={() => setMobileMenuOpen(true)}
-        style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: '#fff', cursor: 'pointer', display: 'flex' }}
-      >
-        <Menu size={24} />
-      </button>
+      {/* Top Bar para Mobile (aparece via CSS) */}
+      <div className="mobile-admin-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'rgba(10, 10, 12, 0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', zIndex: 90 }}>
+        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>
+          <span className="text-gradient">Loggi</span> Admin
+        </h2>
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+        >
+          <Menu size={22} />
+        </button>
+      </div>
 
-      {/* Overlay Escuro no Mobile */}
-      {mobileMenuOpen && (
-        <div
-          className="admin-sidebar-overlay"
-          onClick={() => setMobileMenuOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 998 }}
-        />
-      )}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative', width: '100%' }}>
+        {/* Overlay Escuro no Mobile */}
+        {mobileMenuOpen && (
+          <div
+            className="admin-sidebar-overlay"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 998 }}
+          />
+        )}
 
-      {/* Sidebar com prop para controlar visibilidade/classes */}
-      <Sidebar mobileOpen={mobileMenuOpen} closeMobile={() => setMobileMenuOpen(false)} />
+        {/* Sidebar com prop para controlar visibilidade/classes */}
+        <Sidebar mobileOpen={mobileMenuOpen} closeMobile={() => setMobileMenuOpen(false)} />
 
-      <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
-        <Outlet />
-      </main>
+        <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto', overflowX: 'hidden' }}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

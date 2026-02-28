@@ -489,8 +489,9 @@ a:hover {
 /* ====== RESPONSIVIDADE FORÇADA PARA ADMIN ====== */
 @media (max-width: 1200px) {
 
-  /* ===== SIDEBAR DRAWER ===== */
-  .mobile-menu-btn {
+  /* ===== SIDEBAR DRAWER E HEADER ===== */
+  .mobile-menu-btn,
+  .mobile-admin-header {
     display: flex !important;
   }
 
@@ -514,9 +515,19 @@ a:hover {
     animation: fadeIn 0.3s ease;
   }
 
-  /* Ajuste no Main Content para não espaçar a navbar que foi removida da tela */
   .app-container .main-content {
-    padding-top: 80px !important;
+    padding: 12px !important;
+  }
+
+  /* Retirar margens fortes nas divs principais do mobile para nao empurrar tela */
+  div[style*="padding: 32px"] {
+    padding: 12px 14px !important;
+  }
+
+  /* Remover larguras minimas q dao zoom mobile nas box the flex 1 */
+  div[style*="minWidth: '280px'"],
+  div[style*="minWidth: 280px"] {
+    min-width: 0 !important;
   }
 
   /* Forçar as telas de Admin que têm sidebars 250px 1fr */
@@ -531,12 +542,30 @@ a:hover {
     max-width: 95% !important;
   }
 
-  /* Todas as tabelas precisam escrollar horizontalmente em mobile */
+  /* Ajuste de tabelas para scroll native App */
+  .table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
   table {
-    display: block;
+    display: table !important;
+    min-width: 850px !important;
     width: 100% !important;
-    overflow-x: auto;
-    white-space: nowrap;
+  }
+
+  table th,
+  table td {
+    white-space: nowrap !important;
+    font-size: 0.85rem !important;
+    padding: 14px 16px !important;
+  }
+
+  /* Ajuste para botões de filtro na toolbar das tabelas */
+  .filter-btn-tab {
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
   }
 
   /* Encolhendo botões do admin */
@@ -555,10 +584,5 @@ a:hover {
   /* Para caixas de inputs que estavam grid 1fr 1fr */
   div[style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
-  }
-
-  /* Flexbox que divide igual (gap: 24px) vira column */
-  div[style*="flex-wrap: wrap"] {
-    flex-direction: column;
   }
 }
