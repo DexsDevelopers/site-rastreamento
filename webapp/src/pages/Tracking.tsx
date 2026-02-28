@@ -1,17 +1,13 @@
-// src/pages/Tracking.tsx
 import React, { useState, useEffect } from 'react';
 import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const TrackingPage: React.FC = () => {
     const [codigo, setCodigo] = useState('');
     const [trackingData, setTrackingData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-    const [scrollY, setScrollY] = useState(0);
-
     useEffect(() => {
-        const handleScroll = () => setScrollY(window.scrollY);
-        window.addEventListener('scroll', handleScroll);
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -24,7 +20,6 @@ const TrackingPage: React.FC = () => {
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
             observer.disconnect();
         };
     }, []);
@@ -71,24 +66,6 @@ const TrackingPage: React.FC = () => {
                 .reveal { opacity: 0; transform: translateY(30px) scale(0.95); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
                 .reveal-active { opacity: 1; transform: translateY(0) scale(1); }
 
-                .site-header { position: sticky; top: 0; z-index: 100; padding: 20px 24px; transition: all 0.3s; }
-                .site-header.scrolled { padding: 10px 24px; }
-                .header-glass {
-                    max-width: 1200px; margin: 0 auto;
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 14px 28px; background: rgba(10, 10, 12, 0.4); backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-                }
-                .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
-                .logo-box { width: 38px; height: 38px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-                .logo-name { font-size: 1.4rem; font-weight: 800; }
-                
-                .desktop-nav { display: flex; align-items: center; gap: 28px; }
-                .nav-item { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-                .nav-item:hover { color: white; }
-
-                .search-hero { padding: 80px 24px 40px; text-align: center; position: relative; z-index: 1; }
                 .search-box-premium {
                     max-width: 600px; margin: 0 auto;
                     background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
@@ -117,21 +94,7 @@ const TrackingPage: React.FC = () => {
 
             <div className="bg-mesh"></div>
 
-            <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
-                <div className="header-glass">
-                    <Link to="/" className="logo-link">
-                        <div className="logo-box"><Truck size={18} color="white" /></div>
-                        <span className="logo-name">loggi</span>
-                    </Link>
-                    <nav className="desktop-nav">
-                        <Link to="/" className="nav-item">Início</Link>
-                        <Link to="/para-voce" className="nav-item">Para você</Link>
-                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
-                        <Link to="/sobre" className="nav-item">Sobre</Link>
-                        <Link to="/entrar" className="btn-track" style={{ padding: '8px 24px', fontSize: '0.85rem' }}>Entrar</Link>
-                    </nav>
-                </div>
-            </header>
+            <Header />
 
             <section className="search-hero">
                 <div className="reveal">
@@ -202,22 +165,7 @@ const TrackingPage: React.FC = () => {
                 )}
             </div>
 
-            <footer className="site-footer">
-                <Link to="/" className="logo-link" style={{ justifyContent: 'center', marginBottom: '32px' }}>
-                    <div className="logo-box"><Truck size={18} color="white" /></div>
-                    <span className="logo-name">loggi</span>
-                </Link>
-                <div className="footer-links">
-                    <Link to="/sobre">Sobre</Link>
-                    <Link to="/para-voce">Para Você</Link>
-                    <Link to="/para-empresas">Empresas</Link>
-                    <Link to="/api-ecommerce">API</Link>
-                    <Link to="/loggi-pro">Loggi Pro</Link>
-                    <Link to="/carreiras">Carreiras</Link>
-                    <Link to="/termos">Termos de Uso</Link>
-                    <Link to="/ajuda">Ajuda</Link>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

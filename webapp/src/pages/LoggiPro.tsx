@@ -1,10 +1,8 @@
-// src/pages/LoggiPro.tsx
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Package, Menu, X, Shield, Star, Rocket, RefreshCcw } from 'lucide-react';
+import { Shield, Star, Rocket, RefreshCcw } from 'lucide-react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const LoggiPro = () => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
         <div className="lp-page">
@@ -54,38 +52,7 @@ const LoggiPro = () => {
 
             <div className="bg-mesh"></div>
 
-            <header className="site-header">
-                <div className="header-glass">
-                    <Link to="/" className="logo-link">
-                        <div className="logo-box">
-                            <Package size={18} color="white" />
-                        </div>
-                        <span className="logo-name">loggi</span>
-                    </Link>
-
-                    <nav className="desktop-nav">
-                        <Link to="/" className="nav-item">Início</Link>
-                        <Link to="/para-voce" className="nav-item">Para você</Link>
-                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
-                        <Link to="/sobre" className="nav-item">Sobre</Link>
-                        <Link to="/entrar" className="nav-login-btn">Entrar</Link>
-                    </nav>
-
-                    <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                </div>
-
-                {isMobileMenuOpen && (
-                    <nav className="mobile-nav">
-                        <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Início</Link>
-                        <Link to="/para-voce" onClick={() => setIsMobileMenuOpen(false)}>Para você</Link>
-                        <Link to="/para-empresas" onClick={() => setIsMobileMenuOpen(false)}>Para empresas</Link>
-                        <Link to="/sobre" onClick={() => setIsMobileMenuOpen(false)}>Sobre</Link>
-                        <Link to="/entrar" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#f87171' }}>Entrar</Link>
-                    </nav>
-                )}
-            </header>
+            <Header />
 
             <section className="page-hero">
                 <div className="page-badge">
@@ -135,19 +102,7 @@ const LoggiPro = () => {
                 </div>
             </div>
 
-            <footer className="site-footer">
-                <p>&copy; 2026 Loggi Tecnologia LTDA.</p>
-                <div style={{ marginTop: '16px' }}>
-                    <Link to="/sobre">Sobre</Link>
-                    <Link to="/para-voce">Para Você</Link>
-                    <Link to="/para-empresas">Empresas</Link>
-                    <Link to="/api-ecommerce">API</Link>
-                    <Link to="/loggi-pro">Loggi Pro</Link>
-                    <Link to="/carreiras">Carreiras</Link>
-                    <Link to="/termos">Termos de Uso</Link>
-                    <Link to="/ajuda">Ajuda</Link>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

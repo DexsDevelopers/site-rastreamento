@@ -1,14 +1,11 @@
-// src/pages/ParaVoce.tsx
-import React, { useState, useEffect } from 'react';
-import { QrCode, Satellite, Zap, ArrowRight, Truck, MapPin } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { QrCode, Satellite, Zap, ArrowRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const ParaVoce: React.FC = () => {
-    const [scrollY, setScrollY] = useState(0);
-
     useEffect(() => {
-        const handleScroll = () => setScrollY(window.scrollY);
-        window.addEventListener('scroll', handleScroll);
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -21,7 +18,6 @@ const ParaVoce: React.FC = () => {
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
             observer.disconnect();
         };
     }, []);
@@ -85,21 +81,7 @@ const ParaVoce: React.FC = () => {
 
             <div className="bg-mesh"></div>
 
-            <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
-                <div className="header-glass">
-                    <Link to="/" className="logo-link">
-                        <div className="logo-box"><Truck size={18} color="white" /></div>
-                        <span className="logo-name">loggi</span>
-                    </Link>
-                    <nav className="desktop-nav">
-                        <Link to="/" className="nav-item">Início</Link>
-                        <Link to="/para-voce" className="nav-item active">Para você</Link>
-                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
-                        <Link to="/sobre" className="nav-item">Sobre</Link>
-                        <Link to="/entrar" className="nav-login-btn">Entrar</Link>
-                    </nav>
-                </div>
-            </header>
+            <Header />
 
             <section className="hero-section">
                 <div className="hero-glass reveal">
@@ -125,23 +107,7 @@ const ParaVoce: React.FC = () => {
                 ))}
             </div>
 
-            <footer className="site-footer">
-                <Link to="/" className="logo-link" style={{ justifyContent: 'center', marginBottom: '32px' }}>
-                    <div className="logo-box"><Truck size={18} color="white" /></div>
-                    <span className="logo-name">loggi</span>
-                </Link>
-                <p style={{ color: 'rgba(255,255,255,0.3)' }}>© 2026 Loggi Tecnologia LTDA. Todos os direitos reservados.</p>
-                <div className="footer-links">
-                    <Link to="/sobre">Sobre</Link>
-                    <Link to="/para-voce">Para Você</Link>
-                    <Link to="/para-empresas">Empresas</Link>
-                    <Link to="/api-ecommerce">API</Link>
-                    <Link to="/loggi-pro">Loggi Pro</Link>
-                    <Link to="/carreiras">Carreiras</Link>
-                    <Link to="/termos">Termos de Uso</Link>
-                    <Link to="/ajuda">Ajuda</Link>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

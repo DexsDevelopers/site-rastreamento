@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
-import { Package, ShieldCheck, ChevronRight } from 'lucide-react';
+import { ShieldCheck, ChevronRight } from 'lucide-react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const TermsOfUse = () => {
 
@@ -44,21 +45,7 @@ const TermsOfUse = () => {
 
             <div className="bg-mesh"></div>
 
-            <header className="site-header">
-                <div className="header-glass">
-                    <Link to="/" className="logo-link">
-                        <div className="logo-box"><Package size={18} color="white" /></div>
-                        <span className="logo-name">loggi</span>
-                    </Link>
-                    <nav className="desktop-nav">
-                        <Link to="/" className="nav-item">Início</Link>
-                        <Link to="/para-voce" className="nav-item">Para você</Link>
-                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
-                        <Link to="/sobre" className="nav-item">Sobre</Link>
-                        <Link to="/entrar" className="nav-login-btn">Entrar</Link>
-                    </nav>
-                </div>
-            </header>
+            <Header />
 
             <section className="hero">
                 <h1 className="hero-title">Termos de Uso</h1>
@@ -93,19 +80,7 @@ const TermsOfUse = () => {
                 </div>
             </section>
 
-            <footer className="site-footer">
-                <p>&copy; 2026 Loggi Tecnologia LTDA.</p>
-                <div className="footer-links">
-                    <Link to="/sobre">Sobre</Link>
-                    <Link to="/para-voce">Para Você</Link>
-                    <Link to="/para-empresas">Empresas</Link>
-                    <Link to="/api-ecommerce">API</Link>
-                    <Link to="/loggi-pro">Loggi Pro</Link>
-                    <Link to="/carreiras">Carreiras</Link>
-                    <Link to="/termos">Termos de Uso</Link>
-                    <Link to="/ajuda">Ajuda</Link>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

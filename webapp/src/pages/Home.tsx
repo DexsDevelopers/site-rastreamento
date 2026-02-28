@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, MapPinned, Star, Heart, Menu, X, Calculator, Clock, TrendingUp } from 'lucide-react';
+import { Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, Star, Clock, TrendingUp, Calculator, MapPinned } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -11,16 +13,7 @@ const Home: React.FC = () => {
     const [trackResult, setTrackResult] = useState<any>(null);
     const [trackError, setTrackError] = useState('');
     const [activeTab, setActiveTab] = useState<'voce' | 'empresas'>('voce');
-    const [mobileMenu, setMobileMenu] = useState(false);
     const [heroCounter, setHeroCounter] = useState(0);
-    const [scrollY, setScrollY] = useState(0);
-
-    // Efeito de Parallax / Scroll
-    useEffect(() => {
-        const handleScroll = () => setScrollY(window.scrollY);
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     // Observer para Animação de Entrada
     useEffect(() => {
@@ -606,34 +599,7 @@ const Home: React.FC = () => {
             <div className="bg-mesh"></div>
             <div className="bg-grid"></div>
 
-            {/* ===== HEADER ===== */}
-            <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
-                <div className="header-glass">
-                    <Link to="/" className="logo-link">
-                        <div className="logo-box"><Truck size={18} color="white" /></div>
-                        <span className="logo-name">loggi</span>
-                    </Link>
-                    <nav className="desktop-nav" style={{ display: 'flex' }}>
-                        <Link to="/" className="nav-item">Início</Link>
-                        <Link to="/para-voce" className="nav-item">Para você</Link>
-                        <Link to="/para-empresas" className="nav-item">Para empresas</Link>
-                        <Link to="/sobre" className="nav-item">Sobre</Link>
-                        <Link to="/entrar" className="nav-login-btn">Entrar</Link>
-                    </nav>
-                    <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)}>
-                        {mobileMenu ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                </div>
-                {mobileMenu && (
-                    <nav className="mobile-nav">
-                        <Link to="/" onClick={() => setMobileMenu(false)}>Início</Link>
-                        <Link to="/para-voce" onClick={() => setMobileMenu(false)}>Para você</Link>
-                        <Link to="/para-empresas" onClick={() => setMobileMenu(false)}>Para empresas</Link>
-                        <Link to="/sobre" onClick={() => setMobileMenu(false)}>Sobre</Link>
-                        <Link to="/entrar" onClick={() => setMobileMenu(false)} style={{ color: '#818cf8', fontWeight: 700 }}>Entrar</Link>
-                    </nav>
-                )}
-            </header>
+            <Header />
 
             {/* ===== HERO ===== */}
             <section className="hero-section">
@@ -764,8 +730,8 @@ const Home: React.FC = () => {
                     <div className="grid-3">
                         {[
                             { icon: <QrCode size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Postagem simples', desc: 'Gere sua etiqueta em poucos cliques e poste em qualquer ponto parceiro próximo a você.', link: '/pedido', linkText: 'Começar agora' },
-                            { icon: <Satellite size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'Monitoramento GPS', desc: 'Acompanhe cada curva da sua encomenda com tecnologia de rastreio via satélite em tempo real.', link: '#', linkText: 'Ver como funciona' },
-                            { icon: <Zap size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Loggi Express', desc: 'Sua encomenda priorizada em nossa malha expressa para chegar em tempo recorde.', link: '#', linkText: 'Pedir urgência' },
+                            { icon: <Satellite size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'Monitoramento GPS', desc: 'Acompanhe cada curva da sua encomenda com tecnologia de rastreio via satélite em tempo real.', link: '/rastreio', linkText: 'Ver como funciona' },
+                            { icon: <Zap size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Loggi Express', desc: 'Sua encomenda priorizada em nossa malha expressa para chegar em tempo recorde.', link: '/loggi-pro', linkText: 'Assinar Pro' },
                         ].map((c, i) => (
                             <div key={i} className="feature-card">
                                 <div className="feature-icon" style={{ background: c.bg }}>{c.icon}</div>
@@ -788,14 +754,15 @@ const Home: React.FC = () => {
                     </div>
                     <div className="grid-3">
                         {[
-                            { icon: <Warehouse size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Coleta loggi', desc: 'Equipe dedicada para coletar envios diretamente no seu centro de distribuição.' },
-                            { icon: <GitBranch size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'API de Integração', desc: 'Conecte seu e-commerce diretamente com nosso sistema para automação total.' },
-                            { icon: <RotateCcw size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Reversa Facilitada', desc: 'Gestão completa de trocas e devoluções para encantar clientes no pós-venda.' },
+                            { icon: <Warehouse size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Coleta loggi', desc: 'Equipe dedicada para coletar envios diretamente no seu centro de distribuição.', link: '/para-empresas', linkText: 'Saber mais' },
+                            { icon: <GitBranch size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'API de Integração', desc: 'Conecte seu e-commerce diretamente com nosso sistema para automação total.', link: '/api-ecommerce', linkText: 'Ver API' },
+                            { icon: <RotateCcw size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Reversa Facilitada', desc: 'Gestão completa de trocas e devoluções para encantar clientes no pós-venda.', link: '/para-empresas', linkText: 'Ver solução' },
                         ].map((c, i) => (
                             <div key={i} className="feature-card">
                                 <div className="feature-icon" style={{ background: c.bg }}>{c.icon}</div>
                                 <h3>{c.title}</h3>
                                 <p>{c.desc}</p>
+                                <Link to={c.link} className="feature-link">{c.linkText} <ArrowRight size={14} /></Link>
                             </div>
                         ))}
                     </div>
@@ -846,40 +813,7 @@ const Home: React.FC = () => {
                 </div>
             </section>
 
-            {/* ===== FOOTER ===== */}
-            <footer className="site-footer">
-                <div className="footer-inner">
-                    <div className="footer-brand-col">
-                        <Link to="/" className="logo-link">
-                            <div className="logo-box" style={{ width: 32, height: 32 }}><Truck size={14} color="white" /></div>
-                            <span className="logo-name">loggi</span>
-                        </Link>
-                        <p style={{ color: 'rgba(255,255,255,0.35)', marginTop: '16px', lineHeight: 1.6, fontSize: '0.9rem' }}>
-                            Reinventando a logística brasileira através de tecnologia própria e excelência operacional.
-                        </p>
-                    </div>
-                    <div className="footer-links-wrap">
-                        <div className="footer-col">
-                            <h4>Soluções</h4>
-                            <Link to="/para-voce">Loggi para você</Link>
-                            <Link to="/para-empresas">Loggi para empresas</Link>
-                            <Link to="/api-ecommerce">E-commerce API</Link>
-                            <Link to="/loggi-pro">Loggi Pro</Link>
-                        </div>
-                        <div className="footer-col">
-                            <h4>Sobre</h4>
-                            <Link to="/sobre">Nossa História</Link>
-                            <Link to="/carreiras">Carreiras</Link>
-                            <Link to="/ajuda">Central de Ajuda</Link>
-                            <Link to="/termos">Termos de Uso</Link>
-                        </div>
-                    </div>
-                </div>
-                <div className="footer-bottom">
-                    <p>© 2026 Loggi Tecnologia LTDA.</p>
-                    <p style={{ marginTop: '8px' }}>Feito com <Heart size={14} fill="#ef4444" color="#ef4444" style={{ verticalAlign: 'middle' }} /> para o Brasil</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };
