@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
+import logoImg from '../assets/favicon.png';
 
 const Footer: React.FC = () => {
     return (
@@ -106,7 +107,7 @@ const Footer: React.FC = () => {
             <div className="footer-inner">
                 <div className="footer-brand-col">
                     <Link to="/" className="logo-link">
-                        <img src="/favicon.png" alt="Loggi Logo" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
+                        <img src={logoImg} alt="Loggi Logo" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
                         <span className="logo-name">LOGGI</span>
                     </Link>
                     <p>
