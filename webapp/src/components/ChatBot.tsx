@@ -46,7 +46,7 @@ const knowledgeBase: { keywords: string[]; response: string }[] = [
     },
     {
         keywords: ['suporte', 'atendimento', 'contato', 'telefone', 'email', 'falar', 'humano', 'vendedor', 'atendente', 'pessoa'],
-        response: '👤 Entendi! Vou encaminhar você para um de nossos **atendentes humanos**.\n\n📱 **WhatsApp:** Entre em contato pelo nosso número oficial\n📧 **E-mail:** suporte@loggi.com\n📞 **Central:** 0800-LOG-GI00\n\nNosso time está disponível **24/7** para te atender. Obrigado por usar a Loggi! 💙'
+        response: '👤 Entendi! Vou encaminhar você para um de nossos **atendentes humanos**.\n\n📱 **WhatsApp:** +55 51 99614-8568\n📧 **E-mail:** empresatokio@gmail.com\n\nNosso time está disponível **24/7** para te atender. Obrigado por usar a Loggi! 💙'
     },
     {
         keywords: ['segurança', 'seguranca', 'seguro', 'proteção', 'protecao', 'confiável', 'confiavel'],

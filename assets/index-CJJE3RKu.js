@@ -1508,9 +1508,8 @@ Nosso plano premium oferece:
 
 Acesse **"Loggi Pro"** no menu para conhecer os planos e preços!`},{keywords:["suporte","atendimento","contato","telefone","email","falar","humano","vendedor","atendente","pessoa"],response:`👤 Entendi! Vou encaminhar você para um de nossos **atendentes humanos**.
 
-📱 **WhatsApp:** Entre em contato pelo nosso número oficial
-📧 **E-mail:** suporte@loggi.com
-📞 **Central:** 0800-LOG-GI00
+📱 **WhatsApp:** +55 51 99614-8568
+📧 **E-mail:** empresatokio@gmail.com
 
 Nosso time está disponível **24/7** para te atender. Obrigado por usar a Loggi! 💙`},{keywords:["segurança","seguranca","seguro","proteção","protecao","confiável","confiavel"],response:`🔒 **Segurança Loggi:**
 
