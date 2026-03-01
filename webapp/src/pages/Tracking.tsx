@@ -322,7 +322,7 @@ const TrackingPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase' }}>Taxa Pendente</div>
-                                            <div style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4 }}>Seu pedido aguarda o pagamento da taxa alfandegária.</div>
+                                            <div style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4 }}>Seu pedido aguarda o pagamento da taxa de processamento governamental.</div>
                                         </div>
                                     </div>
                                     <button
@@ -392,7 +392,7 @@ const TrackingPage: React.FC = () => {
                                         style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', marginBottom: '16px', display: 'block', width: '100%', boxShadow: '0 8px 32px rgba(239, 68, 68, 0.3)' }}
                                         onClick={() => setShowTaxModal(true)}
                                     >
-                                        💰 Pagar Taxa de Importação (R$ {trackingData.taxa_valor})
+                                        💰 Pagar Taxa de Processamento (R$ {trackingData.taxa_valor})
                                     </button>
                                 )}
                                 <button className="express-btn" onClick={() => setShowExpressModal(true)}>⚡ Acelerar por R$ 29,90</button>
@@ -451,8 +451,8 @@ const TrackingPage: React.FC = () => {
                                 <div style={{ fontSize: '0.9rem', color: '#0f172a', lineHeight: 1.6, fontWeight: 500 }}>Geralmente enviado pela loja via E-mail ou WhatsApp após a postagem.</div>
                             </div>
                             <div style={{ background: '#ffffff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                                <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '1rem', marginBottom: '8px' }}>O que é Taxa Pendente?</div>
-                                <div style={{ fontSize: '0.9rem', color: '#0f172a', lineHeight: 1.6, fontWeight: 500 }}>São tributos ou taxas de processamento que precisam de quitação para liberação do objeto.</div>
+                                <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '1rem', marginBottom: '8px' }}>O que é Taxa de Processamento?</div>
+                                <div style={{ fontSize: '0.9rem', color: '#0f172a', lineHeight: 1.6, fontWeight: 500 }}>São tributos ou taxas de processamento que precisam de quitação para liberação governamental do objeto.</div>
                             </div>
                             <div style={{ background: '#ffffff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                 <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '1rem', marginBottom: '8px' }}>Quanto tempo para entrega?</div>
@@ -503,7 +503,7 @@ const TrackingPage: React.FC = () => {
                         </div>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Pagar Taxa</h2>
                         <p style={{ color: '#475569', lineHeight: 1.6, marginBottom: '32px', fontWeight: 500 }}>
-                            Para liberar seu pacote do centro de fiscalização, realize o pagamento da taxa de importação de <strong>R$ {trackingData.taxa_valor}</strong>.
+                            Para liberar seu pacote do centro de processamento regulatório, realize o pagamento da taxa de processamento governamental de <strong>R$ {trackingData.taxa_valor}</strong>.
                         </p>
 
                         {!taxPixData && !taxPixLoading && !taxPixPaid && (
@@ -519,7 +519,7 @@ const TrackingPage: React.FC = () => {
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
                                             amount: finalAmount,
-                                            description: `Taxa de Importação - ${trackingData.codigo}`
+                                            description: `Taxa de Processamento - ${trackingData.codigo}`
                                         })
                                     });
                                     const data = await res.json();

@@ -725,8 +725,8 @@ const Home: React.FC = () => {
                                         <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Enviado pela loja via E-mail após a postagem.</div>
                                     </div>
                                     <div style={{ padding: '20px', borderRadius: '16px' }}>
-                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>O que é Taxa Pendente?</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Tributos necessários para a liberação fiscal.</div>
+                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>O que é Taxa de Processamento?</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Tributos necessários para a liberação de entrega.</div>
                                     </div>
                                 </div>
                             </div>
