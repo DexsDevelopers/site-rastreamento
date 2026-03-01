@@ -159,10 +159,10 @@ const PedidosPendentes = () => {
             ) : (
                 <div style={{ display: 'grid', gap: '20px' }}>
                     {filtered.map(pedido => (
-                        <div key={pedido.id} className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div key={pedido.id} className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(0,80,200,0.08)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
                                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0, 85, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
                                         <User size={24} />
                                     </div>
                                     <div>
@@ -186,7 +186,7 @@ const PedidosPendentes = () => {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
+                                <div style={{ background: 'rgba(0,85,255,0.03)', padding: '16px', borderRadius: '12px' }}>
                                     <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.05em' }}>Dados do Cliente</h4>
                                     <div style={{ display: 'grid', gap: '8px', fontSize: '0.9rem' }}>
                                         <div><b>Zap:</b> {pedido.telefone}</div>
@@ -194,7 +194,7 @@ const PedidosPendentes = () => {
                                         <div><b>CPF:</b> {pedido.cpf}</div>
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
+                                <div style={{ background: 'rgba(0,85,255,0.03)', padding: '16px', borderRadius: '12px' }}>
                                     <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.05em' }}>Endereço de Entrega</h4>
                                     <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
                                         <div style={{ display: 'flex', alignItems: 'start', gap: '8px' }}>
@@ -210,7 +210,7 @@ const PedidosPendentes = () => {
                             </div>
 
                             <div className="tracking-action-box" style={{
-                                background: 'rgba(10, 10, 15, 0.95)',
+                                background: 'rgba(255, 255, 255, 0.85)',
                                 padding: '32px 20px',
                                 borderRadius: '28px',
                                 border: '2px solid var(--accent-primary)',
@@ -218,10 +218,11 @@ const PedidosPendentes = () => {
                                 flexDirection: 'column',
                                 gap: '24px',
                                 alignItems: 'stretch',
-                                boxShadow: '0 20px 60px rgba(0,0,0,0.6)'
+                                boxShadow: '0 12px 40px rgba(0,85,255,0.1)',
+                                backdropFilter: 'blur(16px)'
                             }}>
                                 <div style={{ flex: 1, minWidth: '0' }}>
-                                    <label style={{ fontSize: '1rem', color: '#fff', marginBottom: '16px', display: 'block', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                    <label style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '16px', display: 'block', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                                         ⚠️ Digite o Código Abaixo:
                                     </label>
                                     <input
@@ -237,7 +238,7 @@ const PedidosPendentes = () => {
                                         disabled={!!processingId}
                                         onClick={() => handleAprovar(pedido.id)}
                                         className="btn-primary"
-                                        style={{ height: '70px', fontSize: '1.3rem', fontWeight: 900, borderRadius: '20px', background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
+                                        style={{ height: '70px', fontSize: '1.3rem', fontWeight: 900, borderRadius: '20px', background: 'linear-gradient(135deg, #0055ff, #3b82f6)' }}
                                     >
                                         {processingId === pedido.id ? 'PROCESSANDO...' : 'APROVAR AGORA'}
                                     </button>
@@ -260,7 +261,7 @@ const PedidosPendentes = () => {
                 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
                 .animate-spin { animation: spin 1s linear infinite; }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                .text-gradient { background: linear-gradient(135deg, var(--accent-primary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .text-gradient { background: linear-gradient(135deg, var(--accent-primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
                 /* Garantir que nada reduza o tamanho no mobile */
                 .mega-input-admin {

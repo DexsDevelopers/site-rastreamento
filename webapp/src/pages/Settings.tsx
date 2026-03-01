@@ -69,12 +69,12 @@ const Settings = () => {
 
                 {/* Conteúdo Principal */}
                 <div style={{
-                    background: 'rgba(255,255,255,0.01)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'rgba(255,255,255,0.55)',
+                    border: '1px solid rgba(255,255,255,0.7)',
                     borderRadius: '28px',
                     padding: '40px',
                     backdropFilter: 'blur(20px)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                    boxShadow: '0 8px 32px rgba(0,40,120,0.06)'
                 }}>
                     {loading ? (
                         <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
@@ -109,8 +109,8 @@ const Settings = () => {
 
                                     <div style={{
                                         padding: '24px',
-                                        background: 'rgba(99, 102, 241, 0.05)',
-                                        border: '1px solid rgba(99, 102, 241, 0.15)',
+                                        background: 'rgba(0, 85, 255, 0.04)',
+                                        border: '1px solid rgba(0, 85, 255, 0.1)',
                                         borderRadius: '20px',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -143,7 +143,7 @@ const Settings = () => {
                                 <div style={{ animation: 'fadeIn 0.3s ease' }}>
                                     <h3 style={sectionTitle}>Meu Perfil</h3>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '32px' }}>
-                                        <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'rgba(99, 102, 241, 0.15)', border: '1px solid #6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 900, color: '#fff' }}>
+                                        <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'rgba(0, 85, 255, 0.08)', border: '1px solid rgba(0,85,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 900, color: '#0055ff' }}>
                                             A
                                         </div>
                                         <div>
@@ -199,37 +199,37 @@ const Settings = () => {
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .spin { animation: spin 2s linear infinite; }
-                .text-gradient { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .text-gradient { background: linear-gradient(135deg, #0055ff, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
                 .input-field-premium {
-                    width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
-                    color: #fff; font-size: 0.95rem; outline: none; transition: all 0.3s;
+                    width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.7);
+                    border: 1px solid rgba(0,80,200,0.1); border-radius: 14px;
+                    color: var(--text-primary); font-size: 0.95rem; outline: none; transition: all 0.3s;
                 }
                 .input-field-premium:focus {
-                    border-color: #6366f1; background: rgba(99, 102, 241, 0.05);
-                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+                    border-color: #0055ff; background: #fff;
+                    box-shadow: 0 0 0 3px rgba(0, 85, 255, 0.15);
                 }
-                .form-label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+                .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
                 .form-group { margin-bottom: 24px; }
                 
                 .btn-primary { 
-                    padding: 14px 28px; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff;
+                    padding: 14px 28px; background: linear-gradient(135deg, #0055ff, #3b82f6); color: #fff;
                     border: none; border-radius: 14px; cursor: pointer; font-weight: 800; display: flex; align-items: center; gap: 8px;
-                    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3); transition: 0.3s;
+                    box-shadow: 0 8px 24px rgba(0, 85, 255, 0.3); transition: 0.3s;
                 }
                 .btn-primary:active { transform: scale(0.98); }
                 .btn-secondary {
-                    padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 12px; color: #fff; cursor: pointer; font-weight: 600;
+                    padding: 10px 20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,80,200,0.1);
+                    border-radius: 12px; color: var(--text-primary); cursor: pointer; font-weight: 600;
                 }
 
                 /* Switch */
                 .switch { position: relative; display: inline-block; width: 50px; height: 26px; flex-shrink: 0; }
                 .switch input { opacity: 0; width: 0; height: 0; }
-                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; }
+                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,80,200,0.1); transition: .4s; }
                 .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
-                input:checked + .slider { background-color: #6366f1; }
+                input:checked + .slider { background-color: #0055ff; }
                 input:checked + .slider:before { transform: translateX(24px); }
                 .slider.round { border-radius: 34px; }
                 .slider.round:before { border-radius: 50%; }
@@ -243,9 +243,9 @@ const TabButton = ({ icon, label, active, onClick }: any) => (
         onClick={onClick}
         style={{
             display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderRadius: '16px',
-            background: active ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-            color: active ? '#fff' : '#64748b',
-            border: active ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
+            background: active ? 'rgba(0, 85, 255, 0.06)' : 'transparent',
+            color: active ? '#0055ff' : '#64748b',
+            border: active ? '1px solid rgba(0, 85, 255, 0.15)' : '1px solid transparent',
             cursor: 'pointer', textAlign: 'left', fontWeight: 700, fontSize: '0.95rem', transition: 'all 0.3s'
         }}
     >
@@ -261,7 +261,7 @@ const SaveButton = ({ onClick, loading }: any) => (
     </button>
 );
 
-const sectionTitle = { fontSize: '1.4rem', fontWeight: 900, marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '16px', color: '#fff', fontFamily: 'Outfit, sans-serif' };
+const sectionTitle = { fontSize: '1.4rem', fontWeight: 900, marginBottom: '24px', borderBottom: '1px solid rgba(0,80,200,0.08)', paddingBottom: '16px', color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' };
 const formGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' };
 
 export default Settings;

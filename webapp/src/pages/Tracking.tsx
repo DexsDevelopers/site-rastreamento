@@ -579,7 +579,7 @@ const TrackingPage: React.FC = () => {
                             <X size={18} />
                         </button>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                            <Truck size={40} color="#6366f1" />
+                            <Truck size={40} color="#0055ff" />
                         </div>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Acelerar Entrega</h2>
                         <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
@@ -610,17 +610,17 @@ const TrackingPage: React.FC = () => {
                                 } finally {
                                     setPixLoading(false);
                                 }
-                            }} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)' }}>
+                            }} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #0055ff, #3b82f6)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0, 85, 255, 0.3)' }}>
                                 Pagar R$ 29,90 via PIX Agora
                             </button>
                         )}
                         {pixLoading && (
-                            <div style={{ color: '#818cf8', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
+                            <div style={{ color: '#0055ff', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
                         )}
 
                         {pixData && !pixPaid && (
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
-                                <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
+                                <div style={{ fontSize: '0.8rem', color: '#0055ff', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
                                     R$ {pixData.amount ? pixData.amount.toFixed(2).replace('.', ',') : '29,90'}
                                 </div>
@@ -631,7 +631,7 @@ const TrackingPage: React.FC = () => {
                                     {pixData.qr_code}
                                 </div>
                                 {timeLeft !== null && (
-                                    <div style={{ marginBottom: '16px', color: '#818cf8', fontWeight: 800, fontSize: '1rem', background: 'rgba(129,140,248,0.1)', padding: '8px', borderRadius: '10px' }}>
+                                    <div style={{ marginBottom: '16px', color: '#0055ff', fontWeight: 800, fontSize: '1rem', background: 'rgba(0,85,255,0.08)', padding: '8px', borderRadius: '10px' }}>
                                         🕒 Expira em: {formatTime(timeLeft)}
                                     </div>
                                 )}

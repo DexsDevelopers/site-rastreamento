@@ -848,7 +848,7 @@ const Home: React.FC = () => {
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }}>
                     <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                            <Zap size={40} color="#6366f1" />
+                            <Zap size={40} color="#0055ff" />
                         </div>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Acelerar Entrega</h2>
                         <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
@@ -878,17 +878,17 @@ const Home: React.FC = () => {
                                 } finally {
                                     setPixLoading(false);
                                 }
-                            }} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)' }}>
+                            }} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #0055ff, #3b82f6)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0, 85, 255, 0.3)' }}>
                                 Pagar R$ 29,90 via PIX Agora
                             </button>
                         )}
                         {pixLoading && (
-                            <div style={{ color: '#818cf8', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
+                            <div style={{ color: '#0055ff', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
                         )}
 
                         {pixData && !pixPaid && (
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
-                                <div style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
+                                <div style={{ fontSize: '0.8rem', color: '#0055ff', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
                                     R$ {pixData.amount ? pixData.amount.toFixed(2).replace('.', ',') : '29,90'}
                                 </div>

@@ -119,7 +119,7 @@ const styles = {
         position: 'absolute' as const,
         width: '400px',
         height: '400px',
-        background: 'rgba(139, 92, 246, 0.15)',
+        background: 'rgba(0, 85, 255, 0.1)',
         borderRadius: '50%',
         bottom: '-100px',
         left: '-100px',

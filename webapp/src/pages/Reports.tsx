@@ -63,14 +63,14 @@ const Reports = () => {
             {/* Top Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px', marginBottom: '40px' }}>
                 <ReportCard
-                    icon={<Package color="#6366f1" />}
+                    icon={<Package color="#0055ff" />}
                     label="Entregas Realizadas"
                     value={stats?.deliveredOrders.toString() || '0'}
                     trend="+12%"
                     trendUp={true}
                 />
                 <ReportCard
-                    icon={<Users color="#a855f7" />}
+                    icon={<Users color="#3b82f6" />}
                     label="Novos Clientes"
                     value={stats?.newClientsThisMonth.toString() || '0'}
                     trend="+8%"
@@ -101,10 +101,10 @@ const Reports = () => {
                         </h3>
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#666' }}>
-                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#6366f1' }}></div> Realizado
+                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#0055ff' }}></div> Realizado
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#666' }}>
-                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}></div> Meta
+                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(0,85,255,0.1)' }}></div> Meta
                             </div>
                         </div>
                     </div>
@@ -141,7 +141,7 @@ const Reports = () => {
                         <StatusProgress label="Em Processamento" value={stats?.totalOrders ? Math.round(((stats.totalOrders - stats.deliveredOrders - stats.pendingOrdersPortion) / stats.totalOrders) * 100) : 0} color="#3b82f6" />
                     </div>
 
-                    <div style={{ marginTop: '32px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ marginTop: '32px', padding: '16px', background: 'rgba(0,85,255,0.03)', borderRadius: '12px', textAlign: 'center' }}>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
                             Total de <b>{stats?.totalOrders || 0}</b> registros processados este mês.
                         </p>
@@ -160,10 +160,10 @@ const Reports = () => {
 
 const ReportCard = ({ icon, label, value, trend, trendUp }: any) => (
     <div className="glass-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(0,85,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
             {icon}
         </div>
-        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500, marginBottom: '6px' }}>{label}</div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: '6px' }}>{label}</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <div style={{ fontSize: '1.8rem', fontWeight: 800 }}>{value}</div>
             <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', fontWeight: 700, color: trendUp ? '#22c55e' : '#ef4444' }}>
@@ -177,10 +177,10 @@ const ReportCard = ({ icon, label, value, trend, trendUp }: any) => (
 const StatusProgress = ({ label, value, color }: any) => (
     <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-            <span style={{ color: '#bbb' }}>{label}</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
             <span style={{ fontWeight: 700 }}>{value}%</span>
         </div>
-        <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{ height: '6px', background: 'rgba(0,85,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
             <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: '10px' }}></div>
         </div>
     </div>

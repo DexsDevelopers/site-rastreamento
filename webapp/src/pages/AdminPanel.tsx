@@ -365,49 +365,49 @@ const AdminPanel: React.FC = () => {
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 
-                .text-gradient { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .text-gradient { background: linear-gradient(135deg, #0055ff, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
                 .admin-row { transition: all 0.2s; }
-                .admin-row:hover { background: rgba(255,255,255,0.03) !important; }
+                .admin-row:hover { background: rgba(0,85,255,0.03) !important; }
                 
                 .admin-action-btn { 
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); 
-                    border-radius: 10px; padding: 8px 12px; cursor: pointer; color: #888; 
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+                    background: rgba(255,255,255,0.6); border: 1px solid rgba(0,80,200,0.08); 
+                    border-radius: 10px; padding: 8px 12px; cursor: pointer; color: var(--text-secondary); 
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(8px);
                 }
-                .admin-action-btn:hover { background: rgba(255,255,255,0.08); color: #fff; transform: translateY(-1px); border-color: rgba(255,255,255,0.2); }
+                .admin-action-btn:hover { background: rgba(255,255,255,0.9); color: var(--text-primary); transform: translateY(-1px); border-color: rgba(0,85,255,0.15); }
                 
                 .filter-btn-tab { 
-                    padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); 
-                    background: rgba(255,255,255,0.02); color: #71717a; cursor: pointer; 
-                    font-weight: 600; font-size: 0.85rem; transition: all 0.3s; 
+                    padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(0,80,200,0.08); 
+                    background: rgba(255,255,255,0.5); color: var(--text-secondary); cursor: pointer; 
+                    font-weight: 600; font-size: 0.85rem; transition: all 0.3s; backdrop-filter: blur(8px);
                 }
-                .filter-btn-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
-                .filter-btn-tab.active { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+                .filter-btn-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.8); }
+                .filter-btn-tab.active { background: linear-gradient(135deg, #0055ff, #3b82f6); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(0, 85, 255, 0.3); }
                 
                 .form-input { 
-                    width: 100%; padding: 12px 18px; background: rgba(255,255,255,0.03); 
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; 
-                    color: #fff; font-size: 0.95rem; font-family: 'Inter', sans-serif; 
+                    width: 100%; padding: 12px 18px; background: rgba(255,255,255,0.7); 
+                    border: 1px solid rgba(0,80,200,0.1); border-radius: 14px; 
+                    color: var(--text-primary); font-size: 0.95rem; font-family: 'Inter', sans-serif; 
                     outline: none; transition: all 0.3s; box-sizing: border-box; 
                 }
-                .form-input:focus { border-color: #6366f1; background: rgba(99, 102, 241, 0.05); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
-                .form-label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+                .form-input:focus { border-color: #0055ff; background: #fff; box-shadow: 0 0 0 3px rgba(0, 85, 255, 0.15); }
+                .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
                 .form-group-mb { margin-bottom: 20px; }
                 
                 .checkbox-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid transparent; }
-                .checkbox-row:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.05); }
+                .checkbox-row:hover { background: rgba(0,85,255,0.03); border-color: rgba(0,85,255,0.08); }
                 
                 .status-entregue { color: #10b981; }
                 .status-saiu { color: #f59e0b; }
-                .status-transito { color: #6366f1; }
-                .status-distribuicao { color: #a855f7; }
+                .status-transito { color: #0055ff; }
+                .status-distribuicao { color: #3b82f6; }
                 .status-default { color: #71717a; }
                 
                 ::-webkit-scrollbar { width: 6px; height: 6px; }
-                ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-                ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
-                ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+                ::-webkit-scrollbar-track { background: transparent; }
+                ::-webkit-scrollbar-thumb { background: rgba(0,85,255,0.12); border-radius: 10px; }
+                ::-webkit-scrollbar-thumb:hover { background: rgba(0,85,255,0.25); }
             `}</style>
 
             {/* TOAST */}
@@ -430,9 +430,9 @@ const AdminPanel: React.FC = () => {
                     </button>
                     <button onClick={() => { setNovoForm(defaultNovo); setModalAdd(true); }} style={{
                         display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 28px',
-                        background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff',
+                        background: 'linear-gradient(135deg, #0055ff, #3b82f6)', color: '#fff',
                         border: 'none', borderRadius: '16px', cursor: 'pointer', fontWeight: 800, fontSize: '1rem',
-                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)', transition: '0.3s'
+                        boxShadow: '0 8px 24px rgba(0, 85, 255, 0.3)', transition: '0.3s'
                     }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
                         <Plus size={20} /> Novo Rastreio
                     </button>
@@ -443,7 +443,7 @@ const AdminPanel: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
                 <StatCard icon={<Package size={22} />} label="Total de Rastreios" value={loading ? '...' : stats.total} color="#0055ff" />
                 <StatCard icon={<DollarSign size={22} />} label="Com Taxa Pendente" value={loading ? '...' : stats.com_taxa} color="#f59e0b" />
-                <StatCard icon={<BarChart2 size={22} />} label="Sem Taxa" value={loading ? '...' : stats.sem_taxa} color="#a78bfa" />
+                <StatCard icon={<BarChart2 size={22} />} label="Sem Taxa" value={loading ? '...' : stats.sem_taxa} color="#3b82f6" />
                 <StatCard icon={<CheckCircle size={22} />} label="Entregues" value={loading ? '...' : stats.entregues} color="#22c55e" />
             </div>
 
@@ -499,7 +499,7 @@ const AdminPanel: React.FC = () => {
                                     <input type="checkbox"
                                         checked={selected.size === filteredRastreios.length && filteredRastreios.length > 0}
                                         onChange={toggleSelectAll}
-                                        style={{ accentColor: '#6366f1', width: '18px', height: '18px', cursor: 'pointer' }}
+                                        style={{ accentColor: '#0055ff', width: '18px', height: '18px', cursor: 'pointer' }}
                                     />
                                 </th>
                                 <th style={{ ...thStyle, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Código</th>
@@ -529,7 +529,7 @@ const AdminPanel: React.FC = () => {
                                 <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.2s' }}>
                                     <td style={{ ...tdStyle, padding: '20px' }}>
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
-                                            style={{ accentColor: '#6366f1', width: '18px', height: '18px', cursor: 'pointer' }} />
+                                            style={{ accentColor: '#0055ff', width: '18px', height: '18px', cursor: 'pointer' }} />
                                     </td>
                                     <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: '#fff', letterSpacing: '0.5px', fontSize: '1rem' }}>
                                         {r.codigo}
@@ -550,7 +550,7 @@ const AdminPanel: React.FC = () => {
                                     <td style={{ ...tdStyle, textAlign: 'right', paddingRight: '24px' }}>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                             <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={16} /></button>
-                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: '#8b5cf6', background: 'rgba(139,92,246,0.05)' }}><Copy size={16} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: '#0055ff', background: 'rgba(0,85,255,0.05)' }}><Copy size={16} /></button>
                                             <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.05)' }}><Edit size={16} /></button>
                                             <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: '#10b981', background: 'rgba(16,185,129,0.05)' }}><MessageCircle size={16} /></button>
                                             <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.05)' }}><Trash2 size={16} /></button>
@@ -740,7 +740,7 @@ const AdminPanel: React.FC = () => {
             </Modal>
 
             {/* ===== MODAL DETALHES (Estilo Dashboard Premium) ===== */}
-            <Modal open={modalDetails} onClose={() => setModalDetails(false)} title="Detalhes do Rastreio" icon={<Eye size={20} color="#818cf8" />}>
+            <Modal open={modalDetails} onClose={() => setModalDetails(false)} title="Detalhes do Rastreio" icon={<Eye size={20} color="#0055ff" />}>
                 {detailsData && (
                     <div style={{ animation: 'fadeIn 0.4s ease' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px', background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -770,7 +770,7 @@ const AdminPanel: React.FC = () => {
                                         borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)',
                                         fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '14px'
                                     }}>
-                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: i === detailsData.etapas.length - 1 ? '#6366f1' : 'rgba(255,255,255,0.2)', boxShadow: i === detailsData.etapas.length - 1 ? '0 0 12px #6366f1' : 'none' }} />
+                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: i === detailsData.etapas.length - 1 ? '#0055ff' : 'rgba(0,85,255,0.15)', boxShadow: i === detailsData.etapas.length - 1 ? '0 0 12px rgba(0,85,255,0.5)' : 'none' }} />
                                         {ETAPAS_MAP[etapa] || etapa}
                                     </div>
                                 )) : (

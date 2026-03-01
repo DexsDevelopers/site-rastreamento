@@ -9,7 +9,7 @@ const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobil
                     <span className="text-gradient">Loggi</span> Admin
                 </h2>
                 {closeMobile && (
-                    <button className="mobile-close-btn" onClick={closeMobile} style={{ background: 'none', border: 'none', color: '#fff', padding: '4px' }}>
+                    <button className="mobile-close-btn" onClick={closeMobile} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', padding: '4px' }}>
                         <X size={24} />
                     </button>
                 )}
@@ -77,9 +77,10 @@ const styles = {
         display: 'flex',
         flexDirection: 'column' as const,
         border: '1px solid var(--border-glass)',
-        background: 'rgba(10, 10, 12, 0.65)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: 'var(--radius-lg)'
+        background: 'rgba(255, 255, 255, 0.75)',
+        backdropFilter: 'blur(24px)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0 8px 32px rgba(0,40,120,0.08)'
     },
     logoContainer: {
         padding: '24px 20px',
@@ -112,9 +113,9 @@ const styles = {
         borderLeft: '3px solid transparent',
     },
     linkActive: {
-        background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%)',
-        color: '#8b5cf6',
-        borderLeft: '3px solid #6366f1',
+        background: 'linear-gradient(90deg, rgba(0, 85, 255, 0.08) 0%, transparent 100%)',
+        color: '#0055ff',
+        borderLeft: '3px solid #0055ff',
         fontWeight: 600,
     },
     footer: {

@@ -140,7 +140,7 @@ const Entregadores = () => {
                         <div key={ent.id} className="glass-panel" style={{ padding: '20px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                                 <div style={{ display: 'flex', gap: '12px' }}>
-                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(0,85,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <User size={20} style={{ color: 'var(--accent-primary)' }} />
                                     </div>
                                     <div>
@@ -190,14 +190,14 @@ const Entregadores = () => {
                         </div>
                         <div className="form-group">
                             <label className="form-label">Status</label>
-                            <select className="input-field" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })} style={{ background: '#111', color: '#fff' }}>
+                            <select className="input-field" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })} style={{ background: 'rgba(255,255,255,0.7)', color: 'var(--text-primary)' }}>
                                 <option value="disponivel">Disponível</option>
                                 <option value="em_rota">Em Rota</option>
                                 <option value="indisponivel">Indisponível</option>
                             </select>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                            <button type="button" onClick={() => setModalOpen(false)} className="btn-primary" style={{ flex: 1, background: 'rgba(255,255,255,0.05)', color: '#fff' }}>Cancelar</button>
+                            <button type="button" onClick={() => setModalOpen(false)} className="btn-primary" style={{ flex: 1, background: 'rgba(0,85,255,0.06)', color: 'var(--text-primary)' }}>Cancelar</button>
                             <button type="submit" className="btn-primary" style={{ flex: 1 }}>{editingId ? 'Salvar' : 'Cadastrar'}</button>
                         </div>
                     </form>
