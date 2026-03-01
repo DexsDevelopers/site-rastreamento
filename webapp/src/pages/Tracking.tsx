@@ -255,7 +255,7 @@ const TrackingPage: React.FC = () => {
 
             <div className="tracking-container">
                 {trackingData ? (
-                    <div className="reveal">
+                    <div>
                         <div className="status-card">
                             {trackingData.taxa_valor && (
                                 <div style={{
