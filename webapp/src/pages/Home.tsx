@@ -599,14 +599,13 @@ const Home: React.FC = () => {
                 }
 
                 .instruction-card {
-                    background: rgba(255,255,255,0.6);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.8);
+                    background: #ffffff;
+                    border: 1px solid #0055ff;
                     border-radius: 24px;
                     padding: 32px;
                     margin-top: 40px;
                     text-align: left;
-                    box-shadow: 0 8px 32px rgba(0, 40, 120, 0.05);
+                    box-shadow: 0 8px 32px rgba(0, 40, 120, 0.1);
                 }
                 .instruction-step {
                     display: flex;
@@ -631,6 +630,11 @@ const Home: React.FC = () => {
                     gap: 24px;
                     margin-top: 40px;
                     text-align: left;
+                }
+                .faq-grid div {
+                    background: #ffffff !important;
+                    border: 1px solid #e2e8f0 !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
                 }
             `}</style>
 
@@ -716,13 +720,13 @@ const Home: React.FC = () => {
                                 </div>
 
                                 <div className="faq-grid">
-                                    <div style={{ background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)' }}>
-                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.85rem', marginBottom: '4px' }}>Onde encontro meu código?</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Enviado pela loja via E-mail após a postagem.</div>
+                                    <div style={{ padding: '20px', borderRadius: '16px' }}>
+                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>Onde encontro meu código?</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Enviado pela loja via E-mail após a postagem.</div>
                                     </div>
-                                    <div style={{ background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)' }}>
-                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.85rem', marginBottom: '4px' }}>O que é Taxa Pendente?</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Tributos necessários para a liberação fiscal.</div>
+                                    <div style={{ padding: '20px', borderRadius: '16px' }}>
+                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>O que é Taxa Pendente?</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Tributos necessários para a liberação fiscal.</div>
                                     </div>
                                 </div>
                             </div>
@@ -967,7 +971,7 @@ const Home: React.FC = () => {
                             <Zap size={40} color="#0055ff" />
                         </div>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Acelerar Entrega</h2>
-                        <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '32px' }}>
+                        <p style={{ color: '#475569', lineHeight: 1.6, marginBottom: '32px', fontWeight: 500 }}>
                             Ao acelerar, seu pacote ganha prioridade máxima em nossa malha e será entregue em até <strong>3 dias úteis</strong>.
                         </p>
 
@@ -1014,8 +1018,8 @@ const Home: React.FC = () => {
                                 <div style={{ background: 'rgba(0,85,255,0.04)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: '#64748b', marginBottom: '10px', userSelect: 'all', border: '1px solid rgba(0,85,255,0.08)' }}>
                                     {pixData.qr_code}
                                 </div>
-                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
-                                <button onClick={() => { navigator.clipboard.writeText(pixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#4f46e5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
+                                <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <button onClick={() => { navigator.clipboard.writeText(pixData.qr_code); alert('Copiado!'); }} style={{ padding: '12px 24px', background: '#0055ff', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 800, width: '100%' }}>Copiar Código PIX</button>
                                 <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
                             </div>
                         )}
@@ -1023,12 +1027,12 @@ const Home: React.FC = () => {
                         {pixPaid && (
                             <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
-                                <div style={{ fontSize: '1.2rem', color: '#10b981', fontWeight: 800 }}>Pagamento Confirmado!</div>
-                                <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '8px' }}>Seu processo de aceleração foi ativado. Você receberá atualizações em breve.</p>
+                                <div style={{ fontSize: '1.2rem', color: '#059669', fontWeight: 900 }}>Pagamento Confirmado!</div>
+                                <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, marginTop: '8px' }}>Seu processo de aceleração foi ativado. Você receberá atualizações em breve.</p>
                             </div>
                         )}
 
-                        <button onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }} style={{ background: 'none', border: 'none', color: '#94a3b8', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{pixPaid ? 'Fechar' : 'Talvez mais tarde'}</button>
+                        <button onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }} style={{ background: 'none', border: 'none', color: '#475569', marginTop: '20px', cursor: 'pointer', fontWeight: 700, textDecoration: 'underline' }}>{pixPaid ? 'Fechar' : 'Talvez mais tarde'}</button>
                     </div>
                 </div>
             )}
@@ -1040,7 +1044,7 @@ const Home: React.FC = () => {
                             <Calculator size={40} color="#ef4444" />
                         </div>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Pagar Taxa</h2>
-                        <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '32px' }}>
+                        <p style={{ color: '#475569', lineHeight: 1.6, marginBottom: '32px', fontWeight: 500 }}>
                             Para liberar seu pacote do centro de fiscalização, realize o pagamento da taxa de importação de <strong>R$ {trackResult.taxa_valor}</strong>.
                         </p>
 
@@ -1092,8 +1096,8 @@ const Home: React.FC = () => {
                                 <div style={{ background: 'rgba(239,68,68,0.04)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: '#64748b', marginBottom: '10px', userSelect: 'all', border: '1px solid rgba(239,68,68,0.08)' }}>
                                     {taxPixData.qr_code}
                                 </div>
-                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
-                                <button onClick={() => { navigator.clipboard.writeText(taxPixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#ef4444', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
+                                <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <button onClick={() => { navigator.clipboard.writeText(taxPixData.qr_code); alert('Copiado!'); }} style={{ padding: '12px 24px', background: '#ef4444', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 800, width: '100%' }}>Copiar Código PIX</button>
                                 <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
                             </div>
                         )}
@@ -1101,12 +1105,12 @@ const Home: React.FC = () => {
                         {taxPixPaid && (
                             <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
-                                <div style={{ fontSize: '1.2rem', color: '#10b981', fontWeight: 800 }}>Pagamento Confirmado!</div>
-                                <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
+                                <div style={{ fontSize: '1.2rem', color: '#059669', fontWeight: 900 }}>Pagamento Confirmado!</div>
+                                <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
                             </div>
                         )}
 
-                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }} style={{ background: 'none', border: 'none', color: '#94a3b8', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
+                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }} style={{ background: 'none', border: 'none', color: '#475569', marginTop: '20px', cursor: 'pointer', fontWeight: 700, textDecoration: 'underline' }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
                     </div>
                 </div>
             )}
