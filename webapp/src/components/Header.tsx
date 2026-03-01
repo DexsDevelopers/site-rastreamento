@@ -55,16 +55,18 @@ const Header = () => {
                     box-shadow: 0 12px 40px rgba(0, 40, 120, 0.12);
                 }
                 .logo {
-                    display: flex; align-items: center; gap: 10px;
+                    display: flex; align-items: center; gap: 12px;
                     text-decoration: none; color: var(--text-primary);
-                    font-size: 1.4rem; font-weight: 900; letter-spacing: -1px;
+                    font-size: 1.6rem; font-weight: 900; letter-spacing: -1.5px;
                 }
                 .logo img {
-                    width: 30px; height: 30px;
-                    filter: drop-shadow(0 2px 6px rgba(0, 85, 255, 0.3));
+                    width: 38px; height: 38px;
+                    filter: drop-shadow(0 2px 8px rgba(0, 85, 255, 0.4));
+                    transition: transform 0.3s ease;
                 }
+                .logo:hover img { transform: scale(1.1); }
                 
-                .desktop-nav { display: flex; align-items: center; gap: 4px; }
+                .desktop-nav { display: flex; align-items: center; gap: 8px; }
                 .nav-link {
                     color: var(--text-secondary); text-decoration: none; font-size: 0.88rem; font-weight: 600;
                     padding: 8px 16px; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative;

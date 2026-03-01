@@ -281,11 +281,52 @@ app.post('/api/pix/create', async (req, res) => {
 app.get('/api/pix/status/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const { codigo } = req.query; // Código de rastreio opcional
+
         const response = await fetch(`${PIXGO_API_URL}/payment/${id}/status`, {
             method: 'GET',
             headers: { 'x-api-key': PIXGO_API_KEY }
         });
         const data = await response.json();
+
+        // Se o pagamento foi confirmado e temos o código de rastreio
+        if (data.success && (data.status === 'PAID' || data.status === 'CONFIRMED' || data.data?.status === 'PAID') && codigo && db) {
+            const cleanCodigo = codigo.toUpperCase().trim();
+
+            // 1. Verificar se já existe a etapa de confirmação para não duplicar
+            const [existing] = await db.query(
+                "SELECT id FROM rastreios_status WHERE codigo = ? AND titulo LIKE '%Pagamento Confirmado%'",
+                [cleanCodigo]
+            );
+
+            if (existing.length === 0) {
+                // 2. Buscar cidade do rastreio atual
+                const [rows] = await db.query("SELECT cidade FROM rastreios_status WHERE codigo = ? LIMIT 1", [cleanCodigo]);
+                const cidade = rows.length > 0 ? rows[0].cidade : 'Centro de Distribuição';
+
+                // 3. Atualizar todas as etapas removendo o valor da taxa (botão some)
+                await db.query(
+                    "UPDATE rastreios_status SET taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?",
+                    [cleanCodigo]
+                );
+
+                // 4. Inserir nova etapa de confirmação
+                await db.query(
+                    "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor) VALUES (?, ?, ?, ?, ?, NOW(), ?)",
+                    [
+                        cleanCodigo,
+                        cidade,
+                        '✅ Pagamento Confirmado',
+                        '✅ Pagamento Confirmado',
+                        'A taxa foi processada com sucesso. Seu pacote seguirá para a próxima etapa de entrega.',
+                        '#16A34A'
+                    ]
+                );
+
+                console.log(`[AUTO-UPDATE] Pagamento confirmado para o código: ${cleanCodigo}`);
+            }
+        }
+
         res.json(data);
     } catch (error) {
         console.error('[PIXGO STATUS ERROR]', error.message);

