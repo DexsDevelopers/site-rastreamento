@@ -502,7 +502,33 @@ const TrackingPage: React.FC = () => {
                             </div>
                         )}
 
-                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '20px', cursor: 'pointer', fontWeight: 600 }}>{taxPixPaid ? 'Fechar' : 'Voltar'}</button>
+                        {/* FAQ SECTION */}
+                        <div style={{ textAlign: 'left', marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '20px', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Package size={20} color="#ef4444" /> Informações Importantes
+                            </h3>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <FaqItem
+                                    q="Por que fui taxado?"
+                                    a="Todas as compras internacionais estão sujeitas à fiscalização da Receita Federal e podem ser tributadas conforme a legislação vigente de importação."
+                                />
+                                <FaqItem
+                                    q="O que acontece se eu não pagar?"
+                                    a="Caso o pagamento não seja identificado em até 7 dias, o objeto pode ser devolvido ao país de origem ou declarado como abandonado, perdendo o direito ao reembolso."
+                                />
+                                <FaqItem
+                                    q="Qual o prazo para liberação?"
+                                    a="Após a confirmação do pagamento, a Receita Federal geralmente libera o pacote para entrega em um prazo de 3 a 5 dias úteis."
+                                />
+                                <FaqItem
+                                    q="O valor é reembolsável?"
+                                    a="Não. As taxas alfandegárias são tributos obrigatórios e não passíveis de devolução após o processamento pela fiscalização."
+                                />
+                            </div>
+                        </div>
+
+                        <button onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', marginTop: '32px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'underline' }}>{taxPixPaid ? 'Fechar' : 'Voltar para o rastreio'}</button>
                     </div>
                 </div>
             )}
@@ -618,5 +644,12 @@ const TrackingPage: React.FC = () => {
         </div>
     );
 };
+
+const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
+    <div>
+        <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.85rem', marginBottom: '4px', textTransform: 'uppercase' }}>{q}</div>
+        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.5 }}>{a}</div>
+    </div>
+);
 
 export default TrackingPage;
