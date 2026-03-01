@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { QrCode, Satellite, Zap, ArrowRight, MapPin } from 'lucide-react';
+import { QrCode, Satellite, Zap, ArrowRight, MapPin, Shield, Clock, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -24,7 +24,7 @@ const ParaVoce: React.FC = () => {
     return (
         <div className="pv-page">
             <style>{`
-                .pv-page { background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; position: relative; overflow-x: hidden; font-family: 'Outfit', sans-serif; }
+                .pv-page { background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; position: relative; overflow-x: hidden; font-family: 'Inter', sans-serif; }
                 .pv-page * { box-sizing: border-box; }
                 .bg-mesh {
                     position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -38,26 +38,109 @@ const ParaVoce: React.FC = () => {
                 .reveal-active { opacity: 1; transform: translateY(0) scale(1); }
                 .reveal-delay-1 { transition-delay: 0.1s; }
                 .reveal-delay-2 { transition-delay: 0.2s; }
+                .reveal-delay-3 { transition-delay: 0.3s; }
 
                 .hero-section { position: relative; z-index: 1; padding: 60px 24px 40px; max-width: 1200px; margin: 0 auto; text-align: center; }
-                .hero-glass { padding: 80px 48px; border-radius: 40px; background: rgba(255,255,255,0.6); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 16px 48px rgba(0,40,120,0.08); position: relative; overflow: hidden; }
-                .hero-glass::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #0055ff, #3b82f6, #06b6d4); }
+                .hero-glass { 
+                    padding: 80px 48px; border-radius: 40px; 
+                    background: rgba(255,255,255,0.65); backdrop-filter: blur(28px) saturate(1.5); 
+                    border: 1px solid rgba(255,255,255,0.8); 
+                    box-shadow: 0 20px 60px rgba(0,40,120,0.08), inset 0 1px 0 rgba(255,255,255,0.9); 
+                    position: relative; overflow: hidden;
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .hero-glass:hover {
+                    box-shadow: 0 30px 80px rgba(0,40,120,0.1);
+                    transform: translateY(-4px);
+                }
+                .hero-glass::before { 
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; 
+                    background: linear-gradient(90deg, #0055ff, #3b82f6, #06b6d4, #0055ff); 
+                    background-size: 200% 100%; animation: gradient-flow 3s ease infinite;
+                }
+                @keyframes gradient-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
                 .gradient-text { background: linear-gradient(135deg, #0055ff, #3b82f6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
                 .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 1200px; margin: 60px auto; padding: 0 24px; position: relative; z-index: 1; }
-                .service-card { padding: 40px; border-radius: 32px; background: rgba(255,255,255,0.55); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.7); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 16px rgba(0,40,120,0.04); transform-style: preserve-3d; }
-                .service-card:hover { transform: translateY(-10px) rotateX(2deg); background: rgba(255,255,255,0.8); border-color: rgba(0, 85, 255, 0.2); box-shadow: 0 24px 48px rgba(0,40,120,0.1); }
-                .service-icon { width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
-                .service-card h3 { font-size: 1.5rem; margin-bottom: 16px; font-weight: 800; }
+                .service-card { 
+                    padding: clamp(28px, 4vw, 40px); border-radius: 32px; 
+                    background: rgba(255,255,255,0.55); backdrop-filter: blur(20px) saturate(1.3); 
+                    border: 1px solid rgba(255,255,255,0.7); 
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+                    box-shadow: 0 4px 16px rgba(0,40,120,0.04); 
+                    transform-style: preserve-3d;
+                    position: relative; overflow: hidden;
+                }
+                .service-card::after {
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+                    background: var(--accent-gradient); transform: scaleX(0);
+                    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: left;
+                }
+                .service-card:hover { 
+                    transform: translateY(-10px) rotateX(2deg) scale(1.01); 
+                    background: rgba(255,255,255,0.82); 
+                    border-color: rgba(0, 85, 255, 0.2); 
+                    box-shadow: 0 30px 60px rgba(0,40,120,0.1); 
+                }
+                .service-card:hover::after { transform: scaleX(1); }
+                .service-icon { 
+                    width: clamp(52px, 8vw, 64px); height: clamp(52px, 8vw, 64px); border-radius: 20px; 
+                    display: flex; align-items: center; justify-content: center; margin-bottom: 24px; 
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    position: relative;
+                }
+                .service-icon::after {
+                    content: ''; position: absolute; inset: -4px; border-radius: inherit;
+                    background: inherit; opacity: 0.3; filter: blur(12px); z-index: -1;
+                }
+                .service-card:hover .service-icon { transform: scale(1.1) translateY(-2px); }
+                .service-card h3 { font-size: clamp(1.2rem, 2.5vw, 1.5rem); margin-bottom: 16px; font-weight: 800; font-family: 'Outfit', sans-serif; }
                 .service-card p { color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; }
+                .service-link {
+                    color: #0055ff; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; 
+                    text-decoration: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .service-link:hover { gap: 14px; color: #3b82f6; }
+
+                .trust-section {
+                    position: relative; z-index: 1;
+                    max-width: 1200px; margin: 20px auto 60px; padding: 0 24px;
+                }
+                .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+                .trust-card {
+                    padding: 24px; border-radius: 20px; text-align: center;
+                    background: rgba(255,255,255,0.5); backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255,255,255,0.6);
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trust-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 16px 32px rgba(0,40,120,0.06);
+                }
+                .trust-icon {
+                    width: 44px; height: 44px; border-radius: 14px;
+                    display: flex; align-items: center; justify-content: center;
+                    margin: 0 auto 12px;
+                }
+                .trust-value { font-size: 1.4rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--text-primary); }
+                .trust-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
                 
                 @media (max-width: 768px) { 
                     .desktop-nav { display: none; } 
-                    .hero-glass { padding: 48px 24px; }
+                    .hero-glass { padding: 48px 24px; border-radius: 28px; }
                     .hero-section { padding: 100px 20px 40px; }
-                    .hero-section h1 { font-size: 2.5rem !important; }
+                    .hero-section h1 { font-size: clamp(2rem, 7vw, 2.5rem) !important; letter-spacing: -1px !important; }
                     .hero-section p { font-size: 1rem !important; }
-                    .services-grid { grid-template-columns: 1fr; }
+                    .services-grid { grid-template-columns: 1fr; padding: 0 16px; }
+                    .trust-grid { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+                    .trust-card { padding: 16px; }
+                    .trust-value { font-size: 1.1rem; }
+                    .service-card:hover { transform: translateY(-4px) !important; }
+                }
+                @media (max-width: 480px) {
+                    .hero-glass { padding: 36px 20px; }
+                    .trust-grid { grid-template-columns: 1fr; }
+                    .btn-primary { width: 100%; justify-content: center; }
                 }
             `}</style>
 
@@ -68,9 +151,9 @@ const ParaVoce: React.FC = () => {
             <section className="hero-section">
                 <div className="hero-glass reveal">
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 18px', background: 'rgba(0, 85, 255, 0.06)', border: '1px solid rgba(0, 85, 255, 0.12)', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 600, color: '#0055ff', marginBottom: '24px', textTransform: 'uppercase' as const }}><Zap size={12} /> Soluções pessoais</div>
-                    <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-2px', marginBottom: '24px' }}>Entregas para <span className="gradient-text">você</span></h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '700px', margin: '0 auto 40px' }}>Facilitamos o envio de seus objetos pessoais e compras online com segurança, rapidez e transparência total.</p>
-                    <Link to="/pedido" className="btn-primary" style={{ padding: '18px 48px', fontSize: '1.1rem', whiteSpace: 'nowrap', display: 'inline-block' }}>Fazer um envio agora</Link>
+                    <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-2px', marginBottom: '24px', fontFamily: 'Outfit, sans-serif' }}>Entregas para <span className="gradient-text">você</span></h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(1rem, 2vw, 1.2rem)', maxWidth: '700px', margin: '0 auto 40px', lineHeight: 1.7 }}>Facilitamos o envio de seus objetos pessoais e compras online com segurança, rapidez e transparência total.</p>
+                    <Link to="/pedido" className="btn-primary" style={{ padding: '18px 48px', fontSize: '1.1rem', whiteSpace: 'nowrap', display: 'inline-flex' }}>Fazer um envio agora</Link>
                 </div>
             </section>
 
@@ -84,9 +167,30 @@ const ParaVoce: React.FC = () => {
                         <div className="service-icon" style={{ background: s.bg }}>{s.icon}</div>
                         <h3>{s.title}</h3>
                         <p>{s.desc}</p>
-                        <Link to={s.link} style={{ color: '#0055ff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>Saiba mais <ArrowRight size={16} /></Link>
+                        <Link to={s.link} className="service-link">Saiba mais <ArrowRight size={16} /></Link>
                     </div>
                 ))}
+            </div>
+
+            {/* Trust Section */}
+            <div className="trust-section reveal">
+                <div className="trust-grid">
+                    <div className="trust-card">
+                        <div className="trust-icon" style={{ background: 'rgba(0, 85, 255, 0.06)' }}><Shield size={22} color="#0055ff" /></div>
+                        <div className="trust-value">100%</div>
+                        <div className="trust-label">Seguro</div>
+                    </div>
+                    <div className="trust-card">
+                        <div className="trust-icon" style={{ background: 'rgba(16, 185, 129, 0.06)' }}><Clock size={22} color="#10b981" /></div>
+                        <div className="trust-value">24h</div>
+                        <div className="trust-label">Entrega Express</div>
+                    </div>
+                    <div className="trust-card">
+                        <div className="trust-icon" style={{ background: 'rgba(245, 158, 11, 0.06)' }}><Sparkles size={22} color="#f59e0b" /></div>
+                        <div className="trust-value">4.8★</div>
+                        <div className="trust-label">Satisfação</div>
+                    </div>
+                </div>
             </div>
 
             <Footer />

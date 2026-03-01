@@ -182,16 +182,24 @@ const Home: React.FC = () => {
                 .hero-left { flex: 1; min-width: 0; }
                 .hero-glass-card {
                     padding: 48px 40px; border-radius: 28px;
-                    background: rgba(255, 255, 255, 0.6);
-                    backdrop-filter: blur(24px);
+                    background: rgba(255, 255, 255, 0.65);
+                    backdrop-filter: blur(28px) saturate(1.5);
                     border: 1px solid rgba(255,255,255,0.8);
-                    box-shadow: 0 16px 48px rgba(0,40,120,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+                    box-shadow: 0 20px 60px rgba(0,40,120,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
                     position: relative; overflow: hidden;
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .hero-glass-card:hover {
+                    box-shadow: 0 30px 80px rgba(0,40,120,0.1), inset 0 1px 0 rgba(255,255,255,0.95);
+                    transform: translateY(-4px);
                 }
                 .hero-glass-card::before {
                     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-                    background: linear-gradient(90deg, #0055ff, #3b82f6, #06b6d4);
+                    background: linear-gradient(90deg, #0055ff, #3b82f6, #06b6d4, #0055ff);
+                    background-size: 200% 100%;
+                    animation: gradient-flow 3s ease infinite;
                 }
+                @keyframes gradient-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
                 .hero-right { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
                 .hero-badge {
                     display: inline-flex; align-items: center; gap: 8px;
@@ -288,24 +296,34 @@ const Home: React.FC = () => {
                     color: white; font-weight: 700; font-size: 1rem; cursor: pointer;
                     font-family: 'Outfit', sans-serif;
                     box-shadow: 0 8px 24px rgba(0, 85, 255, 0.25);
-                    transition: all 0.3s;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    position: relative; overflow: hidden;
                 }
-                .track-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 85, 255, 0.4); }
+                .track-submit::after {
+                    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                    transition: left 0.6s;
+                }
+                .track-submit:hover::after { left: 100%; }
+                .track-submit:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0, 85, 255, 0.4); }
+                .track-submit:active { transform: translateY(0); transition-duration: 0.1s; }
                 .track-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
                 .float-card {
                     padding: 28px 32px; border-radius: 24px;
-                    background: rgba(255,255,255,0.6);
-                    backdrop-filter: blur(20px);
+                    background: rgba(255,255,255,0.65);
+                    backdrop-filter: blur(24px) saturate(1.4);
                     border: 1px solid rgba(255,255,255,0.8);
                     text-align: center; min-width: 220px;
-                    transition: all 0.4s;
-                    box-shadow: 0 8px 32px rgba(0,40,120,0.06);
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                    box-shadow: 0 12px 40px rgba(0,40,120,0.06);
+                    transform-style: preserve-3d;
+                    cursor: default;
                 }
                 .float-card:hover {
-                    border-color: rgba(0, 85, 255, 0.2);
-                    transform: translateY(-4px);
-                    box-shadow: 0 20px 40px rgba(0,40,120,0.1);
+                    border-color: rgba(0, 85, 255, 0.25);
+                    transform: translateY(-8px) rotateX(2deg) rotateY(-1deg) !important;
+                    box-shadow: 0 24px 56px rgba(0,40,120,0.12);
                 }
                 .float-card-value {
                     font-size: 2.8rem; font-weight: 900;
@@ -421,19 +439,26 @@ const Home: React.FC = () => {
                 .feature-card {
                     padding: 32px; border-radius: 24px;
                     background: rgba(255,255,255,0.55);
-                    backdrop-filter: blur(16px);
+                    backdrop-filter: blur(20px) saturate(1.3);
                     border: 1px solid rgba(255,255,255,0.7);
                     display: flex; flex-direction: column; gap: 16px;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
                     transform-style: preserve-3d;
                     box-shadow: 0 4px 16px rgba(0,40,120,0.04);
+                    position: relative; overflow: hidden;
+                }
+                .feature-card::after {
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+                    background: var(--accent-gradient); transform: scaleX(0);
+                    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: left;
                 }
                 .feature-card:hover {
-                    background: rgba(255,255,255,0.8);
+                    background: rgba(255,255,255,0.82);
                     border-color: rgba(0, 85, 255, 0.2);
-                    transform: translateY(-8px) rotateX(2deg);
-                    box-shadow: 0 24px 48px rgba(0,40,120,0.1), 0 0 0 1px rgba(0, 85, 255, 0.08);
+                    transform: translateY(-10px) rotateX(2deg) scale(1.01);
+                    box-shadow: 0 30px 60px rgba(0,40,120,0.1), 0 0 0 1px rgba(0, 85, 255, 0.08);
                 }
+                .feature-card:hover::after { transform: scaleX(1); }
                 .feature-icon {
                     width: 56px; height: 56px; border-radius: 16px;
                     display: flex; align-items: center; justify-content: center;
@@ -454,16 +479,18 @@ const Home: React.FC = () => {
                 }
                 .metric-card {
                     padding: 32px 20px; border-radius: 24px; text-align: center;
-                    background: rgba(255,255,255,0.55);
-                    backdrop-filter: blur(16px);
+                    background: rgba(255,255,255,0.6);
+                    backdrop-filter: blur(20px) saturate(1.3);
                     border: 1px solid rgba(255,255,255,0.7);
-                    transition: all 0.4s;
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
                     box-shadow: 0 4px 16px rgba(0,40,120,0.04);
+                    transform-style: preserve-3d;
                 }
                 .metric-card:hover {
-                    border-color: rgba(0, 85, 255, 0.2);
-                    transform: translateY(-4px);
-                    box-shadow: 0 20px 40px rgba(0,40,120,0.08);
+                    border-color: rgba(0, 85, 255, 0.25);
+                    transform: translateY(-6px) rotateX(1deg);
+                    box-shadow: 0 24px 48px rgba(0,40,120,0.1);
+                    background: rgba(255,255,255,0.82);
                 }
                 .metric-icon {
                     width: 48px; height: 48px; border-radius: 14px;

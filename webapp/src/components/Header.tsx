@@ -36,9 +36,9 @@ const Header = () => {
             <style>{`
                 .site-header {
                     position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px 24px;
+                    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px 24px;
                 }
-                .site-header.scrolled { padding: 12px 24px; }
+                .site-header.scrolled { padding: 10px 24px; }
                 .header-glass {
                     max-width: 1280px; margin: 0 auto;
                     display: flex; justify-content: space-between; align-items: center;
@@ -64,13 +64,20 @@ const Header = () => {
                     filter: drop-shadow(0 2px 6px rgba(0, 85, 255, 0.3));
                 }
                 
-                .desktop-nav { display: flex; align-items: center; gap: 4px; }
                 .nav-link {
                     color: var(--text-secondary); text-decoration: none; font-size: 0.88rem; font-weight: 600;
-                    padding: 8px 16px; border-radius: 12px; transition: all 0.3s; position: relative;
+                    padding: 8px 16px; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
+                }
+                .nav-link::after {
+                    content: ''; position: absolute; bottom: 4px; left: 50%; width: 0; height: 2px;
+                    background: var(--accent-primary); border-radius: 2px;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    transform: translateX(-50%);
                 }
                 .nav-link:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.05); }
+                .nav-link:hover::after { width: 60%; }
                 .nav-link.active { color: var(--accent-primary); background: rgba(0, 85, 255, 0.08); font-weight: 700; }
+                .nav-link.active::after { width: 60%; }
                 
                 .nav-login-btn {
                     margin-left: 12px; padding: 10px 22px;
@@ -113,9 +120,20 @@ const Header = () => {
                     color: var(--text-primary); text-decoration: none; font-size: 1.1rem; font-weight: 600;
                     padding: 18px 16px; border-bottom: 1px solid rgba(0, 85, 255, 0.06);
                     display: flex; justify-content: space-between; align-items: center;
-                    transition: 0.2s;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                    opacity: 0; transform: translateX(20px);
                 }
-                .mobile-nav-item:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.03); }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item {
+                    opacity: 1; transform: translateX(0);
+                }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(1) { transition-delay: 0.05s; }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(2) { transition-delay: 0.1s; }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(3) { transition-delay: 0.15s; }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(4) { transition-delay: 0.2s; }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(5) { transition-delay: 0.25s; }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(6) { transition-delay: 0.3s; }
+                .mobile-menu-overlay.open ~ .mobile-menu-content .mobile-nav-item:nth-child(7) { transition-delay: 0.35s; }
+                .mobile-nav-item:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.03); padding-left: 24px; }
             `}</style>
 
             <div className="header-glass">
