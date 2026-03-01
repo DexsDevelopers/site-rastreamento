@@ -529,20 +529,20 @@ const TrackingPage: React.FC = () => {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <FaqItem
-                                    q="Por que fui taxado?"
-                                    a="Todas as compras internacionais estão sujeitas à fiscalização da Receita Federal e podem ser tributadas conforme a legislação vigente de importação."
+                                    q="Por que meu pedido foi taxado?"
+                                    a="Seu pedido foi selecionado para uma conferência administrativa de rotina ou incidência de tributos interestaduais, conforme as normas de transporte vigentes."
                                 />
                                 <FaqItem
                                     q="O que acontece se eu não pagar?"
-                                    a="Caso o pagamento não seja identificado em até 7 dias, o objeto pode ser devolvido ao país de origem ou declarado como abandonado, perdendo o direito ao reembolso."
+                                    a="Caso o pagamento não seja identificado em até 7 dias, o objeto pode ficar retido no centro de processamento ou ser reavaliado, atrasando indefinidamente a entrega."
                                 />
                                 <FaqItem
                                     q="Qual o prazo para liberação?"
-                                    a="Após a confirmação do pagamento, a Receita Federal geralmente libera o pacote para entrega em um prazo de 3 a 5 dias úteis."
+                                    a="Após a confirmação do pagamento das taxas pendentes, o sistema libera o pacote para a rota final de entrega em um prazo médio de 24 a 72 horas úteis."
                                 />
                                 <FaqItem
                                     q="O valor é reembolsável?"
-                                    a="Não. As taxas alfandegárias são tributos obrigatórios e não passíveis de devolução após o processamento pela fiscalização."
+                                    a="Não. As taxas de processamento e tributos são obrigatórios para a continuidade do transporte e não são passíveis de devolução após o processamento."
                                 />
                             </div>
                         </div>
