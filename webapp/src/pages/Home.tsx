@@ -176,10 +176,10 @@ const Home: React.FC = () => {
                 .hero-section {
                     position: relative; z-index: 1;
                     padding: 40px 24px 60px;
-                    max-width: 1280px; margin: 0 auto;
-                    display: flex; align-items: center; gap: 60px;
+                    max-width: 880px; margin: 0 auto;
+                    text-align: center;
                 }
-                .hero-left { flex: 1; min-width: 0; }
+                .hero-left { min-width: 0; }
                 .hero-glass-card {
                     padding: 48px 40px; border-radius: 28px;
                     background: rgba(255, 255, 255, 0.65);
@@ -200,7 +200,10 @@ const Home: React.FC = () => {
                     animation: gradient-flow 3s ease infinite;
                 }
                 @keyframes gradient-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-                .hero-right { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+                .hero-right { 
+                    display: flex; justify-content: center; gap: 20px; margin-top: 32px;
+                    flex-wrap: wrap;
+                }
                 .hero-badge {
                     display: inline-flex; align-items: center; gap: 8px;
                     padding: 8px 16px 8px 10px;
@@ -271,7 +274,7 @@ const Home: React.FC = () => {
                 }
                 .cta-secondary:hover { background: rgba(255,255,255,0.8); border-color: rgba(0,85,255,0.2); color: var(--text-primary); }
 
-                .track-form { max-width: 500px; }
+                .track-form { max-width: 500px; margin: 0 auto; }
                 .track-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
                 .track-input-wrap {
                     display: flex; align-items: center; gap: 12px;
@@ -556,7 +559,7 @@ const Home: React.FC = () => {
                     .btn-track { width: 100%; padding: 15px; justify-content: center; }
                     .desktop-nav { display: none !important; }
                     .mobile-toggle { display: flex !important; }
-                    .hero-section { padding-top: 140px !important; flex-direction: column; gap: 40px; }
+                    .hero-section { padding-top: 140px !important; }
                     .status-header { flex-direction: column; text-align: center; gap: 20px; align-items: center !important; }
                     .status-icon-box { margin: 0 auto; width: 64px; height: 64px; }
                     .status-header h3 { flex-direction: column !important; gap: 10px !important; font-size: 1.25rem !important; }
@@ -564,7 +567,7 @@ const Home: React.FC = () => {
                     .hero-title { letter-spacing: -1px; font-size: 2.2rem !important; margin-top: 20px; }
                     .hero-desc { font-size: 0.95rem !important; }
                     .hero-glass-card { padding: 32px 20px; }
-                    .hero-right { display: none !important; }
+                    .hero-right { display: flex !important; gap: 12px; margin-top: 20px; }
                     .track-form-grid { grid-template-columns: 1fr; }
                     .track-input-wrap { padding: 12px; }
                     .track-submit { width: 100%; padding: 18px; }

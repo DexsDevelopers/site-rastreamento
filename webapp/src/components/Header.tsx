@@ -64,6 +64,7 @@ const Header = () => {
                     filter: drop-shadow(0 2px 6px rgba(0, 85, 255, 0.3));
                 }
                 
+                .desktop-nav { display: flex; align-items: center; gap: 4px; }
                 .nav-link {
                     color: var(--text-secondary); text-decoration: none; font-size: 0.88rem; font-weight: 600;
                     padding: 8px 16px; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative;

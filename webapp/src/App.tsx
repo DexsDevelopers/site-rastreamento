@@ -32,6 +32,7 @@ import WhatsAppTemplates from './pages/WhatsAppTemplates';
 
 import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
+import ChatBot from './components/ChatBot';
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <ChatBot />
     </Router>
   );
 }
