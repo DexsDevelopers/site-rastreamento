@@ -776,8 +776,8 @@ const Home: React.FC = () => {
                                         <Calculator size={24} color="#ef4444" />
                                     </div>
                                     <div style={{ textAlign: 'left' }}>
-                                        <div style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Taxa Pendente Detectada</div>
-                                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Efetue o pagamento para liberar sua encomenda.</div>
+                                        <div style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.94rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Taxa Pendente Detectada</div>
+                                        <div style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: 610, lineHeight: 1.4 }}>Efetue o pagamento para liberar sua encomenda.</div>
                                     </div>
                                 </div>
                                 <button

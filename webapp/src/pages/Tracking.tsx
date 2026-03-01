@@ -322,7 +322,7 @@ const TrackingPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase' }}>Taxa Pendente</div>
-                                            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Seu pedido aguarda o pagamento da taxa alfandegária.</div>
+                                            <div style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4 }}>Seu pedido aguarda o pagamento da taxa alfandegária.</div>
                                         </div>
                                     </div>
                                     <button
