@@ -22,32 +22,32 @@ const About = () => {
         <div className="about-page">
             <style>
                 {`
-                .about-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; overflow-x: hidden; position: relative; }
-                .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%); z-index: 0; pointer-events: none; }
+                .about-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: var(--text-primary); overflow-x: hidden; position: relative; }
+                .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, rgba(0,85,255,0.04) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(59,130,246,0.03) 0, transparent 50%); z-index: 0; pointer-events: none; }
                 
                 .page-hero { padding: 160px 20px 100px; text-align: center; position: relative; z-index: 10; max-width: 900px; margin: 0 auto; }
-                .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 100px; font-size: 0.85rem; font-weight: 600; color: #818cf8; margin-bottom: 24px; }
+                .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(0, 85, 255, 0.06); border: 1px solid rgba(0, 85, 255, 0.12); border-radius: 100px; font-size: 0.85rem; font-weight: 600; color: #0055ff; margin-bottom: 24px; }
                 .hero-title { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px; }
-                .hero-desc { color: rgba(255,255,255,0.6); font-size: 1.2rem; line-height: 1.7; margin: 0 auto 40px; }
-                .gradient-word { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                .hero-desc { color: var(--text-secondary); font-size: 1.2rem; line-height: 1.7; margin: 0 auto 40px; }
+                .gradient-word { background: linear-gradient(135deg, #0055ff, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
                 .story-grid { display: grid; grid-template-columns: 1fr; gap: 80px; max-width: 1200px; margin: 0 auto; padding: 40px 5%; position: relative; z-index: 10; }
                 @media(min-width: 900px) { .story-grid { grid-template-columns: 1fr 1fr; align-items: center; } }
                 
                 .story-text h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 24px; }
-                .story-text p { color: rgba(255,255,255,0.5); font-size: 1.1rem; line-height: 1.8; margin-bottom: 24px; }
+                .story-text p { color: var(--text-secondary); font-size: 1.1rem; line-height: 1.8; margin-bottom: 24px; }
                 
-                .glass-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 32px; padding: 40px; transition: all 0.3s; }
-                .glass-card:hover { background: rgba(255,255,255,0.04); transform: translateY(-5px); }
+                .glass-card { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); border-radius: 32px; padding: 40px; transition: all 0.3s; backdrop-filter: blur(16px); box-shadow: 0 4px 16px rgba(0,40,120,0.04); }
+                .glass-card:hover { background: rgba(255,255,255,0.8); transform: translateY(-5px); border-color: rgba(0,85,255,0.15); }
 
                 .faq-section { padding: 80px 24px; max-width: 800px; margin: 0 auto; position: relative; z-index: 10; }
                 .faq-item { margin-bottom: 16px; border-radius: 20px; overflow: hidden; }
                 .faq-question { padding: 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.1rem; }
-                .faq-answer { padding: 0 24px 24px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+                .faq-answer { padding: 0 24px 24px; color: var(--text-secondary); line-height: 1.7; }
                 
                 .testimonials-section { padding: 80px 5%; max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
-                .testimonial-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 32px; border-radius: 24px; }
-                .testimonial-text { font-style: italic; color: rgba(255,255,255,0.6); margin-bottom: 20px; line-height: 1.6; }
+                .testimonial-card { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); padding: 32px; border-radius: 24px; backdrop-filter: blur(16px); }
+                .testimonial-text { font-style: italic; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }
 
                 details > summary { list-style: none; }
                 details > summary::-webkit-details-marker { display: none; }
@@ -73,19 +73,19 @@ const About = () => {
                 </p>
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <div className="glass-card" style={{ padding: '24px', flex: '1 1 200px' }}>
-                        <TrendingUp size={32} color="#818cf8" style={{ marginBottom: '16px' }} />
+                        <TrendingUp size={32} color="#0055ff" style={{ marginBottom: '16px' }} />
                         <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>1B+</h3>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>Pacotes entregues</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Pacotes entregues</p>
                     </div>
                     <div className="glass-card" style={{ padding: '24px', flex: '1 1 200px' }}>
-                        <Users size={32} color="#c084fc" style={{ marginBottom: '16px' }} />
+                        <Users size={32} color="#3b82f6" style={{ marginBottom: '16px' }} />
                         <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>50k+</h3>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>Entregadores ativos</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Entregadores ativos</p>
                     </div>
                     <div className="glass-card" style={{ padding: '24px', flex: '1 1 200px' }}>
-                        <Target size={32} color="#34d399" style={{ marginBottom: '16px' }} />
+                        <Target size={32} color="#06b6d4" style={{ marginBottom: '16px' }} />
                         <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>100%</h3>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>De cobertura nacional</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>De cobertura nacional</p>
                     </div>
                 </div>
             </section>
@@ -105,7 +105,7 @@ const About = () => {
                 </div>
                 <div style={{ position: 'relative', height: '100%', minHeight: '400px' }}>
                     <div style={{ position: 'absolute', inset: 0, borderRadius: '40px', background: 'url(https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&q=80)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'grayscale(0.5)' }}></div>
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top right, rgba(99,102,241,0.5), transparent)', borderRadius: '40px' }}></div>
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top right, rgba(0,85,255,0.3), transparent)', borderRadius: '40px' }}></div>
                 </div>
             </section>
 
@@ -136,12 +136,12 @@ const About = () => {
                     ].map((t, i) => (
                         <div key={i} className="testimonial-card">
                             <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
-                                {[...Array(5)].map((_, j) => <Star key={j} size={14} fill="#818cf8" color="#818cf8" />)}
+                                {[...Array(5)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />)}
                             </div>
                             <p className="testimonial-text">{t.text}</p>
                             <div>
                                 <strong style={{ display: 'block', fontSize: '1.1rem' }}>{t.name}</strong>
-                                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>{t.role}</span>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t.role}</span>
                             </div>
                         </div>
                     ))}

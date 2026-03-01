@@ -133,56 +133,46 @@ const Home: React.FC = () => {
 
     const getStatusIcon = (status: string) => {
         const s = status.toLowerCase();
-        if (s.includes('saiu') || s.includes('entrega') || s.includes('rota')) return <Truck size={32} color="#6366f1" />;
-        if (s.includes('trânsito') || s.includes('transito')) return <Package size={32} color="#818cf8" />;
-        if (s.includes('postado') || s.includes('coletado')) return <Warehouse size={32} color="#a855f7" />;
+        if (s.includes('saiu') || s.includes('entrega') || s.includes('rota')) return <Truck size={32} color="#0055ff" />;
+        if (s.includes('trânsito') || s.includes('transito')) return <Package size={32} color="#3b82f6" />;
+        if (s.includes('postado') || s.includes('coletado')) return <Warehouse size={32} color="#06b6d4" />;
         if (s.includes('entregue')) return <CheckCircle size={32} color="#10b981" />;
-        return <MapPinned size={32} color="#6366f1" />;
+        return <MapPinned size={32} color="#0055ff" />;
     };
 
     return (
         <div className="home-page">
             <style>{`
                 .home-page {
-                    background: #06060b;
-                    color: #fff;
+                    background: var(--bg-primary);
+                    color: var(--text-primary);
                     min-height: 100vh;
                     position: relative;
                     overflow-x: hidden;
                 }
                 .home-page * { box-sizing: border-box; }
 
-                /* ===== BG EFFECTS ===== */
                 .bg-mesh {
                     position: fixed; inset: 0; pointer-events: none; z-index: 0;
                     background:
-                        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
-                        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08), transparent),
-                        radial-gradient(ellipse 50% 30% at 20% 80%, rgba(6, 182, 212, 0.06), transparent);
+                        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 85, 255, 0.06), transparent),
+                        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(59, 130, 246, 0.04), transparent),
+                        radial-gradient(ellipse 50% 30% at 20% 80%, rgba(6, 182, 212, 0.03), transparent);
                 }
                 .bg-grid {
                     position: fixed; inset: 0; pointer-events: none; z-index: 0;
-                    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                                      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+                    background-image: linear-gradient(rgba(0,85,255,0.03) 1px, transparent 1px),
+                                      linear-gradient(90deg, rgba(0,85,255,0.03) 1px, transparent 1px);
                     background-size: 60px 60px;
                     mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
                 }
 
-                /* ===== REVEAL ANIMATION ===== */
-                .reveal {
-                    opacity: 0;
-                    transform: translateY(30px) scale(0.95);
-                    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-                .reveal-active {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
+                .reveal { opacity: 0; transform: translateY(30px) scale(0.95); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-active { opacity: 1; transform: translateY(0) scale(1); }
                 .reveal-delay-1 { transition-delay: 0.1s; }
                 .reveal-delay-2 { transition-delay: 0.2s; }
                 .reveal-delay-3 { transition-delay: 0.3s; }
 
-                /* ===== HERO ===== */
                 .hero-section {
                     position: relative; z-index: 1;
                     padding: 40px 24px 60px;
@@ -191,34 +181,33 @@ const Home: React.FC = () => {
                 }
                 .hero-left { flex: 1; min-width: 0; }
                 .hero-glass-card {
-                    padding: 48px 40px;
-                    border-radius: 28px;
-                    background: rgba(255, 255, 255, 0.02);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.06);
-                    box-shadow: 0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
+                    padding: 48px 40px; border-radius: 28px;
+                    background: rgba(255, 255, 255, 0.6);
+                    backdrop-filter: blur(24px);
+                    border: 1px solid rgba(255,255,255,0.8);
+                    box-shadow: 0 16px 48px rgba(0,40,120,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
                     position: relative; overflow: hidden;
                 }
                 .hero-glass-card::before {
                     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-                    background: linear-gradient(90deg, #6366f1, #a855f7, #22d3ee);
+                    background: linear-gradient(90deg, #0055ff, #3b82f6, #06b6d4);
                 }
                 .hero-right { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
                 .hero-badge {
                     display: inline-flex; align-items: center; gap: 8px;
                     padding: 8px 16px 8px 10px;
-                    background: rgba(99, 102, 241, 0.08);
-                    border: 1px solid rgba(99, 102, 241, 0.2);
+                    background: rgba(0, 85, 255, 0.06);
+                    border: 1px solid rgba(0, 85, 255, 0.12);
                     border-radius: 100px;
                     font-size: 0.8rem; font-weight: 600;
-                    color: #a5b4fc;
+                    color: #0055ff;
                     margin-bottom: 24px;
                     animation: fadeIn 0.5s ease;
                 }
                 .hero-badge-dot {
                     width: 8px; height: 8px; border-radius: 50%;
-                    background: #6366f1;
-                    box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+                    background: #0055ff;
+                    box-shadow: 0 0 10px rgba(0, 85, 255, 0.5);
                     animation: pulse-dot 2s ease infinite;
                 }
                 @keyframes pulse-dot {
@@ -228,17 +217,17 @@ const Home: React.FC = () => {
                 .hero-title {
                     font-size: clamp(2.2rem, 5.5vw, 4rem);
                     font-weight: 900; line-height: 1.08;
-                    letter-spacing: -2px;
-                    margin-bottom: 20px;
+                    letter-spacing: -2px; margin-bottom: 20px;
                     font-family: 'Outfit', sans-serif;
+                    color: var(--text-primary);
                 }
                 .hero-title .gradient-word {
-                    background: linear-gradient(135deg, #818cf8, #c084fc, #22d3ee);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6, #06b6d4);
                     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                     background-clip: text;
                 }
                 .hero-desc {
-                    color: rgba(255,255,255,0.5);
+                    color: var(--text-secondary);
                     font-size: clamp(0.95rem, 2vw, 1.1rem);
                     line-height: 1.7; margin-bottom: 32px; max-width: 520px;
                 }
@@ -246,10 +235,10 @@ const Home: React.FC = () => {
                 .cta-primary {
                     display: inline-flex; align-items: center; gap: 10px;
                     padding: 16px 32px;
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
                     border-radius: 14px; color: white; text-decoration: none;
                     font-weight: 700; font-size: 0.95rem;
-                    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+                    box-shadow: 0 8px 24px rgba(0, 85, 255, 0.3);
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     position: relative; overflow: hidden;
                     white-space: nowrap; justify-content: center;
@@ -257,212 +246,206 @@ const Home: React.FC = () => {
                 .cta-primary::after {
                     content: ''; position: absolute; top: 0; left: -100%;
                     width: 100%; height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
                     transition: left 0.6s;
                 }
                 .cta-primary:hover::after { left: 100%; }
-                .cta-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(99, 102, 241, 0.5); }
+                .cta-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0, 85, 255, 0.4); color: white; }
                 .cta-secondary {
                     display: inline-flex; align-items: center; gap: 8px;
                     padding: 16px 28px;
-                    border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
-                    color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;
-                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(0,85,255,0.12); border-radius: 14px;
+                    color: var(--text-primary); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+                    background: rgba(255,255,255,0.5);
+                    backdrop-filter: blur(12px);
                     transition: all 0.3s;
                     white-space: nowrap; justify-content: center;
                 }
-                .cta-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+                .cta-secondary:hover { background: rgba(255,255,255,0.8); border-color: rgba(0,85,255,0.2); color: var(--text-primary); }
 
-                /* ===== TRACKING FORM ===== */
                 .track-form { max-width: 500px; }
                 .track-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
                 .track-input-wrap {
                     display: flex; align-items: center; gap: 12px;
-                    background: rgba(255,255,255,0.04);
-                    border: 1px solid rgba(255,255,255,0.08);
+                    background: rgba(255,255,255,0.7);
+                    border: 1px solid rgba(0,85,255,0.08);
                     border-radius: 14px; padding: 4px 16px;
                     transition: all 0.3s;
                 }
                 .track-input-wrap:focus-within {
-                    border-color: rgba(99, 102, 241, 0.5);
-                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-                    background: rgba(99, 102, 241, 0.04);
+                    border-color: rgba(0, 85, 255, 0.4);
+                    box-shadow: 0 0 0 3px rgba(0, 85, 255, 0.1);
+                    background: #fff;
                 }
                 .track-input {
-                    flex: 1; background: transparent; border: none; color: white;
+                    flex: 1; background: transparent; border: none; color: var(--text-primary);
                     padding: 14px 0; font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif;
                 }
-                .track-input::placeholder { color: rgba(255,255,255,0.25); }
+                .track-input::placeholder { color: var(--text-muted); }
                 .track-submit {
                     width: 100%; padding: 16px; border: none; border-radius: 14px;
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
                     color: white; font-weight: 700; font-size: 1rem; cursor: pointer;
                     font-family: 'Outfit', sans-serif;
-                    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+                    box-shadow: 0 8px 24px rgba(0, 85, 255, 0.25);
                     transition: all 0.3s;
                 }
-                .track-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5); }
+                .track-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 85, 255, 0.4); }
                 .track-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
-                /* ===== HERO RIGHT FLOATING CARDS ===== */
                 .float-card {
                     padding: 28px 32px; border-radius: 24px;
-                    background: rgba(255,255,255,0.03);
+                    background: rgba(255,255,255,0.6);
                     backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.08);
+                    border: 1px solid rgba(255,255,255,0.8);
                     text-align: center; min-width: 220px;
                     transition: all 0.4s;
+                    box-shadow: 0 8px 32px rgba(0,40,120,0.06);
                 }
                 .float-card:hover {
-                    border-color: rgba(99, 102, 241, 0.3);
+                    border-color: rgba(0, 85, 255, 0.2);
                     transform: translateY(-4px);
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                    box-shadow: 0 20px 40px rgba(0,40,120,0.1);
                 }
                 .float-card-value {
                     font-size: 2.8rem; font-weight: 900;
                     font-family: 'Outfit', sans-serif;
-                    background: linear-gradient(135deg, #818cf8, #c084fc);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
                     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                     background-clip: text;
                 }
-                .float-card-label { color: rgba(255,255,255,0.45); font-size: 0.85rem; margin-top: 6px; }
+                .float-card-label { color: var(--text-secondary); font-size: 0.85rem; margin-top: 6px; }
 
-                /* ===== RESULT AREA ===== */
                 .result-area {
                     position: relative; z-index: 1;
                     max-width: 800px; margin: 0 auto; padding: 0 24px 60px;
                 }
                 .error-card {
                     padding: 48px; border-radius: 28px; text-align: center;
-                    background: rgba(255,255,255,0.02);
+                    background: rgba(255,255,255,0.6);
                     backdrop-filter: blur(20px);
-                    border: 1px solid rgba(239, 68, 68, 0.2);
+                    border: 1px solid rgba(239, 68, 68, 0.15);
                 }
                 .result-card {
                     padding: 32px; border-radius: 28px;
-                    background: rgba(255,255,255,0.02);
+                    background: rgba(255,255,255,0.6);
                     backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.08);
+                    border: 1px solid rgba(255,255,255,0.8);
+                    box-shadow: 0 16px 48px rgba(0,40,120,0.06);
                 }
                 .status-header {
                     display: flex; align-items: center; gap: 20px;
                     padding: 24px; margin-bottom: 24px;
-                    background: rgba(99, 102, 241, 0.04);
-                    border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.1);
+                    background: rgba(0, 85, 255, 0.04);
+                    border-radius: 20px; border: 1px solid rgba(0, 85, 255, 0.08);
                 }
                 .status-icon-box {
                     width: 64px; height: 64px; border-radius: 20px;
-                    background: rgba(99, 102, 241, 0.08);
+                    background: rgba(0, 85, 255, 0.06);
                     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
                 }
                 .tl-item { display: flex; gap: 20px; }
                 .tl-marker { display: flex; flex-direction: column; align-items: center; width: 20px; flex-shrink: 0; }
                 .tl-dot {
                     width: 14px; height: 14px; border-radius: 50%;
-                    border: 2px solid rgba(255,255,255,0.08); flex-shrink: 0; z-index: 2;
+                    border: 2px solid rgba(0,85,255,0.1); flex-shrink: 0; z-index: 2;
                 }
-                .tl-line { width: 2px; flex: 1; background: rgba(255,255,255,0.06); min-height: 40px; }
+                .tl-line { width: 2px; flex: 1; background: rgba(0,85,255,0.06); min-height: 40px; }
                 .tl-content { flex: 1; padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; }
-                .express-box { text-align: center; padding: 24px 0 0; margin-top: 20px; border-top: 2px dashed rgba(255,255,255,0.06); }
+                .express-box { text-align: center; padding: 24px 0 0; margin-top: 20px; border-top: 2px dashed rgba(0,85,255,0.08); }
                 .express-btn {
                     padding: 16px 32px; border: none; border-radius: 16px;
-                    background: linear-gradient(135deg, #0096ff, #6366f1);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
                     color: white; font-weight: 800; font-size: 1rem; cursor: pointer;
-                    box-shadow: 0 8px 24px rgba(0, 150, 255, 0.3);
-                    font-family: 'Outfit', sans-serif;
-                    transition: all 0.3s;
+                    box-shadow: 0 8px 24px rgba(0, 85, 255, 0.25);
+                    font-family: 'Outfit', sans-serif; transition: all 0.3s;
                 }
-                .express-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 150, 255, 0.5); }
+                .express-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 85, 255, 0.4); }
 
-                /* ===== TABS ===== */
                 .tabs-wrap {
                     position: relative; z-index: 1;
-                    max-width: 1280px; margin: 0 auto;
-                    padding: 30px 24px 0;
+                    max-width: 1280px; margin: 0 auto; padding: 30px 24px 0;
                 }
                 .tabs-bar {
                     display: inline-flex; gap: 4px; padding: 4px;
-                    background: rgba(255,255,255,0.03);
-                    border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);
+                    background: rgba(255,255,255,0.5);
+                    border-radius: 16px; border: 1px solid rgba(255,255,255,0.7);
+                    backdrop-filter: blur(12px);
                 }
                 .tab-btn {
                     padding: 12px 28px; background: transparent; border: none;
-                    color: rgba(255,255,255,0.45); cursor: pointer;
+                    color: var(--text-secondary); cursor: pointer;
                     border-radius: 12px; font-weight: 600; font-size: 0.9rem;
                     font-family: 'Outfit', sans-serif; transition: all 0.3s;
                 }
-                .tab-btn:hover { color: white; }
+                .tab-btn:hover { color: var(--text-primary); }
                 .tab-btn.active {
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
                     color: white; font-weight: 700;
-                    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+                    box-shadow: 0 4px 16px rgba(0, 85, 255, 0.3);
                 }
 
-                /* ===== SECTION ===== */
                 .content-section {
                     position: relative; z-index: 1;
                     padding: 60px 24px 80px;
                     max-width: 1280px; margin: 0 auto;
                     animation: fadeIn 0.6s ease;
                 }
-                .section-header {
-                    margin-bottom: 48px;
-                }
+                .section-header { margin-bottom: 48px; }
                 .section-label {
                     display: inline-flex; align-items: center; gap: 8px;
                     padding: 6px 14px;
-                    background: rgba(99, 102, 241, 0.08);
-                    border: 1px solid rgba(99, 102, 241, 0.15);
+                    background: rgba(0, 85, 255, 0.06);
+                    border: 1px solid rgba(0, 85, 255, 0.1);
                     border-radius: 100px;
-                    font-size: 0.78rem; font-weight: 600; color: #a5b4fc;
+                    font-size: 0.78rem; font-weight: 600; color: #0055ff;
                     margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em;
                 }
                 .section-title {
                     font-size: clamp(1.8rem, 4vw, 2.8rem);
                     font-weight: 900; letter-spacing: -1px;
-                    font-family: 'Outfit', sans-serif;
-                    line-height: 1.15;
+                    font-family: 'Outfit', sans-serif; line-height: 1.15;
+                    color: var(--text-primary);
                 }
                 .section-title .gradient-word {
-                    background: linear-gradient(135deg, #818cf8, #c084fc, #22d3ee);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6, #06b6d4);
                     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                     background-clip: text;
                 }
                 .section-subtitle {
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-secondary);
                     font-size: 1.05rem; margin-top: 12px; max-width: 500px;
                 }
 
-                /* ===== FEATURE CARDS ===== */
                 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
                 .feature-card {
                     padding: 32px; border-radius: 24px;
-                    background: rgba(255,255,255,0.02);
+                    background: rgba(255,255,255,0.55);
                     backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid rgba(255,255,255,0.7);
                     display: flex; flex-direction: column; gap: 16px;
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                     transform-style: preserve-3d;
+                    box-shadow: 0 4px 16px rgba(0,40,120,0.04);
                 }
                 .feature-card:hover {
-                    background: rgba(255,255,255,0.05);
-                    border-color: rgba(99, 102, 241, 0.3);
+                    background: rgba(255,255,255,0.8);
+                    border-color: rgba(0, 85, 255, 0.2);
                     transform: translateY(-8px) rotateX(2deg);
-                    box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(99, 102, 241, 0.1);
+                    box-shadow: 0 24px 48px rgba(0,40,120,0.1), 0 0 0 1px rgba(0, 85, 255, 0.08);
                 }
                 .feature-icon {
                     width: 56px; height: 56px; border-radius: 16px;
                     display: flex; align-items: center; justify-content: center;
                 }
-                .feature-card h3 { font-size: 1.15rem; font-weight: 700; }
-                .feature-card p { color: rgba(255,255,255,0.4); line-height: 1.6; font-size: 0.9rem; flex: 1; }
+                .feature-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+                .feature-card p { color: var(--text-secondary); line-height: 1.6; font-size: 0.9rem; flex: 1; }
                 .feature-link {
-                    color: #818cf8; text-decoration: none; font-weight: 700; font-size: 0.85rem;
+                    color: #0055ff; text-decoration: none; font-weight: 700; font-size: 0.85rem;
                     display: flex; align-items: center; gap: 6px; transition: gap 0.3s;
                 }
-                .feature-link:hover { gap: 10px; color: #a5b4fc; }
+                .feature-link:hover { gap: 10px; color: #3b82f6; }
 
-                /* ===== METRICS BAR ===== */
                 .metrics-bar {
                     position: relative; z-index: 1;
                     padding: 40px 24px;
@@ -471,15 +454,16 @@ const Home: React.FC = () => {
                 }
                 .metric-card {
                     padding: 32px 20px; border-radius: 24px; text-align: center;
-                    background: rgba(255,255,255,0.02);
+                    background: rgba(255,255,255,0.55);
                     backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid rgba(255,255,255,0.7);
                     transition: all 0.4s;
+                    box-shadow: 0 4px 16px rgba(0,40,120,0.04);
                 }
                 .metric-card:hover {
-                    border-color: rgba(99, 102, 241, 0.3);
+                    border-color: rgba(0, 85, 255, 0.2);
                     transform: translateY(-4px);
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                    box-shadow: 0 20px 40px rgba(0,40,120,0.08);
                 }
                 .metric-icon {
                     width: 48px; height: 48px; border-radius: 14px;
@@ -489,61 +473,36 @@ const Home: React.FC = () => {
                 .metric-value {
                     font-size: 2rem; font-weight: 900;
                     font-family: 'Outfit', sans-serif;
-                    background: linear-gradient(135deg, #818cf8, #c084fc);
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
                     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                     background-clip: text;
                 }
-                .metric-label { color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-top: 4px; }
+                .metric-label { color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px; }
 
-                /* ===== TESTIMONIALS ===== */
                 .testimonials-section {
                     position: relative; z-index: 1;
                     padding: 100px 24px;
-                    background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.03), transparent);
-                    border-top: 1px solid rgba(255,255,255,0.04);
-                    border-bottom: 1px solid rgba(255,255,255,0.04);
+                    background: linear-gradient(180deg, transparent, rgba(0, 85, 255, 0.02), transparent);
+                    border-top: 1px solid rgba(0,85,255,0.04);
+                    border-bottom: 1px solid rgba(0,85,255,0.04);
                 }
                 .testimonials-inner { max-width: 1280px; margin: 0 auto; }
                 .testimonial-card {
                     padding: 32px; border-radius: 24px;
-                    background: rgba(255,255,255,0.02);
+                    background: rgba(255,255,255,0.55);
                     backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid rgba(255,255,255,0.7);
                     display: flex; flex-direction: column; gap: 16px;
                     transition: all 0.4s;
+                    box-shadow: 0 4px 16px rgba(0,40,120,0.04);
                 }
                 .testimonial-card:hover {
-                    border-color: rgba(99, 102, 241, 0.25);
+                    border-color: rgba(0, 85, 255, 0.15);
                     transform: translateY(-4px);
                 }
                 .testimonial-stars { display: flex; gap: 3px; }
-                .testimonial-text { color: rgba(255,255,255,0.45); line-height: 1.7; font-size: 0.95rem; font-style: italic; flex: 1; }
+                .testimonial-text { color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; font-style: italic; flex: 1; }
 
-                /* ===== FOOTER ===== */
-                .site-footer {
-                    position: relative; z-index: 1;
-                    border-top: 1px solid rgba(255,255,255,0.04);
-                    padding: 80px 24px 40px;
-                }
-                .footer-inner {
-                    max-width: 1280px; margin: 0 auto 60px;
-                    display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap;
-                }
-                .footer-brand-col { max-width: 320px; }
-                .footer-links-wrap { display: flex; gap: 60px; flex-wrap: wrap; }
-                .footer-col {
-                    display: flex; flex-direction: column; gap: 10px;
-                }
-                .footer-col h4 { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
-                .footer-col a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
-                .footer-col a:hover { color: white; }
-                .footer-bottom {
-                    max-width: 1280px; margin: 0 auto;
-                    text-align: center; color: rgba(255,255,255,0.2); font-size: 0.8rem;
-                    border-top: 1px solid rgba(255,255,255,0.04); padding-top: 32px;
-                }
-
-                /* ===== ANIMATIONS ===== */
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
@@ -557,7 +516,6 @@ const Home: React.FC = () => {
                     50% { transform: translateY(-8px) rotate(3deg); }
                 }
 
-                /* ===== RESPONSIVO ===== */
                 @media (max-width: 1024px) {
                     .hero-section { flex-direction: column; gap: 40px; }
                     .hero-right { flex-direction: row; justify-content: center; }
@@ -566,23 +524,9 @@ const Home: React.FC = () => {
                 }
                 @media (max-width: 768px) {
                     .status-card { padding: 20px; }
-                    .search-box-premium {
-                        border-radius: 20px;
-                        flex-direction: column;
-                        padding: 15px;
-                        gap: 15px;
-                        background: rgba(255,255,255,0.05);
-                    }
-                    .search-input-premium {
-                        text-align: center;
-                        font-size: 1.1rem;
-                        padding: 10px;
-                    }
-                    .btn-track {
-                        width: 100%;
-                        padding: 15px;
-                        justify-content: center;
-                    }
+                    .search-box-premium { border-radius: 20px; flex-direction: column; padding: 15px; gap: 15px; }
+                    .search-input-premium { text-align: center; font-size: 1.1rem; padding: 10px; }
+                    .btn-track { width: 100%; padding: 15px; justify-content: center; }
                     .desktop-nav { display: none !important; }
                     .mobile-toggle { display: flex !important; }
                     .hero-section { padding-top: 140px !important; flex-direction: column; gap: 40px; }
@@ -619,6 +563,7 @@ const Home: React.FC = () => {
                 }
             `}</style>
 
+
             <div className="bg-mesh"></div>
             <div className="bg-grid"></div>
 
@@ -654,11 +599,11 @@ const Home: React.FC = () => {
                         <form onSubmit={handleSearch} className="track-form">
                             <div className="track-fields">
                                 <div className="track-input-wrap">
-                                    <Search size={16} color="#6366f1" />
+                                    <Search size={16} color="#0055ff" />
                                     <input className="track-input" placeholder="Código de rastreio" value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())} maxLength={30} required />
                                 </div>
                                 <div className="track-input-wrap">
-                                    <MapPinned size={16} color="#6366f1" />
+                                    <MapPinned size={16} color="#0055ff" />
                                     <input className="track-input" placeholder="Sua cidade" value={cidade} onChange={e => setCidade(e.target.value)} required />
                                 </div>
                             </div>
@@ -712,7 +657,7 @@ const Home: React.FC = () => {
                                     </div>
                                     <div style={{ textAlign: 'left' }}>
                                         <div style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Taxa Pendente Detectada</div>
-                                        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>Efetue o pagamento para liberar sua encomenda.</div>
+                                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Efetue o pagamento para liberar sua encomenda.</div>
                                     </div>
                                 </div>
                                 <button
@@ -736,11 +681,11 @@ const Home: React.FC = () => {
                             </div>
                         )}
                         <div className="status-header">
-                            <div className="status-icon-box" style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                            <div className="status-icon-box" style={{ background: 'rgba(0, 85, 255, 0.06)', border: '1px solid rgba(0, 85, 255, 0.1)' }}>
                                 {getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.4rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     {trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}
                                     {trackResult.taxa_valor && (
                                         <span className="tax-badge" style={{
@@ -757,7 +702,7 @@ const Home: React.FC = () => {
                                         </span>
                                     )}
                                 </h3>
-                                <p style={{ color: 'rgba(255,255,255,0.45)', marginTop: '4px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <MapPinned size={14} /> {trackResult.cidade || cidade}
                                 </p>
                             </div>
@@ -769,18 +714,18 @@ const Home: React.FC = () => {
                                     <div key={i} className="tl-item">
                                         <div className="tl-marker">
                                             <div className="tl-dot" style={{
-                                                background: isLast ? '#6366f1' : 'rgba(255,255,255,0.08)',
-                                                boxShadow: isLast ? '0 0 16px rgba(99, 102, 241, 0.5)' : 'none',
+                                                background: isLast ? '#0055ff' : 'rgba(0,85,255,0.08)',
+                                                boxShadow: isLast ? '0 0 16px rgba(0, 85, 255, 0.4)' : 'none',
                                             }}></div>
                                             {i < trackResult.etapas.length - 1 && <div className="tl-line"></div>}
                                         </div>
                                         <div className="tl-content" style={{
-                                            background: isLast ? 'rgba(99, 102, 241, 0.06)' : 'transparent',
-                                            border: isLast ? '1px solid rgba(99, 102, 241, 0.15)' : '1px solid transparent',
+                                            background: isLast ? 'rgba(0, 85, 255, 0.05)' : 'transparent',
+                                            border: isLast ? '1px solid rgba(0, 85, 255, 0.1)' : '1px solid transparent',
                                         }}>
-                                            <h4 style={{ color: isLast ? '#818cf8' : 'white', fontWeight: 700 }}>{etapa.titulo}</h4>
-                                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', margin: '4px 0' }}>{etapa.subtitulo}</p>
-                                            <small style={{ color: '#818cf8', fontWeight: 600, fontSize: '0.8rem' }}>{formatDate(etapa.data)}</small>
+                                            <h4 style={{ color: isLast ? '#0055ff' : 'var(--text-primary)', fontWeight: 700 }}>{etapa.titulo}</h4>
+                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0' }}>{etapa.subtitulo}</p>
+                                            <small style={{ color: '#0055ff', fontWeight: 600, fontSize: '0.8rem' }}>{formatDate(etapa.data)}</small>
                                         </div>
                                     </div>
                                 );
@@ -788,7 +733,7 @@ const Home: React.FC = () => {
                         </div>
                         <div className="express-box">
                             <button className="express-btn" onClick={() => setShowExpressModal(true)}>⚡ Acelerar por R$ 29,90</button>
-                            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', marginTop: '8px' }}>Receba em até 3 dias úteis</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px' }}>Receba em até 3 dias úteis</p>
                         </div>
                     </div>
                 </div>
@@ -812,9 +757,9 @@ const Home: React.FC = () => {
                     </div>
                     <div className="grid-3">
                         {[
-                            { icon: <QrCode size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Postagem simples', desc: 'Gere sua etiqueta em poucos cliques e poste em qualquer ponto parceiro próximo a você.', link: '/pedido', linkText: 'Começar agora' },
-                            { icon: <Satellite size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'Monitoramento GPS', desc: 'Acompanhe cada curva da sua encomenda com tecnologia de rastreio via satélite em tempo real.', link: '/rastreio', linkText: 'Ver como funciona' },
-                            { icon: <Zap size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Loggi Express', desc: 'Sua encomenda priorizada em nossa malha expressa para chegar em tempo recorde.', link: '/loggi-pro', linkText: 'Assinar Pro' },
+                            { icon: <QrCode size={28} color="#0055ff" />, bg: 'rgba(0, 85, 255, 0.06)', title: 'Postagem simples', desc: 'Gere sua etiqueta em poucos cliques e poste em qualquer ponto parceiro próximo a você.', link: '/pedido', linkText: 'Começar agora' },
+                            { icon: <Satellite size={28} color="#3b82f6" />, bg: 'rgba(59, 130, 246, 0.06)', title: 'Monitoramento GPS', desc: 'Acompanhe cada curva da sua encomenda com tecnologia de rastreio via satélite em tempo real.', link: '/rastreio', linkText: 'Ver como funciona' },
+                            { icon: <Zap size={28} color="#06b6d4" />, bg: 'rgba(6, 182, 212, 0.06)', title: 'Loggi Express', desc: 'Sua encomenda priorizada em nossa malha expressa para chegar em tempo recorde.', link: '/loggi-pro', linkText: 'Assinar Pro' },
                         ].map((c, i) => (
                             <div key={i} className="feature-card">
                                 <div className="feature-icon" style={{ background: c.bg }}>{c.icon}</div>
@@ -837,9 +782,9 @@ const Home: React.FC = () => {
                     </div>
                     <div className="grid-3">
                         {[
-                            { icon: <Warehouse size={28} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', title: 'Coleta loggi', desc: 'Equipe dedicada para coletar envios diretamente no seu centro de distribuição.', link: '/para-empresas', linkText: 'Saber mais' },
-                            { icon: <GitBranch size={28} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', title: 'API de Integração', desc: 'Conecte seu e-commerce diretamente com nosso sistema para automação total.', link: '/api-ecommerce', linkText: 'Ver API' },
-                            { icon: <RotateCcw size={28} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', title: 'Reversa Facilitada', desc: 'Gestão completa de trocas e devoluções para encantar clientes no pós-venda.', link: '/para-empresas', linkText: 'Ver solução' },
+                            { icon: <Warehouse size={28} color="#0055ff" />, bg: 'rgba(0, 85, 255, 0.06)', title: 'Coleta loggi', desc: 'Equipe dedicada para coletar envios diretamente no seu centro de distribuição.', link: '/para-empresas', linkText: 'Saber mais' },
+                            { icon: <GitBranch size={28} color="#3b82f6" />, bg: 'rgba(59, 130, 246, 0.06)', title: 'API de Integração', desc: 'Conecte seu e-commerce diretamente com nosso sistema para automação total.', link: '/api-ecommerce', linkText: 'Ver API' },
+                            { icon: <RotateCcw size={28} color="#06b6d4" />, bg: 'rgba(6, 182, 212, 0.06)', title: 'Reversa Facilitada', desc: 'Gestão completa de trocas e devoluções para encantar clientes no pós-venda.', link: '/para-empresas', linkText: 'Ver solução' },
                         ].map((c, i) => (
                             <div key={i} className="feature-card">
                                 <div className="feature-icon" style={{ background: c.bg }}>{c.icon}</div>
@@ -855,10 +800,10 @@ const Home: React.FC = () => {
             {/* ===== MÉTRICAS ===== */}
             <div className="metrics-bar reveal">
                 {[
-                    { icon: <Smile size={24} color="#818cf8" />, bg: 'rgba(99, 102, 241, 0.08)', val: '4.8/5', label: 'Satisfação' },
-                    { icon: <Package size={24} color="#c084fc" />, bg: 'rgba(168, 85, 247, 0.08)', val: '10M+', label: 'Entregas' },
-                    { icon: <Globe size={24} color="#22d3ee" />, bg: 'rgba(6, 182, 212, 0.08)', val: '4.5k+', label: 'Cidades' },
-                    { icon: <Clock size={24} color="#34d399" />, bg: 'rgba(16, 185, 129, 0.08)', val: '24h', label: 'Entrega Local' },
+                    { icon: <Smile size={24} color="#0055ff" />, bg: 'rgba(0, 85, 255, 0.06)', val: '4.8/5', label: 'Satisfação' },
+                    { icon: <Package size={24} color="#3b82f6" />, bg: 'rgba(59, 130, 246, 0.06)', val: '10M+', label: 'Entregas' },
+                    { icon: <Globe size={24} color="#06b6d4" />, bg: 'rgba(6, 182, 212, 0.06)', val: '4.5k+', label: 'Cidades' },
+                    { icon: <Clock size={24} color="#10b981" />, bg: 'rgba(16, 185, 129, 0.06)', val: '24h', label: 'Entrega Local' },
                 ].map((m, i) => (
                     <div key={i} className="metric-card">
                         <div className="metric-icon" style={{ background: m.bg }}>{m.icon}</div>
@@ -888,7 +833,7 @@ const Home: React.FC = () => {
                                 <p className="testimonial-text">{t.text}</p>
                                 <div>
                                     <strong>{t.name}</strong>
-                                    <span style={{ display: 'block', color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', marginTop: '4px' }}>{t.role}</span>
+                                    <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '4px' }}>{t.role}</span>
                                 </div>
                             </div>
                         ))}

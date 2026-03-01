@@ -21,25 +21,25 @@ const LoggiPro = () => {
         <div className="lp-page">
             <style>
                 {`
-                .lp-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; position: relative; overflow-x: hidden; }
-                .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 100%, hsla(339,49%,20%,0.2) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(225,39%,20%,0.2) 0, transparent 50%); z-index: 0; pointer-events: none; }
+                .lp-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: var(--text-primary); position: relative; overflow-x: hidden; }
+                .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 100%, rgba(239,68,68,0.04) 0, transparent 50%), radial-gradient(at 100% 0%, rgba(0,85,255,0.04) 0, transparent 50%); z-index: 0; pointer-events: none; }
                 .page-hero { padding: 160px 5% 80px; text-align: center; position: relative; z-index: 10; }
                 .gradient-word { background: linear-gradient(135deg, #f87171, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-                .page-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: #f87171; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.05em; }
+                .page-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.12); border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: #ef4444; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.05em; }
                 .page-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px; }
-                .page-desc { color: rgba(255,255,255,0.45); font-size: 1.1rem; line-height: 1.7; max-width: 700px; margin: 0 auto 40px; }
+                .page-desc { color: var(--text-secondary); font-size: 1.1rem; line-height: 1.7; max-width: 700px; margin: 0 auto 40px; }
                 
                 .pricing-cards { display: grid; grid-template-columns: 1fr; gap: 32px; max-width: 1000px; margin: 60px auto; position: relative; z-index: 10; padding: 0 5%; }
                 @media(min-width: 768px) { .pricing-cards { grid-template-columns: repeat(2, 1fr); align-items: center; } }
                 
-                .price-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 32px; scale: 0.95; transition: transform 0.3s; }
-                .price-card.pro { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.3); scale: 1.05; box-shadow: 0 20px 80px rgba(239, 68, 68, 0.15); }
+                .price-card { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); padding: 40px; border-radius: 32px; scale: 0.95; transition: transform 0.3s; backdrop-filter: blur(16px); box-shadow: 0 4px 16px rgba(0,40,120,0.04); }
+                .price-card.pro { background: rgba(255,255,255,0.7); border: 1px solid rgba(239, 68, 68, 0.2); scale: 1.05; box-shadow: 0 20px 60px rgba(239, 68, 68, 0.1); }
                 .price-card h3 { font-size: 1.8rem; margin-bottom: 8px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
                 .price-card .price { font-size: 3rem; font-weight: 900; margin: 24px 0; }
-                .price-card .price span { font-size: 1rem; color: rgba(255,255,255,0.4); font-weight: 500; }
+                .price-card .price span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
                 
                 .features-list { list-style: none; padding: 0; margin: 32px 0; }
-                .features-list li { margin-bottom: 16px; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.8); }
+                .features-list li { margin-bottom: 16px; display: flex; align-items: center; gap: 12px; color: var(--text-secondary); }
                 
                 .site-footer { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 80px;}
 
@@ -68,7 +68,7 @@ const LoggiPro = () => {
             <div className="pricing-cards reveal delay-1">
                 <div className="price-card">
                     <h3>Padrão</h3>
-                    <p style={{ color: "rgba(255,255,255,0.5)" }}>Para envios casuais e compradores finais.</p>
+                    <p style={{ color: "var(--text-secondary)" }}>Para envios casuais e compradores finais.</p>
                     <div className="price">Grátis</div>
 
                     <ul className="features-list">
@@ -87,7 +87,7 @@ const LoggiPro = () => {
                         <Rocket size={12} /> Mais Popular
                     </div>
                     <h3>Loggi Pro</h3>
-                    <p style={{ color: "rgba(255,255,255,0.5)" }}>Para e-commerces e envio de grande volume.</p>
+                    <p style={{ color: "var(--text-secondary)" }}>Para e-commerces e envio de grande volume.</p>
                     <div className="price">R$ 59<span>/mês</span></div>
 
                     <ul className="features-list">

@@ -27,25 +27,24 @@ const HelpCenter = () => {
         <div className="help-page">
             <style>
                 {`
-                .help-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: white; overflow-x: hidden; position: relative; }
-                .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%); z-index: 0; pointer-events: none; }
+                .help-page { background: var(--bg-primary); min-height: 100vh; font-family: 'Outfit', sans-serif; color: var(--text-primary); overflow-x: hidden; position: relative; }
+                .bg-mesh { position: fixed; inset: 0; background-image: radial-gradient(at 0% 0%, rgba(0,85,255,0.04) 0, transparent 50%), radial-gradient(at 100% 0%, rgba(59,130,246,0.03) 0, transparent 50%); z-index: 0; pointer-events: none; }
                 
                 .hero { padding: 160px 5% 60px; text-align: center; max-width: 800px; margin: 0 auto; }
-                .hero-title { font-size: 3rem; font-weight: 900; margin-bottom: 32px; }
+                .hero-title { font-size: 3rem; font-weight: 900; margin-bottom: 32px; color: var(--text-primary); }
                 .search-box { position: relative; max-width: 600px; margin: 0 auto; }
-                .search-input { width: 100%; padding: 20px 20px 20px 60px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: white; font-size: 1.1rem; outline: none; transition: 0.3s; }
-                .search-input:focus { border-color: var(--accent-primary); background: rgba(255,255,255,0.08); }
-                .search-icon { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.3); }
+                .search-input { width: 100%; padding: 20px 20px 20px 60px; background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.8); border-radius: 20px; color: var(--text-primary); font-size: 1.1rem; outline: none; transition: 0.3s; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,40,120,0.06); }
+                .search-input:focus { border-color: #0055ff; background: #fff; box-shadow: 0 0 0 3px rgba(0,85,255,0.1); }
+                .search-input::placeholder { color: var(--text-muted); }
+                .search-icon { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
                 
                 .section { padding: 60px 5%; max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
                 .grid-categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-                .cat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 32px; border-radius: 24px; transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit; }
-                .cat-card:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-primary); transform: translateY(-5px); }
-                .cat-icon { width: 50px; height: 50px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: #818cf8; }
+                .cat-card { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.7); padding: 32px; border-radius: 24px; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; text-decoration: none; color: inherit; backdrop-filter: blur(16px); box-shadow: 0 4px 16px rgba(0,40,120,0.04); transform-style: preserve-3d; }
+                .cat-card:hover { background: rgba(255,255,255,0.8); border-color: rgba(0,85,255,0.15); transform: translateY(-6px) rotateX(2deg); box-shadow: 0 20px 40px rgba(0,40,120,0.08); }
+                .cat-icon { width: 50px; height: 50px; background: rgba(0, 85, 255, 0.06); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: #0055ff; }
                 .cat-card h3 { font-size: 1.25rem; margin-bottom: 8px; font-weight: 700; }
-                .cat-card p { color: rgba(255,255,255,0.4); font-size: 0.95rem; line-height: 1.5; }
-                
-                .site-footer { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.3); border-top: 1px solid rgba(255,255,255,0.05); }
+                .cat-card p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; }
 
                 .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
                 .reveal-active { opacity: 1; transform: translateY(0); }
@@ -81,10 +80,10 @@ const HelpCenter = () => {
             </section>
 
             <section className="section" style={{ textAlign: 'center' }}>
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '48px', borderRadius: '32px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.7)', padding: '48px', borderRadius: '28px', backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(0,40,120,0.04)' }}>
                     <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Ainda precisa de ajuda?</h2>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '32px' }}>Nosso time de suporte está disponível 24/7 para te atender.</p>
-                    <button className="nav-login-btn" style={{ padding: '16px 40px', fontSize: '1rem' }}>Iniciar Chat Online</button>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Nosso time de suporte está disponível 24/7 para te atender.</p>
+                    <button className="btn-primary" style={{ padding: '16px 40px', fontSize: '1rem' }}>Iniciar Chat Online</button>
                 </div>
             </section>
 
