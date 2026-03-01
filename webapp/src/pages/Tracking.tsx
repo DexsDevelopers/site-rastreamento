@@ -23,6 +23,7 @@ const TrackingPage: React.FC = () => {
     const [taxPixLoading, setTaxPixLoading] = useState(false);
     const [taxPixData, setTaxPixData] = useState<any>(null);
     const [taxPixPaid, setTaxPixPaid] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     // Config State
     const [useRandomCents, setUseRandomCents] = useState(true);
@@ -429,7 +430,36 @@ const TrackingPage: React.FC = () => {
                                     {taxPixData.qr_code}
                                 </div>
                                 <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
-                                <button onClick={() => { navigator.clipboard.writeText(taxPixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#ef4444', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(taxPixData.qr_code);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: copied ? '#10b981' : '#ef4444',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontSize: '0.95rem',
+                                        fontWeight: 800,
+                                        transition: 'all 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        margin: '0 auto',
+                                        width: '100%'
+                                    }}
+                                >
+                                    {copied ? (
+                                        <><CheckCircle size={18} /> Copiado com sucesso!</>
+                                    ) : (
+                                        'Copiar Código PIX'
+                                    )}
+                                </button>
                                 <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
                             </div>
                         )}
@@ -503,7 +533,36 @@ const TrackingPage: React.FC = () => {
                                     {pixData.qr_code}
                                 </div>
                                 <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
-                                <button onClick={() => { navigator.clipboard.writeText(pixData.qr_code); alert('Copiado!'); }} style={{ padding: '8px 16px', background: '#4f46e5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>Copiar Código</button>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(pixData.qr_code);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: copied ? '#10b981' : '#4f46e5',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontSize: '0.95rem',
+                                        fontWeight: 800,
+                                        transition: 'all 0.3s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        margin: '0 auto',
+                                        width: '100%'
+                                    }}
+                                >
+                                    {copied ? (
+                                        <><CheckCircle size={18} /> Copiado com sucesso!</>
+                                    ) : (
+                                        'Copiar Código PIX'
+                                    )}
+                                </button>
                                 <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
                             </div>
                         )}
