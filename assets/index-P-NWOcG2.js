@@ -58,58 +58,95 @@ Please change the parent <Route path="${k}"> to <Route path="${k==="/"?"*":`${k}
                 
                 @media (max-width: 480px) { .login-card { padding: 32px 20px; } }
             `}),n.jsx("div",{className:"bg-mesh"}),n.jsx("header",{className:`site-header ${u>50?"scrolled":""}`,children:n.jsxs("div",{className:"header-glass",children:[n.jsxs(xe,{to:"/",className:"logo-link",children:[n.jsx("div",{className:"logo-box",children:n.jsx(sn,{size:18,color:"white"})}),n.jsx("span",{className:"logo-name",children:"loggi"})]}),X?n.jsxs(xe,{to:"/perfil",className:"nav-login-btn",style:{display:"flex",alignItems:"center",gap:"8px"},children:[n.jsx("div",{style:{width:"20px",height:"20px",background:"rgba(255,255,255,0.2)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px"},children:X.nome?X.nome[0].toUpperCase():"U"}),"Olá, ",X.nome?X.nome.split(" ")[0]:"Usuário"]}):n.jsx(xe,{to:"/entrar",className:"nav-login-btn",children:"Entrar"})]})}),n.jsx("div",{className:"login-container",children:n.jsxs("div",{className:"login-card",children:[n.jsx("h2",{style:{fontSize:"1.8rem",fontWeight:900,textAlign:"center",marginBottom:"8px"},children:"Bem-vindo"}),n.jsx("p",{style:{color:"rgba(255,255,255,0.4)",textAlign:"center",marginBottom:"32px"},children:"Acesse sua conta para gerenciar envios"}),n.jsxs("div",{className:"tabs",children:[n.jsx("button",{className:`tab-btn ${i==="login"?"active":""}`,onClick:()=>{o("login"),y("")},children:"Entrar"}),n.jsx("button",{className:`tab-btn ${i==="cadastro"?"active":""}`,onClick:()=>{o("cadastro"),y("")},children:"Criar Conta"})]}),b&&n.jsx("div",{className:"error-box",children:b}),n.jsxs("form",{onSubmit:J,style:{display:"flex",flexDirection:"column",gap:"16px"},children:[i==="cadastro"&&n.jsxs("div",{style:{position:"relative"},children:[n.jsx(kl,{className:"field-icon",size:18}),n.jsx("input",{name:"nome",value:h.nome,onChange:M,className:"input-field",placeholder:"Nome completo",required:!0})]}),n.jsxs("div",{style:{position:"relative"},children:[n.jsx(Hd,{className:"field-icon",size:18}),n.jsx("input",{name:"email",type:"email",value:h.email,onChange:M,className:"input-field",placeholder:"E-mail",required:!0})]}),i==="cadastro"&&n.jsxs("div",{style:{position:"relative"},children:[n.jsx(Os,{className:"field-icon",size:18}),n.jsx("input",{name:"telefone",value:h.telefone,onChange:M,className:"input-field",placeholder:"WhatsApp (11) 99999-9999",required:!0})]}),n.jsxs("div",{style:{position:"relative"},children:[n.jsx(ox,{className:"field-icon",size:18}),n.jsx("input",{name:"senha",type:d?"text":"password",value:h.senha,onChange:M,className:"input-field",placeholder:"Senha",required:!0}),n.jsx("button",{type:"button",onClick:()=>c(!d),style:{position:"absolute",right:"14px",top:"15px",background:"none",border:"none",color:"rgba(255,255,255,0.3)",cursor:"pointer"},children:d?n.jsx(Mb,{size:18}):n.jsx(ws,{size:18})})]}),n.jsxs("button",{type:"submit",className:"btn-submit",disabled:v,children:[v?"Aguarde...":i==="login"?"Entrar agora":"Criar minha conta"," ",n.jsx(pa,{size:20})]})]}),n.jsx("div",{style:{marginTop:"32px",textAlign:"center",fontSize:"0.9rem",color:"rgba(255,255,255,0.4)"},children:i==="login"?n.jsxs(n.Fragment,{children:["Não tem conta? ",n.jsx("span",{onClick:()=>{o("cadastro"),y("")},style:{color:"#818cf8",cursor:"pointer",fontWeight:700},children:"Cadastre-se grátis"})]}):n.jsxs(n.Fragment,{children:["Já possui conta? ",n.jsx("span",{onClick:()=>{o("login"),y("")},style:{color:"#818cf8",cursor:"pointer",fontWeight:700},children:"Faça login"})]})}),n.jsxs("div",{style:{marginTop:"40px",paddingTop:"24px",borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",color:"rgba(255,255,255,0.3)",fontSize:"0.8rem"},children:[n.jsx(Ms,{size:16})," Protegido por Loggi Shield"]})]})}),n.jsxs("footer",{className:"site-footer",children:[n.jsxs(xe,{to:"/",className:"logo-link",style:{justifyContent:"center",marginBottom:"32px"},children:[n.jsx("div",{className:"logo-box",children:n.jsx(sn,{size:18,color:"white"})}),n.jsx("span",{className:"logo-name",children:"loggi"})]}),n.jsxs("div",{className:"footer-links",style:{fontSize:"0.8rem"},children:[n.jsx(xe,{to:"/sobre",children:"Sobre"}),n.jsx(xe,{to:"/para-voce",children:"Para Você"}),n.jsx(xe,{to:"/para-empresas",children:"Empresas"}),n.jsx(xe,{to:"/api-ecommerce",children:"API"}),n.jsx(xe,{to:"/loggi-pro",children:"Loggi Pro"}),n.jsx(xe,{to:"/carreiras",children:"Carreiras"}),n.jsx(xe,{to:"/termos",children:"Termos de Uso"}),n.jsx(xe,{to:"/ajuda",children:"Ajuda"})]})]})]})},Uv=()=>{const[i,o]=j.useState([]),[d,c]=j.useState(!0),[u,p]=j.useState("");j.useEffect(()=>{m()},[]);const m=async()=>{try{const g=await ie.get("/api/orders");o(g.data),c(!1)}catch(g){console.error("Erro ao buscar pedidos:",g),c(!1)}},h=i.filter(g=>g.codigo.toLowerCase().includes(u.toLowerCase())||g.titulo.toLowerCase().includes(u.toLowerCase())||g.cidade.toLowerCase().includes(u.toLowerCase()));return n.jsxs("div",{style:je.container,children:[n.jsxs("header",{style:je.header,children:[n.jsxs("div",{children:[n.jsxs("h1",{style:je.title,children:["Gerenciar ",n.jsx("span",{className:"text-gradient",children:"Pedidos"})]}),n.jsx("p",{style:je.subtitle,children:"Acompanhe e gerencie todos os rastreios em tempo real."})]}),n.jsxs("button",{style:je.addBtn,className:"btn-primary",children:[n.jsx(wl,{size:20}),"Novo Pedido"]})]}),n.jsxs("div",{className:"glass-panel",style:je.tableContainer,children:[n.jsxs("div",{style:je.toolbar,children:[n.jsxs("div",{style:je.searchBox,children:[n.jsx(on,{size:18,style:je.searchIcon}),n.jsx("input",{type:"text",placeholder:"Buscar por código, título ou cidade...",style:je.searchInput,value:u,onChange:g=>p(g.target.value)})]}),n.jsxs("button",{style:je.filterBtn,children:[n.jsx(ix,{size:18}),"Filtros"]})]}),n.jsx("div",{style:je.tableWrapper,children:n.jsxs("table",{style:je.table,children:[n.jsx("thead",{children:n.jsxs("tr",{style:je.theadTr,children:[n.jsx("th",{style:je.th,children:"CÓDIGO"}),n.jsx("th",{style:je.th,children:"DATA"}),n.jsx("th",{style:je.th,children:"ORIGEM/DESTINO"}),n.jsx("th",{style:je.th,children:"STATUS"}),n.jsx("th",{style:je.th,children:"PRIORIDADE"}),n.jsx("th",{style:je.th,children:"AÇÕES"})]})}),n.jsx("tbody",{children:d?n.jsx("tr",{children:n.jsx("td",{colSpan:6,style:je.loadingCell,children:"Carregando pedidos..."})}):h.length===0?n.jsx("tr",{children:n.jsx("td",{colSpan:6,style:je.loadingCell,children:"Nenhum pedido encontrado."})}):h.map(g=>n.jsxs("tr",{style:je.tr,children:[n.jsx("td",{style:je.td,children:n.jsxs("div",{style:je.codeCell,children:[n.jsx(xt,{size:16,color:"var(--accent-primary)"}),n.jsx("strong",{children:g.codigo})]})}),n.jsx("td",{style:je.td,children:new Date(g.data).toLocaleDateString("pt-BR")}),n.jsx("td",{style:je.td,children:g.cidade}),n.jsx("td",{style:je.td,children:n.jsx("span",{style:{...je.statusBadge,backgroundColor:g.cor?`${g.cor}22`:"var(--accent-glow)",color:g.cor||"var(--accent-primary)",borderColor:g.cor||"var(--accent-primary)"},children:g.status_atual})}),n.jsx("td",{style:je.td,children:g.prioridade?n.jsx("span",{style:je.priorityHigh,children:"Alta"}):n.jsx("span",{style:je.priorityNormal,children:"Normal"})}),n.jsx("td",{style:je.td,children:n.jsxs("div",{style:je.actions,children:[n.jsx("button",{style:je.actionBtn,title:"Ver",children:n.jsx(ws,{size:16})}),n.jsx("button",{style:je.actionBtn,title:"Editar",children:n.jsx(zl,{size:16})}),n.jsx("button",{style:{...je.actionBtn,color:"var(--danger)"},title:"Excluir",children:n.jsx(Cs,{size:16})})]})})]},g.id))})]})})]})]})},je={container:{padding:"32px",animation:"fadeIn 0.5s ease-out"},header:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"32px"},title:{fontSize:"2.5rem",margin:0,fontWeight:700},subtitle:{color:"var(--text-secondary)",marginTop:"8px",fontSize:"1.1rem"},addBtn:{display:"flex",alignItems:"center",gap:"8px",padding:"12px 24px",borderRadius:"var(--radius-md)",fontSize:"1rem",fontWeight:600},tableContainer:{borderRadius:"var(--radius-lg)",overflow:"hidden"},toolbar:{padding:"24px",display:"flex",justifyContent:"space-between",gap:"24px",borderBottom:"1px solid var(--border-glass)"},searchBox:{flex:1,position:"relative"},searchIcon:{position:"absolute",left:"16px",top:"50%",transform:"translateY(-50%)",color:"var(--text-secondary)"},searchInput:{width:"100%",padding:"12px 16px 12px 48px",background:"rgba(255,255,255,0.05)",border:"1px solid var(--border-glass)",borderRadius:"var(--radius-md)",color:"var(--text-primary)",fontSize:"1rem",outline:"none",transition:"all 0.3s"},filterBtn:{display:"flex",alignItems:"center",gap:"8px",padding:"12px 20px",background:"rgba(255,255,255,0.05)",border:"1px solid var(--border-glass)",borderRadius:"var(--radius-md)",color:"var(--text-primary)",cursor:"pointer",fontWeight:500},tableWrapper:{overflowX:"auto"},table:{width:"100%",borderCollapse:"collapse",textAlign:"left"},theadTr:{background:"rgba(255,255,255,0.02)"},th:{padding:"16px 24px",fontSize:"0.85rem",textTransform:"uppercase",letterSpacing:"0.05em",color:"var(--text-secondary)",fontWeight:600,borderBottom:"1px solid var(--border-glass)"},tr:{borderBottom:"1px solid var(--border-glass)",transition:"background 0.3s",cursor:"pointer"},td:{padding:"16px 24px",color:"var(--text-primary)"},codeCell:{display:"flex",alignItems:"center",gap:"8px"},statusBadge:{padding:"6px 14px",borderRadius:"20px",fontSize:"0.85rem",fontWeight:600,border:"1px solid transparent"},priorityHigh:{color:"var(--danger)",fontWeight:600,display:"flex",alignItems:"center",gap:"6px"},priorityNormal:{color:"var(--text-secondary)"},loadingCell:{padding:"48px",textAlign:"center",color:"var(--text-secondary)"},actions:{display:"flex",gap:"8px"},actionBtn:{padding:"8px",background:"rgba(255,255,255,0.05)",border:"none",borderRadius:"8px",color:"var(--text-secondary)",cursor:"pointer",transition:"all 0.3s"}},Lv=()=>{const[i,o]=j.useState([]),[d,c]=j.useState(!0),[u,p]=j.useState("");j.useEffect(()=>{m()},[]);const m=async()=>{try{const g=await ie.get("/api/clients");o(g.data),c(!1)}catch(g){console.error("Erro ao buscar clientes:",g),c(!1)}},h=i.filter(g=>g.nome.toLowerCase().includes(u.toLowerCase())||g.codigo.toLowerCase().includes(u.toLowerCase())||g.email&&g.email.toLowerCase().includes(u.toLowerCase()));return n.jsxs("div",{style:_e.container,children:[n.jsxs("header",{style:_e.header,children:[n.jsxs("div",{children:[n.jsxs("h1",{style:_e.title,children:["Painel de ",n.jsx("span",{className:"text-gradient",children:"Clientes"})]}),n.jsx("p",{style:_e.subtitle,children:"Gerencie sua base de clientes e acompanhe as indicações."})]}),n.jsxs("button",{style:_e.addBtn,className:"btn-primary",children:[n.jsx(wl,{size:20}),"Novo Cliente"]})]}),n.jsx("div",{style:_e.toolbar,children:n.jsxs("div",{style:_e.searchBox,children:[n.jsx(on,{size:18,style:_e.searchIcon}),n.jsx("input",{type:"text",placeholder:"Buscar por nome, código ou email...",style:_e.searchInput,value:u,onChange:g=>p(g.target.value)})]})}),n.jsx("div",{style:_e.grid,children:d?n.jsx("div",{style:_e.loading,children:"Carregando clientes..."}):h.length===0?n.jsx("div",{style:_e.loading,children:"Nenhum cliente cadastrado."}):h.map(g=>n.jsxs("div",{className:"glass-panel",style:_e.card,children:[n.jsxs("div",{style:_e.cardHeader,children:[n.jsx("div",{style:_e.avatar,children:g.nome.charAt(0)}),n.jsxs("div",{style:_e.clientInfo,children:[n.jsx("h3",{style:_e.clientName,children:g.nome}),n.jsxs("span",{style:_e.clientCode,children:["#",g.codigo]})]})]}),n.jsxs("div",{style:_e.cardBody,children:[n.jsxs("div",{style:_e.infoLine,children:[n.jsx(Hd,{size:16}),n.jsx("span",{children:g.email||"N/A"})]}),n.jsxs("div",{style:_e.infoLine,children:[n.jsx(Os,{size:16}),n.jsx("span",{children:g.telefone||"N/A"})]}),n.jsxs("div",{style:_e.infoLine,children:[n.jsx(Li,{size:16}),n.jsx("span",{children:g.cidade||"Não informada"})]})]}),n.jsxs("div",{style:_e.cardFooter,children:[n.jsxs("div",{style:_e.stat,children:[n.jsx("div",{style:_e.statLabel,children:"Indicações"}),n.jsx("div",{style:_e.statValue,children:g.total_indicacoes})]}),n.jsxs("div",{style:_e.stat,children:[n.jsx("div",{style:_e.statLabel,children:"Compras"}),n.jsx("div",{style:_e.statValue,children:g.total_compras})]}),n.jsx("button",{style:_e.viewBtn,children:n.jsx(_b,{size:18})})]})]},g.id))})]})},_e={container:{padding:"32px",animation:"fadeIn 0.5s ease-out"},header:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"32px"},title:{fontSize:"2.5rem",margin:0,fontWeight:700},subtitle:{color:"var(--text-secondary)",marginTop:"8px"},addBtn:{display:"flex",alignItems:"center",gap:"8px",padding:"12px 24px",borderRadius:"var(--radius-md)",fontSize:"1rem",fontWeight:600},toolbar:{marginBottom:"32px"},searchBox:{position:"relative",maxWidth:"500px"},searchIcon:{position:"absolute",left:"16px",top:"50%",transform:"translateY(-50%)",color:"var(--text-secondary)"},searchInput:{width:"100%",padding:"14px 16px 14px 48px",background:"rgba(255,255,255,0.05)",border:"1px solid var(--border-glass)",borderRadius:"var(--radius-md)",color:"var(--text-primary)",fontSize:"1rem",outline:"none",transition:"all 0.3s"},grid:{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(320px, 1fr))",gap:"24px"},loading:{gridColumn:"1 / -1",textAlign:"center",padding:"48px",color:"var(--text-secondary)"},card:{padding:"24px",borderRadius:"var(--radius-lg)",transition:"transform 0.3s ease",cursor:"pointer"},cardHeader:{display:"flex",alignItems:"center",gap:"16px",marginBottom:"20px"},avatar:{width:"56px",height:"56px",borderRadius:"16px",background:"var(--accent-glow)",border:"1px solid var(--accent-primary)",color:"var(--accent-primary)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.5rem",fontWeight:700},clientInfo:{display:"flex",flexDirection:"column"},clientName:{margin:0,fontSize:"1.1rem",fontWeight:600},clientCode:{fontSize:"0.85rem",color:"var(--accent-primary)",fontWeight:500},cardBody:{display:"flex",flexDirection:"column",gap:"12px",marginBottom:"24px",padding:"16px",background:"rgba(255,255,255,0.03)",borderRadius:"12px"},infoLine:{display:"flex",alignItems:"center",gap:"10px",color:"var(--text-secondary)",fontSize:"0.9rem"},cardFooter:{display:"flex",alignItems:"center",justifyContent:"space-between",paddingTop:"16px",borderTop:"1px solid var(--border-glass)"},stat:{textAlign:"center"},statLabel:{fontSize:"0.75rem",color:"var(--text-secondary)",textTransform:"uppercase",marginBottom:"4px"},statValue:{fontSize:"1.25rem",fontWeight:700,color:"var(--text-primary)"},viewBtn:{padding:"10px",background:"transparent",border:"1px solid var(--border-glass)",borderRadius:"10px",color:"var(--accent-primary)",cursor:"pointer",transition:"all 0.3s"}},Mx="/assets/favicon-ovWAtbBs.png",Ht=()=>{const[i,o]=j.useState(0),[d,c]=j.useState(!1),[u,p]=j.useState(null),m=ea();j.useEffect(()=>{(()=>{const y=localStorage.getItem("loggi_user_session");p(y?JSON.parse(y):null)})();const b=()=>o(window.scrollY);return window.addEventListener("scroll",b),()=>window.removeEventListener("scroll",b)},[m.pathname]);const h=[{label:"Início",path:"/"},{label:"Para Você",path:"/para-voce"},{label:"Para Empresas",path:"/para-empresas"},{label:"API",path:"/api-ecommerce"},{label:"Loggi Pro",path:"/loggi-pro"},{label:"Rastreio",path:"/rastreio"}];return n.jsxs("header",{className:`site-header ${i>50?"scrolled":""}`,children:[n.jsx("style",{children:`
-                .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 24px; }
-                .site-header.scrolled { padding: 16px 24px; }
+                .site-header {
+                    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px 24px;
+                }
+                .site-header.scrolled { padding: 12px 24px; }
                 .header-glass {
                     max-width: 1280px; margin: 0 auto;
                     display: flex; justify-content: space-between; align-items: center;
-                    padding: 14px 28px; background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
+                    padding: 12px 28px;
+                    background: rgba(255, 255, 255, 0.65);
+                    backdrop-filter: blur(24px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+                    border: 1px solid rgba(255,255,255,0.8);
+                    border-radius: 20px;
+                    box-shadow: 0 8px 32px rgba(0, 40, 120, 0.08), inset 0 1px 0 rgba(255,255,255,0.9);
                 }
-                .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; }
-                .logo img { width: 32px; height: 32px; filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5)); }
+                .site-header.scrolled .header-glass {
+                    background: rgba(255, 255, 255, 0.8);
+                    box-shadow: 0 12px 40px rgba(0, 40, 120, 0.12);
+                }
+                .logo {
+                    display: flex; align-items: center; gap: 10px;
+                    text-decoration: none; color: var(--text-primary);
+                    font-size: 1.4rem; font-weight: 900; letter-spacing: -1px;
+                }
+                .logo img {
+                    width: 30px; height: 30px;
+                    filter: drop-shadow(0 2px 6px rgba(0, 85, 255, 0.3));
+                }
                 
-                .desktop-nav { display: flex; align-items: center; gap: 8px; }
+                .desktop-nav { display: flex; align-items: center; gap: 4px; }
                 .nav-link {
-                    color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600;
-                    padding: 10px 18px; border-radius: 12px; transition: all 0.3s; position: relative;
+                    color: var(--text-secondary); text-decoration: none; font-size: 0.88rem; font-weight: 600;
+                    padding: 8px 16px; border-radius: 12px; transition: all 0.3s; position: relative;
                 }
-                .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
-                .nav-link.active { color: #818cf8; background: rgba(99, 102, 241, 0.08); }
+                .nav-link:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.05); }
+                .nav-link.active { color: var(--accent-primary); background: rgba(0, 85, 255, 0.08); font-weight: 700; }
                 
                 .nav-login-btn {
-                    margin-left: 12px; padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #a855f7);
-                    border: none; border-radius: 14px; color: white; text-decoration: none; font-weight: 800; font-size: 0.85rem;
-                    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); transition: all 0.3s;
+                    margin-left: 12px; padding: 10px 22px;
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
+                    border: none; border-radius: 14px; color: white; text-decoration: none;
+                    font-weight: 700; font-size: 0.85rem;
+                    box-shadow: 0 6px 20px rgba(0, 85, 255, 0.25); transition: all 0.3s;
                 }
-                .nav-login-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5); }
+                .nav-login-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 28px rgba(0, 85, 255, 0.4);
+                    color: white;
+                }
                 
-                .mobile-toggle { display: none; background: transparent; border: none; color: white; cursor: pointer; padding: 8px; border-radius: 12px; transition: 0.3s; }
+                .mobile-toggle {
+                    display: none; background: rgba(0, 85, 255, 0.06); border: 1px solid rgba(0, 85, 255, 0.1);
+                    color: var(--accent-primary); cursor: pointer; padding: 8px; border-radius: 12px; transition: 0.3s;
+                }
                 @media (max-width: 900px) {
                     .desktop-nav { display: none; }
                     .mobile-toggle { display: block; }
                 }
                 
-                .mobile-menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s; }
+                .mobile-menu-overlay {
+                    position: fixed; inset: 0; background: rgba(0,20,60,0.5); backdrop-filter: blur(10px);
+                    z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s;
+                }
                 .mobile-menu-overlay.open { opacity: 1; pointer-events: auto; }
                 .mobile-menu-content {
-                    position: fixed; right: 0; top: 0; bottom: 0; width: 300px; background: #0d0d0f; border-left: 1px solid rgba(255,255,255,0.1);
-                    z-index: 2001; transform: translateX(100%); transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; padding: 80px 24px 40px;
+                    position: fixed; right: 0; top: 0; bottom: 0; width: 300px;
+                    background: #fff; border-left: 1px solid rgba(0, 85, 255, 0.08);
+                    z-index: 2001; transform: translateX(100%);
+                    transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                    display: flex; flex-direction: column; padding: 80px 24px 40px;
+                    box-shadow: -8px 0 32px rgba(0,20,60,0.1);
                 }
                 .mobile-menu-overlay.open + .mobile-menu-content { transform: translateX(0); }
                 
                 .mobile-nav-item {
-                    color: white; text-decoration: none; font-size: 1.2rem; font-weight: 700; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+                    color: var(--text-primary); text-decoration: none; font-size: 1.1rem; font-weight: 600;
+                    padding: 18px 16px; border-bottom: 1px solid rgba(0, 85, 255, 0.06);
                     display: flex; justify-content: space-between; align-items: center;
+                    transition: 0.2s;
                 }
-            `}),n.jsxs("div",{className:"header-glass",children:[n.jsxs(xe,{to:"/",className:"logo",children:[n.jsx("img",{src:Mx,alt:"Loggi"}),n.jsx("span",{children:"loggi"})]}),n.jsxs("nav",{className:"desktop-nav",children:[h.map(g=>n.jsx(xe,{to:g.path,className:`nav-link ${m.pathname===g.path?"active":""}`,children:g.label},g.path)),u?n.jsxs(xe,{to:"/perfil",className:"nav-login-btn",style:{display:"flex",alignItems:"center",gap:"8px"},children:[n.jsx("div",{style:{width:"20px",height:"20px",background:"rgba(255,255,255,0.2)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px"},children:u.nome[0].toUpperCase()}),"Olá, ",u.nome.split(" ")[0]]}):n.jsx(xe,{to:"/entrar",className:"nav-login-btn",children:"Entrar"})]}),n.jsx("button",{className:"mobile-toggle",onClick:()=>c(!0),children:n.jsx(cx,{size:24})})]}),n.jsx("div",{className:`mobile-menu-overlay ${d?"open":""}`,onClick:()=>c(!1)}),n.jsxs("div",{className:"mobile-menu-content",children:[n.jsx("button",{style:{position:"absolute",top:"24px",right:"24px",background:"transparent",border:"none",color:"white"},onClick:()=>c(!1),children:n.jsx(On,{size:32})}),h.map(g=>n.jsx(xe,{to:g.path,className:"mobile-nav-item",onClick:()=>c(!1),children:g.label},g.path)),u?n.jsxs(xe,{to:"/perfil",className:"mobile-nav-item",onClick:()=>c(!1),children:["Minha Conta (",u.nome.split(" ")[0],")"]}):n.jsx(xe,{to:"/entrar",className:"nav-login-btn",style:{textAlign:"center",padding:"16px",fontSize:"1.1rem",marginTop:"20px"},onClick:()=>c(!1),children:"Entrar na Conta"})]})]})},Yt=()=>n.jsxs("footer",{className:"site-footer",children:[n.jsx("style",{children:`
+                .mobile-nav-item:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.03); }
+            `}),n.jsxs("div",{className:"header-glass",children:[n.jsxs(xe,{to:"/",className:"logo",children:[n.jsx("img",{src:Mx,alt:"Loggi"}),n.jsx("span",{children:"loggi"})]}),n.jsxs("nav",{className:"desktop-nav",children:[h.map(g=>n.jsx(xe,{to:g.path,className:`nav-link ${m.pathname===g.path?"active":""}`,children:g.label},g.path)),u?n.jsxs(xe,{to:"/perfil",className:"nav-login-btn",style:{display:"flex",alignItems:"center",gap:"8px"},children:[n.jsx("div",{style:{width:"22px",height:"22px",background:"rgba(255,255,255,0.25)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:800},children:u.nome[0].toUpperCase()}),"Olá, ",u.nome.split(" ")[0]]}):n.jsx(xe,{to:"/entrar",className:"nav-login-btn",children:"Entrar"})]}),n.jsx("button",{className:"mobile-toggle",onClick:()=>c(!0),children:n.jsx(cx,{size:24})})]}),n.jsx("div",{className:`mobile-menu-overlay ${d?"open":""}`,onClick:()=>c(!1)}),n.jsxs("div",{className:"mobile-menu-content",children:[n.jsx("button",{style:{position:"absolute",top:"24px",right:"24px",background:"transparent",border:"none",color:"#0a1628",cursor:"pointer"},onClick:()=>c(!1),children:n.jsx(On,{size:28})}),h.map(g=>n.jsx(xe,{to:g.path,className:"mobile-nav-item",onClick:()=>c(!1),children:g.label},g.path)),u?n.jsxs(xe,{to:"/perfil",className:"mobile-nav-item",onClick:()=>c(!1),children:["Minha Conta (",u.nome.split(" ")[0],")"]}):n.jsx(xe,{to:"/entrar",className:"nav-login-btn",style:{textAlign:"center",padding:"16px",fontSize:"1.1rem",marginTop:"20px"},onClick:()=>c(!1),children:"Entrar na Conta"})]})]})},Yt=()=>n.jsxs("footer",{className:"site-footer",children:[n.jsx("style",{children:`
                 .site-footer {
-                    background: rgba(10, 10, 12, 0.4);
+                    background: rgba(255, 255, 255, 0.5);
                     backdrop-filter: blur(20px);
-                    border-top: 1px solid rgba(255,255,255,0.05);
+                    border-top: 1px solid rgba(0, 85, 255, 0.06);
                     padding: 80px 5% 40px;
-                    color: white;
+                    color: var(--text-primary);
                     position: relative;
                     z-index: 10;
                 }
@@ -121,7 +158,7 @@ Please change the parent <Route path="${k}"> to <Route path="${k==="/"?"*":`${k}
                     gap: 80px;
                 }
                 .footer-brand-col p {
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-secondary);
                     margin-top: 24px;
                     line-height: 1.7;
                     font-size: 0.95rem;
@@ -133,34 +170,34 @@ Please change the parent <Route path="${k}"> to <Route path="${k==="/"?"*":`${k}
                     gap: 40px;
                 }
                 .footer-col h4 {
-                    font-size: 1rem;
-                    font-weight: 700;
+                    font-size: 0.85rem;
+                    font-weight: 800;
                     margin-bottom: 24px;
-                    color: white;
+                    color: var(--text-primary);
                     text-transform: uppercase;
-                    letter-spacing: 1px;
+                    letter-spacing: 1.5px;
                 }
                 .footer-col a {
                     display: block;
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-secondary);
                     text-decoration: none;
                     margin-bottom: 12px;
                     font-size: 0.95rem;
                     transition: all 0.3s;
                 }
                 .footer-col a:hover {
-                    color: #818cf8;
+                    color: var(--accent-primary);
                     transform: translateX(5px);
                 }
                 .footer-bottom {
                     max-width: 1200px;
                     margin: 80px auto 0;
                     padding-top: 40px;
-                    border-top: 1px solid rgba(255,255,255,0.05);
+                    border-top: 1px solid rgba(0, 85, 255, 0.06);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    color: rgba(255,255,255,0.3);
+                    color: var(--text-muted);
                     font-size: 0.9rem;
                 }
                 .footer-bottom-info {
@@ -178,28 +215,13 @@ Please change the parent <Route path="${k}"> to <Route path="${k==="/"?"*":`${k}
                 }
 
                 .logo-link {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    text-decoration: none;
-                    color: white;
-                }
-                .logo-box {
-                    width: 36px;
-                    height: 36px;
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+                    display: flex; align-items: center; gap: 12px;
+                    text-decoration: none; color: var(--text-primary);
                 }
                 .logo-name {
-                    font-size: 1.4rem;
-                    font-weight: 800;
-                    letter-spacing: -0.5px;
+                    font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;
                 }
-            `}),n.jsxs("div",{className:"footer-inner",children:[n.jsxs("div",{className:"footer-brand-col",children:[n.jsxs(xe,{to:"/",className:"logo-link",children:[n.jsx("img",{src:Mx,alt:"Loggi Logo",style:{width:"36px",height:"36px",borderRadius:"8px"}}),n.jsx("span",{className:"logo-name",children:"LOGGI"})]}),n.jsx("p",{children:"Reinventando a logística brasileira através de tecnologia própria e excelência operacional. A maior malha de entregas do país ao seu alcance."})]}),n.jsxs("div",{className:"footer-links-wrap",children:[n.jsxs("div",{className:"footer-col",children:[n.jsx("h4",{children:"Soluções"}),n.jsx(xe,{to:"/para-voce",children:"Para você"}),n.jsx(xe,{to:"/para-empresas",children:"Para empresas"}),n.jsx(xe,{to:"/api-ecommerce",children:"API E-commerce"}),n.jsx(xe,{to:"/loggi-pro",children:"Loggi Pro"})]}),n.jsxs("div",{className:"footer-col",children:[n.jsx("h4",{children:"Empresa"}),n.jsx(xe,{to:"/sobre",children:"Nossa História"}),n.jsx(xe,{to:"/carreiras",children:"Carreiras"}),n.jsx(xe,{to:"/termos",children:"Termos de Uso"})]}),n.jsxs("div",{className:"footer-col",children:[n.jsx("h4",{children:"Suporte"}),n.jsx(xe,{to:"/ajuda",children:"Central de Ajuda"}),n.jsx(xe,{to:"/rastreio",children:"Rastrear Objeto"}),n.jsx(xe,{to:"/pedido",children:"Fazer Pedido"})]})]})]}),n.jsxs("div",{className:"footer-bottom",children:[n.jsxs("div",{className:"footer-bottom-info",children:[n.jsx("span",{children:"© 2026 Loggi Tecnologia LTDA."}),n.jsx(xe,{to:"/termos",style:{color:"inherit",textDecoration:"none"},children:"Privacidade"})]}),n.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:["Feito com ",n.jsx(sx,{size:14,fill:"#ef4444",color:"#ef4444"})," para o Brasil"]})]})]}),jl="",qv=()=>{const[i,o]=j.useState(""),[d,c]=j.useState(""),[u,p]=j.useState(!1),[m,h]=j.useState(null),[g,b]=j.useState(""),[y,v]=j.useState("voce"),[_,X]=j.useState(0),[C,M]=j.useState(!1),[k,J]=j.useState(!1),[H,Q]=j.useState(null),[V,ae]=j.useState(!1),[pe,ee]=j.useState(!1),[de,oe]=j.useState(!1),[ue,ge]=j.useState(null),[Ne,Ye]=j.useState(!1),[Oe,Te]=j.useState(!0);j.useEffect(()=>{fetch(`${jl}/api/config/centavos`).then(B=>B.json()).then(B=>Te(B.active)).catch(()=>Te(!0))},[]),j.useEffect(()=>{let B;return H&&!V&&(B=setInterval(async()=>{try{const S=await(await fetch(`${jl}/api/pix/status/${H.payment_id}`)).json();S&&S.success&&S.data?.status==="completed"&&(ae(!0),clearInterval(B))}catch{}},5e3)),()=>clearInterval(B)},[H,V]),j.useEffect(()=>{let B;return ue&&!Ne&&(B=setInterval(async()=>{try{const S=await(await fetch(`${jl}/api/pix/status/${ue.payment_id}`)).json();S&&S.success&&S.data?.status==="completed"&&(Ye(!0),clearInterval(B))}catch{}},5e3)),()=>clearInterval(B)},[ue,Ne]),j.useEffect(()=>{const B=new IntersectionObserver(Z=>{Z.forEach(S=>{S.isIntersecting&&S.target.classList.add("reveal-active")})},{threshold:.1});return document.querySelectorAll(".reveal").forEach(Z=>B.observe(Z)),()=>B.disconnect()},[y]),j.useEffect(()=>{const U=170.78333333333333;let W=0;const I=setInterval(()=>{W+=U,W>=10247?(X(10247),clearInterval(I)):X(Math.floor(W))},2e3/60);return()=>clearInterval(I)},[]);const E=async B=>{if(B.preventDefault(),!(!i||!d)){p(!0),b(""),h(null);try{const S=await(await fetch(`${jl}/api/rastreio`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({codigo:i.toUpperCase(),cidade:d})})).json();S.success&&S.etapas?.length>0?h(S):b(S.message||"Código não encontrado.")}catch{b("Erro ao conectar com o servidor. Tente novamente mais tarde.")}finally{p(!1)}}},$=B=>{const Z=new Date(B);return Z.toLocaleDateString("pt-BR")+" "+Z.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})},K=B=>{const Z=B.toLowerCase();return Z.includes("saiu")||Z.includes("entrega")||Z.includes("rota")?n.jsx(sn,{size:32,color:"#6366f1"}):Z.includes("trânsito")||Z.includes("transito")?n.jsx(xt,{size:32,color:"#818cf8"}):Z.includes("postado")||Z.includes("coletado")?n.jsx(wd,{size:32,color:"#a855f7"}):Z.includes("entregue")?n.jsx(wt,{size:32,color:"#10b981"}):n.jsx(dd,{size:32,color:"#6366f1"})};return n.jsxs("div",{className:"home-page",children:[n.jsx("style",{children:`
+            `}),n.jsxs("div",{className:"footer-inner",children:[n.jsxs("div",{className:"footer-brand-col",children:[n.jsxs(xe,{to:"/",className:"logo-link",children:[n.jsx("img",{src:Mx,alt:"Loggi Logo",style:{width:"36px",height:"36px",borderRadius:"8px"}}),n.jsx("span",{className:"logo-name",children:"LOGGI"})]}),n.jsx("p",{children:"Reinventando a logística brasileira através de tecnologia própria e excelência operacional. A maior malha de entregas do país ao seu alcance."})]}),n.jsxs("div",{className:"footer-links-wrap",children:[n.jsxs("div",{className:"footer-col",children:[n.jsx("h4",{children:"Soluções"}),n.jsx(xe,{to:"/para-voce",children:"Para você"}),n.jsx(xe,{to:"/para-empresas",children:"Para empresas"}),n.jsx(xe,{to:"/api-ecommerce",children:"API E-commerce"}),n.jsx(xe,{to:"/loggi-pro",children:"Loggi Pro"})]}),n.jsxs("div",{className:"footer-col",children:[n.jsx("h4",{children:"Empresa"}),n.jsx(xe,{to:"/sobre",children:"Nossa História"}),n.jsx(xe,{to:"/carreiras",children:"Carreiras"}),n.jsx(xe,{to:"/termos",children:"Termos de Uso"})]}),n.jsxs("div",{className:"footer-col",children:[n.jsx("h4",{children:"Suporte"}),n.jsx(xe,{to:"/ajuda",children:"Central de Ajuda"}),n.jsx(xe,{to:"/rastreio",children:"Rastrear Objeto"}),n.jsx(xe,{to:"/pedido",children:"Fazer Pedido"})]})]})]}),n.jsxs("div",{className:"footer-bottom",children:[n.jsxs("div",{className:"footer-bottom-info",children:[n.jsx("span",{children:"© 2026 Loggi Tecnologia LTDA."}),n.jsx(xe,{to:"/termos",style:{color:"inherit",textDecoration:"none"},children:"Privacidade"})]}),n.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:["Feito com ",n.jsx(sx,{size:14,fill:"#0055ff",color:"#0055ff"})," para o Brasil"]})]})]}),jl="",qv=()=>{const[i,o]=j.useState(""),[d,c]=j.useState(""),[u,p]=j.useState(!1),[m,h]=j.useState(null),[g,b]=j.useState(""),[y,v]=j.useState("voce"),[_,X]=j.useState(0),[C,M]=j.useState(!1),[k,J]=j.useState(!1),[H,Q]=j.useState(null),[V,ae]=j.useState(!1),[pe,ee]=j.useState(!1),[de,oe]=j.useState(!1),[ue,ge]=j.useState(null),[Ne,Ye]=j.useState(!1),[Oe,Te]=j.useState(!0);j.useEffect(()=>{fetch(`${jl}/api/config/centavos`).then(B=>B.json()).then(B=>Te(B.active)).catch(()=>Te(!0))},[]),j.useEffect(()=>{let B;return H&&!V&&(B=setInterval(async()=>{try{const S=await(await fetch(`${jl}/api/pix/status/${H.payment_id}`)).json();S&&S.success&&S.data?.status==="completed"&&(ae(!0),clearInterval(B))}catch{}},5e3)),()=>clearInterval(B)},[H,V]),j.useEffect(()=>{let B;return ue&&!Ne&&(B=setInterval(async()=>{try{const S=await(await fetch(`${jl}/api/pix/status/${ue.payment_id}`)).json();S&&S.success&&S.data?.status==="completed"&&(Ye(!0),clearInterval(B))}catch{}},5e3)),()=>clearInterval(B)},[ue,Ne]),j.useEffect(()=>{const B=new IntersectionObserver(Z=>{Z.forEach(S=>{S.isIntersecting&&S.target.classList.add("reveal-active")})},{threshold:.1});return document.querySelectorAll(".reveal").forEach(Z=>B.observe(Z)),()=>B.disconnect()},[y]),j.useEffect(()=>{const U=170.78333333333333;let W=0;const I=setInterval(()=>{W+=U,W>=10247?(X(10247),clearInterval(I)):X(Math.floor(W))},2e3/60);return()=>clearInterval(I)},[]);const E=async B=>{if(B.preventDefault(),!(!i||!d)){p(!0),b(""),h(null);try{const S=await(await fetch(`${jl}/api/rastreio`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({codigo:i.toUpperCase(),cidade:d})})).json();S.success&&S.etapas?.length>0?h(S):b(S.message||"Código não encontrado.")}catch{b("Erro ao conectar com o servidor. Tente novamente mais tarde.")}finally{p(!1)}}},$=B=>{const Z=new Date(B);return Z.toLocaleDateString("pt-BR")+" "+Z.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})},K=B=>{const Z=B.toLowerCase();return Z.includes("saiu")||Z.includes("entrega")||Z.includes("rota")?n.jsx(sn,{size:32,color:"#6366f1"}):Z.includes("trânsito")||Z.includes("transito")?n.jsx(xt,{size:32,color:"#818cf8"}):Z.includes("postado")||Z.includes("coletado")?n.jsx(wd,{size:32,color:"#a855f7"}):Z.includes("entregue")?n.jsx(wt,{size:32,color:"#10b981"}):n.jsx(dd,{size:32,color:"#6366f1"})};return n.jsxs("div",{className:"home-page",children:[n.jsx("style",{children:`
                 .home-page {
                     background: #06060b;
                     color: #fff;

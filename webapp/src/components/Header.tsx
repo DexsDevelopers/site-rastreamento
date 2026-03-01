@@ -34,51 +34,88 @@ const Header = () => {
     return (
         <header className={`site-header ${scrollY > 50 ? 'scrolled' : ''}`}>
             <style>{`
-                .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 24px; }
-                .site-header.scrolled { padding: 16px 24px; }
+                .site-header {
+                    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px 24px;
+                }
+                .site-header.scrolled { padding: 12px 24px; }
                 .header-glass {
                     max-width: 1280px; margin: 0 auto;
                     display: flex; justify-content: space-between; align-items: center;
-                    padding: 14px 28px; background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(20px) saturate(1.8);
-                    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
+                    padding: 12px 28px;
+                    background: rgba(255, 255, 255, 0.65);
+                    backdrop-filter: blur(24px) saturate(1.8);
+                    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+                    border: 1px solid rgba(255,255,255,0.8);
+                    border-radius: 20px;
+                    box-shadow: 0 8px 32px rgba(0, 40, 120, 0.08), inset 0 1px 0 rgba(255,255,255,0.9);
                 }
-                .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: white; font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; }
-                .logo img { width: 32px; height: 32px; filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5)); }
+                .site-header.scrolled .header-glass {
+                    background: rgba(255, 255, 255, 0.8);
+                    box-shadow: 0 12px 40px rgba(0, 40, 120, 0.12);
+                }
+                .logo {
+                    display: flex; align-items: center; gap: 10px;
+                    text-decoration: none; color: var(--text-primary);
+                    font-size: 1.4rem; font-weight: 900; letter-spacing: -1px;
+                }
+                .logo img {
+                    width: 30px; height: 30px;
+                    filter: drop-shadow(0 2px 6px rgba(0, 85, 255, 0.3));
+                }
                 
-                .desktop-nav { display: flex; align-items: center; gap: 8px; }
+                .desktop-nav { display: flex; align-items: center; gap: 4px; }
                 .nav-link {
-                    color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600;
-                    padding: 10px 18px; border-radius: 12px; transition: all 0.3s; position: relative;
+                    color: var(--text-secondary); text-decoration: none; font-size: 0.88rem; font-weight: 600;
+                    padding: 8px 16px; border-radius: 12px; transition: all 0.3s; position: relative;
                 }
-                .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
-                .nav-link.active { color: #818cf8; background: rgba(99, 102, 241, 0.08); }
+                .nav-link:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.05); }
+                .nav-link.active { color: var(--accent-primary); background: rgba(0, 85, 255, 0.08); font-weight: 700; }
                 
                 .nav-login-btn {
-                    margin-left: 12px; padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #a855f7);
-                    border: none; border-radius: 14px; color: white; text-decoration: none; font-weight: 800; font-size: 0.85rem;
-                    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); transition: all 0.3s;
+                    margin-left: 12px; padding: 10px 22px;
+                    background: linear-gradient(135deg, #0055ff, #3b82f6);
+                    border: none; border-radius: 14px; color: white; text-decoration: none;
+                    font-weight: 700; font-size: 0.85rem;
+                    box-shadow: 0 6px 20px rgba(0, 85, 255, 0.25); transition: all 0.3s;
                 }
-                .nav-login-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5); }
+                .nav-login-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 28px rgba(0, 85, 255, 0.4);
+                    color: white;
+                }
                 
-                .mobile-toggle { display: none; background: transparent; border: none; color: white; cursor: pointer; padding: 8px; border-radius: 12px; transition: 0.3s; }
+                .mobile-toggle {
+                    display: none; background: rgba(0, 85, 255, 0.06); border: 1px solid rgba(0, 85, 255, 0.1);
+                    color: var(--accent-primary); cursor: pointer; padding: 8px; border-radius: 12px; transition: 0.3s;
+                }
                 @media (max-width: 900px) {
                     .desktop-nav { display: none; }
                     .mobile-toggle { display: block; }
                 }
                 
-                .mobile-menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s; }
+                .mobile-menu-overlay {
+                    position: fixed; inset: 0; background: rgba(0,20,60,0.5); backdrop-filter: blur(10px);
+                    z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s;
+                }
                 .mobile-menu-overlay.open { opacity: 1; pointer-events: auto; }
                 .mobile-menu-content {
-                    position: fixed; right: 0; top: 0; bottom: 0; width: 300px; background: #0d0d0f; border-left: 1px solid rgba(255,255,255,0.1);
-                    z-index: 2001; transform: translateX(100%); transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; padding: 80px 24px 40px;
+                    position: fixed; right: 0; top: 0; bottom: 0; width: 300px;
+                    background: #fff; border-left: 1px solid rgba(0, 85, 255, 0.08);
+                    z-index: 2001; transform: translateX(100%);
+                    transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+                    display: flex; flex-direction: column; padding: 80px 24px 40px;
+                    box-shadow: -8px 0 32px rgba(0,20,60,0.1);
                 }
                 .mobile-menu-overlay.open + .mobile-menu-content { transform: translateX(0); }
                 
                 .mobile-nav-item {
-                    color: white; text-decoration: none; font-size: 1.2rem; font-weight: 700; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+                    color: var(--text-primary); text-decoration: none; font-size: 1.1rem; font-weight: 600;
+                    padding: 18px 16px; border-bottom: 1px solid rgba(0, 85, 255, 0.06);
                     display: flex; justify-content: space-between; align-items: center;
+                    transition: 0.2s;
                 }
+                .mobile-nav-item:hover { color: var(--accent-primary); background: rgba(0, 85, 255, 0.03); }
             `}</style>
 
             <div className="header-glass">
@@ -95,7 +132,7 @@ const Header = () => {
                     ))}
                     {user ? (
                         <Link to="/perfil" className="nav-login-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '20px', height: '20px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
+                            <div style={{ width: '22px', height: '22px', background: 'rgba(255,255,255,0.25)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>
                                 {user.nome[0].toUpperCase()}
                             </div>
                             Olá, {user.nome.split(' ')[0]}
@@ -112,8 +149,8 @@ const Header = () => {
 
             <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(false)}></div>
             <div className={`mobile-menu-content`}>
-                <button style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'white' }} onClick={() => setIsMobileMenuOpen(false)}>
-                    <X size={32} />
+                <button style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: '#0a1628', cursor: 'pointer' }} onClick={() => setIsMobileMenuOpen(false)}>
+                    <X size={28} />
                 </button>
                 {navItems.map((item) => (
                     <Link key={item.path} to={item.path} className="mobile-nav-item" onClick={() => setIsMobileMenuOpen(false)}>

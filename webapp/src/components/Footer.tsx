@@ -8,11 +8,11 @@ const Footer: React.FC = () => {
         <footer className="site-footer">
             <style>{`
                 .site-footer {
-                    background: rgba(10, 10, 12, 0.4);
+                    background: rgba(255, 255, 255, 0.5);
                     backdrop-filter: blur(20px);
-                    border-top: 1px solid rgba(255,255,255,0.05);
+                    border-top: 1px solid rgba(0, 85, 255, 0.06);
                     padding: 80px 5% 40px;
-                    color: white;
+                    color: var(--text-primary);
                     position: relative;
                     z-index: 10;
                 }
@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
                     gap: 80px;
                 }
                 .footer-brand-col p {
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-secondary);
                     margin-top: 24px;
                     line-height: 1.7;
                     font-size: 0.95rem;
@@ -36,34 +36,34 @@ const Footer: React.FC = () => {
                     gap: 40px;
                 }
                 .footer-col h4 {
-                    font-size: 1rem;
-                    font-weight: 700;
+                    font-size: 0.85rem;
+                    font-weight: 800;
                     margin-bottom: 24px;
-                    color: white;
+                    color: var(--text-primary);
                     text-transform: uppercase;
-                    letter-spacing: 1px;
+                    letter-spacing: 1.5px;
                 }
                 .footer-col a {
                     display: block;
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-secondary);
                     text-decoration: none;
                     margin-bottom: 12px;
                     font-size: 0.95rem;
                     transition: all 0.3s;
                 }
                 .footer-col a:hover {
-                    color: #818cf8;
+                    color: var(--accent-primary);
                     transform: translateX(5px);
                 }
                 .footer-bottom {
                     max-width: 1200px;
                     margin: 80px auto 0;
                     padding-top: 40px;
-                    border-top: 1px solid rgba(255,255,255,0.05);
+                    border-top: 1px solid rgba(0, 85, 255, 0.06);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    color: rgba(255,255,255,0.3);
+                    color: var(--text-muted);
                     font-size: 0.9rem;
                 }
                 .footer-bottom-info {
@@ -81,26 +81,11 @@ const Footer: React.FC = () => {
                 }
 
                 .logo-link {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    text-decoration: none;
-                    color: white;
-                }
-                .logo-box {
-                    width: 36px;
-                    height: 36px;
-                    background: linear-gradient(135deg, #6366f1, #a855f7);
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+                    display: flex; align-items: center; gap: 12px;
+                    text-decoration: none; color: var(--text-primary);
                 }
                 .logo-name {
-                    font-size: 1.4rem;
-                    font-weight: 800;
-                    letter-spacing: -0.5px;
+                    font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;
                 }
             `}</style>
 
@@ -144,7 +129,7 @@ const Footer: React.FC = () => {
                     <Link to="/termos" style={{ color: 'inherit', textDecoration: 'none' }}>Privacidade</Link>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    Feito com <Heart size={14} fill="#ef4444" color="#ef4444" /> para o Brasil
+                    Feito com <Heart size={14} fill="#0055ff" color="#0055ff" /> para o Brasil
                 </div>
             </div>
         </footer>
