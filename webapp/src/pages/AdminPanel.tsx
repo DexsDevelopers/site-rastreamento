@@ -115,21 +115,21 @@ const Modal: React.FC<{ open: boolean; onClose: () => void; title: string; icon:
             animation: 'fadeIn 0.3s ease'
         }} onClick={e => e.target === e.currentTarget && onClose()}>
             <div style={{
-                background: 'rgba(20, 20, 25, 0.85)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '28px',
+                background: 'rgba(255, 255, 255, 0.95)', border: '1px solid rgba(0,80,200,0.1)', borderRadius: '28px',
                 width: '100%', maxWidth, maxHeight: '92vh', overflow: 'hidden',
-                boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.05)',
+                boxShadow: '0 24px 80px rgba(0,40,120,0.15), 0 0 0 1px rgba(0,80,200,0.05)',
                 display: 'flex', flexDirection: 'column', animation: 'modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}>
                 <div style={{
-                    padding: '24px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    padding: '24px 32px', borderBottom: '1px solid rgba(0,80,200,0.06)',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: 'rgba(255,255,255,0.02)'
+                    background: 'rgba(0,85,255,0.02)'
                 }}>
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '14px', fontSize: '1.25rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '14px', fontSize: '1.25rem', fontWeight: 900, background: 'linear-gradient(135deg, #0a1628, #0055ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(0, 85, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
                         {title}
                     </h3>
-                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#888', cursor: 'pointer', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', transition: '0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#888'}>
+                    <button onClick={onClose} style={{ background: 'rgba(0,85,255,0.04)', border: '1px solid rgba(0,80,200,0.08)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', transition: '0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>
                         <X size={20} />
                     </button>
                 </div>
@@ -449,12 +449,12 @@ const AdminPanel: React.FC = () => {
 
             {/* TABELA PRINCIPAL */}
             <div className="table-wrapper" style={{
-                background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,80,200,0.08)',
                 borderRadius: '24px', overflowX: 'auto', backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                boxShadow: '0 8px 32px rgba(0,40,120,0.06)'
             }}>
                 {/* TOOLBAR */}
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,80,200,0.06)', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, minWidth: '280px' }}>
                         <div style={{ position: 'relative', flex: 1, maxWidth: '320px' }}>
                             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
@@ -494,7 +494,7 @@ const AdminPanel: React.FC = () => {
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <tr style={{ background: 'rgba(0,85,255,0.02)', borderBottom: '1px solid rgba(0,80,200,0.06)' }}>
                                 <th style={{ ...thStyle, padding: '20px' }}>
                                     <input type="checkbox"
                                         checked={selected.size === filteredRastreios.length && filteredRastreios.length > 0}
@@ -526,15 +526,15 @@ const AdminPanel: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : filteredRastreios.map(r => (
-                                <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.2s' }}>
+                                <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid rgba(0,80,200,0.05)', transition: 'background 0.2s' }}>
                                     <td style={{ ...tdStyle, padding: '20px' }}>
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
                                             style={{ accentColor: '#0055ff', width: '18px', height: '18px', cursor: 'pointer' }} />
                                     </td>
-                                    <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: '#fff', letterSpacing: '0.5px', fontSize: '1rem' }}>
+                                    <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.5px', fontSize: '1rem' }}>
                                         {r.codigo}
                                     </td>
-                                    <td style={{ ...tdStyle, color: '#bbb' }}>{r.cidade}</td>
+                                    <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{r.cidade}</td>
                                     <td style={tdStyle}>
                                         <span className={getStatusClass(r.status_atual)} style={{ fontSize: '0.9rem', fontWeight: 500 }}>
                                             ● {r.status_atual}
@@ -594,7 +594,7 @@ const AdminPanel: React.FC = () => {
                         </div>
                     </div>
 
-                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
+                    <div style={{ background: 'rgba(0,85,255,0.03)', border: '1px solid rgba(0,80,200,0.07)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
                         <label className="form-label" style={{ marginBottom: '12px' }}>Cliente (Opcional)</label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
                             <input className="form-input" placeholder="Nome do cliente"
@@ -614,7 +614,7 @@ const AdminPanel: React.FC = () => {
 
                     <div className="form-group-mb">
                         <label className="form-label">Fluxo Inicial de Rastreamento</label>
-                        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '12px' }}>
+                        <div style={{ background: 'rgba(0,85,255,0.03)', border: '1px solid rgba(0,80,200,0.07)', borderRadius: '10px', padding: '12px' }}>
                             {Object.entries(ETAPAS_MAP).map(([key, label]) => (
                                 <label key={key} className="checkbox-row">
                                     <input type="checkbox" checked={!!novoForm.etapas[key]}
@@ -641,10 +641,10 @@ const AdminPanel: React.FC = () => {
                         </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                        <button type="button" onClick={() => setModalAdd(false)} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#aaa', cursor: 'pointer', fontWeight: 600 }}>
+                        <button type="button" onClick={() => setModalAdd(false)} style={{ padding: '10px 20px', background: 'rgba(0,85,255,0.04)', border: '1px solid rgba(0,80,200,0.1)', borderRadius: '10px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600 }}>
                             Cancelar
                         </button>
-                        <button type="submit" style={{ padding: '10px 24px', background: 'linear-gradient(135deg,#0055ff,#180F33)', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button type="submit" style={{ padding: '10px 24px', background: 'linear-gradient(135deg,#0055ff,#3b82f6)', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Plus size={16} /> Criar Rastreio
                         </button>
                     </div>
@@ -659,7 +659,7 @@ const AdminPanel: React.FC = () => {
                             <div className="form-group-mb">
                                 <label className="form-label">Código (não editável)</label>
                                 <input className="form-input" value={editData.codigo} readOnly
-                                    style={{ background: 'rgba(255,255,255,0.03)', color: '#555', cursor: 'not-allowed', fontFamily: 'JetBrains Mono, monospace' }} />
+                                    style={{ background: 'rgba(0,85,255,0.03)', color: 'var(--text-secondary)', cursor: 'not-allowed', fontFamily: 'JetBrains Mono, monospace' }} />
                             </div>
                             <div className="form-group-mb">
                                 <label className="form-label">Cidade *</label>
@@ -675,7 +675,7 @@ const AdminPanel: React.FC = () => {
 
                         <div className="form-group-mb">
                             <label className="form-label">Etapas do Rastreamento</label>
-                            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '12px' }}>
+                            <div style={{ background: 'rgba(0,85,255,0.03)', border: '1px solid rgba(0,80,200,0.07)', borderRadius: '10px', padding: '12px' }}>
                                 {Object.entries(ETAPAS_MAP).map(([key, label]) => (
                                     <label key={key} className="checkbox-row">
                                         <input type="checkbox"
@@ -709,7 +709,7 @@ const AdminPanel: React.FC = () => {
                             </div>
                         </div>
 
-                        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
+                        <div style={{ background: 'rgba(0,85,255,0.03)', border: '1px solid rgba(0,80,200,0.07)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
                             <label className="form-label" style={{ marginBottom: '12px' }}>Cliente</label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
                                 <input className="form-input" placeholder="Nome do cliente"
@@ -728,10 +728,10 @@ const AdminPanel: React.FC = () => {
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button type="button" onClick={() => setModalEdit(false)} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#aaa', cursor: 'pointer', fontWeight: 600 }}>
+                            <button type="button" onClick={() => setModalEdit(false)} style={{ padding: '10px 20px', background: 'rgba(0,85,255,0.04)', border: '1px solid rgba(0,80,200,0.1)', borderRadius: '10px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600 }}>
                                 Cancelar
                             </button>
-                            <button type="submit" style={{ padding: '10px 24px', background: 'linear-gradient(135deg,#0055ff,#180F33)', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button type="submit" style={{ padding: '10px 24px', background: 'linear-gradient(135deg,#0055ff,#3b82f6)', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Save size={16} /> Salvar Alterações
                             </button>
                         </div>
@@ -743,12 +743,12 @@ const AdminPanel: React.FC = () => {
             <Modal open={modalDetails} onClose={() => setModalDetails(false)} title="Detalhes do Rastreio" icon={<Eye size={20} color="#0055ff" />}>
                 {detailsData && (
                     <div style={{ animation: 'fadeIn 0.4s ease' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px', background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px', background: 'rgba(0,85,255,0.03)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(0,80,200,0.06)' }}>
                             <InfoBlock label="Código de Rastreio" value={detailsData.codigo} mono />
                             <InfoBlock label="Cidade Atual" value={detailsData.cidade} />
                             {detailsData.cliente_nome && <InfoBlock label="Nome do Cliente" value={detailsData.cliente_nome} />}
                             {detailsData.cliente_whatsapp && <InfoBlock label="Número WhatsApp" value={detailsData.cliente_whatsapp} />}
-                            <div style={{ gridColumn: '1/-1', height: '1px', background: 'rgba(255,255,255,0.06)', margin: '8px 0' }} />
+                            <div style={{ gridColumn: '1/-1', height: '1px', background: 'rgba(0,80,200,0.06)', margin: '8px 0' }} />
                             {detailsData.taxa_valor ? (
                                 <>
                                     <InfoBlock label="Valor da Taxa" value={`R$ ${parseFloat(detailsData.taxa_valor).toFixed(2)}`} color="#f59e0b" />
@@ -766,8 +766,8 @@ const AdminPanel: React.FC = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
                                 {detailsData.etapas.length > 0 ? detailsData.etapas.map((etapa, i) => (
                                     <div key={i} style={{
-                                        padding: '16px 20px', background: 'rgba(255,255,255,0.03)',
-                                        borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)',
+                                        padding: '16px 20px', background: 'rgba(0,85,255,0.03)',
+                                        borderRadius: '16px', border: '1px solid rgba(0,80,200,0.06)',
                                         fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '14px'
                                     }}>
                                         <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: i === detailsData.etapas.length - 1 ? '#0055ff' : 'rgba(0,85,255,0.15)', boxShadow: i === detailsData.etapas.length - 1 ? '0 0 12px rgba(0,85,255,0.5)' : 'none' }} />
@@ -792,12 +792,12 @@ const AdminPanel: React.FC = () => {
                         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                             <button onClick={() => { setModalDetails(false); abrirEdicao(detailsData.codigo); }}
                                 style={{
-                                    flex: 1, padding: '16px', background: 'rgba(255,255,255,0.04)',
-                                    color: '#fff', border: '1px solid rgba(255,255,255,0.1)',
+                                    flex: 1, padding: '16px', background: 'rgba(0,85,255,0.04)',
+                                    color: 'var(--text-primary)', border: '1px solid rgba(0,80,200,0.1)',
                                     borderRadius: '16px', cursor: 'pointer', fontWeight: 700,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                                     transition: '0.3s'
-                                }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>
+                                }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,85,255,0.08)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,85,255,0.04)'}>
                                 <Edit size={18} /> Modificar Dados
                             </button>
                             <button onClick={() => { enviarWhatsapp(detailsData.codigo); setModalDetails(false); }}
@@ -836,7 +836,7 @@ const AdminPanel: React.FC = () => {
                         </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                        <button type="button" onClick={() => setModalBulkEdit(false)} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#aaa', cursor: 'pointer', fontWeight: 600 }}>
+                        <button type="button" onClick={() => setModalBulkEdit(false)} style={{ padding: '10px 20px', background: 'rgba(0,85,255,0.04)', border: '1px solid rgba(0,80,200,0.1)', borderRadius: '10px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600 }}>
                             Cancelar
                         </button>
                         <button type="submit" style={{ padding: '10px 24px', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#000', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>
@@ -852,18 +852,18 @@ const AdminPanel: React.FC = () => {
 // ===== COMPONENTES AUXILIARES (Premium) =====
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: number | string; color: string }> = ({ icon, label, value, color }) => (
     <div style={{
-        background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px',
+        background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(0,80,200,0.08)', borderRadius: '24px',
         padding: '28px 24px', position: 'relative', overflow: 'hidden', backdropFilter: 'blur(20px)',
         transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
     }}
         onMouseEnter={e => {
             (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)';
             (e.currentTarget as HTMLDivElement).style.borderColor = `${color}44`;
-            (e.currentTarget as HTMLDivElement).style.boxShadow = `0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px ${color}11`;
+            (e.currentTarget as HTMLDivElement).style.boxShadow = `0 20px 40px rgba(0,40,120,0.08), 0 0 0 1px ${color}11`;
         }}
         onMouseLeave={e => {
             (e.currentTarget as HTMLDivElement).style.transform = 'none';
-            (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)';
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,80,200,0.08)';
             (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
         }}
     >
@@ -871,26 +871,26 @@ const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: number |
         <div style={{ width: '52px', height: '52px', background: `${color}12`, border: `1px solid ${color}25`, borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color, marginBottom: '20px' }}>
             {icon}
         </div>
-        <div style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, marginBottom: '8px', color: '#fff', fontFamily: 'Outfit, sans-serif' }}>{value}</div>
-        <div style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+        <div style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, marginBottom: '8px', color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>{value}</div>
+        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
     </div>
 );
 
 const InfoBlock: React.FC<{ label: string; value: string; mono?: boolean; color?: string }> = ({ label, value, mono, color }) => (
     <div>
         <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 800, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-        <div style={{ color: color || '#f8fafc', fontFamily: mono ? 'JetBrains Mono, monospace' : 'Inter, sans-serif', wordBreak: 'break-all', fontSize: '1.05rem', fontWeight: 600 }}>{value}</div>
+        <div style={{ color: color || 'var(--text-primary)', fontFamily: mono ? 'JetBrains Mono, monospace' : 'Inter, sans-serif', wordBreak: 'break-all', fontSize: '1.05rem', fontWeight: 600 }}>{value}</div>
     </div>
 );
 
 const thStyle: React.CSSProperties = {
     padding: '12px 16px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em',
-    color: '#555', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)',
+    color: 'var(--text-secondary)', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(0,80,200,0.06)',
     whiteSpace: 'nowrap',
 };
 
 const tdStyle: React.CSSProperties = {
-    padding: '13px 16px', color: '#ddd', verticalAlign: 'middle',
+    padding: '13px 16px', color: 'var(--text-primary)', verticalAlign: 'middle',
 };
 
 export default AdminPanel;
