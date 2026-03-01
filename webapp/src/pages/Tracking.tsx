@@ -68,7 +68,6 @@ const TrackingPage: React.FC = () => {
         return () => clearInterval(interval);
     }, [taxPixData, taxPixPaid]);
     useEffect(() => {
-
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -77,12 +76,20 @@ const TrackingPage: React.FC = () => {
             });
         }, { threshold: 0.1 });
 
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        const observeElements = () => {
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        };
+
+        observeElements();
+
+        // Timer para garantir que novos elementos renderizados sejam observados
+        const timeout = setTimeout(observeElements, 500);
 
         return () => {
             observer.disconnect();
+            clearTimeout(timeout);
         };
-    }, []);
+    }, [trackingData]);
 
     const fetchTrackingData = async (searchCode: string) => {
         if (!searchCode) return;
@@ -261,7 +268,7 @@ const TrackingPage: React.FC = () => {
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
                                     gap: '16px'
-                                }} className="reveal">
+                                }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         <div style={{ width: '40px', height: '40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <Calculator size={20} color="#ef4444" />
@@ -332,6 +339,15 @@ const TrackingPage: React.FC = () => {
                             </div>
 
                             <div className="express-box">
+                                {trackingData.taxa_valor && (
+                                    <button
+                                        className="express-btn"
+                                        style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', marginBottom: '16px', display: 'block', width: '100%', boxShadow: '0 8px 32px rgba(239, 68, 68, 0.3)' }}
+                                        onClick={() => setShowTaxModal(true)}
+                                    >
+                                        💰 Pagar Taxa de Importação (R$ {trackingData.taxa_valor})
+                                    </button>
+                                )}
                                 <button className="express-btn" onClick={() => setShowExpressModal(true)}>⚡ Acelerar por R$ 29,90</button>
                                 <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.9rem', marginTop: '12px' }}>Receba seu pacote prioritariamente em até 3 dias.</p>
                             </div>
