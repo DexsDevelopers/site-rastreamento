@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, Star, Clock, TrendingUp, Calculator, MapPinned, Truck, CheckCircle } from 'lucide-react';
+import { Search, Zap, ArrowRight, Globe, QrCode, Satellite, Package, Warehouse, GitBranch, RotateCcw, Smile, Star, Clock, TrendingUp, Calculator, MapPinned, Truck, CheckCircle, HelpCircle, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -189,10 +189,11 @@ const Home: React.FC = () => {
 
                 .hero-section {
                     position: relative; z-index: 1;
-                    padding: 40px 24px 60px;
+                    padding: 120px 24px 60px;
                     max-width: 880px; margin: 0 auto;
                     text-align: center;
                 }
+
                 .hero-left { min-width: 0; }
                 .hero-glass-card {
                     padding: 48px 40px; border-radius: 28px;
@@ -627,14 +628,37 @@ const Home: React.FC = () => {
                 .faq-grid {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
-                    gap: 24px;
-                    margin-top: 40px;
+                    gap: 20px;
+                    margin-top: 32px;
                     text-align: left;
                 }
-                .faq-grid div {
-                    background: #ffffff !important;
-                    border: 1px solid #e2e8f0 !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+                .faq-card {
+                    background: rgba(255, 255, 255, 0.6) !important;
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+                    border-radius: 20px;
+                    padding: 24px !important;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 16px;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    box-shadow: 0 4px 20px rgba(0, 40, 120, 0.04) !important;
+                }
+                .faq-card:hover {
+                    background: rgba(255, 255, 255, 0.9) !important;
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 32px rgba(0, 40, 120, 0.08) !important;
+                    border-color: rgba(0, 85, 255, 0.2) !important;
+                }
+                .faq-icon-box {
+                    width: 44px; height: 44px;
+                    background: rgba(0, 85, 255, 0.08);
+                    border-radius: 12px;
+                    display: flex; align-items: center; justify-content: center;
+                    flex-shrink: 0;
+                }
+                @media (max-width: 600px) {
+                    .faq-grid { grid-template-columns: 1fr; }
                 }
             `}</style>
 
@@ -720,13 +744,23 @@ const Home: React.FC = () => {
                                 </div>
 
                                 <div className="faq-grid">
-                                    <div style={{ padding: '20px', borderRadius: '16px' }}>
-                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>Onde encontro meu código?</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Enviado pela loja via E-mail após a postagem.</div>
+                                    <div className="faq-card">
+                                        <div className="faq-icon-box">
+                                            <HelpCircle size={22} color="#0055ff" />
+                                        </div>
+                                        <div>
+                                            <div style={{ color: '#0055ff', fontWeight: 900, fontSize: '0.98rem', marginBottom: '4px', fontFamily: 'Outfit, sans-serif' }}>Onde encontrar meu código?</div>
+                                            <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: 500, lineHeight: 1.6 }}>Enviado pela loja via E-mail após a postagem.</div>
+                                        </div>
                                     </div>
-                                    <div style={{ padding: '20px', borderRadius: '16px' }}>
-                                        <div style={{ color: '#0055ff', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>O que é Taxa de Processamento?</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5 }}>Tributos necessários para a liberação de entrega.</div>
+                                    <div className="faq-card">
+                                        <div className="faq-icon-box">
+                                            <Info size={22} color="#0055ff" />
+                                        </div>
+                                        <div>
+                                            <div style={{ color: '#0055ff', fontWeight: 900, fontSize: '0.98rem', marginBottom: '4px', fontFamily: 'Outfit, sans-serif' }}>O que é Taxa de Processamento?</div>
+                                            <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: 500, lineHeight: 1.6 }}>Tributos necessários para a liberação de entrega.</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

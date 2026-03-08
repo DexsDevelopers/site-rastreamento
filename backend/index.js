@@ -1128,6 +1128,63 @@ app.get('/api/config/centavos', async (req, res) => {
     }
 });
 
+// 12. Receber Novo Pedido (Frontend React)
+app.post('/api/pedidos', async (req, res) => {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const {
+            nome, cpf, telefone, email,
+            cep, estado, cidade, bairro,
+            rua, numero, complemento, observacoes
+        } = req.body;
+
+        if (!nome || !cpf || !telefone || !cep || !estado || !cidade || !bairro || !rua || !numero) {
+            return res.status(400).json({ success: false, message: 'Campos obrigatórios faltando' });
+        }
+
+        const cpfLimpo = cpf.replace(/\D/g, '');
+        const telefoneLimpo = telefone.replace(/\D/g, '');
+
+        const [result] = await db.query(
+            `INSERT INTO pedidos_pendentes 
+            (nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')`,
+            [nome, cpfLimpo, telefoneLimpo, email || null, cep.replace(/\D/g, ''), estado, cidade, bairro, rua, numero, complemento || null, observacoes || null]
+        );
+
+        // Notificação WhatsApp (opcional, se configurado)
+        let whatsappEnviado = false;
+        try {
+            let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+            let apiUrl = 'http://127.0.0.1:3001';
+
+            const mensagem = `🎉 *Olá, ${nome}!*\n\n✅ Recebemos seu pedido com sucesso!\n\n📦 *Endereço de entrega confirmado:*\n${rua}, ${numero}${complemento ? ' - ' + complemento : ''}\n${bairro} - ${cidade}/${estado}\nCEP: ${cep}\n\n⏳ Nossa equipe entrará em contato em breve para finalizar seu pedido!\n\nObrigado pela preferência! 🚚`;
+
+            const response = await fetch(`${apiUrl}/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-api-token': apiToken },
+                body: JSON.stringify({ to: telefoneLimpo, message: mensagem }),
+            }).catch(() => null);
+
+            whatsappEnviado = response && response.ok;
+        } catch (wppErr) {
+            console.error('Erro ao enviar notificação WhatsApp:', wppErr.message);
+        }
+
+        res.json({
+            success: true,
+            message: 'Pedido recebido com sucesso!',
+            pedidoId: result.insertId,
+            whatsappEnviado
+        });
+
+    } catch (error) {
+        console.error('Erro ao salvar pedido:', error);
+        res.status(500).json({ success: false, message: 'Erro interno ao processar pedido.' });
+    }
+});
+
+
 // Servir o Frontend (da raiz do repositório)
 const distPath = path.join(__dirname, '..');
 app.use(express.static(distPath));
