@@ -82,9 +82,12 @@ const Pedido: React.FC = () => {
                 setSuccess(true);
             } else {
                 setError(data.message || 'Erro ao enviar pedido.');
+                alert('Erro ao processar pedido: ' + (data.message || 'Erro no servidor'));
             }
-        } catch {
-            setSuccess(true);
+        } catch (err: any) {
+            console.error('Erro na submissão:', err);
+            setError('Falha de conexão com o servidor.');
+            alert('Não foi possível conectar ao servidor. Verifique se o sistema está online.');
         } finally {
             setLoading(false);
         }
