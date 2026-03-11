@@ -62,6 +62,14 @@ async function runMigrations() {
             await db.query("INSERT INTO configuracoes (chave, valor) VALUES ('centavos_aleatorios', 'true')");
         }
 
+        // CORREÇÃO: Limpar espaços extras nos códigos de rastreio (Bug reportado pelo usuário)
+        console.log('🧹 Limpando espaços extras nos códigos de rastreio...');
+        await db.query("UPDATE IGNORE rastreios_status SET codigo = TRIM(codigo)");
+        try {
+            await db.query("UPDATE IGNORE whatsapp_contatos SET codigo = TRIM(codigo)");
+        } catch (e) { /* tabela pode não existir */ }
+        console.log('✅ Limpeza concluída!');
+
     } catch (err) {
         console.error('⚠️ Erro nas migrações:', err.message);
     }
@@ -165,7 +173,7 @@ app.get('/api/orders', async (req, res) => {
 
 // Detalhes de um pedido específico
 app.get('/api/orders/:codigo', async (req, res) => {
-    const { codigo } = req.params;
+    const codigo = req.params.codigo?.toUpperCase().trim();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
         const [rows] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ?', [codigo]);
@@ -448,7 +456,7 @@ app.get('/api/admin/rastreios', async (req, res) => {
 app.get('/api/admin/rastreios/:codigo/detalhes', async (req, res) => {
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const { codigo } = req.params;
+        const codigo = req.params.codigo?.toUpperCase().trim();
 
         const [rows] = await db.query(
             'SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC',
@@ -510,7 +518,9 @@ app.get('/api/admin/rastreios/:codigo/detalhes', async (req, res) => {
 app.post('/api/admin/rastreios', async (req, res) => {
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const { codigo, cidade, data_inicial, taxa_valor, taxa_pix, cliente_nome, cliente_whatsapp, cliente_notificar, etapas } = req.body;
+        let { codigo, cidade, data_inicial, taxa_valor, taxa_pix, cliente_nome, cliente_whatsapp, cliente_notificar, etapas } = req.body;
+
+        if (codigo) codigo = codigo.toUpperCase().trim();
 
         if (!codigo || !cidade) return res.status(400).json({ error: 'Código e cidade são obrigatórios' });
 
@@ -566,7 +576,7 @@ app.post('/api/admin/rastreios', async (req, res) => {
 app.put('/api/admin/rastreios/:codigo', async (req, res) => {
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const { codigo } = req.params;
+        const codigo = req.params.codigo?.toUpperCase().trim();
         const { cidade, data_inicial, taxa_valor, taxa_pix, etapas, cliente_nome, cliente_whatsapp, cliente_notificar } = req.body;
 
         // Deletar registros existentes
