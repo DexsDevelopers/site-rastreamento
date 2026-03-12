@@ -259,24 +259,6 @@ app.get('/api/db-check', async (req, res) => {
     }
 });
 
-// Rota de Diagnóstico de Códigos (Para identificar espaços/caracteres invisíveis)
-app.get('/api/debug/codes', async (req, res) => {
-    try {
-        if (!db) return res.status(500).json({ error: 'DB off' });
-        const [rows] = await db.query('SELECT DISTINCT codigo FROM rastreios_status');
-        res.json({
-            count: rows.length,
-            codes: rows.map(r => ({
-                raw: r.codigo,
-                length: r.codigo?.length,
-                chars: r.codigo?.split('').map(c => c.charCodeAt(0))
-            }))
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
 // Integração PixGo API
 const PIXGO_API_KEY = 'pk_eb38850f8d9b946c1bc2f65ab454f610a16531e892e102a4ada93fc12fb2aec8';
 const PIXGO_API_URL = 'https://pixgo.org/api/v1';
@@ -309,7 +291,7 @@ app.post('/api/pix/create', async (req, res) => {
 app.get('/api/pix/status/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { codigo } = req.query; // Código de rastreio opcional
+        const codigo = req.query.codigo?.toUpperCase().trim(); // Código de rastreio opcional e limpo!
 
         const response = await fetch(`${PIXGO_API_URL}/payment/${id}/status`, {
             method: 'GET',
@@ -698,7 +680,7 @@ app.post('/api/admin/rastreios/bulk-edit', async (req, res) => {
 app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const { codigo } = req.params;
+        const codigo = req.params.codigo?.toUpperCase().trim();
 
         // Buscar configuração da API do WhatsApp
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
