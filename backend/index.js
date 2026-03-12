@@ -63,13 +63,14 @@ async function runMigrations() {
         }
 
         // CORREÇÃO: Limpar espaços extras nos códigos de rastreio (Bug reportado pelo usuário)
-        console.log('🧹 Limpando espaços extras nos códigos de rastreio...');
-        // Executar várias vezes ou com REPLACE para casos extremos de espaços internos (opcional)
-        // Mas o TRIM resolve o problema reportado de espaços no início/fim
-        await db.query("UPDATE IGNORE rastreios_status SET codigo = TRIM(codigo)");
-        await db.query("UPDATE IGNORE whatsapp_contatos SET codigo = TRIM(codigo)");
-        await db.query("UPDATE IGNORE pedidos_pendentes SET codigo_rastreio = TRIM(codigo_rastreio) WHERE codigo_rastreio IS NOT NULL");
-        console.log('✅ Limpeza concluída!');
+        console.log('🧹 Limpando espaços extras nos códigos de rastreio (Agressivo)...');
+        // Usa REPLACE para tirar espaços internos, quebras de linha e tabs
+        const clearSql = (col) => `REPLACE(REPLACE(REPLACE(REPLACE(${col}, '\n', ''), '\r', ''), '\t', ''), ' ', '')`;
+
+        await db.query(`UPDATE IGNORE rastreios_status SET codigo = ${clearSql('codigo')}`);
+        await db.query(`UPDATE IGNORE whatsapp_contatos SET codigo = ${clearSql('codigo')}`);
+        await db.query(`UPDATE IGNORE pedidos_pendentes SET codigo_rastreio = ${clearSql('codigo_rastreio')} WHERE codigo_rastreio IS NOT NULL`);
+        console.log('✅ Limpeza agressiva concluída!');
 
     } catch (err) {
         console.error('⚠️ Erro nas migrações:', err.message);
@@ -255,6 +256,24 @@ app.get('/api/db-check', async (req, res) => {
         res.json({ status: 'success', database: 'conectado', result: rows[0].solution });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
+// Rota de Diagnóstico de Códigos (Para identificar espaços/caracteres invisíveis)
+app.get('/api/debug/codes', async (req, res) => {
+    try {
+        if (!db) return res.status(500).json({ error: 'DB off' });
+        const [rows] = await db.query('SELECT DISTINCT codigo FROM rastreios_status');
+        res.json({
+            count: rows.length,
+            codes: rows.map(r => ({
+                raw: r.codigo,
+                length: r.codigo?.length,
+                chars: r.codigo?.split('').map(c => c.charCodeAt(0))
+            }))
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
     }
 });
 
