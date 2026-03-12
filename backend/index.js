@@ -64,10 +64,11 @@ async function runMigrations() {
 
         // CORREÇÃO: Limpar espaços extras nos códigos de rastreio (Bug reportado pelo usuário)
         console.log('🧹 Limpando espaços extras nos códigos de rastreio...');
+        // Executar várias vezes ou com REPLACE para casos extremos de espaços internos (opcional)
+        // Mas o TRIM resolve o problema reportado de espaços no início/fim
         await db.query("UPDATE IGNORE rastreios_status SET codigo = TRIM(codigo)");
-        try {
-            await db.query("UPDATE IGNORE whatsapp_contatos SET codigo = TRIM(codigo)");
-        } catch (e) { /* tabela pode não existir */ }
+        await db.query("UPDATE IGNORE whatsapp_contatos SET codigo = TRIM(codigo)");
+        await db.query("UPDATE IGNORE pedidos_pendentes SET codigo_rastreio = TRIM(codigo_rastreio) WHERE codigo_rastreio IS NOT NULL");
         console.log('✅ Limpeza concluída!');
 
     } catch (err) {
@@ -346,7 +347,9 @@ app.get('/api/pix/status/:id', async (req, res) => {
 app.post(['/api/rastreio', '/api/rastreio-publico'], async (req, res) => {
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const { codigo, cidade } = req.body;
+        let { codigo, cidade } = req.body;
+
+        if (codigo) codigo = codigo.toUpperCase().trim();
 
         if (!codigo) return res.status(400).json({ success: false, message: 'Código é obrigatório' });
 
