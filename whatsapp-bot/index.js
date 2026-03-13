@@ -53,6 +53,11 @@ function isGroupJid(jid) {
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Criar roteador modular para o bot
+export const botRouter = express.Router();
+botRouter.use(cors());
+botRouter.use(express.json());
 const PORT = Number(process.env.API_PORT || process.env.PORT || 3001); // Fix porta para 3001
 
 // Servir o Frontend Web App (React) que está na pasta webapp/dist
@@ -60,11 +65,29 @@ app.use(express.static(path.join(__dirname, '../webapp/dist')));
 
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
-// Iniciar servidor IMEDIATAMENTE antes de qualquer lógica pesada
-const server = app.listen(PORT, () => {
-  console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
-  if (process.send) process.send('ready');
-});
+// Iniciar servidor IMEDIATAMENTE (apenas se executado diretamente)
+let server;
+const isMainModule = import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`;
+
+if (isMainModule) {
+  server = app.listen(PORT, () => {
+    console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
+    if (process.send) process.send('ready');
+  });
+}
+
+// Exportar função de inicialização para integração
+export async function initWhatsAppBot(mainApp = null) {
+  if (mainApp) {
+    log.info('Integrando rotas do bot no app principal...');
+    // Copiar rotas para o app principal
+    // (A implementação real precisará que as rotas sejam definidas de forma modular)
+  }
+  start().catch((err) => {
+    log.error(`Erro crítico ao iniciar bot integrado: ${err.message}`);
+    log.error(err.stack);
+  });
+}
 
 // DEBUG: Ver porta configurada
 console.log('🔌 DEBUG - API_PORT do .env:', process.env.API_PORT || 'não definido');
@@ -3674,7 +3697,7 @@ function auth(req, res, next) {
 // ===== ENDPOINTS =====
 
 // Status (sem autenticação - apenas verificação)
-app.get('/status', (req, res) => {
+botRouter.get('/status', (req, res) => {
   const uptime = connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0;
   const memUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
@@ -3693,7 +3716,7 @@ app.get('/status', (req, res) => {
 });
 
 // QR Code (HTML para acesso direto)
-app.get('/qr', async (req, res) => {
+botRouter.get('/qr', async (req, res) => {
   if (!lastQR) {
     return res.status(404).send(`
       <html><body style="background:#111;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
@@ -3723,7 +3746,7 @@ app.get('/qr', async (req, res) => {
 });
 
 // QR Code (JSON para API)
-app.get('/api/qr', auth, async (req, res) => {
+botRouter.get('/api/qr', auth, async (req, res) => {
   if (!lastQR) return res.json({ success: false, message: 'Nenhum QR disponível' });
   try {
     const dataUrl = await QRCodeImg.toDataURL(lastQR, { scale: 8, margin: 1 });
@@ -3734,7 +3757,7 @@ app.get('/api/qr', auth, async (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
+botRouter.get('/health', (req, res) => {
   res.json({
     status: isReady ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString()
@@ -3790,7 +3813,7 @@ async function resolveJidFromPhone(digits) {
 }
 
 // Enviar mensagem
-app.post('/send', auth, async (req, res) => {
+botRouter.post('/send', auth, async (req, res) => {
   try {
     if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
 
@@ -3838,7 +3861,7 @@ app.post('/send', auth, async (req, res) => {
 });
 
 // Verificar número
-app.post('/check', auth, async (req, res) => {
+botRouter.post('/check', auth, async (req, res) => {
   try {
     if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
 
@@ -3860,7 +3883,7 @@ app.post('/check', auth, async (req, res) => {
 });
 
 // Forçar reconexão (admin)
-app.post('/reconnect', auth, async (req, res) => {
+botRouter.post('/reconnect', auth, async (req, res) => {
   if (isInLoopState) {
     return res.json({
       ok: false,
@@ -3874,7 +3897,7 @@ app.post('/reconnect', auth, async (req, res) => {
 });
 
 // Resetar estado de loop (admin)
-app.post('/reset-loop', auth, async (req, res) => {
+botRouter.post('/reset-loop', auth, async (req, res) => {
   log.warn('Reset de estado de loop via API');
   isInLoopState = false;
   disconnectTimestamps = [];
@@ -3883,7 +3906,7 @@ app.post('/reset-loop', auth, async (req, res) => {
 });
 
 // Logout (Limpar sessão e gerar novo QR) - Útil para sessões travadas
-app.post('/logout', auth, async (req, res) => {
+botRouter.post('/logout', auth, async (req, res) => {
   log.warn('🚨 SOLICITAÇÃO DE LOGOUT COMPLETO VIA API');
   try {
     isReady = false;
@@ -3922,7 +3945,7 @@ app.post('/logout', auth, async (req, res) => {
 });
 
 // Recarregar automações
-app.post('/reload-automations', auth, async (req, res) => {
+botRouter.post('/reload-automations', auth, async (req, res) => {
   log.info('Recarregando automações via API...');
   try {
     // Forçar reload limpando cache
@@ -3943,7 +3966,7 @@ app.post('/reload-automations', auth, async (req, res) => {
 });
 
 // Listar automações carregadas
-app.get('/automations', auth, (req, res) => {
+botRouter.get('/automations', auth, (req, res) => {
   res.json({
     ok: true,
     count: automationsCache.length,
@@ -3960,7 +3983,7 @@ app.get('/automations', auth, (req, res) => {
 });
 
 // Enviar poll (enquete)
-app.post('/send-poll', auth, async (req, res) => {
+botRouter.post('/send-poll', auth, async (req, res) => {
   try {
     if (!isReady) return res.status(503).json({ ok: false, error: 'not_ready' });
 
@@ -4001,7 +4024,7 @@ app.post('/send-poll', auth, async (req, res) => {
 // ===== MARKETING ENDPOINTS =====
 
 // Sincronizar membros de grupos (background)
-app.post('/sync-members', auth, async (req, res) => {
+botRouter.post('/sync-members', auth, async (req, res) => {
   res.json({ ok: true, message: 'Sincronização iniciada em background' });
 
   // Executar em background (sem await)
@@ -4303,7 +4326,9 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../webapp/dist/index.html'));
 });
 
-start().catch((err) => {
-  log.error(`Erro crítico ao iniciar bot: ${err.message}`);
-  log.error(err.stack);
-});
+if (isMainModule) {
+  start().catch((err) => {
+    log.error(`Erro crítico ao iniciar bot: ${err.message}`);
+    log.error(err.stack);
+  });
+}

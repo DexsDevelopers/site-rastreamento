@@ -1038,14 +1038,36 @@ app.post('/api/admin/db-setup', async (req, res) => {
     }
 });
 
-// 10. WhatsApp Bot Proxy/Management
+// 10. WhatsApp Bot Integrated Management
+let botInitialized = false;
+async function initBotModule() {
+    try {
+        console.log('🤖 Iniciando módulo WhatsApp Bot integrado...');
+        const botModule = await import('../whatsapp-bot/index.js');
+
+        // Montar rotas do bot no app principal
+        if (botModule.botRouter) {
+            app.use('/api/whatsapp-internal', botModule.botRouter);
+            console.log('✅ Rotas do Bot integradas em /api/whatsapp-internal');
+        }
+
+        // Iniciar o bot Baileys
+        await botModule.initWhatsAppBot(app);
+        botInitialized = true;
+        console.log('✅ Módulo WhatsApp Bot inicializado com sucesso!');
+    } catch (err) {
+        console.error('❌ Erro ao carregar módulo WhatsApp Bot:', err.message);
+        console.error(err.stack);
+    }
+}
+
 app.get('/api/admin/bot/status', async (req, res) => {
     try {
-        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = 'http://127.0.0.1:3001';
-        if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
+        if (!botInitialized) return res.json({ success: false, message: 'Bot inicializando...' });
 
-        const response = await fetch(`${apiUrl}/status`, {
+        // Chamar o endpoint local que acabamos de montar
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/status`, {
             headers: { 'x-api-token': apiToken }
         }).catch(() => null);
 
@@ -1062,11 +1084,10 @@ app.get('/api/admin/bot/status', async (req, res) => {
 
 app.get('/api/admin/bot/qr', async (req, res) => {
     try {
-        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = 'http://127.0.0.1:3001';
-        if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
+        if (!botInitialized) return res.json({ success: false, message: 'Bot inicializando...' });
 
-        const response = await fetch(`${apiUrl}/api/qr`, {
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/api/qr`, {
             headers: { 'x-api-token': apiToken }
         }).catch(() => null);
 
@@ -1083,11 +1104,10 @@ app.get('/api/admin/bot/qr', async (req, res) => {
 
 app.post('/api/admin/bot/restart', async (req, res) => {
     try {
-        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        let apiUrl = 'http://127.0.0.1:3001';
-        if (!apiUrl) return res.json({ success: false, message: 'API não configurada' });
+        if (!botInitialized) return res.json({ success: false, message: 'Bot inicializando...' });
 
-        const response = await fetch(`${apiUrl}/logout`, {
+        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
+        const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/logout`, {
             method: 'POST',
             headers: { 'x-api-token': apiToken }
         }).catch(() => null);
@@ -1222,10 +1242,12 @@ if (global._expressApp !== undefined || require.main !== module) {
     global._expressApp = app;
     console.log('✅ Express registrado na bridge HTTP');
     connectDB();
+    initBotModule(); // Iniciar bot junto com o DB
 } else {
     // Se executado diretamente
     app.listen(PORT, () => {
         console.log(`🚀 Servidor rodando na porta ${PORT}`);
         connectDB();
+        initBotModule(); // Iniciar bot junto com o DB
     });
 }
