@@ -527,27 +527,27 @@ const AdminPanel: React.FC = () => {
                                 </tr>
                             ) : filteredRastreios.map(r => (
                                 <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid rgba(0,80,200,0.05)', transition: 'background 0.2s' }}>
-                                    <td style={{ ...tdStyle, padding: '20px' }}>
+                                    <td style={{ ...tdStyle, padding: '20px' }} data-label="Selecionar">
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
                                             style={{ accentColor: '#0055ff', width: '18px', height: '18px', cursor: 'pointer' }} />
                                     </td>
-                                    <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.5px', fontSize: '1rem' }}>
+                                    <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.5px', fontSize: '1rem' }} data-label="Código">
                                         {r.codigo}
                                     </td>
-                                    <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{r.cidade}</td>
-                                    <td style={tdStyle}>
+                                    <td style={{ ...tdStyle, color: 'var(--text-secondary)' }} data-label="Cidade">{r.cidade}</td>
+                                    <td style={tdStyle} data-label="Status">
                                         <span className={getStatusClass(r.status_atual)} style={{ fontSize: '0.9rem', fontWeight: 500 }}>
                                             ● {r.status_atual}
                                         </span>
                                     </td>
-                                    <td style={tdStyle}>
+                                    <td style={tdStyle} data-label="Taxa">
                                         {r.taxa_valor && r.taxa_pix
                                             ? <span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase' }}>Taxa Pendente</span>
                                             : <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase' }}>Sem Taxas</span>
                                         }
                                     </td>
-                                    <td style={{ ...tdStyle, color: '#666', fontSize: '0.85rem' }}>{formatDate(r.data)}</td>
-                                    <td style={{ ...tdStyle, textAlign: 'right', paddingRight: '24px' }}>
+                                    <td style={{ ...tdStyle, color: '#666', fontSize: '0.85rem' }} data-label="Última Atualização">{formatDate(r.data)}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right', paddingRight: '24px' }} data-label="Ações">
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                             <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={16} /></button>
                                             <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: '#0055ff', background: 'rgba(0,85,255,0.05)' }}><Copy size={16} /></button>
