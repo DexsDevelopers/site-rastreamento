@@ -1040,10 +1040,11 @@ app.post('/api/admin/db-setup', async (req, res) => {
 
 // 10. WhatsApp Bot Integrated Management
 let botInitialized = false;
+let botModule = null;
 async function initBotModule() {
     try {
         console.log('🤖 Iniciando módulo WhatsApp Bot integrado...');
-        const botModule = await import('../whatsapp-bot/index.js');
+        botModule = await import('../whatsapp-bot/index.js');
 
         // Montar rotas do bot no app principal
         if (botModule.botRouter) {
@@ -1054,7 +1055,7 @@ async function initBotModule() {
         // Iniciar o bot Baileys
         await botModule.initWhatsAppBot(app);
         botInitialized = true;
-        console.log('✅ Módulo WhatsApp Bot inicializado com sucesso!');
+        console.log('✅ Módulo WhatsApp Bot integrado com sucesso (Acesso Direto habilitado)');
     } catch (err) {
         console.error('❌ Erro ao carregar módulo WhatsApp Bot:', err.message);
         console.error(err.stack);
@@ -1063,31 +1064,21 @@ async function initBotModule() {
 
 app.get('/api/admin/bot/status', async (req, res) => {
     try {
-        if (!botInitialized) {
+        if (!botInitialized || !botModule) {
             return res.json({
                 success: true,
-                status: { connected: false, message: 'Bot inicializando no servidor...' }
+                status: { connected: false, message: 'Bot não inicializado (Módulo off)' }
             });
         }
 
-        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/status`, {
-            headers: { 'x-api-token': apiToken }
-        }).catch(() => null);
-
-        if (response && response.ok) {
-            const data = await response.json();
-            // Mapear 'ready' do bot para 'connected' do frontend
-            res.json({
-                success: true,
-                status: {
-                    ...data,
-                    connected: !!data.ready
-                }
-            });
-        } else {
-            res.json({ success: true, status: { connected: false, message: 'Bot offline' } });
-        }
+        const state = botModule.getBotState();
+        res.json({
+            success: true,
+            status: {
+                ...state,
+                connected: !!state.connected
+            }
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -1095,18 +1086,16 @@ app.get('/api/admin/bot/status', async (req, res) => {
 
 app.get('/api/admin/bot/qr', async (req, res) => {
     try {
-        if (!botInitialized) return res.json({ success: false, message: 'Bot inicializando...' });
+        if (!botInitialized || !botModule) return res.json({ success: false, message: 'Bot off' });
 
-        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/api/qr`, {
-            headers: { 'x-api-token': apiToken }
-        }).catch(() => null);
-
-        if (response && response.ok) {
-            const data = await response.json();
-            res.json(data);
+        const state = botModule.getBotState();
+        if (state.qr) {
+            // Gerar base64 do QR localmente (mais confiável)
+            const QRCodeImg = await import('qrcode');
+            const dataUrl = await QRCodeImg.toDataURL(state.qr, { scale: 8, margin: 1 });
+            res.json({ success: true, qr: dataUrl });
         } else {
-            res.json({ success: false, message: 'QR não disponível no momento' });
+            res.json({ success: false, message: state.connected ? 'Bot já conectado' : 'Gerando QR Code...' });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -1115,18 +1104,14 @@ app.get('/api/admin/bot/qr', async (req, res) => {
 
 app.post('/api/admin/bot/restart', async (req, res) => {
     try {
-        if (!botInitialized) return res.json({ success: false, message: 'Bot inicializando...' });
+        if (!botInitialized || !botModule) return res.json({ success: false, message: 'Bot off' });
 
-        let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-        const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/logout`, {
-            method: 'POST',
-            headers: { 'x-api-token': apiToken }
-        }).catch(() => null);
+        const result = await botModule.logoutBot();
 
-        if (response && response.ok) {
-            res.json({ success: true, message: 'Bot reiniciado e pronto para gerar novo QR!' });
+        if (result.success) {
+            res.json({ success: true, message: 'Comando de reinício enviado! O bot será reiniciado em instantes.' });
         } else {
-            res.json({ success: false, message: 'Falha ao reiniciar o bot.' });
+            res.json({ success: false, message: 'Erro ao processar reinício: ' + result.error });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

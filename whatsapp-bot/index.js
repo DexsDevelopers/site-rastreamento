@@ -12,6 +12,10 @@
  *   POST /send-poll { to: "55DDDNUMERO", question: "...", options: [...] }  Header: x-api-token
  */
 import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage, proto } from '@whiskeysockets/baileys';
+// Exportar variáveis de estado para integração direta
+export let isReady = false;
+export let lastQR = null;
+export let sock = null;
 import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-message.js';
 import { jidNormalizedUser } from '@whiskeysockets/baileys/lib/WABinary/jid-utils.js';
 import crypto from 'crypto';
@@ -694,9 +698,17 @@ const LOOP_DETECTION_WINDOW = 60000;    // 1 minuto para detectar loop
 const MAX_DISCONNECTS_IN_WINDOW = 5;    // 5 desconexões em 1 min = loop
 const PING_INTERVAL = 60000;            // 1 minuto - ping para manter conexão
 
-let sock;
-let isReady = false;
-let lastQR = null;
+// (Variáveis isReady, lastQR, sock são exportadas no topo do arquivo)
+
+// Getters para integração
+export const getBotState = () => ({
+  ready: isReady,
+  connected: isReady, // Compatibilidade
+  qr: lastQR,
+  uptime: connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0,
+  reconnectAttempts,
+  isInLoopState
+});
 let reconnectAttempts = 0;
 let reconnectTimer = null;
 let heartbeatTimer = null;
@@ -3909,8 +3921,8 @@ botRouter.post('/reset-loop', auth, async (req, res) => {
 });
 
 // Logout (Limpar sessão e gerar novo QR) - Útil para sessões travadas
-botRouter.post('/logout', auth, async (req, res) => {
-  log.warn('🚨 SOLICITAÇÃO DE LOGOUT COMPLETO VIA API');
+export const logoutBot = async () => {
+  log.warn('🚨 EXECUÇÃO DE LOGOUT COMPLETO');
   try {
     isReady = false;
     stopHeartbeat();
@@ -3930,20 +3942,28 @@ botRouter.post('/logout', auth, async (req, res) => {
       log.success('Pasta de autenticação removida com sucesso');
     }
 
-    res.json({
-      ok: true,
-      message: 'Sessão encerrada com sucesso! O bot será reiniciado agora para gerar um novo QR Code.'
-    });
-
     // Encerrar processo - o PM2 irá reiniciar automaticamente
     setTimeout(() => {
       log.info('Reiniciando processo via PM2...');
       process.exit(0);
     }, 2000);
 
+    return { success: true };
   } catch (error) {
     log.error(`Erro ao realizar logout: ${error.message}`);
-    res.status(500).json({ ok: false, error: error.message });
+    return { success: false, error: error.message };
+  }
+};
+
+botRouter.post('/logout', auth, async (req, res) => {
+  const result = await logoutBot();
+  if (result.success) {
+    res.json({
+      ok: true,
+      message: 'Sessão encerrada com sucesso! O bot será reiniciado agora para gerar um novo QR Code.'
+    });
+  } else {
+    res.status(500).json({ ok: false, error: result.error });
   }
 });
 
