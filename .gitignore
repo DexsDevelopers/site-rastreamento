@@ -40,6 +40,8 @@ backend/node_modules/
 whatsapp-bot/node_modules/
 webapp/node_modules/
 auth/
+**/auth/
+whatsapp-bot/auth/
 .whatsapp-auth*
 
 .agent/skills/

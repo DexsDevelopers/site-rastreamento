@@ -159,46 +159,54 @@ async function startMessageQueuePoller() {
   log.success('[QUEUE] Iniciando poller de mensagens do banco de dados...');
 
   const poll = async () => {
+    // Log silencioso para manter o processo ativo e monitorado
+    // console.log(`[QUEUE] Ciclo de consulta... isReady=${isReady}, hasSock=${!!sock}`);
+
     if (!isReady || !sock) {
-      setTimeout(poll, 10000); // Tentar novamente em 10s se não estiver pronto
+      setTimeout(poll, 7000);
       return;
     }
 
     try {
-      // Buscar apenas 5 mensagens por vez para não sobrecarregar
       const [rows] = await botDb.query(
-        "SELECT * FROM whatsapp_fila_mensagens WHERE status = 'pendente' ORDER BY data_criacao ASC LIMIT 5"
+        "SELECT * FROM whatsapp_fila_mensagens WHERE status = 'pendente' ORDER BY data_criacao ASC LIMIT 10"
       );
 
       if (rows && rows.length > 0) {
-        log.info(`[QUEUE] Processando ${rows.length} mensagens pendentes...`);
+        log.info(`[QUEUE] Fila: Encontradas ${rows.length} mensagens para processar.`);
 
         for (const row of rows) {
           try {
-            log.info(`[QUEUE] Enviando ID ${row.id} para ${row.telefone}...`);
+            log.info(`[QUEUE] Processando ID ${row.id} -> ${row.telefone}...`);
 
-            // Usar a lógica já existente de resolveJid etc (do sendWhatsAppMessage)
-            let mappedJid = row.telefone;
+            let mappedJid = String(row.telefone);
             if (!mappedJid.includes('@')) {
-              const digits = formatBrazilNumber(mappedJid);
-              const resolution = await resolveJidFromPhone(digits);
-              mappedJid = resolution.mappedJid;
+              // Limpar e formatar
+              const digits = mappedJid.replace(/\D/g, '');
+              if (digits.length < 8) throw new Error('Número de telefone inválido');
+
+              // Tentar resolver JID
+              try {
+                const resolution = await resolveJidFromPhone(digits);
+                mappedJid = resolution.mappedJid;
+              } catch (e) {
+                // Fallback simples se o resolver falhar
+                mappedJid = `${digits.length <= 11 ? '55' + digits : digits}@s.whatsapp.net`;
+              }
             }
 
+            console.log(`[QUEUE] Enviando via socket: ${mappedJid}`);
             await safeSendMessage(sock, mappedJid, { text: row.mensagem });
 
-            // Marcar como enviado
             await botDb.query(
               "UPDATE whatsapp_fila_mensagens SET status = 'enviado', data_envio = NOW() WHERE id = ?",
               [row.id]
             );
-            log.success(`[QUEUE] ✅ ID ${row.id} enviado com sucesso!`);
+            log.success(`[QUEUE] ✅ Mensagem ${row.id} enviada!`);
 
-            // Delay pequeno entre mensagens da fila
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 1500));
           } catch (sendErr) {
-            log.error(`[QUEUE] ❌ Erro no ID ${row.id}: ${sendErr.message}`);
-            // Marcar erro no banco
+            log.error(`[QUEUE] ❌ Erro ao enviar ${row.id}: ${sendErr.message}`);
             await botDb.query(
               "UPDATE whatsapp_fila_mensagens SET status = 'erro', erro = ? WHERE id = ?",
               [sendErr.message, row.id]
@@ -207,11 +215,10 @@ async function startMessageQueuePoller() {
         }
       }
     } catch (dbErr) {
-      log.error(`[QUEUE] Erro ao consultar banco: ${dbErr.message}`);
+      log.error(`[QUEUE] Erro no polling do DB: ${dbErr.message}`);
     }
 
-    // Agendar próxima verificação (5 a 10 segundos)
-    setTimeout(poll, 7000);
+    setTimeout(poll, 5000);
   };
 
   poll();

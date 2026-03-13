@@ -72,6 +72,22 @@ async function runMigrations() {
         await db.query(`UPDATE IGNORE pedidos_pendentes SET codigo_rastreio = ${clearSql('codigo_rastreio')} WHERE codigo_rastreio IS NOT NULL`);
         console.log('✅ Limpeza agressiva concluída!');
 
+        // NOVO: Tabela de Fila de Mensagens WhatsApp (Solução Hostinger Multi-process)
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`whatsapp_fila_mensagens\` (
+              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+              \`telefone\` varchar(50) NOT NULL,
+              \`mensagem\` text NOT NULL,
+              \`status\` enum('pendente','enviado','erro') DEFAULT 'pendente',
+              \`erro\` text DEFAULT NULL,
+              \`data_criacao\` datetime DEFAULT CURRENT_TIMESTAMP,
+              \`data_envio\` datetime DEFAULT NULL,
+              PRIMARY KEY (\`id\`),
+              INDEX (\`status\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        console.log('✅ Migration: Fila de mensagens garantida!');
+
     } catch (err) {
         console.error('⚠️ Erro nas migrações:', err.message);
     }
