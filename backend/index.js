@@ -723,11 +723,12 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
 
         // Enviar via API direta do módulo (estabilidade Hostinger)
         try {
+            if (!botModule) throw new Error('Módulo Bot não carregado no backend');
             await botModule.sendWhatsAppMessage(telefone, mensagem);
             res.json({ success: true, message: `✅ Mensagem enviada para ${telefone}!` });
         } catch (err) {
             console.error('Erro ao enviar mensagem direta:', err.message);
-            res.json({ success: false, message: '❌ Falha ao enviar mensagem. Verifique se o bot está online.' });
+            res.json({ success: false, message: `❌ Erro: ${err.message}. Verifique se o bot está online.` });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: '❌ Erro interno: ' + error.message });
@@ -821,11 +822,12 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
 
         // Enviar via API direta do módulo (estabilidade Hostinger)
         try {
+            if (!botModule) throw new Error('Módulo Bot não carregado no backend');
             await botModule.sendWhatsAppMessage(telefone, mensagem);
             res.json({ success: true, message: `✅ Cobrança enviada para ${telefone}!` });
         } catch (err) {
             console.error('Erro ao enviar cobrança direta:', err.message);
-            res.json({ success: false, message: '❌ Falha ao enviar mensagem de cobrança.' });
+            res.json({ success: false, message: `❌ Erro: ${err.message}. Falha ao enviar cobrança.` });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });

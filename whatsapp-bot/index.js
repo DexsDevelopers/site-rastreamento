@@ -19,8 +19,11 @@ export let sock = null;
 
 // API de alto nível para envio via integração direta
 export async function sendWhatsAppMessage(to, text) {
+  // Log para depuração de integração
+  console.log(`[API DIRETA] Tentativa de envio para ${to}. isReady=${isReady}, hasSock=${!!sock}`);
+
   if (!isReady || !sock) {
-    throw new Error('Bot não está pronto ou não conectado');
+    throw new Error(`Bot não está pronto (isReady=${isReady}, hasSock=${!!sock})`);
   }
 
   try {
