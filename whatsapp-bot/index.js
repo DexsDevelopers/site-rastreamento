@@ -16,6 +16,28 @@ import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetch
 export let isReady = false;
 export let lastQR = null;
 export let sock = null;
+
+// API de alto nível para envio via integração direta
+export async function sendWhatsAppMessage(to, text) {
+  if (!isReady || !sock) {
+    throw new Error('Bot não está pronto ou não conectado');
+  }
+
+  try {
+    let mappedJid = to;
+    if (typeof to === 'string' && !to.includes('@')) {
+      const digits = formatBrazilNumber(to);
+      const resolution = await resolveJidFromPhone(digits);
+      mappedJid = resolution.mappedJid;
+    }
+
+    const result = await safeSendMessage(sock, mappedJid, { text });
+    return { success: true, jid: mappedJid, ...result };
+  } catch (err) {
+    console.error('Erro na API direta de envio:', err.message);
+    throw err;
+  }
+}
 import { decryptPollVote } from '@whiskeysockets/baileys/lib/Utils/process-message.js';
 import { jidNormalizedUser } from '@whiskeysockets/baileys/lib/WABinary/jid-utils.js';
 import crypto from 'crypto';
@@ -458,7 +480,7 @@ function generateRandomSuffix() {
 }
 
 // Função wrapper segura para sendMessage com proteções anti-ban
-async function safeSendMessage(sock, jid, message, options = {}) {
+export async function safeSendMessage(sock, jid, message, options = {}) {
   if (!sock) {
     log.error('[SAFETY] Socket não disponível em safeSendMessage');
     return null;
@@ -3780,7 +3802,7 @@ botRouter.get('/health', (req, res) => {
 });
 
 // Resolve JID
-async function resolveJidFromPhone(digits) {
+export async function resolveJidFromPhone(digits) {
   const pnJid = `${digits}@s.whatsapp.net`;
 
   const checkOne = async (jid) => {

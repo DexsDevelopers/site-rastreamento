@@ -721,15 +721,12 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
             .replace('{status}', ultimoStatus.status_atual)
             .replace('{subtitulo}', ultimoStatus.subtitulo || '');
 
-        const response = await fetch(`${apiUrl}/send`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-api-token': apiToken },
-            body: JSON.stringify({ to: telefone, message: mensagem }),
-        }).catch(() => null);
-
-        if (response && response.ok) {
+        // Enviar via API direta do módulo (estabilidade Hostinger)
+        try {
+            await botModule.sendWhatsAppMessage(telefone, mensagem);
             res.json({ success: true, message: `✅ Mensagem enviada para ${telefone}!` });
-        } else {
+        } catch (err) {
+            console.error('Erro ao enviar mensagem direta:', err.message);
             res.json({ success: false, message: '❌ Falha ao enviar mensagem. Verifique se o bot está online.' });
         }
     } catch (error) {
@@ -822,16 +819,13 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
 
         mensagem = mensagem.replace('{nome}', pedido.nome);
 
-        const response = await fetch(`${apiUrl}/send`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-api-token': apiToken },
-            body: JSON.stringify({ to: telefone, message: mensagem }),
-        }).catch(() => null);
-
-        if (response && response.ok) {
+        // Enviar via API direta do módulo (estabilidade Hostinger)
+        try {
+            await botModule.sendWhatsAppMessage(telefone, mensagem);
             res.json({ success: true, message: `✅ Cobrança enviada para ${telefone}!` });
-        } else {
-            res.json({ success: false, message: '❌ Falha ao enviar mensagem.' });
+        } catch (err) {
+            console.error('Erro ao enviar cobrança direta:', err.message);
+            res.json({ success: false, message: '❌ Falha ao enviar mensagem de cobrança.' });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -1185,18 +1179,11 @@ app.post('/api/pedidos', async (req, res) => {
         // Notificação WhatsApp (opcional, se configurado)
         let whatsappEnviado = false;
         try {
-            let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
-            let apiUrl = 'http://127.0.0.1:3001';
-
             const mensagem = `🎉 *Olá, ${nome}!*\n\n✅ Recebemos seu pedido com sucesso!\n\n📦 *Endereço de entrega confirmado:*\n${rua}, ${numero}${complemento ? ' - ' + complemento : ''}\n${bairro} - ${cidade}/${estado}\nCEP: ${cep}\n\n⏳ Nossa equipe entrará em contato em breve para finalizar seu pedido!\n\nObrigado pela preferência! 🚚`;
 
-            const response = await fetch(`${apiUrl}/send`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-api-token': apiToken },
-                body: JSON.stringify({ to: telefoneLimpo, message: mensagem }),
-            }).catch(() => null);
-
-            whatsappEnviado = response && response.ok;
+            // Enviar via API direta (estabilidade Hostinger)
+            await botModule.sendWhatsAppMessage(telefoneLimpo, mensagem);
+            whatsappEnviado = true;
         } catch (wppErr) {
             console.error('Erro ao enviar notificação WhatsApp:', wppErr.message);
         }
