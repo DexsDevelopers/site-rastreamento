@@ -20,10 +20,12 @@ export let sock = null;
 // API de alto nível para envio via integração direta
 export async function sendWhatsAppMessage(to, text) {
   // Log para depuração de integração
-  console.log(`[API DIRETA] Tentativa de envio para ${to}. isReady=${isReady}, hasSock=${!!sock}`);
+  // Check mais resiliente: se tem socket e ele está "open", podemos tentar enviar
+  const socketState = sock?.ws?.readyState === 1 ? 'OPEN' : (sock?.ws?.readyState || 'UNKNOWN');
+  console.log(`[API DIRETA] Tentativa de envio para ${to}. isReady=${isReady}, hasSock=${!!sock}, wsState=${socketState}`);
 
-  if (!isReady || !sock) {
-    throw new Error(`Bot não está pronto (isReady=${isReady}, hasSock=${!!sock})`);
+  if (!sock || (!isReady && sock.ws?.readyState !== 1)) {
+    throw new Error(`Bot não está pronto (isReady=${isReady}, hasSock=${!!sock}, wsState=${socketState})`);
   }
 
   try {
@@ -834,18 +836,14 @@ const simpleStore = {
 };
 
 // ===== CONFIGURAÇÃO DE DIRETÓRIOS =====
-const isProduction = process.env.NODE_ENV === 'production';
-let authPath;
+// Usar process.cwd() para garantir que todos os processos (backend e bot)
+// resolvam o mesmo caminho absoluto, independente de onde o arquivo está.
+const baseDir = process.cwd();
+let authPath = path.resolve(baseDir, 'whatsapp-bot', 'auth');
 
-if (isProduction) {
-  authPath = path.resolve(__dirname, 'auth');
-  console.log(`[INIT] Produção: ${authPath}`);
-} else {
-  authPath = path.resolve(__dirname, 'auth');
-  console.log(`[INIT] Local: ${authPath}`);
-}
+console.log(`[INIT] Caminho de autenticação pretendido: ${authPath}`);
 
-// Garantir que a pasta existe com fallback para /tmp
+// Garantir que a pasta existe com fallback para pasta local se falhar
 try {
   if (!fs.existsSync(authPath)) {
     console.log(`[INIT] Criando pasta de autenticação: ${authPath}`);
@@ -856,10 +854,10 @@ try {
   fs.writeFileSync(testFile, 'test');
   fs.unlinkSync(testFile);
 } catch (err) {
-  console.error(`[INIT] ⚠️ Erro ao usar pasta persistente: ${err.message}`);
-  // Fallback para diretório temporário
-  authPath = path.join(os.tmpdir(), 'auth_info_baileys_rastreamento');
-  console.log(`[INIT] Usando FALLBACK temporário: ${authPath}`);
+  console.error(`[INIT] ⚠️ Erro ao usar pasta configurada: ${err.message}`);
+  // Fallback: usar pasta 'auth' relativa ao arquivo se falhar a global
+  authPath = path.resolve(__dirname, 'auth');
+  console.log(`[INIT] Usando fallback local: ${authPath}`);
   if (!fs.existsSync(authPath)) {
     fs.mkdirSync(authPath, { recursive: true });
   }
