@@ -2,36 +2,36 @@
 
 /* ====== CSS VARIABLES ====== */
 :root {
-  --bg-primary: #f0f4ff;
-  --bg-secondary: #e8eeff;
+  --bg-primary: #f8faff;
+  --bg-secondary: #f0f4ff;
   --bg-white: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.6);
-  --bg-glass-hover: rgba(255, 255, 255, 0.85);
-  --bg-glass-dark: rgba(10, 20, 60, 0.03);
-  --border-glass: rgba(0, 80, 200, 0.08);
-  --border-glass-strong: rgba(0, 80, 200, 0.15);
-  --text-primary: #0a1628;
-  --text-secondary: #5a6b8a;
-  --text-muted: #8899b3;
-  --accent-primary: #0055ff;
+  --bg-glass: rgba(255, 255, 255, 0.45);
+  --bg-glass-hover: rgba(255, 255, 255, 0.7);
+  --bg-glass-dark: rgba(10, 20, 60, 0.04);
+  --border-glass: rgba(0, 80, 200, 0.06);
+  --border-glass-strong: rgba(0, 80, 200, 0.12);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent-primary: #0066ff;
   --accent-secondary: #3b82f6;
-  --accent-tertiary: #06b6d4;
-  --accent-gradient: linear-gradient(135deg, #0055ff, #3b82f6, #06b6d4);
-  --accent-gradient-soft: linear-gradient(135deg, #e0ecff, #f0f7ff);
-  --accent-glow: rgba(0, 85, 255, 0.2);
+  --accent-tertiary: #0ea5e9;
+  --accent-gradient: linear-gradient(135deg, #0066ff, #3b82f6, #0ea5e9);
+  --accent-gradient-soft: linear-gradient(135deg, #f0f7ff, #e0ecff);
+  --accent-glow: rgba(0, 102, 255, 0.15);
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-2xl: 36px;
-  --shadow-sm: 0 2px 8px rgba(0, 40, 120, 0.06);
-  --shadow-md: 0 8px 32px rgba(0, 40, 120, 0.08);
-  --shadow-lg: 0 16px 48px rgba(0, 40, 120, 0.12);
-  --shadow-xl: 0 24px 64px rgba(0, 40, 120, 0.16);
-  --shadow-glow: 0 8px 32px rgba(0, 85, 255, 0.2);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-2xl: 40px;
+  --shadow-sm: 0 2px 8px rgba(0, 40, 120, 0.04);
+  --shadow-md: 0 12px 32px rgba(0, 40, 120, 0.06);
+  --shadow-lg: 0 20px 48px rgba(0, 40, 120, 0.1);
+  --shadow-xl: 0 32px 64px rgba(0, 40, 120, 0.14);
+  --shadow-glow: 0 8px 32px rgba(0, 102, 255, 0.18);
   --transition-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -599,12 +599,91 @@ img {
 
 /* Glass panel (admin & general) */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: var(--bg-glass);
+  backdrop-filter: blur(28px) saturate(1.8);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  transition: all 0.4s var(--transition-spring);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glass-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Bento Grid System (Method 2026) */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+  gap: 20px;
+  width: 100%;
+}
+
+.bento-item {
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: all 0.5s var(--transition-spring);
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  background: var(--bg-glass-hover);
+  border-color: var(--accent-glow);
+  box-shadow: var(--shadow-xl);
+}
+
+.bento-item-sm {
+  grid-column: span 3;
+}
+
+.bento-item-md {
+  grid-column: span 6;
+}
+
+.bento-item-lg {
+  grid-column: span 9;
+}
+
+.bento-item-xl {
+  grid-column: span 12;
+}
+
+@media (max-width: 1200px) {
+  .bento-item-sm {
+    grid-column: span 4;
+  }
+
+  .bento-item-md {
+    grid-column: span 8;
+  }
+}
+
+@media (max-width: 900px) {
+
+  .bento-item-sm,
+  .bento-item-md,
+  .bento-item-lg {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .bento-item-sm,
+  .bento-item-md,
+  .bento-item-lg,
+  .bento-item-xl {
+    grid-column: span 12;
+  }
 }
 
 /* ====== BUTTONS ====== */

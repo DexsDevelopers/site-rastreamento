@@ -358,7 +358,7 @@ const AdminPanel: React.FC = () => {
 
     // ===== RENDER =====
     return (
-        <div style={{ padding: '32px', animation: 'fadeIn 0.4s ease', maxWidth: '1600px' }}>
+        <div style={{ padding: '24px', animation: 'fadeIn 0.4s ease', width: '100%', boxSizing: 'border-box' }}>
             <style>{`
                 @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
                 @keyframes modalSlide { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -414,44 +414,49 @@ const AdminPanel: React.FC = () => {
             {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
             {/* HEADER */}
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', gap: '24px', flexWrap: 'wrap' }}>
-                <div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, letterSpacing: '-1.5px', fontFamily: 'Outfit, sans-serif' }}>
-                        Painel <span className="text-gradient">Administrativo</span>
-                    </h1>
-                    <p style={{ color: '#64748b', marginTop: '6px', fontSize: '1.1rem', fontWeight: 500 }}>Gestão inteligente da maior malha logística do Brasil.</p>
-                </div>
-                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                    <button onClick={() => fetchData()} className="admin-action-btn" title="Atualizar" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px' }}>
-                        <RefreshCw size={18} /> Sincronizar
-                    </button>
-                    <button onClick={exportCSV} className="admin-action-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px' }}>
-                        <Download size={18} /> CSV
-                    </button>
-                    <button onClick={() => { setNovoForm(defaultNovo); setModalAdd(true); }} style={{
-                        display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 28px',
-                        background: 'linear-gradient(135deg, #0055ff, #3b82f6)', color: '#fff',
-                        border: 'none', borderRadius: '16px', cursor: 'pointer', fontWeight: 800, fontSize: '1rem',
-                        boxShadow: '0 8px 24px rgba(0, 85, 255, 0.3)', transition: '0.3s'
-                    }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                        <Plus size={20} /> Novo Rastreio
-                    </button>
+            <header style={{ marginBottom: '48px', animation: 'slideIn 0.6s var(--transition-spring)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', flexWrap: 'wrap' }}>
+                    <div>
+                        <h1 style={{ fontSize: '3rem', fontWeight: 900, margin: 0, letterSpacing: '-2px', fontFamily: 'Outfit, sans-serif' }}>
+                            Painel <span className="text-gradient-animated">Administrativo</span>
+                        </h1>
+                        <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '1.15rem', fontWeight: 500, opacity: 0.8 }}>Gestão inteligente da maior malha logística do Brasil.</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                        <button onClick={() => fetchData()} className="admin-action-btn" title="Atualizar" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', fontWeight: 600 }}>
+                            <RefreshCw size={18} /> Sincronizar
+                        </button>
+                        <button onClick={exportCSV} className="admin-action-btn" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', fontWeight: 600 }}>
+                            <Download size={18} /> CSV
+                        </button>
+                        <button onClick={() => { setNovoForm(defaultNovo); setModalAdd(true); }} className="btn-primary" style={{ padding: '16px 32px', borderRadius: '18px' }}>
+                            <Plus size={22} strokeWidth={3} /> Novo Rastreio
+                        </button>
+                    </div>
                 </div>
             </header>
 
-            {/* STATS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
-                <StatCard icon={<Package size={22} />} label="Total de Rastreios" value={loading ? '...' : stats.total} color="#0055ff" />
-                <StatCard icon={<DollarSign size={22} />} label="Com Taxa Pendente" value={loading ? '...' : stats.com_taxa} color="#f59e0b" />
-                <StatCard icon={<BarChart2 size={22} />} label="Sem Taxa" value={loading ? '...' : stats.sem_taxa} color="#3b82f6" />
-                <StatCard icon={<CheckCircle size={22} />} label="Entregues" value={loading ? '...' : stats.entregues} color="#22c55e" />
+            {/* STATS BENTO GRID */}
+            <div className="bento-grid" style={{ marginBottom: '32px' }}>
+                <div className="bento-item bento-item-sm" style={{ animation: 'springIn 0.6s var(--transition-spring) 0.1s' }}>
+                    <StatCard icon={<Package size={26} />} label="Total" value={loading ? '...' : stats.total} color="var(--accent-primary)" />
+                </div>
+                <div className="bento-item bento-item-sm" style={{ animation: 'springIn 0.6s var(--transition-spring) 0.2s' }}>
+                    <StatCard icon={<DollarSign size={26} />} label="Taxas" value={loading ? '...' : stats.com_taxa} color="var(--warning)" />
+                </div>
+                <div className="bento-item bento-item-sm" style={{ animation: 'springIn 0.6s var(--transition-spring) 0.3s' }}>
+                    <StatCard icon={<BarChart2 size={26} />} label="Sem Taxas" value={loading ? '...' : stats.sem_taxa} color="var(--accent-tertiary)" />
+                </div>
+                <div className="bento-item bento-item-sm" style={{ animation: 'springIn 0.6s var(--transition-spring) 0.4s' }}>
+                    <StatCard icon={<CheckCircle size={26} />} label="Entregues" value={loading ? '...' : stats.entregues} color="var(--success)" />
+                </div>
             </div>
 
             {/* TABELA PRINCIPAL */}
-            <div className="table-wrapper" style={{
-                background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,80,200,0.08)',
-                borderRadius: '24px', overflowX: 'auto', backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0,40,120,0.06)'
+            <div className="table-wrapper glass-panel" style={{
+                borderRadius: '28px', overflow: 'hidden', backdropFilter: 'blur(32px)',
+                animation: 'slideUp 0.8s var(--transition-spring) 0.5s both',
+                border: '1px solid var(--border-glass-strong)'
             }}>
                 {/* TOOLBAR */}
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,80,200,0.06)', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -495,19 +500,19 @@ const AdminPanel: React.FC = () => {
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ background: 'rgba(0,85,255,0.02)', borderBottom: '1px solid rgba(0,80,200,0.06)' }}>
-                                <th style={{ ...thStyle, padding: '20px' }}>
+                                <th style={{ ...thStyle, padding: '24px' }}>
                                     <input type="checkbox"
                                         checked={selected.size === filteredRastreios.length && filteredRastreios.length > 0}
                                         onChange={toggleSelectAll}
-                                        style={{ accentColor: '#0055ff', width: '18px', height: '18px', cursor: 'pointer' }}
+                                        style={{ accentColor: 'var(--accent-primary)', width: '20px', height: '20px', cursor: 'pointer' }}
                                     />
                                 </th>
-                                <th style={{ ...thStyle, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Código</th>
-                                <th style={{ ...thStyle, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Cidade</th>
-                                <th style={{ ...thStyle, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Status</th>
-                                <th style={{ ...thStyle, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Taxa</th>
-                                <th style={{ ...thStyle, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Última Atu.</th>
-                                <th style={{ ...thStyle, textAlign: 'right', paddingRight: '24px', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>Ações</th>
+                                <th style={{ ...thStyle, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CÓDIGO</th>
+                                <th style={{ ...thStyle, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CIDADE</th>
+                                <th style={{ ...thStyle, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>STATUS</th>
+                                <th style={{ ...thStyle, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>TAXA</th>
+                                <th style={{ ...thStyle, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>ÚLTIMA ATU.</th>
+                                <th style={{ ...thStyle, textAlign: 'right', paddingRight: '32px', fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>AÇÕES</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -526,34 +531,35 @@ const AdminPanel: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : filteredRastreios.map(r => (
-                                <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid rgba(0,80,200,0.05)', transition: 'background 0.2s' }}>
-                                    <td style={{ ...tdStyle, padding: '20px' }} data-label="Selecionar">
+                                <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid var(--border-glass)', transition: 'all 0.3s var(--transition-spring)' }}>
+                                    <td style={{ ...tdStyle, padding: '24px' }} data-label="Selecionar">
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
-                                            style={{ accentColor: '#0055ff', width: '18px', height: '18px', cursor: 'pointer' }} />
+                                            style={{ accentColor: 'var(--accent-primary)', width: '20px', height: '20px', cursor: 'pointer' }} />
                                     </td>
-                                    <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.5px', fontSize: '1rem' }} data-label="Código">
+                                    <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.5px', fontSize: '1.05rem', padding: '24px 16px' }} data-label="Código">
                                         {r.codigo}
                                     </td>
-                                    <td style={{ ...tdStyle, color: 'var(--text-secondary)' }} data-label="Cidade">{r.cidade}</td>
-                                    <td style={tdStyle} data-label="Status">
-                                        <span className={getStatusClass(r.status_atual)} style={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                                            ● {r.status_atual}
+                                    <td style={{ ...tdStyle, color: 'var(--text-secondary)', fontWeight: 600, padding: '24px 16px' }} data-label="Cidade">{r.cidade}</td>
+                                    <td style={{ ...tdStyle, padding: '24px 16px' }} data-label="Status">
+                                        <span className={getStatusClass(r.status_atual)} style={{ fontSize: '0.95rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'currentColor', boxShadow: '0 0 8px currentColor' }}></span>
+                                            {r.status_atual}
                                         </span>
                                     </td>
-                                    <td style={tdStyle} data-label="Taxa">
+                                    <td style={{ ...tdStyle, padding: '24px 16px' }} data-label="Taxa">
                                         {r.taxa_valor && r.taxa_pix
-                                            ? <span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase' }}>Taxa Pendente</span>
-                                            : <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', padding: '6px 14px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase' }}>Sem Taxas</span>
+                                            ? <span style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.2)', padding: '8px 16px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>PENDENTE</span>
+                                            : <span style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.2)', padding: '8px 16px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>PAGO</span>
                                         }
                                     </td>
-                                    <td style={{ ...tdStyle, color: '#666', fontSize: '0.85rem' }} data-label="Última Atualização">{formatDate(r.data)}</td>
-                                    <td style={{ ...tdStyle, textAlign: 'right', paddingRight: '24px' }} data-label="Ações">
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={16} /></button>
-                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: '#0055ff', background: 'rgba(0,85,255,0.05)' }}><Copy size={16} /></button>
-                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.05)' }}><Edit size={16} /></button>
-                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: '#10b981', background: 'rgba(16,185,129,0.05)' }}><MessageCircle size={16} /></button>
-                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.05)' }}><Trash2 size={16} /></button>
+                                    <td style={{ ...tdStyle, color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500, padding: '24px 16px' }} data-label="Última Atualização">{formatDate(r.data)}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right', paddingRight: '32px', padding: '24px 16px' }} data-label="Ações">
+                                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes" style={{ padding: '10px' }}><Eye size={18} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: 'var(--accent-primary)', background: 'var(--accent-glow)', padding: '10px' }}><Copy size={18} /></button>
+                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)', padding: '10px' }}><Edit size={18} /></button>
+                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)', padding: '10px' }}><MessageCircle size={18} /></button>
+                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)', padding: '10px' }}><Trash2 size={18} /></button>
                                         </div>
                                     </td>
                                 </tr>
