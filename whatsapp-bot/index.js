@@ -67,13 +67,18 @@ app.get('/health', (req, res) => res.status(200).send('OK'));
 
 // Iniciar servidor IMEDIATAMENTE (apenas se executado diretamente)
 let server;
-const isMainModule = import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`;
+// Detecção mais robusta de execução direta vs importação
+const isMainModule = (import.meta.url === `file:///${path.resolve(process.argv[1]).replace(/\\/g, '/')}`) ||
+  (process.argv[1] && process.argv[1].includes('whatsapp-bot/index.js'));
 
 if (isMainModule) {
+  console.log('🚀 Iniciando Bot em modo STANDALONE');
   server = app.listen(PORT, () => {
     console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
     if (process.send) process.send('ready');
   });
+} else {
+  console.log('📦 Bot carregado como MÓDULO INTEGRADO');
 }
 
 // Exportar função de inicialização para integração
@@ -796,13 +801,14 @@ const isProduction = process.env.NODE_ENV === 'production';
 let authPath;
 
 if (isProduction) {
-  // Tentar usar diretório persistente FORA do public_html (igual ao projeto Marketing)
-  // Isso evita que o deploy apague a sessão
-  authPath = path.join(__dirname, '..', '..', '.whatsapp-auth-rastreamento');
-  console.log(`[INIT] Modo PRODUÇÃO. Tentando usar pasta persistente: ${authPath}`);
+  // Garantir caminho absoluto na Hostinger
+  authPath = path.resolve(__dirname, 'auth');
+  // Se estiver integrado, talvez precise subir um nível se index.js for movido, 
+  // mas aqui mantemos o padrão da pasta do bot
+  console.log(`[INIT] Modo PRODUÇÃO. Usando pasta: ${authPath}`);
 } else {
-  authPath = path.resolve('./auth');
-  console.log(`[INIT] Modo LOCAL. Usando pasta local: ${authPath}`);
+  authPath = path.resolve(__dirname, 'auth');
+  console.log(`[INIT] Modo LOCAL. Usando pasta: ${authPath}`);
 }
 
 // Garantir que a pasta existe com fallback para /tmp

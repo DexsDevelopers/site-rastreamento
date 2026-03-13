@@ -1063,9 +1063,13 @@ async function initBotModule() {
 
 app.get('/api/admin/bot/status', async (req, res) => {
     try {
-        if (!botInitialized) return res.json({ success: false, message: 'Bot inicializando...' });
+        if (!botInitialized) {
+            return res.json({
+                success: true,
+                status: { connected: false, message: 'Bot inicializando no servidor...' }
+            });
+        }
 
-        // Chamar o endpoint local que acabamos de montar
         let apiToken = process.env.WHATSAPP_API_TOKEN || 'lucastav8012';
         const response = await fetch(`http://127.0.0.1:${PORT}/api/whatsapp-internal/status`, {
             headers: { 'x-api-token': apiToken }
@@ -1073,9 +1077,16 @@ app.get('/api/admin/bot/status', async (req, res) => {
 
         if (response && response.ok) {
             const data = await response.json();
-            res.json({ success: true, status: data });
+            // Mapear 'ready' do bot para 'connected' do frontend
+            res.json({
+                success: true,
+                status: {
+                    ...data,
+                    connected: !!data.ready
+                }
+            });
         } else {
-            res.json({ success: false, message: 'Bot offline' });
+            res.json({ success: true, status: { connected: false, message: 'Bot offline' } });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -1095,7 +1106,7 @@ app.get('/api/admin/bot/qr', async (req, res) => {
             const data = await response.json();
             res.json(data);
         } else {
-            res.json({ success: false, message: 'QR não disponível' });
+            res.json({ success: false, message: 'QR não disponível no momento' });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
