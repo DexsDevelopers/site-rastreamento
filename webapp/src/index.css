@@ -1532,6 +1532,85 @@ img {
   }
 }
 
+@media (min-width: 769px) {
+  .app-container .admin-sidebar {
+    width: 240px !important;
+    /* Slimmer sidebar */
+  }
+
+  .main-content {
+    padding: 16px !important;
+    /* Tighter padding */
+  }
+
+  .table-wrapper {
+    overflow-x: hidden !important;
+    width: 100%;
+  }
+
+  table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    /* Force fit within 100% */
+  }
+
+  /* Specific column widths for desktop to ensure fit */
+  table th:nth-child(1),
+  table td:nth-child(1) {
+    width: 48px;
+  }
+
+  /* Checkbox */
+  table th:nth-child(2),
+  table td:nth-child(2) {
+    width: 140px;
+  }
+
+  /* Código */
+  table th:nth-child(3),
+  table td:nth-child(3) {
+    width: auto;
+  }
+
+  /* Cidade (Flexible) */
+  table th:nth-child(4),
+  table td:nth-child(4) {
+    width: 160px;
+  }
+
+  /* Status */
+  table th:nth-child(5),
+  table td:nth-child(5) {
+    width: 100px;
+  }
+
+  /* Taxa */
+  table th:nth-child(6),
+  table td:nth-child(6) {
+    width: 120px;
+  }
+
+  /* Última Atu. */
+  table th:nth-child(7),
+  table td:nth-child(7) {
+    width: 210px;
+  }
+
+  /* Ações */
+
+  table td,
+  table th {
+    white-space: normal !important;
+    word-break: break-word;
+    padding: 12px 10px !important;
+    /* More compact cells */
+  }
+
+  .admin-action-btn {
+    padding: 8px !important;
+  }
+}
+
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
 
