@@ -1534,80 +1534,104 @@ img {
 
 @media (min-width: 769px) {
   .app-container .admin-sidebar {
-    width: 240px !important;
-    /* Slimmer sidebar */
+    width: 220px !important;
+    /* Slashing width for space */
+    min-width: 220px !important;
+    position: relative !important;
   }
 
   .main-content {
-    padding: 16px !important;
-    /* Tighter padding */
+    padding: 12px !important;
+    /* Slashing padding */
+    width: calc(100vw - 220px - 40px) !important;
+    /* Definitive space limit */
+    flex: 1 !important;
+    overflow-x: hidden !important;
   }
 
   .table-wrapper {
+    width: 100% !important;
     overflow-x: hidden !important;
-    width: 100%;
+    margin: 0 !important;
   }
 
   table {
     width: 100% !important;
     table-layout: fixed !important;
-    /* Force fit within 100% */
+    /* Force browser to respect widths */
   }
 
-  /* Specific column widths for desktop to ensure fit */
+  /* Forced column widths for definitive fit */
   table th:nth-child(1),
   table td:nth-child(1) {
-    width: 48px;
+    width: 40px !important;
   }
 
   /* Checkbox */
   table th:nth-child(2),
   table td:nth-child(2) {
-    width: 140px;
+    width: 130px !important;
   }
 
   /* Código */
   table th:nth-child(3),
   table td:nth-child(3) {
-    width: auto;
+    width: auto !important;
   }
 
-  /* Cidade (Flexible) */
+  /* Cidade */
   table th:nth-child(4),
   table td:nth-child(4) {
-    width: 160px;
+    width: 140px !important;
   }
 
   /* Status */
   table th:nth-child(5),
   table td:nth-child(5) {
-    width: 100px;
+    width: 90px !important;
   }
 
   /* Taxa */
   table th:nth-child(6),
   table td:nth-child(6) {
-    width: 120px;
+    width: 110px !important;
   }
 
-  /* Última Atu. */
+  /* Últa. Atu. */
   table th:nth-child(7),
   table td:nth-child(7) {
-    width: 210px;
+    width: 190px !important;
   }
 
   /* Ações */
 
   table td,
   table th {
+    padding: 10px 6px !important;
+    /* High density */
+    font-size: 0.78rem !important;
+    /* Smaller for fit */
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Allow wrapping only for city and status if needed */
+  table td:nth-child(3),
+  table td:nth-child(4) {
     white-space: normal !important;
     word-break: break-word;
-    padding: 12px 10px !important;
-    /* More compact cells */
   }
 
   .admin-action-btn {
-    padding: 8px !important;
+    padding: 4px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .admin-action-btn svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 }
 

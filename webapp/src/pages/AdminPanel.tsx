@@ -541,8 +541,8 @@ const AdminPanel: React.FC = () => {
                                     </td>
                                     <td className="admin-cell" style={{ color: 'var(--text-secondary)', fontWeight: 600 }} data-label="Cidade">{r.cidade}</td>
                                     <td className="admin-cell" data-label="Status">
-                                        <span className={getStatusClass(r.status_atual)} style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }}></span>
+                                        <span className={getStatusClass(r.status_atual)} style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor' }}></span>
                                             {r.status_atual}
                                         </span>
                                     </td>
@@ -554,12 +554,12 @@ const AdminPanel: React.FC = () => {
                                     </td>
                                     <td className="admin-cell" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 500 }} data-label="Última Atualização">{formatDate(r.data)}</td>
                                     <td className="admin-cell" style={{ textAlign: 'right' }} data-label="Ações">
-                                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={16} /></button>
-                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={16} /></button>
-                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={16} /></button>
-                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={16} /></button>
-                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={16} /></button>
+                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={14} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={14} /></button>
+                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={14} /></button>
+                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={14} /></button>
+                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={14} /></button>
                                         </div>
                                     </td>
                                 </tr>
