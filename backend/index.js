@@ -721,14 +721,13 @@ app.post('/api/admin/rastreios/:codigo/whatsapp', async (req, res) => {
             .replace('{status}', ultimoStatus.status_atual)
             .replace('{subtitulo}', ultimoStatus.subtitulo || '');
 
-        // Enviar via API direta do módulo (estabilidade Hostinger)
+        // Enfileirar via Banco de Dados (Solução Hostinger Multi-process)
         try {
-            if (!botModule) throw new Error('Módulo Bot não carregado no backend');
-            await botModule.sendWhatsAppMessage(telefone, mensagem);
-            res.json({ success: true, message: `✅ Mensagem enviada para ${telefone}!` });
+            await queueWhatsAppMessage(telefone, mensagem);
+            res.json({ success: true, message: `✅ Mensagem enviada para fila (${telefone})!` });
         } catch (err) {
-            console.error('Erro ao enviar mensagem direta:', err.message);
-            res.json({ success: false, message: `❌ Erro: ${err.message}. Verifique se o bot está online.` });
+            console.error('Erro ao enfileirar mensagem:', err.message);
+            res.json({ success: false, message: `❌ Erro ao processar envio: ${err.message}` });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: '❌ Erro interno: ' + error.message });
@@ -820,14 +819,13 @@ app.post('/api/admin/pedidos-pendentes/:id/cobrar', async (req, res) => {
 
         mensagem = mensagem.replace('{nome}', pedido.nome);
 
-        // Enviar via API direta do módulo (estabilidade Hostinger)
+        // Enfileirar via Banco de Dados (Solução Hostinger Multi-process)
         try {
-            if (!botModule) throw new Error('Módulo Bot não carregado no backend');
-            await botModule.sendWhatsAppMessage(telefone, mensagem);
-            res.json({ success: true, message: `✅ Cobrança enviada para ${telefone}!` });
+            await queueWhatsAppMessage(telefone, mensagem);
+            res.json({ success: true, message: `✅ Cobrança enfileirada para ${telefone}!` });
         } catch (err) {
-            console.error('Erro ao enviar cobrança direta:', err.message);
-            res.json({ success: false, message: `❌ Erro: ${err.message}. Falha ao enviar cobrança.` });
+            console.error('Erro ao enfileirar cobrança:', err.message);
+            res.json({ success: false, message: `❌ Erro ao processar cobrança: ${err.message}` });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -1028,6 +1026,21 @@ app.post('/api/admin/db-setup', async (req, res) => {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 
+        // NOVO: Tabela de Fila de Mensagens WhatsApp (Solução Hostinger Multi-process)
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS \`whatsapp_fila_mensagens\` (
+              \`id\` int(11) NOT NULL AUTO_INCREMENT,
+              \`telefone\` varchar(50) NOT NULL,
+              \`mensagem\` text NOT NULL,
+              \`status\` enum('pendente','enviado','erro') DEFAULT 'pendente',
+              \`erro\` text DEFAULT NULL,
+              \`data_criacao\` datetime DEFAULT CURRENT_TIMESTAMP,
+              \`data_envio\` datetime DEFAULT NULL,
+              PRIMARY KEY (\`id\`),
+              INDEX (\`status\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
         res.json({ success: true, message: 'Tabelas criadas ou já existentes com sucesso!' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -1036,7 +1049,22 @@ app.post('/api/admin/db-setup', async (req, res) => {
 
 // 10. WhatsApp Bot Integrated Management
 let botInitialized = false;
-let botModule = null;
+// Função auxiliar para enfileirar mensagens (Solução multi-processo Hostinger)
+async function queueWhatsAppMessage(telefone, mensagem) {
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [result] = await db.query(
+            "INSERT INTO whatsapp_fila_mensagens (telefone, mensagem, status) VALUES (?, ?, 'pendente')",
+            [telefone, mensagem]
+        );
+        console.log(`[QUEUE] Mensagem enfileirada para ${telefone} (ID: ${result.insertId})`);
+        return result.insertId;
+    } catch (err) {
+        console.error('[QUEUE] Erro ao enfileirar mensagem:', err.message);
+        throw err;
+    }
+}
+
 async function initBotModule() {
     try {
         console.log('🤖 Iniciando módulo WhatsApp Bot integrado...');
@@ -1048,10 +1076,10 @@ async function initBotModule() {
             console.log('✅ Rotas do Bot integradas em /api/whatsapp-internal');
         }
 
-        // Iniciar o bot Baileys
-        await botModule.initWhatsAppBot(app);
+        // Iniciar o bot Baileys - AGORA PASSANDO DB PARA POLLING
+        await botModule.initWhatsAppBot(app, db);
         botInitialized = true;
-        console.log('✅ Módulo WhatsApp Bot integrado com sucesso (Acesso Direto habilitado)');
+        console.log('✅ Módulo WhatsApp Bot integrado com sucesso (Queue/Polling habilitado)');
     } catch (err) {
         console.error('❌ Erro ao carregar módulo WhatsApp Bot:', err.message);
         console.error(err.stack);
@@ -1180,14 +1208,12 @@ app.post('/api/pedidos', async (req, res) => {
 
         // Notificação WhatsApp (opcional, se configurado)
         let whatsappEnviado = false;
+        // Enfileirar notificação WhatsApp (Solução Hostinger Multi-process)
         try {
-            const mensagem = `🎉 *Olá, ${nome}!*\n\n✅ Recebemos seu pedido com sucesso!\n\n📦 *Endereço de entrega confirmado:*\n${rua}, ${numero}${complemento ? ' - ' + complemento : ''}\n${bairro} - ${cidade}/${estado}\nCEP: ${cep}\n\n⏳ Nossa equipe entrará em contato em breve para finalizar seu pedido!\n\nObrigado pela preferência! 🚚`;
-
-            // Enviar via API direta (estabilidade Hostinger)
-            await botModule.sendWhatsAppMessage(telefoneLimpo, mensagem);
+            await queueWhatsAppMessage(telefoneLimpo, mensagem);
             whatsappEnviado = true;
         } catch (wppErr) {
-            console.error('Erro ao enviar notificação WhatsApp:', wppErr.message);
+            console.error('Erro ao enfileirar notificação WhatsApp:', wppErr.message);
         }
 
         res.json({

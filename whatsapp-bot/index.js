@@ -113,17 +113,111 @@ if (isMainModule) {
 }
 
 // Exportar função de inicialização para integração
-export async function initWhatsAppBot(mainApp = null) {
+let botDb = null;
+
+// NOVO: Persistência de Estado (Solução Hostinger)
+async function updateBotStateFile(newState = {}) {
+  try {
+    if (typeof authPath === 'undefined') return;
+    const stateFile = path.join(authPath, 'bot_state.json');
+    let currentState = {};
+    if (fs.existsSync(stateFile)) {
+      try { currentState = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch (e) { }
+    }
+
+    const updatedState = {
+      ...currentState,
+      ...newState,
+      lastUpdate: Date.now()
+    };
+
+    fs.writeFileSync(stateFile, JSON.stringify(updatedState, null, 2));
+  } catch (err) { }
+}
+export async function initWhatsAppBot(mainApp = null, db = null) {
+  if (db) {
+    botDb = db;
+    log.info('[INIT] Banco de dados recebido para polling de mensagens.');
+  }
+
   if (mainApp) {
     log.info('Integrando rotas do bot no app principal...');
-    // Copiar rotas para o app principal
-    // (A implementação real precisará que as rotas sejam definidas de forma modular)
   }
+
   start().catch((err) => {
     log.error(`Erro crítico ao iniciar bot integrado: ${err.message}`);
     log.error(err.stack);
   });
 }
+
+// NOVO: Poller de Fila de Mensagens (Solução Hostinger)
+let queuePollerActive = false;
+async function startMessageQueuePoller() {
+  if (queuePollerActive || !botDb) return;
+  queuePollerActive = true;
+
+  log.success('[QUEUE] Iniciando poller de mensagens do banco de dados...');
+
+  const poll = async () => {
+    if (!isReady || !sock) {
+      setTimeout(poll, 10000); // Tentar novamente em 10s se não estiver pronto
+      return;
+    }
+
+    try {
+      // Buscar apenas 5 mensagens por vez para não sobrecarregar
+      const [rows] = await botDb.query(
+        "SELECT * FROM whatsapp_fila_mensagens WHERE status = 'pendente' ORDER BY data_criacao ASC LIMIT 5"
+      );
+
+      if (rows && rows.length > 0) {
+        log.info(`[QUEUE] Processando ${rows.length} mensagens pendentes...`);
+
+        for (const row of rows) {
+          try {
+            log.info(`[QUEUE] Enviando ID ${row.id} para ${row.telefone}...`);
+
+            // Usar a lógica já existente de resolveJid etc (do sendWhatsAppMessage)
+            let mappedJid = row.telefone;
+            if (!mappedJid.includes('@')) {
+              const digits = formatBrazilNumber(mappedJid);
+              const resolution = await resolveJidFromPhone(digits);
+              mappedJid = resolution.mappedJid;
+            }
+
+            await safeSendMessage(sock, mappedJid, { text: row.mensagem });
+
+            // Marcar como enviado
+            await botDb.query(
+              "UPDATE whatsapp_fila_mensagens SET status = 'enviado', data_envio = NOW() WHERE id = ?",
+              [row.id]
+            );
+            log.success(`[QUEUE] ✅ ID ${row.id} enviado com sucesso!`);
+
+            // Delay pequeno entre mensagens da fila
+            await new Promise(r => setTimeout(r, 2000));
+          } catch (sendErr) {
+            log.error(`[QUEUE] ❌ Erro no ID ${row.id}: ${sendErr.message}`);
+            // Marcar erro no banco
+            await botDb.query(
+              "UPDATE whatsapp_fila_mensagens SET status = 'erro', erro = ? WHERE id = ?",
+              [sendErr.message, row.id]
+            );
+          }
+        }
+      }
+    } catch (dbErr) {
+      log.error(`[QUEUE] Erro ao consultar banco: ${dbErr.message}`);
+    }
+
+    // Agendar próxima verificação (5 a 10 segundos)
+    setTimeout(poll, 7000);
+  };
+
+  poll();
+}
+
+// Modificar o evento connection.update para iniciar o poller quando 'open'
 
 // DEBUG: Ver porta configurada
 console.log('🔌 DEBUG - API_PORT do .env:', process.env.API_PORT || 'não definido');
@@ -727,15 +821,37 @@ const PING_INTERVAL = 60000;            // 1 minuto - ping para manter conexão
 
 // (Variáveis isReady, lastQR, sock são exportadas no topo do arquivo)
 
-// Getters para integração
-export const getBotState = () => ({
-  ready: isReady,
-  connected: isReady, // Compatibilidade
-  qr: lastQR,
-  uptime: connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0,
-  reconnectAttempts,
-  isInLoopState
-});
+// Getters para integração - AGORA LENDO DE ARQUIVO SE MEMÓRIA ESTIVER STALE
+export const getBotState = () => {
+  if (typeof authPath === 'undefined') return { ready: isReady, connected: isReady };
+
+  const stateFile = path.join(authPath, 'bot_state.json');
+  let fileState = {};
+
+  if (fs.existsSync(stateFile)) {
+    try { fileState = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch (e) { }
+  }
+
+  // Se o estado em memória é 'off' mas o arquivo diz que alguém atualizou nos últimos 2 min, confiar no arquivo
+  const fileIsFresh = (Date.now() - (fileState.lastUpdate || 0)) < 120000;
+
+  if (!isReady && fileIsFresh && (fileState.connected || fileState.qr)) {
+    return {
+      ...fileState,
+      ready: !!fileState.connected,
+      viaFile: true
+    };
+  }
+
+  return {
+    ready: isReady,
+    connected: isReady, // Compatibilidade
+    qr: lastQR,
+    uptime: connectionStartTime ? Math.round((Date.now() - connectionStartTime) / 1000) : 0,
+    reconnectAttempts,
+    isInLoopState
+  };
+};
 let reconnectAttempts = 0;
 let reconnectTimer = null;
 let heartbeatTimer = null;
@@ -3234,6 +3350,7 @@ async function start() {
 
       if (qr) {
         lastQR = qr;
+        updateBotStateFile({ qr: qr, connected: false });
         qrcode.generate(qr, { small: true });
         log.info(`QR Code gerado - Acesse http://localhost:${PORT}/qr`);
       }
@@ -3253,11 +3370,18 @@ async function start() {
         lastHeartbeat = Date.now();
         lastQR = null;              // Limpar QR antigo
 
+        updateBotStateFile({ connected: true, qr: null });
+
         log.success('✅ Conectado ao WhatsApp com sucesso!');
         log.info(`Sistema de heartbeat: ${HEARTBEAT_INTERVAL / 1000}s | Ping: ${PING_INTERVAL / 1000}s`);
 
         startHeartbeat();
         startPing();
+
+        // Iniciar Poller de Fila se DB estiver disponível
+        if (botDb) {
+          startMessageQueuePoller();
+        }
 
         // Sincronizar grupos
         syncGroups(sock);
@@ -3289,6 +3413,7 @@ async function start() {
 
       if (connection === 'close') {
         isReady = false;
+        updateBotStateFile({ connected: false });
         stopHeartbeat();
 
         const statusCode = lastDisconnect?.error?.output?.statusCode;
