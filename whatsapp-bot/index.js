@@ -72,13 +72,13 @@ const isMainModule = (import.meta.url === `file:///${path.resolve(process.argv[1
   (process.argv[1] && process.argv[1].includes('whatsapp-bot/index.js'));
 
 if (isMainModule) {
-  console.log('🚀 Iniciando Bot em modo STANDALONE');
-  server = app.listen(PORT, () => {
-    console.log(`✅ Servidor HTTP rodando na porta ${PORT}`);
+  console.log('🚀 [BOT] Standalone');
+  server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ [BOT] Porta: ${PORT}`);
     if (process.send) process.send('ready');
   });
 } else {
-  console.log('📦 Bot carregado como MÓDULO INTEGRADO');
+  console.log('📦 [BOT] Integrado');
 }
 
 // Exportar função de inicialização para integração
@@ -801,14 +801,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 let authPath;
 
 if (isProduction) {
-  // Garantir caminho absoluto na Hostinger
   authPath = path.resolve(__dirname, 'auth');
-  // Se estiver integrado, talvez precise subir um nível se index.js for movido, 
-  // mas aqui mantemos o padrão da pasta do bot
-  console.log(`[INIT] Modo PRODUÇÃO. Usando pasta: ${authPath}`);
+  console.log(`[INIT] Produção: ${authPath}`);
 } else {
   authPath = path.resolve(__dirname, 'auth');
-  console.log(`[INIT] Modo LOCAL. Usando pasta: ${authPath}`);
+  console.log(`[INIT] Local: ${authPath}`);
 }
 
 // Garantir que a pasta existe com fallback para /tmp
