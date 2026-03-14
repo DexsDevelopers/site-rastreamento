@@ -276,7 +276,7 @@ app.get('/api/db-check', async (req, res) => {
 });
 
 // Integração PixGo API
-const PIXGO_API_KEY = 'pk_eb38850f8d9b946c1bc2f65ab454f610a16531e892e102a4ada93fc12fb2aec8';
+const PIXGO_API_KEY = 'pk_f07a39496a7a22c7d7e1694cdf28baee4a7aeae7a4133cc0fec23a1b627d8d56';
 const PIXGO_API_URL = 'https://pixgo.org/api/v1';
 
 app.post('/api/pix/create', async (req, res) => {
