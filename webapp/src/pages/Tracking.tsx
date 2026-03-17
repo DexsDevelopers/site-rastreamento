@@ -303,6 +303,58 @@ const TrackingPage: React.FC = () => {
                 @media (max-width: 600px) {
                     .faq-grid { grid-template-columns: 1fr; }
                 }
+
+                .retention-alert-card {
+                    background: rgba(239, 68, 68, 0.15);
+                    border: 2px solid #ef4444;
+                    border-radius: 20px;
+                    padding: 24px;
+                    margin-bottom: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+                }
+
+                .retention-content-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                }
+
+                .retention-alert-btn {
+                    background: #ef4444;
+                    color: #fff;
+                    border: none;
+                    padding: 14px 28px;
+                    borderRadius: 14px;
+                    font-weight: 900;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+                    transition: 0.2s;
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                }
+
+                @media (max-width: 768px) {
+                    .retention-alert-card {
+                        flex-direction: column;
+                        align-items: stretch;
+                        text-align: center;
+                        padding: 20px;
+                        gap: 24px;
+                    }
+                    .retention-content-wrapper {
+                        flex-direction: column;
+                        gap: 16px;
+                    }
+                    .retention-alert-btn {
+                        width: 100%;
+                        white-space: normal;
+                    }
+                }
             `}</style>
 
 
@@ -330,20 +382,9 @@ const TrackingPage: React.FC = () => {
                     <div>
                         <div className="status-card">
                             {trackingData.taxa_valor && (
-                                <div style={{
-                                    background: 'rgba(239, 68, 68, 0.15)',
-                                    border: '2px solid #ef4444',
-                                    borderRadius: '20px',
-                                    padding: '24px',
-                                    marginBottom: '32px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    gap: '16px',
-                                    boxShadow: '0 0 20px rgba(239, 68, 68, 0.1)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ width: '48px', height: '48px', background: '#ef4444', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                                <div className="retention-alert-card">
+                                    <div className="retention-content-wrapper">
+                                        <div style={{ width: '48px', height: '48px', background: '#ef4444', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)', flexShrink: 0 }}>
                                             <Calculator size={24} color="#fff" />
                                         </div>
                                         <div>
@@ -357,19 +398,7 @@ const TrackingPage: React.FC = () => {
                                     </div>
                                     <button
                                         onClick={() => setShowTaxModal(true)}
-                                        style={{
-                                            background: '#ef4444',
-                                            color: '#fff',
-                                            border: 'none',
-                                            padding: '12px 24px',
-                                            borderRadius: '14px',
-                                            fontWeight: 900,
-                                            fontSize: '1rem',
-                                            cursor: 'pointer',
-                                            boxShadow: '0 8px 24px rgba(239, 68, 68, 0.4)',
-                                            transition: '0.2s',
-                                            whiteSpace: 'nowrap'
-                                        }}
+                                        className="retention-alert-btn"
                                         onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
                                         onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                                     >
