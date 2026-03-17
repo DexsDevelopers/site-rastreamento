@@ -55,6 +55,26 @@ async function runMigrations() {
             )
         `);
 
+        // Tabela de pedidos pendentes
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS pedidos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nome VARCHAR(255),
+                email VARCHAR(255),
+                telefone VARCHAR(50),
+                cpf VARCHAR(20),
+                cep VARCHAR(10),
+                rua VARCHAR(255),
+                numero VARCHAR(20),
+                bairro VARCHAR(255),
+                cidade VARCHAR(255),
+                estado VARCHAR(5),
+                status VARCHAR(50) DEFAULT 'pendente',
+                codigo_rastreio VARCHAR(50),
+                data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         console.log('✅ Migrações concluídas.');
     } catch (err) {
         console.error('❌ Erro nas migrações:', err.message);

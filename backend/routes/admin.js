@@ -110,10 +110,55 @@ router.get('/pedidos-pendentes', async (req, res) => {
     const db = getDB();
     try {
         if (!db) return res.json([]);
-        // Por enquanto retorna array vazio — pode ser implementado com tabela de pedidos futuramente
-        res.json([]);
+        const [rows] = await db.query("SELECT * FROM pedidos WHERE status = 'pendente' ORDER BY data_pedido DESC");
+        res.json(rows);
     } catch (error) {
         res.json([]);
+    }
+});
+
+// Aprovar pedido
+router.post('/pedidos-pendentes/:id/aprovar', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) throw new Error('DB não conectado');
+        const { id } = req.params;
+        const { codigo_rastreio } = req.body;
+        if (!codigo_rastreio) return res.status(400).json({ error: 'Código de rastreio é obrigatório' });
+
+        await db.query("UPDATE pedidos SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?", [codigo_rastreio, id]);
+        res.json({ success: true, message: 'Pedido aprovado!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Rejeitar pedido
+router.post('/pedidos-pendentes/:id/rejeitar', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) throw new Error('DB não conectado');
+        const { id } = req.params;
+        await db.query("UPDATE pedidos SET status = 'rejeitado' WHERE id = ?", [id]);
+        res.json({ success: true, message: 'Pedido rejeitado.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Cobrar via WhatsApp
+router.post('/pedidos-pendentes/:id/cobrar', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) throw new Error('DB não conectado');
+        const { id } = req.params;
+        const [rows] = await db.query("SELECT * FROM pedidos WHERE id = ?", [id]);
+        if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pedido não encontrado' });
+        const pedido = rows[0];
+        const link = `https://wa.me/55${pedido.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${pedido.nome}, seu pedido está pendente. Entre em contato para finalizar!`)}`;
+        res.json({ success: true, message: 'Link de cobrança gerado!', link });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
