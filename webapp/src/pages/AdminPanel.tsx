@@ -151,6 +151,8 @@ const AdminPanel: React.FC = () => {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+    const isSmallDesktop = window.innerWidth < 1400;
+
     // Modais
     const [modalAdd, setModalAdd] = useState(false);
     const [modalEdit, setModalEdit] = useState(false);
@@ -358,8 +360,19 @@ const AdminPanel: React.FC = () => {
 
     // ===== RENDER =====
     return (
-        <div style={{ padding: '24px', animation: 'fadeIn 0.4s ease', width: '100%', boxSizing: 'border-box' }}>
+        <div className="admin-page-container">
             <style>{`
+                .admin-page-container {
+                    padding: 24px;
+                    animation: fadeIn 0.4s ease;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                
+                @media (max-width: 1400px) {
+                    .admin-page-container { padding: 16px; }
+                }
+
                 @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
                 @keyframes modalSlide { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -372,23 +385,24 @@ const AdminPanel: React.FC = () => {
                 
                 .admin-action-btn { 
                     background: rgba(255,255,255,0.6); border: 1px solid rgba(0,80,200,0.08); 
-                    border-radius: 10px; padding: 8px 12px; cursor: pointer; color: var(--text-secondary); 
+                    border-radius: 8px; padding: 6px; cursor: pointer; color: var(--text-secondary); 
                     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(8px);
+                    display: flex; align-items: center; justify-content: center;
                 }
                 .admin-action-btn:hover { background: rgba(255,255,255,0.9); color: var(--text-primary); transform: translateY(-1px); border-color: rgba(0,85,255,0.15); }
                 
                 .filter-btn-tab { 
-                    padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(0,80,200,0.08); 
+                    padding: 6px 14px; border-radius: 10px; border: 1px solid rgba(0,80,200,0.08); 
                     background: rgba(255,255,255,0.5); color: var(--text-secondary); cursor: pointer; 
-                    font-weight: 600; font-size: 0.85rem; transition: all 0.3s; backdrop-filter: blur(8px);
+                    font-weight: 600; font-size: 0.8rem; transition: all 0.3s; backdrop-filter: blur(8px);
                 }
                 .filter-btn-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.8); }
                 .filter-btn-tab.active { background: linear-gradient(135deg, #0055ff, #3b82f6); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(0, 85, 255, 0.3); }
                 
                 .form-input { 
-                    width: 100%; padding: 12px 18px; background: rgba(255,255,255,0.7); 
-                    border: 1px solid rgba(0,80,200,0.1); border-radius: 14px; 
-                    color: var(--text-primary); font-size: 0.95rem; font-family: 'Inter', sans-serif; 
+                    width: 100%; padding: 10px 16px; background: rgba(255,255,255,0.7); 
+                    border: 1px solid rgba(0,80,200,0.1); border-radius: 12px; 
+                    color: var(--text-primary); font-size: 0.9rem; font-family: 'Inter', sans-serif; 
                     outline: none; transition: all 0.3s; box-sizing: border-box; 
                 }
                 .form-input:focus { border-color: #0055ff; background: #fff; box-shadow: 0 0 0 3px rgba(0, 85, 255, 0.15); }
@@ -400,27 +414,52 @@ const AdminPanel: React.FC = () => {
                 
                 .status-default { color: #71717a; }
                 
+                .admin-table-wrapper {
+                    width: 100%;
+                    overflow-x: hidden;
+                    background: transparent;
+                }
+
                 .admin-table {
                     width: 100%;
                     border-collapse: collapse;
-                    table-layout: fixed; /* Força proporções consistentes */
+                    table-layout: fixed;
                 }
                 
                 .admin-table th, .admin-table td {
-                    padding: 12px 16px;
+                    padding: 10px 8px;
                     text-align: left;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
+                    vertical-align: middle;
+                    font-size: 0.82rem;
                 }
 
-                .col-check { width: 50px; }
-                .col-codigo { width: 140px; }
-                .col-cidade { width: 15%; min-width: 120px; }
-                .col-status { width: 20%; min-width: 150px; }
-                .col-taxa { width: 100px; }
-                .col-data { width: 130px; }
-                .col-acoes { width: 180px; text-align: right !important; }
+                .col-check { width: 35px; }
+                .col-codigo { width: 110px; }
+                .col-cidade { width: 15%; min-width: 90px; }
+                .col-status-taxa { width: auto; min-width: 160px; }
+                .col-data { width: 100px; }
+                .col-acoes { width: 135px; text-align: right !important; }
+
+                .badge-taxa {
+                    padding: 2px 5px;
+                    border-radius: 4px;
+                    font-size: 0.6rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    white-space: nowrap;
+                    display: inline-flex;
+                    align-items: center;
+                }
+
+                .status-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-weight: 700;
+                    font-size: 0.8rem;
+                    white-space: normal;
+                    line-height: 1.2;
+                }
 
                 .admin-cell-text {
                     overflow: hidden;
@@ -430,38 +469,45 @@ const AdminPanel: React.FC = () => {
                     width: 100%;
                 }
 
-                @media (max-width: 1200px) {
-                    .col-acoes { width: 150px; }
-                    .admin-action-btn span { display: none; } /* Hide labels if any */
+                @media (max-width: 1500px) {
+                    .admin-page-container { padding: 16px; }
+                    .table-wrapper { border-radius: 12px !important; }
+                    .col-check { width: 30px; }
+                    .col-codigo { width: 100px; }
+                    .col-data { display: none; }
                 }
 
-                ::-webkit-scrollbar { width: 6px; height: 6px; }
+                @media (max-width: 1200px) {
+                    .col-cidade { display: none; }
+                    .col-acoes { width: 110px; }
+                }
+
+                ::-webkit-scrollbar { width: 5px; height: 5px; }
                 ::-webkit-scrollbar-track { background: transparent; }
-                ::-webkit-scrollbar-thumb { background: rgba(0,85,255,0.12); border-radius: 10px; }
-                ::-webkit-scrollbar-thumb:hover { background: rgba(0,85,255,0.25); }
+                ::-webkit-scrollbar-thumb { background: rgba(0,85,255,0.1); border-radius: 10px; }
             `}</style>
 
             {/* TOAST */}
             {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
             {/* HEADER */}
-            <header style={{ marginBottom: '48px', animation: 'slideIn 0.6s var(--transition-spring)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', flexWrap: 'wrap' }}>
+            <header style={{ marginBottom: '32px', animation: 'slideIn 0.6s var(--transition-spring)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
                     <div>
-                        <h1 style={{ fontSize: '3rem', fontWeight: 900, margin: 0, letterSpacing: '-2px', fontFamily: 'Outfit, sans-serif' }}>
+                        <h1 style={{ fontSize: isSmallDesktop ? '2.2rem' : '3rem', fontWeight: 900, margin: 0, letterSpacing: '-2px', fontFamily: 'Outfit, sans-serif' }}>
                             Painel <span className="text-gradient-animated">Administrativo</span>
                         </h1>
-                        <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '1.15rem', fontWeight: 500, opacity: 0.8 }}>Gestão inteligente da maior malha logística do Brasil.</p>
+                        <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '1rem', fontWeight: 500, opacity: 0.8 }}>Gestão inteligente da malha logística.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                        <button onClick={() => fetchData()} className="admin-action-btn" title="Atualizar" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', fontWeight: 600 }}>
-                            <RefreshCw size={18} /> Sincronizar
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button onClick={() => fetchData()} className="admin-action-btn" title="Atualizar" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', fontWeight: 600 }}>
+                            <RefreshCw size={14} /> Sincronizar
                         </button>
-                        <button onClick={exportCSV} className="admin-action-btn" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', fontWeight: 600 }}>
-                            <Download size={18} /> CSV
+                        <button onClick={exportCSV} className="admin-action-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', fontWeight: 600 }}>
+                            <Download size={14} /> CSV
                         </button>
-                        <button onClick={() => { setNovoForm(defaultNovo); setModalAdd(true); }} className="btn-primary" style={{ padding: '16px 32px', borderRadius: '18px' }}>
-                            <Plus size={22} strokeWidth={3} /> Novo Rastreio
+                        <button onClick={() => { setNovoForm(defaultNovo); setModalAdd(true); }} className="btn-primary" style={{ padding: '10px 20px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                            <Plus size={16} strokeWidth={3} /> Novo
                         </button>
                     </div>
                 </div>
@@ -527,7 +573,7 @@ const AdminPanel: React.FC = () => {
                 </div>
 
                 {/* TABLE */}
-                <div style={{ overflowX: 'auto', width: '100%' }}>
+                <div className="admin-table-container">
                     <table className="admin-table">
                         <thead>
                             <tr style={{ background: 'rgba(0,85,255,0.02)', borderBottom: '1px solid rgba(0,80,200,0.06)' }}>
@@ -535,64 +581,62 @@ const AdminPanel: React.FC = () => {
                                     <input type="checkbox"
                                         checked={selected.size === filteredRastreios.length && filteredRastreios.length > 0}
                                         onChange={toggleSelectAll}
-                                        style={{ accentColor: 'var(--accent-primary)', width: '20px', height: '20px', cursor: 'pointer' }}
+                                        style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                                     />
                                 </th>
-                                <th className="col-codigo" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CÓDIGO</th>
-                                <th className="col-cidade" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CIDADE</th>
-                                <th className="col-status" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>STATUS</th>
-                                <th className="col-taxa" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>TAXA</th>
-                                <th className="col-data" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>ÚLTIMA ATU.</th>
-                                <th className="col-acoes" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>AÇÕES</th>
+                                <th className="col-codigo" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CÓDIGO</th>
+                                <th className="col-cidade" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CIDADE</th>
+                                <th className="col-status-taxa" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>STATUS & COBRANÇA</th>
+                                <th className="col-data" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>DATA</th>
+                                <th className="col-acoes" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>GESTÃO</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
-                                        <div style={{ width: '28px', height: '28px', border: '3px solid rgba(0,85,255,0.2)', borderTop: '3px solid #0055ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-                                        <div>Carregando rastreios...</div>
+                                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
+                                        <div style={{ width: '24px', height: '24px', border: '3px solid rgba(0,85,255,0.2)', borderTop: '3px solid #0055ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+                                        <div>Carregando...</div>
                                     </td>
                                 </tr>
                             ) : filteredRastreios.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
-                                        <Package size={40} style={{ marginBottom: '12px', opacity: 0.3 }} />
-                                        <div>Nenhum rastreio encontrado</div>
+                                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
+                                        <Package size={32} style={{ marginBottom: '12px', opacity: 0.3 }} />
+                                        <div>Nenhum rastreio</div>
                                     </td>
                                 </tr>
                             ) : filteredRastreios.map(r => (
                                 <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid var(--border-glass)', transition: 'all 0.3s var(--transition-spring)' }}>
                                     <td className="col-check">
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
-                                            style={{ accentColor: 'var(--accent-primary)', width: '18px', height: '18px', cursor: 'pointer' }} />
+                                            style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }} />
                                     </td>
-                                    <td className="col-codigo" style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.3px', fontSize: '0.85rem' }}>
+                                    <td className="col-codigo" style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.2px', fontSize: '0.8rem' }}>
                                         {r.codigo}
                                     </td>
                                     <td className="col-cidade" title={r.cidade}>
-                                        <span className="admin-cell-text" style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem' }}>{r.cidade}</span>
+                                        <span className="admin-cell-text" style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.8rem' }}>{r.cidade}</span>
                                     </td>
-                                    <td className="col-status" title={r.status_atual}>
-                                        <span className={`${getStatusClass(r.status_atual)} admin-cell-text`} style={{ fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor', flexShrink: 0 }}></span>
-                                            {r.status_atual}
-                                        </span>
+                                    <td className="col-status-taxa">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span className={`${getStatusClass(r.status_atual)} status-badge`}>
+                                                {r.status_atual}
+                                            </span>
+                                            {r.taxa_valor && r.taxa_pix
+                                                ? <span className="badge-taxa" style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.15)' }}>PENDENTE</span>
+                                                : <span className="badge-taxa" style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.15)' }}>PAGO</span>
+                                            }
+                                        </div>
                                     </td>
-                                    <td className="col-taxa">
-                                        {r.taxa_valor && r.taxa_pix
-                                            ? <span style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.15)', padding: '2px 6px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase' }}>PENDENTE</span>
-                                            : <span style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.15)', padding: '2px 6px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase' }}>PAGO</span>
-                                        }
-                                    </td>
-                                    <td className="col-data" style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>{formatDate(r.data)}</td>
+                                    <td className="col-data" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 500 }}>{formatDate(r.data)}</td>
                                     <td className="col-acoes">
-                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar" style={{ padding: '6px' }}><Eye size={12} /></button>
-                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link" style={{ padding: '6px', color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={12} /></button>
-                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar" style={{ padding: '6px', color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={12} /></button>
-                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="WhatsApp" style={{ padding: '6px', color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={12} /></button>
-                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir" style={{ padding: '6px', color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={12} /></button>
+                                        <div style={{ display: 'flex', gap: '3px', justifyContent: 'flex-end' }}>
+                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Ver"><Eye size={12} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Link" style={{ color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={12} /></button>
+                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar" style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={12} /></button>
+                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Whats" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={12} /></button>
+                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir" style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={12} /></button>
                                         </div>
                                     </td>
                                 </tr>

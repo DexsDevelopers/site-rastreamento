@@ -70,7 +70,7 @@ const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobil
 
 const styles = {
     sidebar: {
-        width: '280px',
+        width: window.innerWidth < 1400 ? '240px' : '280px',
         flexShrink: 0,
         height: 'calc(100vh - 32px)',
         margin: '16px 0 16px 16px',
