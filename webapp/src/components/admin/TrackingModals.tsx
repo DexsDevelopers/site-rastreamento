@@ -59,6 +59,8 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             font-size: 0.95rem;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
         }
         .saas-input:focus {
             border-color: #2563EB;
@@ -80,6 +82,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            width: 100%;
         }
         .btn-saas-secondary:hover {
             background: rgba(255, 255, 255, 0.08);
@@ -94,10 +97,12 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             font-weight: 700;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            width: 100%;
         }
         .btn-saas-primary:hover {
             transform: translateY(-1px);
@@ -131,6 +136,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             font-size: 1.1rem;
             font-weight: 700;
             color: #f8fafc;
+            word-break: break-word;
         }
         .btn-toggle-saas {
             flex: 1; padding: 10px; border-radius: 8px; fontSize: 0.8rem; fontWeight: 700;
@@ -145,6 +151,27 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
         }
         .btn-toggle-edit.active {
             background: #F59E0B; border-color: #fbbf24; color: #fff;
+        }
+        
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+            
+        @media (max-width: 600px) {
+            .responsive-grid {
+                grid-template-columns: 1fr;
+            }
+            .saas-actions {
+                flex-direction: column;
+            }
+            .btn-saas-secondary, .btn-saas-primary {
+                width: 100%;
+            }
+            .details-actions {
+               flex-direction: column !important;
+            }
         }
     `;
 
@@ -183,7 +210,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="responsive-grid">
                         <div className="saas-field">
                             <label className="saas-label">Valor da Taxa (R$)</label>
                             <input className="saas-input" type="number" placeholder="0,00" step="0.01"
@@ -211,7 +238,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                     <form onSubmit={handleEdit} className="saas-form">
                         <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.2)', marginBottom: '4px' }}>
                             <span className="saas-label" style={{ color: '#60a5fa' }}>Código do Objeto</span>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace' }}>{editData.codigo}</div>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace', wordBreak: 'break-word' }}>{editData.codigo}</div>
                         </div>
 
                         <div className="saas-field">
@@ -233,7 +260,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="responsive-grid">
                             <div className="saas-field">
                                 <label className="saas-label">Valor da Taxa (R$)</label>
                                 <input className="saas-input" type="number" step="0.01"
@@ -250,7 +277,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
 
                         <div className="saas-field">
                             <label className="saas-label">Gerenciar Etapas</label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <div className="responsive-grid">
                                 {Object.entries(ETAPAS_MAP).map(([key, label]) => (
                                     <button
                                         key={key}
@@ -280,13 +307,13 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                                     </button>
                                 ))}
                             </div>
-                            <small style={{ color: '#64748b', marginTop: '4px' }}>Clique para ativar/desativar as etapas que o cliente verá.</small>
+                            <small style={{ color: '#64748b', marginTop: '4px' }}>Clique para ativar ou desativar etapas.</small>
                         </div>
 
                         <div className="saas-actions">
                             <button type="button" onClick={() => setModalEdit(false)} className="btn-saas-secondary">Cancelar</button>
                             <button type="submit" className="btn-saas-primary" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
-                                <Save size={18} /> Salvar Alterações
+                                <Save size={18} /> Salvar
                             </button>
                         </div>
                     </form>
