@@ -1294,18 +1294,6 @@ img {
     display: flex !important;
   }
 
-  .admin-sidebar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    z-index: 999 !important;
-    transform: translateX(-110%) !important;
-    transition: transform 0.35s var(--transition-spring) !important;
-  }
-
   .admin-sidebar.open {
     transform: translateX(0) !important;
   }
@@ -1534,19 +1522,13 @@ img {
 
 @media (min-width: 769px) {
   .app-container .admin-sidebar {
-    width: 220px !important;
-    /* Slashing width for space */
-    min-width: 220px !important;
-    position: relative !important;
+    position: relative;
+    height: auto;
   }
 
   .main-content {
-    padding: 12px !important;
-    /* Slashing padding */
-    width: calc(100vw - 220px - 40px) !important;
-    /* Definitive space limit */
-    flex: 1 !important;
-    overflow-x: hidden !important;
+    flex: 1;
+    overflow-x: hidden;
   }
 
   .table-wrapper {

@@ -28,7 +28,17 @@ const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
                     </div>
                 )}
                 {closeMobile && (
-                    <button className="mobile-close-btn" onClick={closeMobile} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', padding: '4px' }}>
+                    <button
+                        className="mobile-close-btn"
+                        onClick={closeMobile}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-primary)',
+                            padding: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
                         <X size={24} />
                     </button>
                 )}
@@ -115,8 +125,12 @@ const styles = {
         position: 'relative' as const,
     },
     logoContainer: {
-        padding: '24px 20px',
+        padding: '16px 20px',
         borderBottom: '1px solid var(--border-glass)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: '64px', // Match header height
     },
     logoClass: {
         margin: 0,

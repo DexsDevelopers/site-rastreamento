@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
+import { SYSTEM_VERSION } from './constants';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import LoginCliente from './pages/LoginCliente';
@@ -87,48 +88,51 @@ const AdminLayout = () => {
     <div className="app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
 
       {/* Top Bar para Mobile & Desktop Toggle */}
-      <div className="admin-layout-header" style={{
+      <header className="admin-layout-header" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '12px 20px',
-        background: 'rgba(10, 10, 12, 0.95)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        zIndex: 90
+        padding: '0 20px',
+        height: '64px',
+        minHeight: '64px',
+        background: '#0a0a0c',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        zIndex: 1000,
+        position: 'relative'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
-            onClick={() => {
-              if (window.innerWidth < 1024) {
-                setMobileMenuOpen(true);
-              } else {
-                setIsCollapsed(!isCollapsed);
-              }
-            }}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="menu-toggle-btn"
             style={{
-              background: 'rgba(255,255,255,0.05)',
+              background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '8px',
               padding: '8px',
               color: '#fff',
               cursor: 'pointer',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              transition: 'background 0.2s'
             }}
-            title="Menu"
+            title={isCollapsed ? "Expandir Menu" : "Recolher Menu"}
           >
-            <Menu size={20} />
+            <Menu size={22} />
           </button>
-          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
-            <span className="text-gradient">LOGGI</span> Admin
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>
+              <span className="text-gradient">LOGGI</span> Admin
+            </h2>
+            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>
+              v{SYSTEM_VERSION}
+            </span>
+          </div>
         </div>
 
-        {/* Espaço para perfil ou outras infos na header se necessário */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* ... */}
+        <div style={{ display: 'none' }} id="debug-layout-check">
+          {isCollapsed ? 'collapsed' : 'expanded'}
         </div>
-      </div>
+      </header>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative', width: '100%' }}>
         {/* Overlay Escuro no Mobile */}
@@ -145,7 +149,6 @@ const AdminLayout = () => {
           mobileOpen={mobileMenuOpen}
           closeMobile={() => setMobileMenuOpen(false)}
           isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
         />
 
         <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto', overflowX: 'hidden' }}>
