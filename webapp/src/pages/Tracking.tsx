@@ -137,7 +137,10 @@ const TrackingPage: React.FC = () => {
                 };
 
                 // Cálculo de previsão dinâmica
-                const postagemDate = new Date(data.etapas[0].data);
+                let postagemDate = new Date();
+                if (data.etapas && data.etapas.length > 0) {
+                    postagemDate = new Date(data.etapas[0].data);
+                }
                 const diasAdd = data.tipo_entrega === 'EXPRESS' ? 3 : 5;
                 const previsaoDate = new Date(postagemDate);
                 previsaoDate.setDate(previsaoDate.getDate() + diasAdd);
