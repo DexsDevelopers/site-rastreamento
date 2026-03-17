@@ -29,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes); // Status e Setup
 app.use('/api/admin', trackingRoutes); // Rastreios (Admin) e Stats
 app.use('/api', trackingRoutes); // Rastreio Público e Consultas
+app.use('/api', adminRoutes); // /api/orders, /api/clients
 app.use('/api/drivers', driverRoutes);
 app.use('/api/pix', pixRoutes);
 

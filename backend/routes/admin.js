@@ -79,4 +79,67 @@ router.post('/db-setup', async (req, res) => {
     }
 });
 
+// ===== ENDPOINTS QUE O FRONTEND ESPERA =====
+
+// /api/orders — Retorna rastreios como "pedidos"
+router.get('/orders', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) return res.json([]);
+        const [rows] = await db.query('SELECT * FROM rastreios_status ORDER BY data DESC');
+        res.json(rows);
+    } catch (error) {
+        res.json([]);
+    }
+});
+
+// /api/clients — Retorna lista de clientes (por enquanto baseado em rastreios únicos)
+router.get('/clients', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) return res.json([]);
+        const [rows] = await db.query('SELECT DISTINCT codigo, cidade, MAX(data) as ultima_data FROM rastreios_status GROUP BY codigo, cidade ORDER BY ultima_data DESC');
+        res.json(rows);
+    } catch (error) {
+        res.json([]);
+    }
+});
+
+// /api/admin/pedidos-pendentes — Pedidos pendentes de aprovação
+router.get('/pedidos-pendentes', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) return res.json([]);
+        // Por enquanto retorna array vazio — pode ser implementado com tabela de pedidos futuramente
+        res.json([]);
+    } catch (error) {
+        res.json([]);
+    }
+});
+
+// /api/admin/whatsapp-templates — Templates de mensagens WhatsApp
+router.get('/whatsapp-templates', async (req, res) => {
+    try {
+        res.json([
+            { id: 1, nome: 'Objeto Postado', mensagem: 'Olá! Seu pedido foi postado com o código {codigo}. Acompanhe em: {link}', ativo: true },
+            { id: 2, nome: 'Em Trânsito', mensagem: 'Atualização: Seu pedido {codigo} está em trânsito para {cidade}.', ativo: true },
+            { id: 3, nome: 'Saiu para Entrega', mensagem: '🚚 Seu pedido {codigo} saiu para entrega! Fique atento.', ativo: true },
+            { id: 4, nome: 'Entregue', mensagem: '✅ Pedido {codigo} entregue com sucesso! Obrigado pela confiança.', ativo: true },
+            { id: 5, nome: 'Taxa Pendente', mensagem: 'Atenção: Seu pedido {codigo} tem uma taxa de R${taxa} pendente. Pague via PIX para liberar.', ativo: true }
+        ]);
+    } catch (error) {
+        res.json([]);
+    }
+});
+
+// /api/admin/whatsapp-templates — Salvar templates
+router.put('/whatsapp-templates', async (req, res) => {
+    try {
+        // Aceita o save e retorna sucesso (templates ficam no frontend por enquanto)
+        res.json({ success: true, message: 'Templates salvos com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

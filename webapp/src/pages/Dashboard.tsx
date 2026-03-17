@@ -15,18 +15,13 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [ordersRes, clientsRes] = await Promise.all([
-                    axios.get('/api/orders'),
-                    axios.get('/api/clients')
-                ]);
-
-                // Simulação de entregues hoje (apenas para exemplo visual, ou filtrar se houver campo data)
-                const deliveredToday = ordersRes.data.filter((o: any) => o.status === 'Entregue').length;
+                const statsRes = await axios.get('/api/admin/stats');
+                const s = statsRes.data;
 
                 setCounts({
-                    orders: ordersRes.data.length,
-                    clients: clientsRes.data.length,
-                    delivered: deliveredToday,
+                    orders: s.total || 0,
+                    clients: s.sem_taxa || 0,
+                    delivered: s.entregues || 0,
                     loading: false
                 });
             } catch (error) {
@@ -36,7 +31,6 @@ const Dashboard = () => {
         };
 
         fetchStats();
-        // Atualizar a cada 30 segundos
         const interval = setInterval(fetchStats, 30000);
         return () => clearInterval(interval);
     }, []);
