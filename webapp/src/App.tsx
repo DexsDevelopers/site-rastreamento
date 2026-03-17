@@ -81,21 +81,53 @@ function App() {
 
 const AdminLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Closed by default on desktop
 
   return (
     <div className="app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden' }}>
 
-      {/* Top Bar para Mobile (aparece via CSS) */}
-      <div className="mobile-admin-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'rgba(10, 10, 12, 0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', zIndex: 90 }}>
-        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>
-          <span className="text-gradient">LOGGI</span> Admin
-        </h2>
-        <button
-          onClick={() => setMobileMenuOpen(true)}
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-        >
-          <Menu size={22} />
-        </button>
+      {/* Top Bar para Mobile & Desktop Toggle */}
+      <div className="admin-layout-header" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 20px',
+        background: 'rgba(10, 10, 12, 0.95)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        zIndex: 90
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                setMobileMenuOpen(true);
+              } else {
+                setIsCollapsed(!isCollapsed);
+              }
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '8px',
+              padding: '8px',
+              color: '#fff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            title="Menu"
+          >
+            <Menu size={20} />
+          </button>
+          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
+            <span className="text-gradient">LOGGI</span> Admin
+          </h2>
+        </div>
+
+        {/* Espaço para perfil ou outras infos na header se necessário */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* ... */}
+        </div>
       </div>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative', width: '100%' }}>
@@ -108,8 +140,13 @@ const AdminLayout = () => {
           />
         )}
 
-        {/* Sidebar com prop para controlar visibilidade/classes */}
-        <Sidebar mobileOpen={mobileMenuOpen} closeMobile={() => setMobileMenuOpen(false)} />
+        {/* Sidebar com props controladas pelo Layout */}
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          closeMobile={() => setMobileMenuOpen(false)}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
 
         <main className="main-content" style={{ flex: 1, padding: '20px', overflowY: 'auto', overflowX: 'hidden' }}>
           <Outlet />

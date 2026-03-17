@@ -1,18 +1,13 @@
-import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X } from 'lucide-react';
 
-const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobile?: () => void }) => {
-    const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1400);
+interface SidebarProps {
+    mobileOpen?: boolean;
+    closeMobile?: () => void;
+    isCollapsed: boolean;
+}
 
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth < 1400) setIsCollapsed(true);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
+const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
     const sidebarWidth = isCollapsed ? '80px' : '280px';
 
     return (
@@ -27,33 +22,10 @@ const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobil
                     </h2>
                 )}
                 {isCollapsed && (
-                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        <span style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--accent-primary)' }}>L</span>
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '4px 0' }}>
+                        <span style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--accent-primary)' }}>L</span>
                     </div>
                 )}
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="sidebar-toggle-btn"
-                    style={{
-                        position: 'absolute',
-                        right: '-12px',
-                        top: '32px',
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        background: '#fff',
-                        border: '1px solid var(--border-glass-strong)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        zIndex: 100,
-                        boxShadow: 'var(--shadow-sm)',
-                        color: 'var(--text-secondary)'
-                    }}
-                >
-                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-                </button>
                 {closeMobile && (
                     <button className="mobile-close-btn" onClick={closeMobile} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', padding: '4px' }}>
                         <X size={24} />
@@ -116,7 +88,7 @@ const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobil
 
 const styles = {
     sidebar: {
-        width: window.innerWidth < 1400 ? '240px' : '280px',
+        width: '280px',
         flexShrink: 0,
         height: 'calc(100vh - 32px)',
         margin: '16px 0 16px 16px',
