@@ -99,7 +99,20 @@ router.get('/clients', async (req, res) => {
     try {
         if (!db) return res.json([]);
         const [rows] = await db.query('SELECT DISTINCT codigo, cidade, MAX(data) as ultima_data FROM rastreios_status GROUP BY codigo, cidade ORDER BY ultima_data DESC');
-        res.json(rows);
+
+        // Mapear para o formato esperado pelo frontend em Clients.tsx
+        const clients = rows.map((r, index) => ({
+            id: index + 1,
+            codigo: r.codigo,
+            nome: `Cliente (${r.codigo})`,
+            email: null,
+            telefone: 'Não informado',
+            cidade: r.cidade || 'Não informada',
+            total_indicacoes: 0,
+            total_compras: 1
+        }));
+
+        res.json(clients);
     } catch (error) {
         res.json([]);
     }
