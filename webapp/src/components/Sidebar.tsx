@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X } from 'lucide-react';
+import { SYSTEM_VERSION } from '../constants';
 
 interface SidebarProps {
     mobileOpen?: boolean;
@@ -81,6 +82,17 @@ const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
                     <LogOut size={20} />
                     {!isCollapsed && <span>Sair do Sistema</span>}
                 </button>
+                <div style={{
+                    marginTop: '12px',
+                    paddingTop: '12px',
+                    borderTop: '1px solid rgba(0,0,0,0.03)',
+                    textAlign: 'center',
+                    fontSize: '0.7rem',
+                    color: 'var(--text-muted)',
+                    opacity: 0.8
+                }}>
+                    {isCollapsed ? `v${SYSTEM_VERSION}` : `Versão do Sistema: ${SYSTEM_VERSION}`}
+                </div>
             </div>
         </aside>
     );
