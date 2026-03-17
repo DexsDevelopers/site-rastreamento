@@ -9,24 +9,27 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
-    const sidebarWidth = isCollapsed ? '80px' : '280px';
+    const sidebarWidth = isCollapsed ? '0px' : '280px';
 
     return (
         <aside
-            style={{ ...styles.sidebar, width: sidebarWidth }}
+            style={{
+                ...styles.sidebar,
+                width: sidebarWidth,
+                overflow: 'hidden',
+                padding: isCollapsed ? '0' : undefined,
+                margin: isCollapsed ? '0' : '16px 0 16px 16px',
+                border: isCollapsed ? 'none' : '1px solid var(--border-glass)',
+                opacity: isCollapsed ? 0 : 1,
+                visibility: isCollapsed ? 'hidden' as const : 'visible' as const,
+                pointerEvents: isCollapsed ? 'none' as const : 'auto' as const,
+            }}
             className={`glass-panel admin-sidebar ${mobileOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}
         >
             <div style={styles.logoContainer}>
-                {!isCollapsed && (
-                    <h2 style={styles.logoClass}>
-                        <span className="text-gradient">Loggi</span> Admin
-                    </h2>
-                )}
-                {isCollapsed && (
-                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '4px 0' }}>
-                        <span style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--accent-primary)' }}>L</span>
-                    </div>
-                )}
+                <h2 style={styles.logoClass}>
+                    <span className="text-gradient">Loggi</span> Admin
+                </h2>
                 {closeMobile && (
                     <button
                         className="mobile-close-btn"
@@ -47,50 +50,50 @@ const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
             <nav style={styles.nav}>
                 <NavLink onClick={closeMobile} title="Dashboard" to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Home size={20} />
-                    {!isCollapsed && <span>Dashboard</span>}
+                    <span>Dashboard</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Status DB" to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Database size={20} />
-                    {!isCollapsed && <span>Status DB</span>}
+                    <span>Status DB</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Rastreios" to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package2 size={20} />
-                    {!isCollapsed && <span>Rastreios</span>}
+                    <span>Rastreios</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Pedidos" to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package size={20} />
-                    {!isCollapsed && <span>Pedidos</span>}
+                    <span>Pedidos</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Clientes" to="/clientes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Users size={20} />
-                    {!isCollapsed && <span>Clientes</span>}
+                    <span>Clientes</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Entregadores" to="/entregadores" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Users size={20} />
-                    {!isCollapsed && <span>Entregadores</span>}
+                    <span>Entregadores</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Bot WhatsApp" to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Smartphone size={20} />
-                    {!isCollapsed && <span>Bot WhatsApp</span>}
+                    <span>Bot WhatsApp</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Modelos" to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <MessageSquare size={20} />
-                    {!isCollapsed && <span>Modelos</span>}
+                    <span>Modelos</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Relatórios" to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <BarChart3 size={20} />
-                    {!isCollapsed && <span>Relatórios</span>}
+                    <span>Relatórios</span>
                 </NavLink>
                 <NavLink onClick={closeMobile} title="Configurações" to="/configuracoes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Settings size={20} />
-                    {!isCollapsed && <span>Configurações</span>}
+                    <span>Configurações</span>
                 </NavLink>
             </nav>
 
             <div style={styles.footer}>
                 <button style={styles.logoutBtn} title="Sair">
                     <LogOut size={20} />
-                    {!isCollapsed && <span>Sair do Sistema</span>}
+                    <span>Sair do Sistema</span>
                 </button>
                 <div style={{
                     marginTop: '12px',
@@ -101,7 +104,7 @@ const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
                     color: 'var(--text-muted)',
                     opacity: 0.8
                 }}>
-                    {isCollapsed ? `v${SYSTEM_VERSION}` : `Versão do Sistema: ${SYSTEM_VERSION}`}
+                    Versão do Sistema: {SYSTEM_VERSION}
                 </div>
             </div>
         </aside>
