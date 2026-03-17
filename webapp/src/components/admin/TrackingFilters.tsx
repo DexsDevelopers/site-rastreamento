@@ -73,27 +73,19 @@ const TrackingFilters: React.FC<TrackingFiltersProps> = ({ search, setSearch, ac
                     font-size: 0.95rem;
                     font-weight: 600;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                     display: flex;
                     align-items: center;
                     gap: 8px;
                     position: relative;
-                    z-index: 1;
                 }
                 .tab-btn-saas:hover {
                     color: #fff;
                 }
                 .tab-btn-saas.active {
                     color: #fff;
-                }
-                .tab-indicator {
-                    position: absolute;
-                    height: calc(100% - 12px);
                     background: var(--accent-gradient);
-                    border-radius: 8px;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    z-index: 0;
-                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
                 }
                 .tab-count-saas {
                     background: rgba(0,0,0,0.3);
@@ -101,6 +93,10 @@ const TrackingFilters: React.FC<TrackingFiltersProps> = ({ search, setSearch, ac
                     border-radius: 20px;
                     font-size: 0.75rem;
                     font-weight: 700;
+                    transition: background 0.2s;
+                }
+                .tab-btn-saas.active .tab-count-saas {
+                    background: rgba(0,0,0,0.4);
                 }
             `}</style>
 
@@ -115,23 +111,15 @@ const TrackingFilters: React.FC<TrackingFiltersProps> = ({ search, setSearch, ac
             </div>
 
             <div className="tabs-container-saas">
-                {/* Indicador animado simplificado via JS styles para precisão */}
-                <div
-                    className="tab-indicator"
-                    style={{
-                        width: activeTab === 'all' ? '80px' : activeTab === 'pending' ? '120px' : '110px',
-                        left: activeTab === 'all' ? '6px' : activeTab === 'pending' ? '94px' : '222px'
-                    }}
-                />
-                <button className={`tab-btn-saas ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>
-                    Todos <span className="tab-count-saas">{tabs.find(t => t.id === 'all')?.count || 0}</span>
-                </button>
-                <button className={`tab-btn-saas ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
-                    Pendentes <span className="tab-count-saas">{tabs.find(t => t.id === 'pending')?.count || 0}</span>
-                </button>
-                <button className={`tab-btn-saas ${activeTab === 'finished' ? 'active' : ''}`} onClick={() => setActiveTab('finished')}>
-                    Finalizados <span className="tab-count-saas">{tabs.find(t => t.id === 'finished')?.count || 0}</span>
-                </button>
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        className={`tab-btn-saas ${activeTab === tab.id ? 'active' : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        {tab.label} <span className="tab-count-saas">{tab.count || 0}</span>
+                    </button>
+                ))}
             </div>
         </div>
     );
