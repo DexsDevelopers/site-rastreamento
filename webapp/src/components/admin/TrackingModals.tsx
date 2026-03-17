@@ -33,103 +33,219 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
         ETAPAS_MAP
     } = props;
 
-    // Helper for Info Blocks in Details
-    const InfoBlock = ({ label, value, mono, color }: any) => (
-        <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>{label}</label>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: color || 'var(--text-primary)', fontFamily: mono ? 'JetBrains Mono, monospace' : 'inherit' }}>{value || '-'}</div>
-        </div>
-    );
+    const modalStyles = `
+        .saas-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .saas-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .saas-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.02em;
+        }
+        .saas-input {
+            background: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+        .saas-input:focus {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            background: #1e293b;
+        }
+        .saas-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .btn-saas-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-saas-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .btn-saas-primary {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .btn-saas-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+        }
+        .btn-saas-primary:active {
+            transform: translateY(0);
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .info-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .info-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+    `;
 
     return (
         <>
+            <style>{modalStyles}</style>
+
             {/* MODAL ADICIONAR */}
-            <Modal open={modalAdd} onClose={() => setModalAdd(false)} title="Novo Rastreio" icon={<Plus size={18} color="var(--accent-primary)" />}>
-                <form onSubmit={handleAdd}>
-                    <div className="form-group-mb">
-                        <label className="form-label">Código do Objeto *</label>
-                        <input className="form-input" placeholder="AA123456789BR" required
+            <Modal open={modalAdd} onClose={() => setModalAdd(false)} title="Novo Rastreio" icon={<Plus size={20} color="#2563EB" />}>
+                <form onSubmit={handleAdd} className="saas-form">
+                    <div className="saas-field">
+                        <label className="saas-label">Código do Objeto</label>
+                        <input className="saas-input" placeholder="EX: AA123456789BR" required
                             value={novoForm.codigo}
                             onChange={e => setNovoForm((p: any) => ({ ...p, codigo: e.target.value.toUpperCase() }))}
                             style={{ fontFamily: 'JetBrains Mono, monospace', letterSpacing: '1px' }} />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <div className="form-group-mb">
-                            <label className="form-label">Cidade *</label>
-                            <input className="form-input" placeholder="São Paulo/SP" required
-                                value={novoForm.cidade}
-                                onChange={e => setNovoForm((p: any) => ({ ...p, cidade: e.target.value }))} />
-                        </div>
-                        <div className="form-group-mb">
-                            <label className="form-label">Data Postagem *</label>
-                            <input type="datetime-local" className="form-input" required
-                                value={novoForm.data_inicial}
-                                onChange={e => setNovoForm((p: any) => ({ ...p, data_inicial: e.target.value }))} />
-                        </div>
+
+                    <div className="saas-field">
+                        <label className="saas-label">Cidade de Destino</label>
+                        <input className="saas-input" placeholder="São Paulo / SP" required
+                            value={novoForm.cidade}
+                            onChange={e => setNovoForm((p: any) => ({ ...p, cidade: e.target.value }))} />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                        <div>
-                            <label className="form-label">Valor Taxa</label>
-                            <input className="form-input" type="number" placeholder="0.00" step="0.01"
+
+                    <div className="saas-field">
+                        <label className="saas-label">Data e Hora da Postagem</label>
+                        <input type="datetime-local" className="saas-input" required
+                            value={novoForm.data_inicial}
+                            onChange={e => setNovoForm((p: any) => ({ ...p, data_inicial: e.target.value }))} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="saas-field">
+                            <label className="saas-label">Valor da Taxa (R$)</label>
+                            <input className="saas-input" type="number" placeholder="0,00" step="0.01"
                                 value={novoForm.taxa_valor}
                                 onChange={e => setNovoForm((p: any) => ({ ...p, taxa_valor: e.target.value }))} />
                         </div>
-                        <div>
-                            <label className="form-label">Chave PIX</label>
-                            <input className="form-input" placeholder="Chave..."
+                        <div className="saas-field">
+                            <label className="saas-label">Chave PIX</label>
+                            <input className="saas-input" placeholder="Chave para cobrança"
                                 value={novoForm.taxa_pix}
                                 onChange={e => setNovoForm((p: any) => ({ ...p, taxa_pix: e.target.value }))} />
                         </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                        <button type="button" onClick={() => setModalAdd(false)} className="btn-secondary">Cancelar</button>
-                        <button type="submit" className="btn-primary">Criar Rastreio</button>
+
+                    <div className="saas-actions">
+                        <button type="button" onClick={() => setModalAdd(false)} className="btn-saas-secondary">Cancelar</button>
+                        <button type="submit" className="btn-saas-primary">Criar Rastreio</button>
                     </div>
                 </form>
             </Modal>
 
             {/* MODAL EDITAR */}
-            <Modal open={modalEdit} onClose={() => setModalEdit(false)} title="Editar Rastreio" icon={<Edit size={18} color="#f59e0b" />}>
+            <Modal open={modalEdit} onClose={() => setModalEdit(false)} title="Editar Rastreio" icon={<Edit size={20} color="#F59E0B" />}>
                 {editData && (
-                    <form onSubmit={handleEdit}>
-                        <div className="form-group-mb">
-                            <label className="form-label">Cidade *</label>
-                            <input className="form-input" required value={editData.cidade}
+                    <form onSubmit={handleEdit} className="saas-form">
+                        <div className="saas-field">
+                            <label className="saas-label">Cidade de Destino</label>
+                            <input className="saas-input" required value={editData.cidade}
                                 onChange={e => setEditData((p: any) => p ? ({ ...p, cidade: e.target.value }) : p)} />
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                            <div>
-                                <label className="form-label">Taxa</label>
-                                <input className="form-input" type="number" step="0.01"
-                                    value={editData.taxa_valor || ''}
-                                    onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_valor: e.target.value }) : p)} />
-                            </div>
-                            <div>
-                                <label className="form-label">PIX</label>
-                                <input className="form-input" value={editData.taxa_pix || ''}
-                                    onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_pix: e.target.value }) : p)} />
-                            </div>
+
+                        <div className="saas-field">
+                            <label className="saas-label">Valor da Taxa (R$)</label>
+                            <input className="saas-input" type="number" step="0.01"
+                                value={editData.taxa_valor || ''}
+                                onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_valor: e.target.value }) : p)} />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button type="button" onClick={() => setModalEdit(false)} className="btn-secondary">Cancelar</button>
-                            <button type="submit" className="btn-primary" style={{ background: '#f59e0b' }}><Save size={16} /> Salvar</button>
+
+                        <div className="saas-field">
+                            <label className="saas-label">Chave PIX</label>
+                            <input className="saas-input" value={editData.taxa_pix || ''}
+                                onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_pix: e.target.value }) : p)} />
+                        </div>
+
+                        <div className="saas-actions">
+                            <button type="button" onClick={() => setModalEdit(false)} className="btn-saas-secondary">Cancelar</button>
+                            <button type="submit" className="btn-saas-primary" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+                                <Save size={18} /> Salvar Alterações
+                            </button>
                         </div>
                     </form>
                 )}
             </Modal>
 
             {/* MODAL DETALHES */}
-            <Modal open={modalDetails} onClose={() => setModalDetails(false)} title="Detalhes" icon={<Eye size={20} color="var(--accent-primary)" />}>
+            <Modal open={modalDetails} onClose={() => setModalDetails(false)} title="Detalhes do Objeto" icon={<Eye size={20} color="#2563EB" />}>
                 {detailsData && (
-                    <div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px' }}>
-                            <InfoBlock label="Código" value={detailsData.codigo} mono />
-                            <InfoBlock label="Cidade" value={detailsData.cidade} />
-                            {detailsData.taxa_valor > 0 && <InfoBlock label="Taxa" value={`R$ ${detailsData.taxa_valor}`} color="#f59e0b" />}
+                    <div className="saas-form">
+                        <div className="details-grid">
+                            <div className="info-card">
+                                <span className="info-label">Identificador Único</span>
+                                <span className="info-value" style={{ fontFamily: 'JetBrains Mono, monospace', color: '#2563EB' }}>{detailsData.codigo}</span>
+                            </div>
+                            <div className="info-card">
+                                <span className="info-label">Cidade de Destino</span>
+                                <span className="info-value">{detailsData.cidade}</span>
+                            </div>
+                            {Number(detailsData.taxa_valor) > 0 && (
+                                <div className="info-card">
+                                    <span className="info-label">Taxa de Importação</span>
+                                    <span className="info-value" style={{ color: '#F59E0B' }}>R$ {detailsData.taxa_valor}</span>
+                                </div>
+                            )}
                         </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => { setModalDetails(false); abrirEdicao(detailsData.codigo); }} className="btn-secondary" style={{ flex: 1 }}><Edit size={16} /> Editar</button>
-                            <button onClick={() => { enviarWhatsapp(detailsData.codigo); setModalDetails(false); }} className="btn-primary" style={{ flex: 1.5, background: '#10b981' }}><MessageCircle size={16} /> WhatsApp</button>
+
+                        <div className="saas-actions" style={{ gap: '16px' }}>
+                            <button onClick={() => { setModalDetails(false); abrirEdicao(detailsData.codigo); }} className="btn-saas-secondary" style={{ flex: 1 }}>
+                                <Edit size={18} /> Editar
+                            </button>
+                            <button onClick={() => { enviarWhatsapp(detailsData.codigo); setModalDetails(false); }} className="btn-saas-primary" style={{ flex: 1.5, background: '#22C55E' }}>
+                                <MessageCircle size={18} /> Notificar Cliente
+                            </button>
                         </div>
                     </div>
                 )}

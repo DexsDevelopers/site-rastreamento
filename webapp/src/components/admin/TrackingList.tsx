@@ -41,7 +41,7 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings, onView, onCopy, 
                 }
                 .list-header-saas {
                     display: grid;
-                    grid-template-columns: 180px 1.5fr 1fr 1fr 160px;
+                    grid-template-columns: 180px 1.5fr 1fr 1fr 200px;
                     padding: 16px 24px;
                     background: rgba(255,255,255,0.03);
                     border-bottom: 1px solid var(--border-glass);
@@ -53,7 +53,7 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings, onView, onCopy, 
                 }
                 .row-saas {
                     display: grid;
-                    grid-template-columns: 180px 1.5fr 1fr 1fr 160px;
+                    grid-template-columns: 180px 1.5fr 1fr 1fr 200px;
                     padding: 16px 24px;
                     align-items: center;
                     border-bottom: 1px solid var(--border-glass);
@@ -224,6 +224,7 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings, onView, onCopy, 
 
                         <div className="actions-saas">
                             <button onClick={() => onView(t.codigo)} className="action-btn-saas" title="Visualizar"><Eye size={18} /></button>
+                            <button onClick={() => onCopy(t.codigo)} className="action-btn-saas" title="Copiar Link"><Copy size={18} /></button>
                             <button onClick={() => onEdit(t.codigo)} className="action-btn-saas" title="Editar"><Edit size={18} /></button>
                             <button onClick={() => onNotify(t.codigo)} className="action-btn-saas" title="Notificar WhatsApp" style={{ color: '#10b981' }}><MessageCircle size={18} /></button>
                             <button onClick={() => onDelete(t.codigo)} className="action-btn-saas" title="Excluir" style={{ color: '#ef4444' }}><Trash2 size={18} /></button>
