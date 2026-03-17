@@ -142,27 +142,34 @@ router.get('/stats', async (req, res) => {
 router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => {
     const db = getDB();
     try {
+        console.log('--- NOVA BUSCA PÚBLICA ---');
         if (!db) throw new Error('Banco de dados não disponível');
         let { codigo } = req.body;
         if (!codigo) return res.status(400).json({ success: false, message: 'Código é obrigatório' });
 
         codigo = codigo.toUpperCase().trim();
+        console.log(`Buscando código: ${codigo}`);
+
         const [rows] = await db.query(
             'SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC',
             [codigo]
         );
 
         if (rows.length === 0) {
+            console.log(`Código ${codigo} não encontrado.`);
             return res.status(404).json({ success: false, message: 'Código de rastreio não encontrado.' });
         }
 
         let packageData = rows[0];
+        console.log(`Objeto encontrado. Etapas atuais: ${rows.length}`);
 
         // --- LÓGICA DE AUTOMAÇÃO DE ETAPAS ---
         const firstStageDate = new Date(rows[0].data);
         const now = new Date();
         const diffDays = Math.floor((now.getTime() - firstStageDate.getTime()) / (1000 * 60 * 60 * 24));
         const city = packageData.cidade;
+
+        console.log(`Dias desde a postagem: ${diffDays} | Tipo: ${packageData.tipo_entrega} | Pago: ${packageData.taxa_paga}`);
 
         const automationStages = [
             { day: 1, status: '🚚 Em trânsito', title: '🚚 Em trânsito', sub: 'Seu objeto está sendo transportado entre unidades.' },
@@ -172,7 +179,7 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         // Adicionar etapas automáticas de trânsito
         for (const stage of automationStages) {
             if (diffDays >= stage.day && !rows.some(r => r.status_atual === stage.status)) {
-                // Calcular data retroativa realista: Data Postagem + X Dias + Horário Aleatório
+                console.log(`Inserindo etapa automática: ${stage.status}`);
                 const stageDate = new Date(firstStageDate);
                 stageDate.setDate(stageDate.getDate() + stage.day);
                 stageDate.setHours(9 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 59));
@@ -188,12 +195,11 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
             const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
             if (!rows.some(r => r.status_atual === taxaStatus)) {
+                console.log('Condição de taxa atingida. Verificando PixGo...');
 
-                // Só gera PIX se ainda não existir um código salvo ou se a busca falhou antes
                 let taxaPixEmv = packageData.taxa_pix || null;
 
                 if (!taxaPixEmv) {
-                    // --- Integração Automática PIXGO ---
                     try {
                         const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
                             amount: 29.90,
@@ -208,7 +214,7 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
 
                         if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
                             taxaPixEmv = pixRes.data.emv;
-                            console.log(`[PIXGO AUTO] Pix gerado com sucesso para ${codigo}`);
+                            console.log(`[PIXGO AUTO] Pix gerado para ${codigo}`);
                         }
                     } catch (pixErr) {
                         console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
@@ -229,13 +235,15 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         // Recarregar rows se algo foi inserido
         const [updatedRows] = await db.query('SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC', [codigo]);
         const currentRows = updatedRows;
+        if (currentRows.length === 0) throw new Error('Erro ao recarregar dados após atualização');
+
         const lastStatus = currentRows[currentRows.length - 1];
         packageData = currentRows[0];
 
-        // Localizar a taxRow de forma segura
         const taxaRow = currentRows.find(r => (r.taxa_valor && parseFloat(r.taxa_valor) > 0) || r.taxa_pix);
 
-        res.json({
+        console.log('Preparando resposta JSON...');
+        const responseData = {
             success: true,
             codigo: lastStatus.codigo,
             status_atual: lastStatus.status_atual,
@@ -249,9 +257,14 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
             taxa_pix: packageData.taxa_paga ? null : (taxaRow?.taxa_pix || null),
             tipo_entrega: packageData.tipo_entrega,
             taxa_paga: packageData.taxa_paga ? true : false
-        });
+        };
+
+        console.log('Enviando resposta com sucesso.');
+        res.json(responseData);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('--- ERRO CRÍTICO NA BUSCA ---');
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Internal Server Error', message: error.message });
     }
 });
 

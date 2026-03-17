@@ -32,6 +32,27 @@ async function runMigrations() {
             )
         `);
 
+        // --- VERIFICAR E ADICIONAR COLUNAS FALTANTES ---
+        const [columns] = await pool.query('SHOW COLUMNS FROM rastreios_status');
+        const columnNames = columns.map(c => c.Field);
+
+        const upgrades = [
+            { name: 'taxa_valor', type: 'DECIMAL(10,2)' },
+            { name: 'taxa_pix', type: 'TEXT' },
+            { name: 'tipo_entrega', type: "ENUM('NORMAL', 'EXPRESS') DEFAULT 'NORMAL'" },
+            { name: 'taxa_paga', type: 'BOOLEAN DEFAULT FALSE' },
+            { name: 'data_entrega_prevista', type: 'VARCHAR(100)' },
+            { name: 'prioridade', type: 'INT DEFAULT 0' },
+            { name: 'codigo_indicador', type: 'VARCHAR(50)' }
+        ];
+
+        for (const col of upgrades) {
+            if (!columnNames.includes(col.name)) {
+                console.log(`[DB UPGRADE] Adicionando coluna faltante: ${col.name}`);
+                await pool.query(`ALTER TABLE rastreios_status ADD COLUMN ${col.name} ${col.type}`);
+            }
+        }
+
         // Tabela de usuários para o Admin
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
@@ -43,6 +64,12 @@ async function runMigrations() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Verificar coluna whatsapp na tabela users
+        const [userCols] = await pool.query('SHOW COLUMNS FROM users');
+        if (!userCols.map(c => c.Field).includes('whatsapp')) {
+            await pool.query('ALTER TABLE users ADD COLUMN whatsapp VARCHAR(50)');
+        }
 
         // Tabela de entregadores
         await pool.query(`
