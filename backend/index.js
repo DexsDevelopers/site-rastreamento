@@ -23,9 +23,11 @@ const authRoutes = require('./routes/auth');
 const trackingRoutes = require('./routes/tracking');
 const driverRoutes = require('./routes/drivers');
 const pixRoutes = require('./routes/pix');
+const adminRoutes = require('./routes/admin');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tracking', trackingRoutes);
+app.use('/api/admin', adminRoutes); // Novas rotas de status/config
 app.use('/api/admin/rastreios', trackingRoutes); // Alias para legibilidade admin
 app.use('/api/drivers', driverRoutes);
 app.use('/api/pix', pixRoutes);
