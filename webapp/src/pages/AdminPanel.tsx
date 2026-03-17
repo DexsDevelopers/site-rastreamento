@@ -68,6 +68,7 @@ const getStatusClass = (status: string) => {
     if (status.includes('Saiu')) return 'status-saiu';
     if (status.includes('trânsito')) return 'status-transito';
     if (status.includes('distribuição')) return 'status-distribuicao';
+    if (status.includes('postado')) return 'status-postado';
     return 'status-default';
 };
 
@@ -380,16 +381,38 @@ const AdminPanel: React.FC = () => {
                 
                 .text-gradient { background: linear-gradient(135deg, #0055ff, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 
-                .admin-row { transition: all 0.2s; }
-                .admin-row:hover { background: rgba(0,85,255,0.03) !important; }
+                .admin-row { 
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                }
+                .admin-row:hover { 
+                    background: rgba(59, 130, 246, 0.04) !important;
+                    transform: translateX(4px);
+                }
+                .admin-row:hover td:first-child::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 10px;
+                    bottom: 10px;
+                    width: 4px;
+                    background: var(--accent-primary);
+                    border-radius: 0 4px 4px 0;
+                    box-shadow: 2px 0 10px rgba(59, 130, 246, 0.3);
+                }
                 
                 .admin-action-btn { 
-                    background: rgba(255,255,255,0.6); border: 1px solid rgba(0,80,200,0.08); 
-                    border-radius: 8px; padding: 6px; cursor: pointer; color: var(--text-secondary); 
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(8px);
+                    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+                    border-radius: 10px; padding: 8px; cursor: pointer; color: var(--text-secondary); 
+                    transition: all 0.2s ease;
                     display: flex; align-items: center; justify-content: center;
                 }
-                .admin-action-btn:hover { background: rgba(255,255,255,0.9); color: var(--text-primary); transform: translateY(-1px); border-color: rgba(0,85,255,0.15); }
+                .admin-action-btn:hover { 
+                    background: rgba(59, 130, 246, 0.1); 
+                    color: var(--accent-primary); 
+                    border-color: rgba(59, 130, 246, 0.2);
+                    transform: translateY(-2px);
+                }
                 
                 .filter-btn-tab { 
                     padding: 6px 14px; border-radius: 10px; border: 1px solid rgba(0,80,200,0.08); 
@@ -426,19 +449,27 @@ const AdminPanel: React.FC = () => {
                     table-layout: fixed;
                 }
                 
-                .admin-table th, .admin-table td {
-                    padding: 10px 8px;
+                .admin-table th {
+                    padding: 16px 12px;
+                    background: rgba(255,255,255,0.02);
+                    border-bottom: 1px solid var(--border-glass-strong);
                     text-align: left;
                     vertical-align: middle;
-                    font-size: 0.82rem;
+                }
+                
+                .admin-table td {
+                    padding: 16px 12px;
+                    border-bottom: 1px solid var(--border-glass);
+                    text-align: left;
+                    vertical-align: middle;
                 }
 
-                .col-check { width: 35px; }
-                .col-codigo { width: 110px; }
-                .col-cidade { width: 15%; min-width: 90px; }
-                .col-status-taxa { width: auto; min-width: 160px; }
-                .col-data { width: 100px; }
-                .col-acoes { width: 135px; text-align: right !important; }
+                .col-check { width: 45px; }
+                .col-codigo { width: 140px; }
+                .col-cidade { width: 22%; min-width: 130px; }
+                .col-status-taxa { width: auto; min-width: 200px; }
+                .col-data { width: 120px; }
+                .col-acoes { width: 200px; text-align: right !important; }
 
                 .badge-taxa {
                     padding: 2px 5px;
@@ -454,12 +485,22 @@ const AdminPanel: React.FC = () => {
                 .status-badge {
                     display: inline-flex;
                     align-items: center;
-                    gap: 4px;
+                    padding: 6px 12px;
+                    border-radius: 20px;
                     font-weight: 700;
-                    font-size: 0.8rem;
-                    white-space: normal;
-                    line-height: 1.2;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.02em;
+                    text-transform: uppercase;
+                    transition: all 0.2s;
+                    border: 1px solid transparent;
                 }
+
+                .status-entregue { background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+                .status-saiu { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2); }
+                .status-transito { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
+                .status-distribuicao { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.2); }
+                .status-postado { background: rgba(107, 114, 128, 0.12); color: #6b7280; border-color: rgba(107, 114, 128, 0.2); }
+                .status-default { background: rgba(107, 114, 128, 0.08); color: #71717a; }
 
                 .admin-cell-text {
                     overflow: hidden;
@@ -632,12 +673,12 @@ const AdminPanel: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="col-acoes">
-                                        <div style={{ display: 'flex', gap: '3px', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Ver"><Eye size={12} /></button>
-                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Link" style={{ color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={12} /></button>
-                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar" style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={12} /></button>
-                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Whats" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={12} /></button>
-                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir" style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={12} /></button>
+                                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Ver Detalhes"><Eye size={16} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link" style={{ color: 'var(--accent-primary)' }}><Copy size={16} /></button>
+                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar" style={{ color: '#f59e0b' }}><Edit size={16} /></button>
+                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Notificar WhatsApp" style={{ color: '#10b981' }}><MessageCircle size={16} /></button>
+                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir" style={{ color: '#ef4444' }}><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>
