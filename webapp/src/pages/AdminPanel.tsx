@@ -103,7 +103,14 @@ const AdminPanel: React.FC = () => {
             await axios.post('/api/admin/rastreios', novoForm);
             setModalAdd(false);
             fetchData();
-        } catch (err) { alert('Erro ao adicionar'); }
+            setNovoForm({
+                codigo: '', cidade: '', data_inicial: new Date().toISOString().slice(0, 16),
+                taxa_valor: '', taxa_pix: '', cliente_nome: '', cliente_whatsapp: '', cliente_notificar: true,
+                etapas: { postado: true }
+            });
+        } catch (err) {
+            alert('Erro ao salvar');
+        }
     };
 
     const handleEdit = async (e: React.FormEvent) => {
@@ -111,105 +118,188 @@ const AdminPanel: React.FC = () => {
         if (!editData) return;
         try {
             await axios.put(`/api/admin/rastreios/${editData.codigo}`, editData);
-            setModalEdit(true); // Feedback visual manual se necessário
-            setTimeout(() => {
-                setModalEdit(false);
-                fetchData();
-            }, 800);
-        } catch (err) { alert('Erro ao salvar'); }
+            setModalEdit(false);
+            fetchData();
+        } catch (err) {
+            alert('Erro ao atualizar');
+        }
+    };
+
+    const handleDelete = async (codigo: string) => {
+        if (!window.confirm(`Excluir rastreio ${codigo}?`)) return;
+        try {
+            await axios.delete(`/api/admin/rastreios/${codigo}`);
+            fetchData();
+        } catch (err) {
+            alert('Erro ao deletar');
+        }
     };
 
     const handleView = async (codigo: string) => {
         try {
-            const res = await axios.get(`/api/admin/rastreios/${codigo}/detalhes`);
+            const res = await axios.get(`/api/admin/rastreios/${codigo}`);
             setDetailsData(res.data);
             setModalDetails(true);
-        } catch { alert('Erro ao carregar'); }
-    };
-
-    const handleDelete = async (codigo: string) => {
-        if (!window.confirm(`Excluir ${codigo}?`)) return;
-        try {
-            await axios.delete(`/api/admin/rastreios/${codigo}`);
-            fetchData();
-        } catch { alert('Erro ao excluir'); }
+        } catch (err) {
+            alert('Erro ao carregar');
+        }
     };
 
     return (
-        <div className="admin-page" style={{ padding: '16px', background: '#09090b', minHeight: '100vh', color: '#f8fafc' }}>
+        <div className="admin-layout" style={{ background: '#0B0F1A', minHeight: '100vh', color: '#E2E8F0', fontFamily: "'Outfit', sans-serif" }}>
             <style>{`
-                .admin-page { font-family: 'Inter', system-ui, sans-serif; }
-                .text-gradient { background: linear-gradient(135deg, #3b82f6, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-                .btn-primary { background: #3b82f6; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.1s; }
-                .btn-primary:active { transform: scale(0.98); }
-                .btn-secondary { background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-                .form-label { display: block; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
-                .form-input { width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 0.9rem; outline: none; }
-                .form-input:focus { border-color: #3b82f6; }
-                .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
-                .status-entregue { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-                .status-saiu { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
-                .status-transito { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
-                .status-postado { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
-                @keyframes modalSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                .sync-overlay { position: fixed; top: 20px; right: 20px; background: #3b82f6; color: white; padding: 6px 12px; borderRadius: 20px; font-size: 0.75rem; font-weight: 700; z-index: 2000; animation: fadeIn 0.2s; }
+                :root {
+                    --bg-main: #0B0F1A;
+                    --bg-card: #111827;
+                    --border-glass: rgba(255, 255, 255, 0.05);
+                    --accent-primary: #2563EB;
+                    --accent-hover: #1D4ED8;
+                    --accent-gradient: linear-gradient(135deg, #2563EB, #1D4ED8);
+                    
+                    --status-success: #22C55E;
+                    --status-warning: #F59E0B;
+                    --status-error: #EF4444;
+
+                    --text-primary: #f8fafc;
+                    --text-secondary: #94a3b8;
+                    --glow-blue: 0 8px 30px rgba(37, 99, 235, 0.2);
+                }
+
+                .admin-layout {
+                    padding: 40px 20px;
+                    background-image: 
+                        radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.03) 0%, transparent 40%),
+                        radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);
+                }
+
+                .admin-container {
+                    max-width: 1300px;
+                    margin: 0 auto;
+                }
+
+                .text-gradient {
+                    background: linear-gradient(to right, #fff, #94a3b8);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .btn-primary-saas {
+                    background: var(--accent-gradient);
+                    color: white;
+                    border: none;
+                    padding: 12px 28px;
+                    border-radius: 14px;
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    cursor: pointer;
+                    box-shadow: var(--glow-blue);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .btn-primary-saas:hover {
+                    transform: translateY(-2px);
+                    background: var(--accent-hover);
+                    box-shadow: 0 12px 40px rgba(37, 99, 235, 0.4);
+                }
+
+                .btn-primary-saas:active {
+                    transform: scale(0.98);
+                }
+
+                .glass-card {
+                    background: var(--bg-card);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid var(--border-glass);
+                    border-radius: 20px;
+                    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+                }
+
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .animate-slide-up {
+                    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                .sync-overlay { 
+                    position: fixed; top: 30px; right: 30px; 
+                    background: rgba(37, 99, 235, 0.9); 
+                    color: white; padding: 10px 20px; 
+                    borderRadius: 30px; font-size: 0.85rem; 
+                    font-weight: 700; z-index: 2000; 
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    animation: slideInRight 0.3s ease-out;
+                }
+
+                @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+                ::-webkit-scrollbar { width: 8px; }
+                ::-webkit-scrollbar-track { background: var(--bg-main); }
+                ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+                ::-webkit-scrollbar-thumb:hover { background: #334155; }
             `}</style>
 
-            {isSyncing && <div className="sync-overlay">Sincronizando...</div>}
+            <div className="admin-container animate-slide-up">
+                {isSyncing && <div className="sync-overlay">Sincronizando sistemas...</div>}
 
-            <AdminHeader
-                stats={stats}
-                onRefresh={fetchData}
-                onExport={() => alert('CSV gerado com sucesso!')}
-                onAdd={() => setModalAdd(true)}
-            />
+                <AdminHeader
+                    stats={stats}
+                    onRefresh={fetchData}
+                    onExport={() => alert('Exportação concluída.')}
+                    onAdd={() => setModalAdd(true)}
+                />
 
-            <TrackingFilters
-                search={searchTerm} setSearch={setSearchTerm}
-                activeTab={filterType} setActiveTab={setFilterType}
-                tabs={[
-                    { id: 'all', label: 'Todos', count: rastreios.length },
-                    { id: 'com_taxa', label: 'Pendentes', count: stats.com_taxa },
-                    { id: 'entregues', label: 'Finalizados', count: stats.entregues }
-                ]}
-            />
+                <TrackingFilters
+                    search={searchTerm} setSearch={setSearchTerm}
+                    activeTab={filterType} setActiveTab={setFilterType}
+                    tabs={[
+                        { id: 'all', label: 'Todos', count: rastreios.length },
+                        { id: 'com_taxa', label: 'Pendentes', count: stats.com_taxa },
+                        { id: 'entregues', label: 'Finalizados', count: stats.entregues }
+                    ]}
+                />
 
-            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                <TrackingList
-                    trackings={filtered}
-                    onView={handleView}
-                    onCopy={(c) => {
-                        navigator.clipboard.writeText(`${window.location.origin}/rastreio/${c}`);
-                        alert('Link copiado!');
-                    }}
-                    onEdit={(codigo) => {
-                        const r = rastreios.find(x => x.codigo === codigo);
-                        if (r) {
-                            setEditData({
-                                codigo: r.codigo, cidade: r.cidade, data_inicial: r.data,
-                                taxa_valor: r.taxa_valor ? String(r.taxa_valor) : null,
-                                taxa_pix: r.taxa_pix, etapas: []
-                            });
-                            setModalEdit(true);
-                        }
-                    }}
-                    onNotify={(c) => window.open(`https://wa.me/?text=Seu projeto foi atualizado! ${c}`)}
-                    onDelete={handleDelete}
+                <div className="tracking-list-wrapper" style={{ marginTop: '24px' }}>
+                    <TrackingList
+                        trackings={filtered}
+                        onView={handleView}
+                        onCopy={(c) => {
+                            navigator.clipboard.writeText(`${window.location.origin}/rastreio/${c}`);
+                            alert('🔗 Link de rastreio copiado!');
+                        }}
+                        onEdit={(codigo) => {
+                            const r = rastreios.find(x => x.codigo === codigo);
+                            if (r) {
+                                setEditData({
+                                    codigo: r.codigo, cidade: r.cidade, data_inicial: r.data,
+                                    taxa_valor: r.taxa_valor ? String(r.taxa_valor) : null,
+                                    taxa_pix: r.taxa_pix, etapas: []
+                                });
+                                setModalEdit(true);
+                            }
+                        }}
+                        onNotify={(c) => window.open(`https://wa.me/?text=Seu projeto foi atualizado! ${c}`)}
+                        onDelete={handleDelete}
+                    />
+                </div>
+
+                <TrackingModals
+                    modalAdd={modalAdd} setModalAdd={setModalAdd}
+                    modalEdit={modalEdit} setModalEdit={setModalEdit}
+                    modalDetails={modalDetails} setModalDetails={setModalDetails}
+                    novoForm={novoForm} setNovoForm={setNovoForm} handleAdd={handleAdd}
+                    editData={editData} setEditData={setEditData} handleEdit={handleEdit}
+                    detailsData={detailsData}
+                    enviarWhatsapp={(c) => window.open(`https://wa.me/?text=Status do Pedido: ${c}`)}
+                    abrirEdicao={(c) => { setModalDetails(false); }}
+                    ETAPAS_MAP={ETAPAS_MAP}
                 />
             </div>
-
-            <TrackingModals
-                modalAdd={modalAdd} setModalAdd={setModalAdd}
-                modalEdit={modalEdit} setModalEdit={setModalEdit}
-                modalDetails={modalDetails} setModalDetails={setModalDetails}
-                novoForm={novoForm} setNovoForm={setNovoForm} handleAdd={handleAdd}
-                editData={editData} setEditData={setEditData} handleEdit={handleEdit}
-                detailsData={detailsData}
-                enviarWhatsapp={(c) => window.open(`https://wa.me/?text=Status do Pedido: ${c}`)}
-                abrirEdicao={(c) => { setModalDetails(false); }}
-                ETAPAS_MAP={ETAPAS_MAP}
-            />
         </div>
     );
 };

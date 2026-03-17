@@ -11,99 +11,127 @@ interface TrackingFiltersProps {
 
 const TrackingFilters: React.FC<TrackingFiltersProps> = ({ search, setSearch, activeTab, setActiveTab, tabs }) => {
     return (
-        <div className="tracking-filters">
+        <div className="tracking-filters-saas">
             <style>{`
-                .tracking-filters {
+                .tracking-filters-saas {
                     display: flex;
                     flex-direction: column;
-                    gap: 12px;
-                    margin-bottom: 20px;
+                    gap: 24px;
+                    margin-bottom: 32px;
                 }
-                .search-bar {
+                .search-container-saas {
                     position: relative;
                     width: 100%;
+                    max-width: 500px;
                 }
-                .search-bar input {
+                .search-container-saas input {
                     width: 100%;
-                    padding: 8px 12px 8px 36px;
-                    background: var(--bg-glass);
+                    padding: 14px 16px 14px 48px;
+                    background: rgba(255,255,255,0.03);
                     border: 1px solid var(--border-glass);
-                    border-radius: 8px;
-                    color: var(--text-primary);
-                    font-size: 0.9rem;
+                    border-radius: 16px;
+                    color: #fff;
+                    font-size: 1rem;
                     outline: none;
-                    transition: border-color 0.2s;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 }
-                .search-bar input:focus {
+                .search-container-saas input:focus {
                     border-color: var(--accent-primary);
+                    background: rgba(255,255,255,0.06);
+                    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
                 }
-                .search-icon {
+                .search-icon-saas {
                     position: absolute;
-                    left: 10px;
+                    left: 18px;
                     top: 50%;
                     transform: translateY(-50%);
                     color: var(--text-secondary);
                     pointer-events: none;
+                    transition: color 0.3s;
                 }
-                .tabs-container {
+                .search-container-saas input:focus + .search-icon-saas {
+                    color: var(--accent-primary);
+                }
+
+                .tabs-container-saas {
                     display: flex;
-                    gap: 4px;
-                    background: rgba(255,255,255,0.03);
-                    padding: 4px;
-                    border-radius: 10px;
+                    gap: 8px;
+                    background: rgba(255,255,255,0.02);
+                    padding: 6px;
+                    border-radius: 14px;
                     width: fit-content;
+                    border: 1px solid var(--border-glass);
+                    position: relative;
                 }
-                .filter-tab {
-                    padding: 6px 12px;
-                    border-radius: 6px;
+                .tab-btn-saas {
+                    padding: 10px 20px;
+                    border-radius: 10px;
                     border: none;
                     background: transparent;
                     color: var(--text-secondary);
-                    font-size: 0.85rem;
+                    font-size: 0.95rem;
                     font-weight: 600;
                     cursor: pointer;
-                    transition: all 0.15s;
+                    transition: all 0.2s;
                     display: flex;
                     align-items: center;
-                    gap: 6px;
+                    gap: 8px;
+                    position: relative;
+                    z-index: 1;
                 }
-                .filter-tab:hover {
-                    color: var(--text-primary);
-                    background: rgba(255,255,255,0.05);
-                }
-                .filter-tab.active {
-                    background: var(--accent-primary);
+                .tab-btn-saas:hover {
                     color: #fff;
                 }
-                .tab-count {
-                    background: rgba(0,0,0,0.2);
-                    padding: 1px 6px;
-                    border-radius: 10px;
-                    font-size: 0.7rem;
+                .tab-btn-saas.active {
+                    color: #fff;
+                }
+                .tab-indicator {
+                    position: absolute;
+                    height: calc(100% - 12px);
+                    background: var(--accent-gradient);
+                    border-radius: 8px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    z-index: 0;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                }
+                .tab-count-saas {
+                    background: rgba(0,0,0,0.3);
+                    padding: 2px 8px;
+                    border-radius: 20px;
+                    font-size: 0.75rem;
+                    font-weight: 700;
                 }
             `}</style>
 
-            <div className="search-bar">
-                <Search className="search-icon" size={16} />
+            <div className="search-container-saas">
+                <Search className="search-icon-saas" size={20} />
                 <input
                     type="text"
-                    placeholder="Filtrar por código, cidade ou status..."
+                    placeholder="Pesquisar por código ou cidade..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
 
-            <div className="tabs-container">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`filter-tab ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
-                        {tab.label}
-                        {tab.count !== undefined && <span className="tab-count">{tab.count}</span>}
-                    </button>
-                ))}
+            <div className="tabs-container-saas">
+                {/* Indicador animado simplificado via JS styles para precisão */}
+                <div
+                    className="tab-indicator"
+                    style={{
+                        width: activeTab === 'all' ? '80px' : activeTab === 'pending' ? '120px' : '110px',
+                        left: activeTab === 'all' ? '6px' : activeTab === 'pending' ? '94px' : '222px'
+                    }}
+                />
+                <button className={`tab-btn-saas ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>
+                    Todos <span className="tab-count-saas">{tabs.find(t => t.id === 'all')?.count || 0}</span>
+                </button>
+                <button className={`tab-btn-saas ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
+                    Pendentes <span className="tab-count-saas">{tabs.find(t => t.id === 'pending')?.count || 0}</span>
+                </button>
+                <button className={`tab-btn-saas ${activeTab === 'finished' ? 'active' : ''}`} onClick={() => setActiveTab('finished')}>
+                    Finalizados <span className="tab-count-saas">{tabs.find(t => t.id === 'finished')?.count || 0}</span>
+                </button>
             </div>
         </div>
     );

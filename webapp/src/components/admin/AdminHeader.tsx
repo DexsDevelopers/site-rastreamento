@@ -18,137 +18,194 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ stats, onRefresh, onExport, o
         <header className="admin-header">
             <style>{`
                 .admin-header {
-                    margin-bottom: 32px;
-                    animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+                    margin-bottom: 48px;
                 }
                 .header-top {
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-end;
-                    gap: 16px;
+                    gap: 24px;
                     flex-wrap: wrap;
-                    margin-bottom: 24px;
+                    margin-bottom: 32px;
                 }
                 .title-group h1 {
-                    font-size: 2.5rem;
-                    font-weight: 900;
+                    font-size: 2.8rem;
+                    font-weight: 800;
                     margin: 0;
-                    letter-spacing: -1.5px;
-                    font-family: 'Outfit', sans-serif;
+                    letter-spacing: -2px;
+                    line-height: 1;
                 }
-                .title-group p {
+                .subtitle {
                     color: var(--text-secondary);
-                    margin-top: 4px;
-                    font-size: 0.95rem;
-                    opacity: 0.8;
+                    margin-top: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                .status-indicator {
+                    font-size: 0.8rem;
+                    color: #10b981;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    background: rgba(16, 185, 129, 0.1);
+                    padding: 4px 10px;
+                    border-radius: 20px;
+                    border: 1px solid rgba(16, 185, 129, 0.2);
                 }
                 .action-group {
                     display: flex;
-                    gap: 10px;
+                    gap: 12px;
                 }
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
-                }
-                .stat-card {
-                    background: var(--bg-glass);
-                    border: 1px solid var(--border-glass);
-                    border-radius: 16px;
-                    padding: 20px;
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                    backdrop-filter: blur(10px);
-                    transition: all 0.3s ease;
-                }
-                .stat-card:hover {
-                    transform: translateY(-4px);
-                    border-color: var(--accent-primary);
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                }
-                .stat-icon {
-                    width: 48px;
-                    height: 48px;
+                .admin-action-btn-saas {
+                    width: 44px;
+                    height: 44px;
                     border-radius: 12px;
+                    border: 1px solid var(--border-glass);
+                    background: rgba(255,255,255,0.03);
+                    color: var(--text-secondary);
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
                 }
-                .stat-info h3 {
-                    margin: 0;
-                    font-size: 0.85rem;
-                    color: var(--text-secondary);
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                }
-                .stat-info p {
-                    margin: 0;
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                    color: var(--text-primary);
+                .admin-action-btn-saas:hover {
+                    background: rgba(255,255,255,0.08);
+                    color: #fff;
+                    border-color: rgba(255,255,255,0.2);
                 }
                 
-                @media (max-width: 768px) {
-                    .title-group h1 { font-size: 1.8rem; }
-                    .stats-grid { grid-template-columns: 1fr 1fr; }
+                .stats-grid-saas {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                    gap: 24px;
+                }
+                .stat-card-saas {
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .stat-card-saas:hover {
+                    transform: translateY(-5px);
+                    background: rgba(255,255,255,0.05);
+                    border-color: rgba(255,255,255,0.15);
+                }
+                .stat-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                .stat-icon-saas {
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.5rem;
+                }
+                .stat-info-saas h3 {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    color: var(--text-secondary);
+                    font-weight: 600;
+                }
+                .stat-info-saas p {
+                    margin: 8px 0 0;
+                    font-size: 2.2rem;
+                    font-weight: 800;
+                    color: #fff;
+                    letter-spacing: -1px;
+                }
+                .stat-footer {
+                    font-size: 0.75rem;
+                    color: var(--text-secondary);
+                    opacity: 0.6;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
                 }
             `}</style>
 
             <div className="header-top">
                 <div className="title-group">
-                    <h1>Painel <span className="text-gradient">Administrativo</span></h1>
-                    <p>Gestão inteligente da sua malha logística.</p>
+                    <h1 className="text-gradient">Painel Administrativo</h1>
+                    <div className="subtitle">
+                        Gestão inteligente da sua malha logística
+                        <span className="status-indicator">
+                            <span style={{ animation: 'pulse 2s infinite' }}>●</span> Online
+                        </span>
+                    </div>
                 </div>
                 <div className="action-group">
-                    <button onClick={onRefresh} className="admin-action-btn" title="Atualizar">
-                        <RefreshCw size={18} />
+                    <button onClick={onRefresh} className="admin-action-btn-saas" title="Atualizar">
+                        <RefreshCw size={20} />
                     </button>
-                    <button onClick={onExport} className="admin-action-btn" title="Exportar CSV">
-                        <Download size={18} />
+                    <button onClick={onExport} className="admin-action-btn-saas" title="Exportar CSV">
+                        <Download size={20} />
                     </button>
-                    <button onClick={onAdd} className="btn-primary" style={{ borderRadius: '12px', padding: '10px 20px', gap: '8px' }}>
-                        <Plus size={18} /> Novo Rastreio
+                    <button onClick={onAdd} className="btn-primary-saas">
+                        <Plus size={20} /> Novo Rastreio
                     </button>
                 </div>
             </div>
 
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                        <Box size={24} />
+            <div className="stats-grid-saas">
+                <div className="stat-card-saas glass-card">
+                    <div className="stat-header">
+                        <div className="stat-info-saas">
+                            <h3>Total Rastreios</h3>
+                            <p>{stats.total}</p>
+                        </div>
+                        <div className="stat-icon-saas" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                            <Box size={28} />
+                        </div>
                     </div>
-                    <div className="stat-info">
-                        <h3>Total Rastreios</h3>
-                        <p>{stats.total}</p>
-                    </div>
+                    <div className="stat-footer">● Atualizado agora</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                        <CheckCircle size={24} />
+
+                <div className="stat-card-saas glass-card">
+                    <div className="stat-header">
+                        <div className="stat-info-saas">
+                            <h3>Entregues</h3>
+                            <p>{stats.entregues}</p>
+                        </div>
+                        <div className="stat-icon-saas" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                            <CheckCircle size={28} />
+                        </div>
                     </div>
-                    <div className="stat-info">
-                        <h3>Entregues</h3>
-                        <p>{stats.entregues}</p>
-                    </div>
+                    <div className="stat-footer">● Atualizado agora</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-                        <AlertTriangle size={24} />
+
+                <div className="stat-card-saas glass-card">
+                    <div className="stat-header">
+                        <div className="stat-info-saas">
+                            <h3>Com Taxa</h3>
+                            <p>{stats.com_taxa}</p>
+                        </div>
+                        <div className="stat-icon-saas" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                            <AlertTriangle size={28} />
+                        </div>
                     </div>
-                    <div className="stat-info">
-                        <h3>Com Taxa</h3>
-                        <p>{stats.com_taxa}</p>
-                    </div>
+                    <div className="stat-footer">● Atualizado agora</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'rgba(107, 114, 128, 0.1)', color: '#6b7280' }}>
-                        <Package size={24} />
+
+                <div className="stat-card-saas glass-card">
+                    <div className="stat-header">
+                        <div className="stat-info-saas">
+                            <h3>Sem Taxa</h3>
+                            <p>{stats.sem_taxa}</p>
+                        </div>
+                        <div className="stat-icon-saas" style={{ background: 'rgba(148, 163, 184, 0.1)', color: '#94a3b8', border: '1px solid rgba(148, 163, 184, 0.2)' }}>
+                            <Package size={28} />
+                        </div>
                     </div>
-                    <div className="stat-info">
-                        <h3>Sem Taxa</h3>
-                        <p>{stats.sem_taxa}</p>
-                    </div>
+                    <div className="stat-footer">● Atualizado agora</div>
                 </div>
             </div>
         </header>
