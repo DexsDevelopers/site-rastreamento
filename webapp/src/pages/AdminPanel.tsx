@@ -398,12 +398,43 @@ const AdminPanel: React.FC = () => {
                 .checkbox-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid transparent; }
                 .checkbox-row:hover { background: rgba(0,85,255,0.03); border-color: rgba(0,85,255,0.08); }
                 
-                .status-entregue { color: #10b981; }
-                .status-saiu { color: #f59e0b; }
-                .status-transito { color: #0055ff; }
-                .status-distribuicao { color: #3b82f6; }
                 .status-default { color: #71717a; }
                 
+                .admin-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed; /* Força proporções consistentes */
+                }
+                
+                .admin-table th, .admin-table td {
+                    padding: 12px 16px;
+                    text-align: left;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .col-check { width: 50px; }
+                .col-codigo { width: 140px; }
+                .col-cidade { width: 15%; min-width: 120px; }
+                .col-status { width: 20%; min-width: 150px; }
+                .col-taxa { width: 100px; }
+                .col-data { width: 130px; }
+                .col-acoes { width: 180px; text-align: right !important; }
+
+                .admin-cell-text {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    display: block;
+                    width: 100%;
+                }
+
+                @media (max-width: 1200px) {
+                    .col-acoes { width: 150px; }
+                    .admin-action-btn span { display: none; } /* Hide labels if any */
+                }
+
                 ::-webkit-scrollbar { width: 6px; height: 6px; }
                 ::-webkit-scrollbar-track { background: transparent; }
                 ::-webkit-scrollbar-thumb { background: rgba(0,85,255,0.12); border-radius: 10px; }
@@ -496,23 +527,23 @@ const AdminPanel: React.FC = () => {
                 </div>
 
                 {/* TABLE */}
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{ overflowX: 'auto', width: '100%' }}>
+                    <table className="admin-table">
                         <thead>
                             <tr style={{ background: 'rgba(0,85,255,0.02)', borderBottom: '1px solid rgba(0,80,200,0.06)' }}>
-                                <th style={{ padding: '24px' }}>
+                                <th className="col-check">
                                     <input type="checkbox"
                                         checked={selected.size === filteredRastreios.length && filteredRastreios.length > 0}
                                         onChange={toggleSelectAll}
                                         style={{ accentColor: 'var(--accent-primary)', width: '20px', height: '20px', cursor: 'pointer' }}
                                     />
                                 </th>
-                                <th style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CÓDIGO</th>
-                                <th style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CIDADE</th>
-                                <th style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>STATUS</th>
-                                <th style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>TAXA</th>
-                                <th style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>ÚLTIMA ATU.</th>
-                                <th style={{ textAlign: 'right', paddingRight: '32px', fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>AÇÕES</th>
+                                <th className="col-codigo" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CÓDIGO</th>
+                                <th className="col-cidade" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CIDADE</th>
+                                <th className="col-status" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>STATUS</th>
+                                <th className="col-taxa" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>TAXA</th>
+                                <th className="col-data" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>ÚLTIMA ATU.</th>
+                                <th className="col-acoes" style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>AÇÕES</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -532,34 +563,36 @@ const AdminPanel: React.FC = () => {
                                 </tr>
                             ) : filteredRastreios.map(r => (
                                 <tr key={r.id + r.codigo} className="admin-row" style={{ borderBottom: '1px solid var(--border-glass)', transition: 'all 0.3s var(--transition-spring)' }}>
-                                    <td className="admin-cell" data-label="Selecionar">
+                                    <td className="col-check">
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
                                             style={{ accentColor: 'var(--accent-primary)', width: '18px', height: '18px', cursor: 'pointer' }} />
                                     </td>
-                                    <td className="admin-cell" style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.5px', fontSize: '0.95rem' }} data-label="Código">
+                                    <td className="col-codigo" style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.3px', fontSize: '0.85rem' }}>
                                         {r.codigo}
                                     </td>
-                                    <td className="admin-cell" style={{ color: 'var(--text-secondary)', fontWeight: 600 }} data-label="Cidade">{r.cidade}</td>
-                                    <td className="admin-cell" data-label="Status">
-                                        <span className={getStatusClass(r.status_atual)} style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor' }}></span>
+                                    <td className="col-cidade" title={r.cidade}>
+                                        <span className="admin-cell-text" style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem' }}>{r.cidade}</span>
+                                    </td>
+                                    <td className="col-status" title={r.status_atual}>
+                                        <span className={`${getStatusClass(r.status_atual)} admin-cell-text`} style={{ fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'currentColor', flexShrink: 0 }}></span>
                                             {r.status_atual}
                                         </span>
                                     </td>
-                                    <td className="admin-cell" data-label="Taxa">
+                                    <td className="col-taxa">
                                         {r.taxa_valor && r.taxa_pix
-                                            ? <span style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.15)', padding: '4px 10px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase' }}>PENDENTE</span>
-                                            : <span style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.15)', padding: '4px 10px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase' }}>PAGO</span>
+                                            ? <span style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.15)', padding: '2px 6px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase' }}>PENDENTE</span>
+                                            : <span style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.15)', padding: '2px 6px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase' }}>PAGO</span>
                                         }
                                     </td>
-                                    <td className="admin-cell" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 500 }} data-label="Última Atualização">{formatDate(r.data)}</td>
-                                    <td className="admin-cell" style={{ textAlign: 'right' }} data-label="Ações">
+                                    <td className="col-data" style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>{formatDate(r.data)}</td>
+                                    <td className="col-acoes">
                                         <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar Detalhes"><Eye size={14} /></button>
-                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link de Rastreio" style={{ color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={14} /></button>
-                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar Informações" style={{ color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={14} /></button>
-                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="Enviar WhatsApp" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={14} /></button>
-                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir Permanentemente" style={{ color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={14} /></button>
+                                            <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Visualizar" style={{ padding: '6px' }}><Eye size={12} /></button>
+                                            <button onClick={() => copyTrackingLink(r.codigo)} className="admin-action-btn" title="Copiar Link" style={{ padding: '6px', color: 'var(--accent-primary)', background: 'var(--accent-glow)' }}><Copy size={12} /></button>
+                                            <button onClick={() => abrirEdicao(r.codigo)} className="admin-action-btn" title="Editar" style={{ padding: '6px', color: 'var(--warning)', background: 'rgba(245,158,11,0.08)' }}><Edit size={12} /></button>
+                                            <button onClick={() => enviarWhatsapp(r.codigo)} className="admin-action-btn" title="WhatsApp" style={{ padding: '6px', color: 'var(--success)', background: 'rgba(16,185,129,0.08)' }}><MessageCircle size={12} /></button>
+                                            <button onClick={() => handleDelete(r.codigo)} className="admin-action-btn" title="Excluir" style={{ padding: '6px', color: 'var(--danger)', background: 'rgba(239,68,68,0.08)' }}><Trash2 size={12} /></button>
                                         </div>
                                     </td>
                                 </tr>
