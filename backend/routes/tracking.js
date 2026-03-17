@@ -5,7 +5,7 @@ const { getDB } = require('../db');
 // ===== TRACKING API =====
 
 // Listar todos (Admin)
-router.get('/admin/rastreios', async (req, res) => {
+router.get('/rastreios', async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
@@ -17,7 +17,7 @@ router.get('/admin/rastreios', async (req, res) => {
 });
 
 // Detalhes (Admin)
-router.get('/admin/rastreios/:codigo/detalhes', async (req, res) => {
+router.get('/rastreios/:codigo/detalhes', async (req, res) => {
     const db = getDB();
     const { codigo } = req.params;
     try {
@@ -45,7 +45,7 @@ router.get('/admin/rastreios/:codigo/detalhes', async (req, res) => {
 });
 
 // Criar
-router.post('/admin/rastreios', async (req, res) => {
+router.post('/rastreios', async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
@@ -62,22 +62,18 @@ router.post('/admin/rastreios', async (req, res) => {
 });
 
 // Atualizar
-router.put('/admin/rastreios/:codigo', async (req, res) => {
+router.put('/rastreios/:codigo', async (req, res) => {
     const db = getDB();
     const { codigo } = req.params;
     const { cidade, taxa_valor, taxa_pix, tipo_entrega, etapas } = req.body;
     try {
         if (!db) throw new Error('Banco de dados não disponível');
 
-        // Atualizar campos básicos em todas as entradas desse código
         await db.query(
             'UPDATE rastreios_status SET cidade = ?, taxa_valor = ?, taxa_pix = ?, tipo_entrega = ? WHERE codigo = ?',
             [cidade, taxa_valor, taxa_pix, tipo_entrega, codigo]
         );
 
-        // Se etapas foi enviado, sincronizar (simplificando: deletar antigas e reinserir preservando a data se possível ou apenas as que mudaram)
-        // Para este projeto, o usuário quer "gerenciar etapas" clicando nos botões.
-        // Vamos apenas garantir que se uma etapa não existe, ela seja criada.
         if (Array.isArray(etapas)) {
             const [existingRows] = await db.query('SELECT status_atual FROM rastreios_status WHERE codigo = ?', [codigo]);
             const existingStatuses = existingRows.map(r => r.status_atual);
@@ -90,7 +86,6 @@ router.put('/admin/rastreios/:codigo', async (req, res) => {
                     );
                 }
             }
-            // Opcional: remover etapas que foram desmarcadas (exceto a inicial se necessário)
             for (const oldStatus of existingStatuses) {
                 if (!etapas.includes(oldStatus)) {
                     await db.query('DELETE FROM rastreios_status WHERE codigo = ? AND status_atual = ?', [codigo, oldStatus]);
@@ -105,7 +100,7 @@ router.put('/admin/rastreios/:codigo', async (req, res) => {
 });
 
 // Deletar
-router.delete('/admin/rastreios/:codigo', async (req, res) => {
+router.delete('/rastreios/:codigo', async (req, res) => {
     const db = getDB();
     const { codigo } = req.params;
     try {
@@ -118,7 +113,7 @@ router.delete('/admin/rastreios/:codigo', async (req, res) => {
 });
 
 // Stats
-router.get('/admin/stats', async (req, res) => {
+router.get('/stats', async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
@@ -138,7 +133,7 @@ router.get('/admin/stats', async (req, res) => {
 });
 
 // Public Search (Home & Tracking) com Automação
-router.post(['/publico', '/consulta'], async (req, res) => {
+router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
@@ -156,12 +151,11 @@ router.post(['/publico', '/consulta'], async (req, res) => {
         }
 
         let packageData = rows[0];
-        const lastStatus = rows[rows.length - 1];
 
         // --- LÓGICA DE AUTOMAÇÃO DE ETAPAS ---
         const firstStageDate = new Date(rows[0].data);
         const now = new Date();
-        const diffDays = Math.floor((now - firstStageDate) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor((now.getTime() - firstStageDate.getTime()) / (1000 * 60 * 60 * 24));
         const city = packageData.cidade;
 
         const automationStages = [
@@ -179,8 +173,7 @@ router.post(['/publico', '/consulta'], async (req, res) => {
             }
         }
 
-        // Se for NORMAL e passaram 3 dias e não está pago -> Taxa no Dia 4 (ou 3.5...)
-        // Vamos usar 3 dias para aparecer a taxa logo.
+        // Se for NORMAL e passaram 3 dias e não está pago -> Taxa no Dia 4
         if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
             const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
             if (!rows.some(r => r.status_atual === taxaStatus)) {
@@ -194,7 +187,7 @@ router.post(['/publico', '/consulta'], async (req, res) => {
         // Recarregar rows se algo foi inserido
         const [updatedRows] = await db.query('SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC', [codigo]);
         const currentRows = updatedRows;
-        lastStatus = currentRows[currentRows.length - 1];
+        const lastStatus = currentRows[currentRows.length - 1];
         packageData = currentRows[0];
 
         const taxaRow = currentRows.find(r => r.taxa_valor && r.taxa_valor !== '0' && r.taxa_valor !== '0.00') || lastStatus;

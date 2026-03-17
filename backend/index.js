@@ -26,9 +26,9 @@ const pixRoutes = require('./routes/pix');
 const adminRoutes = require('./routes/admin');
 
 app.use('/api/auth', authRoutes);
-app.use('/api/tracking', trackingRoutes);
-app.use('/api/admin', adminRoutes); // Novas rotas de status/config
-app.use('/api/admin/rastreios', trackingRoutes); // Alias para legibilidade admin
+app.use('/api/admin', adminRoutes); // Status e Setup
+app.use('/api/admin', trackingRoutes); // Rastreios (Admin) e Stats
+app.use('/api', trackingRoutes); // Rastreio Público e Consultas
 app.use('/api/drivers', driverRoutes);
 app.use('/api/pix', pixRoutes);
 
@@ -43,9 +43,9 @@ app.use('/api/*', (req, res) => {
 });
 
 // Arquivos Estáticos (SPA)
-app.use(express.static(path.join(__dirname, '../dist')));
+app.use(express.static(path.join(__dirname, '../webapp/dist')));
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    res.sendFile(path.join(__dirname, '../webapp/dist/index.html'));
 });
 
 // Disponibilizar para o Bridge

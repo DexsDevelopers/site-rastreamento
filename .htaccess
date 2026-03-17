@@ -5,10 +5,15 @@ DirectoryIndex index.html index.php
   RewriteEngine On
   RewriteBase /
   
-  # Redirecionar chamadas antigas para as rotas novas se necessário
+  # NÃO redirecionar rotas de API ou Health Check (deixar chegar no Node.js)
+  RewriteCond %{REQUEST_URI} ^/api/ [OR]
+  RewriteCond %{REQUEST_URI} ^/health-check
+  RewriteRule ^ - [L]
+
+  # Redirecionar chamadas antigas para as rotas novas
   RewriteRule ^sobre\.php$ /#/sobre [R=301,L,NE]
   
-  # Se o arquivo não existe, manda pro index.html (SPA)
+  # Se o arquivo não existe e não é API, manda pro index.html (SPA)
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
