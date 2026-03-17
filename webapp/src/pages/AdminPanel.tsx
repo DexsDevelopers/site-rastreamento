@@ -573,7 +573,7 @@ const AdminPanel: React.FC = () => {
                 </div>
 
                 {/* TABLE */}
-                <div className="admin-table-container">
+                <div className="admin-table-wrapper">
                     <table className="admin-table">
                         <thead>
                             <tr style={{ background: 'rgba(0,85,255,0.02)', borderBottom: '1px solid rgba(0,80,200,0.06)' }}>
@@ -584,24 +584,23 @@ const AdminPanel: React.FC = () => {
                                         style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                                     />
                                 </th>
-                                <th className="col-codigo" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CÓDIGO</th>
-                                <th className="col-cidade" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>CIDADE</th>
+                                <th className="col-codigo" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>OBJETO & DATA</th>
+                                <th className="col-cidade" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>DESTINO</th>
                                 <th className="col-status-taxa" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>STATUS & COBRANÇA</th>
-                                <th className="col-data" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>DATA</th>
                                 <th className="col-acoes" style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>GESTÃO</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
+                                    <td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
                                         <div style={{ width: '24px', height: '24px', border: '3px solid rgba(0,85,255,0.2)', borderTop: '3px solid #0055ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
                                         <div>Carregando...</div>
                                     </td>
                                 </tr>
                             ) : filteredRastreios.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
+                                    <td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#555' }}>
                                         <Package size={32} style={{ marginBottom: '12px', opacity: 0.3 }} />
                                         <div>Nenhum rastreio</div>
                                     </td>
@@ -612,24 +611,26 @@ const AdminPanel: React.FC = () => {
                                         <input type="checkbox" checked={selected.has(r.codigo)} onChange={() => toggleSelect(r.codigo)}
                                             style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }} />
                                     </td>
-                                    <td className="col-codigo" style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.2px', fontSize: '0.8rem' }}>
-                                        {r.codigo}
+                                    <td className="col-codigo">
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.82rem' }}>{r.codigo}</span>
+                                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>{formatDate(r.data)}</span>
+                                        </div>
                                     </td>
                                     <td className="col-cidade" title={r.cidade}>
                                         <span className="admin-cell-text" style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.8rem' }}>{r.cidade}</span>
                                     </td>
                                     <td className="col-status-taxa">
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             <span className={`${getStatusClass(r.status_atual)} status-badge`}>
                                                 {r.status_atual}
                                             </span>
                                             {r.taxa_valor && r.taxa_pix
-                                                ? <span className="badge-taxa" style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.15)' }}>PENDENTE</span>
-                                                : <span className="badge-taxa" style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.15)' }}>PAGO</span>
+                                                ? <span className="badge-taxa" style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.15)', alignSelf: 'flex-start' }}>PENDENTE</span>
+                                                : <span className="badge-taxa" style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.15)', alignSelf: 'flex-start' }}>PAGO</span>
                                             }
                                         </div>
                                     </td>
-                                    <td className="col-data" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 500 }}>{formatDate(r.data)}</td>
                                     <td className="col-acoes">
                                         <div style={{ display: 'flex', gap: '3px', justifyContent: 'flex-end' }}>
                                             <button onClick={() => abrirDetalhes(r.codigo)} className="admin-action-btn" title="Ver"><Eye size={12} /></button>

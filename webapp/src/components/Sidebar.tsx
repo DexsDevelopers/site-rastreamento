@@ -1,13 +1,59 @@
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X } from 'lucide-react';
+import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobile?: () => void }) => {
+    const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1400);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 1400) setIsCollapsed(true);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const sidebarWidth = isCollapsed ? '80px' : '280px';
+
     return (
-        <aside style={styles.sidebar} className={`glass-panel admin-sidebar ${mobileOpen ? 'open' : ''}`}>
+        <aside
+            style={{ ...styles.sidebar, width: sidebarWidth }}
+            className={`glass-panel admin-sidebar ${mobileOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}
+        >
             <div style={styles.logoContainer}>
-                <h2 style={styles.logoClass}>
-                    <span className="text-gradient">Loggi</span> Admin
-                </h2>
+                {!isCollapsed && (
+                    <h2 style={styles.logoClass}>
+                        <span className="text-gradient">Loggi</span> Admin
+                    </h2>
+                )}
+                {isCollapsed && (
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                        <span style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--accent-primary)' }}>L</span>
+                    </div>
+                )}
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="sidebar-toggle-btn"
+                    style={{
+                        position: 'absolute',
+                        right: '-12px',
+                        top: '32px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#fff',
+                        border: '1px solid var(--border-glass-strong)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        zIndex: 100,
+                        boxShadow: 'var(--shadow-sm)',
+                        color: 'var(--text-secondary)'
+                    }}
+                >
+                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                </button>
                 {closeMobile && (
                     <button className="mobile-close-btn" onClick={closeMobile} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', padding: '4px' }}>
                         <X size={24} />
@@ -16,52 +62,52 @@ const Sidebar = ({ mobileOpen, closeMobile }: { mobileOpen?: boolean; closeMobil
             </div>
 
             <nav style={styles.nav}>
-                <NavLink onClick={closeMobile} to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Dashboard" to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Home size={20} />
-                    <span>Dashboard</span>
+                    {!isCollapsed && <span>Dashboard</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Status DB" to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Database size={20} />
-                    <span>Status DB</span>
+                    {!isCollapsed && <span>Status DB</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Rastreios" to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package2 size={20} />
-                    <span>Rastreios</span>
+                    {!isCollapsed && <span>Rastreios</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Pedidos" to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Package size={20} />
-                    <span>Pedidos</span>
+                    {!isCollapsed && <span>Pedidos</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/clientes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Clientes" to="/clientes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Users size={20} />
-                    <span>Clientes</span>
+                    {!isCollapsed && <span>Clientes</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/entregadores" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Entregadores" to="/entregadores" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Users size={20} />
-                    <span>Entregadores</span>
+                    {!isCollapsed && <span>Entregadores</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Bot WhatsApp" to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Smartphone size={20} />
-                    <span>Bot WhatsApp</span>
+                    {!isCollapsed && <span>Bot WhatsApp</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Modelos" to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <MessageSquare size={20} />
-                    <span>Modelos de Mensagens</span>
+                    {!isCollapsed && <span>Modelos</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Relatórios" to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <BarChart3 size={20} />
-                    <span>Relatórios</span>
+                    {!isCollapsed && <span>Relatórios</span>}
                 </NavLink>
-                <NavLink onClick={closeMobile} to="/configuracoes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
+                <NavLink onClick={closeMobile} title="Configurações" to="/configuracoes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
                     <Settings size={20} />
-                    <span>Configurações</span>
+                    {!isCollapsed && <span>Configurações</span>}
                 </NavLink>
             </nav>
 
             <div style={styles.footer}>
-                <button style={styles.logoutBtn}>
+                <button style={styles.logoutBtn} title="Sair">
                     <LogOut size={20} />
-                    <span>Sair do Sistema</span>
+                    {!isCollapsed && <span>Sair do Sistema</span>}
                 </button>
             </div>
         </aside>
@@ -80,7 +126,9 @@ const styles = {
         background: 'rgba(255, 255, 255, 0.75)',
         backdropFilter: 'blur(24px)',
         borderRadius: 'var(--radius-lg)',
-        boxShadow: '0 8px 32px rgba(0,40,120,0.08)'
+        boxShadow: '0 8px 32px rgba(0,40,120,0.08)',
+        transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        position: 'relative' as const,
     },
     logoContainer: {
         padding: '24px 20px',
@@ -111,6 +159,8 @@ const styles = {
         fontWeight: 500,
         fontSize: '0.95rem',
         borderLeft: '3px solid transparent',
+        justifyContent: 'center' as const,
+        minHeight: '44px',
     },
     linkActive: {
         background: 'linear-gradient(90deg, rgba(0, 85, 255, 0.08) 0%, transparent 100%)',
