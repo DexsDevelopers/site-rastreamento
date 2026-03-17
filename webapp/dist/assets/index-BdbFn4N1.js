@@ -2071,7 +2071,7 @@ Please change the parent <Route path="${w}"> to <Route path="${w==="/"?"*":`${w}
             gap: 16px;
         }
             
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .responsive-grid {
                 grid-template-columns: 1fr;
             }
