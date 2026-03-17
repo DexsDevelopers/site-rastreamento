@@ -7,11 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="google" content="notranslate" />
   <title>LOGGI</title>
-  <base href="/" />
 </head>
 
 <body>
   <div id="root"></div>
+  <script type="text/javascript">
+    (function () {
+      var path = window.location.pathname;
+      if (path && path !== '/' && window.location.hash === '') {
+        window.location.replace('/#' + path + window.location.search);
+      }
+    })();
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

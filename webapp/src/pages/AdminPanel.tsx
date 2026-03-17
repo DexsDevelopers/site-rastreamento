@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+axios.defaults.baseURL = API_BASE;
+
 // Componentes Modulares
 import AdminHeader from '../components/admin/AdminHeader';
 import TrackingFilters from '../components/admin/TrackingFilters';
@@ -83,10 +86,21 @@ const AdminPanel: React.FC = () => {
                 axios.get('/api/admin/rastreios'),
                 axios.get('/api/admin/stats'),
             ]);
-            setRastreios(ordersRes.data);
-            setStats(statsRes.data);
+
+            if (Array.isArray(ordersRes.data)) {
+                setRastreios(ordersRes.data);
+            } else {
+                console.error('Rastreios response is not an array:', ordersRes.data);
+                setRastreios([]);
+            }
+
+            if (statsRes.data && typeof statsRes.data === 'object' && 'total' in statsRes.data) {
+                setStats(statsRes.data);
+            } else {
+                console.error('Stats response is malformed:', statsRes.data);
+            }
         } catch (err) {
-            console.error('Fetch error');
+            console.error('Fetch error:', err);
         } finally {
             setIsSyncing(false);
         }

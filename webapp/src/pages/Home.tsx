@@ -836,12 +836,12 @@ const Home: React.FC = () => {
                         )}
                         <div className="status-header">
                             <div className="status-icon-box" style={{ background: 'rgba(0, 85, 255, 0.06)', border: '1px solid rgba(0, 85, 255, 0.1)' }}>
-                                {getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}
+                                {getStatusIcon(trackResult.etapas?.[trackResult.etapas?.length - 1]?.status_atual || '')}
                             </div>
                             <div>
                                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0055ff', letterSpacing: '1px', marginBottom: '-2px' }}>{trackResult.codigo}</div>
                                 <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    {trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}
+                                    {trackResult.etapas?.[trackResult.etapas?.length - 1]?.status_atual || 'Em processamento'}
                                     {trackResult.taxa_valor && (
                                         <span className="tax-badge" style={{
                                             background: '#ef4444',
@@ -863,8 +863,8 @@ const Home: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            {trackResult.etapas.map((etapa: any, i: number) => {
-                                const isLast = i === trackResult.etapas.length - 1;
+                            {(trackResult.etapas || []).map((etapa: any, i: number) => {
+                                const isLast = i === (trackResult.etapas?.length || 0) - 1;
                                 return (
                                     <div key={i} className="tl-item">
                                         <div className="tl-marker">
