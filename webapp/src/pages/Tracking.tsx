@@ -35,23 +35,33 @@ const TrackingPage: React.FC = () => {
             .catch(() => setUseRandomCents(true));
     }, []);
 
+    const [isConfirmingTax, setIsConfirmingTax] = useState(false);
+
     // Polling de pagamento PIX (Taxa)
     useEffect(() => {
         let interval: any;
-        if (showTaxModal && taxPixData && !taxPixPaid) {
+        if (showTaxModal && taxPixData && !taxPixPaid && !isConfirmingTax) {
             interval = setInterval(async () => {
                 try {
                     const res = await fetch(`${API_BASE}/api/pix/status/${taxPixData.id || taxPixData.payment_id}?codigo=${trackingData?.codigo || ''}`);
                     const data = await res.json();
                     if (data.success && (data.status === 'PAID' || data.status === 'CONFIRMED' || data.data?.status === 'PAID' || data.data?.status === 'completed')) {
-                        setTaxPixPaid(true);
+                        setIsConfirmingTax(true);
+                        // Delay fake de processamento (2-5s) solicitado pelo usuário
+                        const delay = Math.floor(Math.random() * 3000) + 2000;
+                        setTimeout(() => {
+                            setTaxPixPaid(true);
+                            setIsConfirmingTax(false);
+                            // Atualizar dados locais para refletir "Pago"
+                            setTrackingData((prev: any) => ({ ...prev, status: 'Pago', taxa_valor: null }));
+                        }, delay);
                         clearInterval(interval);
                     }
                 } catch (e) { }
             }, 5000);
         }
         return () => clearInterval(interval);
-    }, [taxPixData, taxPixPaid]);
+    }, [showTaxModal, taxPixData, taxPixPaid, isConfirmingTax, trackingData]);
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
