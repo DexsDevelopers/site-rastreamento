@@ -61,24 +61,32 @@ async function runMigrations() {
 }
 
 async function connectDB() {
-    try {
-        console.log(`Conectando ao banco de dados: ${process.env.DB_HOST} | User: ${process.env.DB_USER} | DB: ${process.env.DB_NAME}`);
-        db = await mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-            timezone: 'Z'
-        });
+    const hosts = [process.env.DB_HOST || 'localhost', '127.0.0.1'];
+    let lastError;
 
-        console.log('✅ Banco de dados conectado!');
-        await runMigrations();
-        return db;
-    } catch (error) {
-        console.error('❌ Erro ao conectar ao banco:', error.message);
-        // Tenta reconectar em 5 segundos se falhar
-        setTimeout(connectDB, 5000);
+    for (const host of hosts) {
+        try {
+            console.log(`Tentando conexão: ${host} | User: ${process.env.DB_USER} | DB: ${process.env.DB_NAME}`);
+            db = await mysql.createConnection({
+                host: host,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_NAME,
+                timezone: 'Z'
+            });
+
+            console.log(`✅ Banco de dados conectado via ${host}!`);
+            await runMigrations();
+            return db;
+        } catch (error) {
+            console.warn(`⚠️ Falha ao conectar em ${host}:`, error.message);
+            lastError = error;
+        }
     }
+
+    console.error('❌ Erro fatal ao conectar ao banco em todos os hosts:', lastError.message);
+    // Tenta reconectar em 10 segundos se falhar completamente
+    setTimeout(connectDB, 10000);
 }
 
 module.exports = {

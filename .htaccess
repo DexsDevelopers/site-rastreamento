@@ -5,9 +5,12 @@ DirectoryIndex index.html index.php
   RewriteEngine On
   RewriteBase /
   
-  # NÃO redirecionar rotas de API ou Health Check (deixar chegar no Node.js)
+  # NÃO redirecionar rotas de API ou Health Check (deixar chegar no Node.js se estiver rodando)
   RewriteCond %{REQUEST_URI} ^/api/ [OR]
   RewriteCond %{REQUEST_URI} ^/health-check
+  # Se o Node.js estiver rodando em uma porta interna no Hostinger (ex: 3000), 
+  # você pode precisar de um Proxy (P flag) ou apenas continuar se o Hostinger mapear direto.
+  # Por enquanto, mantemos [L] mas garantimos que não caia no SPA caso falhe.
   RewriteRule ^ - [L]
 
   # Redirecionar chamadas antigas para as rotas novas
@@ -16,6 +19,7 @@ DirectoryIndex index.html index.php
   # Se o arquivo não existe e não é API, manda pro index.html (SPA)
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !^/api/
   RewriteRule . /index.html [L]
 </IfModule>
 

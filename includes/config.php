@@ -11,7 +11,8 @@ define('MAX_LOGIN_ATTEMPTS', 5);
 define('LOGIN_LOCKOUT_TIME', 900); // 15 minutos
 
 // Configurações do banco de dados
-define('DB_HOST', 'localhost');
+// No Hostinger, tente 'localhost' ou '127.0.0.1' se um falhar
+define('DB_HOST', 'localhost'); 
 define('DB_NAME', 'u853242961_rastreio');
 define('DB_USER', 'u853242961_johan71');
 define('DB_PASS', 'Lucastav8012@');
