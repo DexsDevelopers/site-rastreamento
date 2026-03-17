@@ -25,7 +25,9 @@ async function runMigrations() {
                 taxa_valor DECIMAL(10,2),
                 taxa_pix TEXT,
                 data_entrega_prevista VARCHAR(100),
-                prioridade INT DEFAULT 0
+                prioridade INT DEFAULT 0,
+                tipo_entrega ENUM('NORMAL', 'EXPRESS') DEFAULT 'NORMAL',
+                taxa_paga BOOLEAN DEFAULT FALSE
             )
         `);
 

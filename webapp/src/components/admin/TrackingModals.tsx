@@ -132,6 +132,20 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             font-weight: 700;
             color: #f8fafc;
         }
+        .btn-toggle-saas {
+            flex: 1; padding: 10px; border-radius: 8px; fontSize: 0.8rem; fontWeight: 700;
+            cursor: pointer; transition: all 0.2s; border: 1px solid;
+            text-align: center;
+        }
+        .btn-toggle-saas.active {
+            background: #2563EB; border-color: #3b82f6; color: #fff;
+        }
+        .btn-toggle-saas.inactive {
+            background: #111827; border-color: rgba(255,255,255,0.05); color: #94a3b8;
+        }
+        .btn-toggle-edit.active {
+            background: #F59E0B; border-color: #fbbf24; color: #fff;
+        }
     `;
 
     return (
@@ -157,10 +171,16 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                     </div>
 
                     <div className="saas-field">
-                        <label className="saas-label">Data e Hora da Postagem</label>
-                        <input type="datetime-local" className="saas-input" required
-                            value={novoForm.data_inicial}
-                            onChange={e => setNovoForm((p: any) => ({ ...p, data_inicial: e.target.value }))} />
+                        <label className="saas-label">Tipo de Entrega</label>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            {['NORMAL', 'EXPRESS'].map(t => (
+                                <button key={t} type="button"
+                                    onClick={() => setNovoForm((p: any) => ({ ...p, tipo_entrega: t }))}
+                                    className={`btn-toggle-saas ${novoForm.tipo_entrega === t ? 'active' : 'inactive'}`}>
+                                    {t === 'NORMAL' ? 'Standard (5 dias)' : 'Express (3 dias)'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -189,6 +209,11 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             <Modal open={modalEdit} onClose={() => setModalEdit(false)} title="Editar Rastreio" icon={<Edit size={20} color="#F59E0B" />}>
                 {editData && (
                     <form onSubmit={handleEdit} className="saas-form">
+                        <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.2)', marginBottom: '4px' }}>
+                            <span className="saas-label" style={{ color: '#60a5fa' }}>Código do Objeto</span>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace' }}>{editData.codigo}</div>
+                        </div>
+
                         <div className="saas-field">
                             <label className="saas-label">Cidade de Destino</label>
                             <input className="saas-input" required value={editData.cidade}
@@ -196,16 +221,66 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                         </div>
 
                         <div className="saas-field">
-                            <label className="saas-label">Valor da Taxa (R$)</label>
-                            <input className="saas-input" type="number" step="0.01"
-                                value={editData.taxa_valor || ''}
-                                onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_valor: e.target.value }) : p)} />
+                            <label className="saas-label">Tipo de Entrega</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                {['NORMAL', 'EXPRESS'].map(t => (
+                                    <button key={t} type="button"
+                                        onClick={() => setEditData((p: any) => ({ ...p, tipo_entrega: t }))}
+                                        className={`btn-toggle-saas ${editData.tipo_entrega === t ? 'active btn-toggle-edit' : 'inactive'}`}>
+                                        {t === 'NORMAL' ? 'Standard (5 dias)' : 'Express (3 dias)'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div className="saas-field">
+                                <label className="saas-label">Valor da Taxa (R$)</label>
+                                <input className="saas-input" type="number" step="0.01"
+                                    value={editData.taxa_valor || ''}
+                                    onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_valor: e.target.value }) : p)} />
+                            </div>
+
+                            <div className="saas-field">
+                                <label className="saas-label">Chave PIX</label>
+                                <input className="saas-input" value={editData.taxa_pix || ''}
+                                    onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_pix: e.target.value }) : p)} />
+                            </div>
                         </div>
 
                         <div className="saas-field">
-                            <label className="saas-label">Chave PIX</label>
-                            <input className="saas-input" value={editData.taxa_pix || ''}
-                                onChange={e => setEditData((p: any) => p ? ({ ...p, taxa_pix: e.target.value }) : p)} />
+                            <label className="saas-label">Gerenciar Etapas</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                {Object.entries(ETAPAS_MAP).map(([key, label]) => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => {
+                                            const jaTem = editData.etapas.includes(label);
+                                            const novas = jaTem
+                                                ? editData.etapas.filter((x: string) => x !== label)
+                                                : [...editData.etapas, label];
+                                            setEditData((p: any) => ({ ...p, etapas: novas }));
+                                        }}
+                                        style={{
+                                            padding: '10px',
+                                            borderRadius: '8px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 600,
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            background: editData.etapas.includes(label) ? '#2563EB' : '#111827',
+                                            border: '1px solid',
+                                            borderColor: editData.etapas.includes(label) ? '#3b82f6' : 'rgba(255,255,255,0.05)',
+                                            color: editData.etapas.includes(label) ? '#fff' : '#94a3b8'
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                            <small style={{ color: '#64748b', marginTop: '4px' }}>Clique para ativar/desativar as etapas que o cliente verá.</small>
                         </div>
 
                         <div className="saas-actions">
@@ -230,6 +305,10 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                             <div className="info-card">
                                 <span className="info-label">Cidade de Destino</span>
                                 <span className="info-value">{detailsData.cidade}</span>
+                            </div>
+                            <div className="info-card">
+                                <span className="info-label">Modalidade de Entrega</span>
+                                <span className="info-value">{detailsData.tipo_entrega === 'EXPRESS' ? '🚀 Express (3 dias)' : '📦 Standard (5 dias)'}</span>
                             </div>
                             {Number(detailsData.taxa_valor) > 0 && (
                                 <div className="info-card">

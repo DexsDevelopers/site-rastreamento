@@ -21,15 +21,6 @@ interface Rastreio {
     taxa_pix: string | null;
 }
 
-interface RastreioDetalhes {
-    codigo: string;
-    cidade: string;
-    data_inicial: string;
-    taxa_valor: string | null;
-    taxa_pix: string | null;
-    etapas: string[];
-}
-
 interface Stats {
     total: number;
     entregues: number;
@@ -59,11 +50,31 @@ const AdminPanel: React.FC = () => {
     const [novoForm, setNovoForm] = useState({
         codigo: '', cidade: '', data_inicial: new Date().toISOString().slice(0, 16),
         taxa_valor: '', taxa_pix: '', cliente_nome: '', cliente_whatsapp: '', cliente_notificar: true,
+        tipo_entrega: 'NORMAL',
         etapas: { postado: true }
     });
 
-    const [editData, setEditData] = useState<RastreioDetalhes | null>(null);
-    const [detailsData, setDetailsData] = useState<RastreioDetalhes | null>(null);
+    const [editData, setEditData] = useState<any>(null);
+    const [detailsData, setDetailsData] = useState<any>(null);
+
+    const handleEditDetails = async (codigo: string) => {
+        try {
+            const res = await axios.get(`/api/admin/rastreios/${codigo}/detalhes`);
+            const d = res.data;
+            setEditData({
+                codigo: d.codigo,
+                cidade: d.cidade,
+                data_inicial: d.data_inicial,
+                taxa_valor: d.taxa_valor ? String(d.taxa_valor) : null,
+                taxa_pix: d.taxa_pix,
+                tipo_entrega: d.tipo_entrega || 'NORMAL',
+                etapas: Array.isArray(d.etapas) ? d.etapas : []
+            });
+            setModalEdit(true);
+        } catch (err) {
+            alert('Erro ao carregar detalhes para edição');
+        }
+    };
 
     const fetchData = useCallback(async (silent = false) => {
         if (!silent) setIsSyncing(true);
@@ -106,6 +117,7 @@ const AdminPanel: React.FC = () => {
             setNovoForm({
                 codigo: '', cidade: '', data_inicial: new Date().toISOString().slice(0, 16),
                 taxa_valor: '', taxa_pix: '', cliente_nome: '', cliente_whatsapp: '', cliente_notificar: true,
+                tipo_entrega: 'NORMAL',
                 etapas: { postado: true }
             });
         } catch (err) {
@@ -137,11 +149,11 @@ const AdminPanel: React.FC = () => {
 
     const handleView = async (codigo: string) => {
         try {
-            const res = await axios.get(`/api/admin/rastreios/${codigo}`);
+            const res = await axios.get(`/api/admin/rastreios/${codigo}/detalhes`);
             setDetailsData(res.data);
             setModalDetails(true);
         } catch (err) {
-            alert('Erro ao carregar');
+            alert('Erro ao carregar detalhes');
         }
     };
 
@@ -272,17 +284,7 @@ const AdminPanel: React.FC = () => {
                             navigator.clipboard.writeText(`${window.location.origin}/rastreio/${c}`);
                             alert('🔗 Link de rastreio copiado!');
                         }}
-                        onEdit={(codigo) => {
-                            const r = rastreios.find(x => x.codigo === codigo);
-                            if (r) {
-                                setEditData({
-                                    codigo: r.codigo, cidade: r.cidade, data_inicial: r.data,
-                                    taxa_valor: r.taxa_valor ? String(r.taxa_valor) : null,
-                                    taxa_pix: r.taxa_pix, etapas: []
-                                });
-                                setModalEdit(true);
-                            }
-                        }}
+                        onEdit={handleEditDetails}
                         onNotify={(c) => window.open(`https://wa.me/?text=Seu projeto foi atualizado! ${c}`)}
                         onDelete={handleDelete}
                     />
@@ -296,7 +298,10 @@ const AdminPanel: React.FC = () => {
                     editData={editData} setEditData={setEditData} handleEdit={handleEdit}
                     detailsData={detailsData}
                     enviarWhatsapp={(c) => window.open(`https://wa.me/?text=Status do Pedido: ${c}`)}
-                    abrirEdicao={(c) => { setModalDetails(false); }}
+                    abrirEdicao={(codigo) => {
+                        setModalDetails(false);
+                        handleEditDetails(codigo);
+                    }}
                     ETAPAS_MAP={ETAPAS_MAP}
                 />
             </div>

@@ -839,6 +839,7 @@ const Home: React.FC = () => {
                                 {getStatusIcon(trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || '')}
                             </div>
                             <div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0055ff', letterSpacing: '1px', marginBottom: '-2px' }}>{trackResult.codigo}</div>
                                 <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     {trackResult.etapas[trackResult.etapas.length - 1]?.status_atual || 'Em processamento'}
                                     {trackResult.taxa_valor && (

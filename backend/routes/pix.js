@@ -53,27 +53,29 @@ router.get('/status/:id', async (req, res) => {
             );
 
             if (existing.length === 0) {
-                const [rows] = await db.query("SELECT cidade FROM rastreios_status WHERE codigo = ? LIMIT 1", [cleanCodigo]);
+                const [rows] = await db.query("SELECT cidade, tipo_entrega FROM rastreios_status WHERE codigo = ? LIMIT 1", [cleanCodigo]);
                 const cidade = rows.length > 0 ? rows[0].cidade : 'Centro de Distribuição';
+                const tipoEntrega = rows.length > 0 ? rows[0].tipo_entrega : 'NORMAL';
 
                 await db.query(
-                    "UPDATE rastreios_status SET taxa_valor = NULL, taxa_pix = NULL WHERE codigo = ?",
+                    "UPDATE rastreios_status SET taxa_valor = NULL, taxa_pix = NULL, taxa_paga = TRUE WHERE codigo = ?",
                     [cleanCodigo]
                 );
 
                 await db.query(
-                    "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor) VALUES (?, ?, ?, ?, ?, NOW(), ?)",
+                    "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor, tipo_entrega, taxa_paga) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, TRUE)",
                     [
                         cleanCodigo,
                         cidade,
-                        '✅ Pagamento Confirmado',
-                        '✅ Pagamento Confirmado',
-                        'A taxa foi processada com sucesso. Seu pacote seguirá para a próxima etapa de entrega.',
-                        '#16A34A'
+                        '🚀 Objeto saiu para entrega',
+                        '🚀 Objeto saiu para entrega',
+                        'Pagamento confirmado! Seu pacote já foi liberado e está em rota de entrega para sua residência.',
+                        '#2563EB',
+                        tipoEntrega
                     ]
                 );
 
-                console.log(`[AUTO-UPDATE] Pagamento confirmado para o código: ${cleanCodigo}`);
+                console.log(`[AUTO-UPDATE] Pagamento confirmado e status atualizado para: ${cleanCodigo}`);
             }
         }
 

@@ -135,30 +135,37 @@ const TrackingPage: React.FC = () => {
                     'entregue': <CheckCircle2 size={20} />
                 };
 
+                // Cálculo de previsão dinâmica
+                const postagemDate = new Date(data.etapas[0].data);
+                const diasAdd = data.tipo_entrega === 'EXPRESS' ? 3 : 5;
+                const previsaoDate = new Date(postagemDate);
+                previsaoDate.setDate(previsaoDate.getDate() + diasAdd);
+
                 const mappedData = {
                     codigo: data.codigo,
-                    status: data.statusAtual || 'Pendente',
-                    previsao: 'Em breve',
+                    status: data.status_atual || 'Pendente',
+                    tipo_entrega: data.tipo_entrega || 'NORMAL',
+                    previsao: previsaoDate.toLocaleDateString('pt-BR'),
                     eventos: ([...data.etapas].reverse()).map((e: any, i: number) => {
                         // Tentar encontrar o melhor ícone baseado no título ou slug
                         let icon = <Package size={20} />;
-                        const titleLower = (e.titulo || '').toLowerCase();
+                        const titleLower = (e.titulo || e.status_atual || '').toLowerCase();
                         if (titleLower.includes('postado')) icon = statusMap['postado'];
-                        else if (titleLower.includes('transito')) icon = statusMap['transito'];
+                        else if (titleLower.includes('transito') || titleLower.includes('trânsito')) icon = statusMap['transito'];
                         else if (titleLower.includes('distribuição') || titleLower.includes('distribuicao') || titleLower.includes('centro')) icon = statusMap['distribuicao'];
                         else if (titleLower.includes('saiu') || titleLower.includes('rota')) icon = statusMap['entrega'];
                         else if (titleLower.includes('entregue')) icon = statusMap['entregue'];
 
                         return {
                             id: i,
-                            status: e.titulo,
+                            status: e.titulo || e.status_atual,
                             local: data.cidade,
                             data: new Date(e.data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                            detalhes: e.subtitulo || e.titulo,
+                            detalhes: e.subtitulo || e.titulo || e.status_atual,
                             icon: icon
                         };
                     }),
-                    etapaAtual: data.etapas.length,
+                    etapaAtual: data.etapas.length > 4 ? 4 : data.etapas.length,
                     taxa_valor: data.taxa_valor,
                     taxa_pix: data.taxa_pix
                 };
