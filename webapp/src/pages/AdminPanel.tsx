@@ -192,7 +192,9 @@ const AdminPanel: React.FC = () => {
                 }
 
                 .admin-layout {
-                    padding: 40px 20px;
+                    margin: -20px;
+                    padding: clamp(24px, 4vw, 40px) clamp(16px, 3vw, 32px);
+                    min-height: calc(100vh - 64px);
                     background-image: 
                         radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.03) 0%, transparent 40%),
                         radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);

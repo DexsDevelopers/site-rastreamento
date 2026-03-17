@@ -508,10 +508,12 @@ const styles = `
         border-color: rgba(255,255,255,0.1) transparent transparent transparent;
     }
 
-    .tl-tooltip-wrap:hover .tl-tooltip {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(-4px);
+    @media (hover: hover) and (pointer: fine) {
+        .tl-tooltip-wrap:hover .tl-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+        }
     }
 
     /* Empty State */
@@ -567,15 +569,16 @@ const styles = `
     @media (max-width: 960px) {
         .tl-header { display: none; }
         .tl-container { background: transparent; border: none; box-shadow: none; border-radius: 0; }
+        .tl-tooltip { display: none !important; }
         
         .tl-row {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding: 20px;
+            padding: 16px;
             margin-bottom: 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
