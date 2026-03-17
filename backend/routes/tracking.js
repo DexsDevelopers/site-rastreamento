@@ -10,12 +10,21 @@ router.get('/config/centavos', (req, res) => {
 
 // ===== TRACKING API =====
 
-// Listar todos (Admin)
+// Listar todos (Admin) - Apenas o status mais recente de cada código único
 router.get('/rastreios', async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const [rows] = await db.query('SELECT * FROM rastreios_status ORDER BY data DESC');
+        const [rows] = await db.query(`
+            SELECT t1.* 
+            FROM rastreios_status t1
+            INNER JOIN (
+                SELECT codigo, MAX(id) as max_id 
+                FROM rastreios_status 
+                GROUP BY codigo
+            ) t2 ON t1.id = t2.max_id
+            ORDER BY t1.data DESC
+        `);
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });

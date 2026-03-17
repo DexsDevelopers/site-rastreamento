@@ -286,7 +286,7 @@ const AdminPanel: React.FC = () => {
                     search={searchTerm} setSearch={setSearchTerm}
                     activeTab={filterType} setActiveTab={setFilterType}
                     tabs={[
-                        { id: 'all', label: 'Todos', count: rastreios.length },
+                        { id: 'all', label: 'Todos', count: stats.total },
                         { id: 'com_taxa', label: 'Pendentes', count: stats.com_taxa },
                         { id: 'entregues', label: 'Finalizados', count: stats.entregues }
                     ]}
