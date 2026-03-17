@@ -37,6 +37,11 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date() });
 });
 
+// Fallback para API inexistente
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: `Rota de API não encontrada: ${req.originalUrl}` });
+});
+
 // Arquivos Estáticos (SPA)
 app.use(express.static(path.join(__dirname, '../dist')));
 app.get('*', (req, res) => {

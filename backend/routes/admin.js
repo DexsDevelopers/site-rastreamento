@@ -26,7 +26,7 @@ router.get('/db-health', async (req, res) => {
             const exists = tableNames.includes(name);
             let count = 0;
             if (exists) {
-                const [rows] = await db.query(`SELECT COUNT(*) as count FROM ${name}`);
+                const [rows] = await db.query(`SELECT COUNT(*) as count FROM \`${name}\``);
                 count = rows[0].count;
             }
             return { name, exists, count };

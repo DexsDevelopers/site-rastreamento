@@ -62,7 +62,7 @@ async function runMigrations() {
 
 async function connectDB() {
     try {
-        console.log('Conectando ao banco de dados...');
+        console.log(`Conectando ao banco de dados: ${process.env.DB_HOST} | User: ${process.env.DB_USER} | DB: ${process.env.DB_NAME}`);
         db = await mysql.createConnection({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
