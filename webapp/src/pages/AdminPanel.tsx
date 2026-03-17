@@ -305,22 +305,22 @@ const AdminPanel: React.FC = () => {
                         onDelete={handleDelete}
                     />
                 </div>
-
-                <TrackingModals
-                    modalAdd={modalAdd} setModalAdd={setModalAdd}
-                    modalEdit={modalEdit} setModalEdit={setModalEdit}
-                    modalDetails={modalDetails} setModalDetails={setModalDetails}
-                    novoForm={novoForm} setNovoForm={setNovoForm} handleAdd={handleAdd}
-                    editData={editData} setEditData={setEditData} handleEdit={handleEdit}
-                    detailsData={detailsData}
-                    enviarWhatsapp={(c) => window.open(`https://wa.me/?text=Status do Pedido: ${c}`)}
-                    abrirEdicao={(codigo) => {
-                        setModalDetails(false);
-                        handleEditDetails(codigo);
-                    }}
-                    ETAPAS_MAP={ETAPAS_MAP}
-                />
             </div>
+
+            <TrackingModals
+                modalAdd={modalAdd} setModalAdd={setModalAdd}
+                modalEdit={modalEdit} setModalEdit={setModalEdit}
+                modalDetails={modalDetails} setModalDetails={setModalDetails}
+                novoForm={novoForm} setNovoForm={setNovoForm} handleAdd={handleAdd}
+                editData={editData} setEditData={setEditData} handleEdit={handleEdit}
+                detailsData={detailsData}
+                enviarWhatsapp={(c) => window.open(`https://wa.me/?text=Status do Pedido: ${c}`)}
+                abrirEdicao={(codigo) => {
+                    setModalDetails(false);
+                    handleEditDetails(codigo);
+                }}
+                ETAPAS_MAP={ETAPAS_MAP}
+            />
         </div>
     );
 };
