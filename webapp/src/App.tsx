@@ -45,6 +45,7 @@ function App() {
         <Route path="/entrar" element={<LoginCliente />} />
         <Route path="/login" element={<Login />} />
         <Route path="/rastreio" element={<Tracking />} />
+        <Route path="/rastreio/:codigo" element={<Tracking />} />
         <Route path="/sobre" element={<About />} />
         <Route path="/pedido" element={<Pedido />} />
         <Route path="/para-voce" element={<ParaVoce />} />
