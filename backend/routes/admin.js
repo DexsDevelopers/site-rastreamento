@@ -200,4 +200,31 @@ router.put('/whatsapp-templates', async (req, res) => {
     }
 });
 
+// Criar novo pedido (chamado pelo frontend React em /api/pedidos)
+router.post('/pedidos', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const { nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes } = req.body;
+
+        // Validação básica
+        if (!nome || !cpf || !telefone || !cep || !estado || !cidade || !bairro || !rua || !numero) {
+            return res.status(400).json({ success: false, message: 'Dados obrigatórios faltando' });
+        }
+
+        const [result] = await db.query(
+            `INSERT INTO pedidos 
+            (nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')`,
+            [nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes]
+        );
+
+        res.json({ success: true, message: 'Pedido enviado com sucesso!', id: result.insertId });
+    } catch (error) {
+        console.error('[ERRO CRIAR PEDIDO]', error.message);
+        res.status(500).json({ success: false, message: 'Erro interno ao processar pedido' });
+    }
+});
+
 module.exports = router;
+
