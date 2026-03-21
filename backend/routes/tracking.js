@@ -51,29 +51,31 @@ async function processAutomation(codigo, db) {
     if (packageData.tipo_entrega === 'NORMAL' && diffDays >= 3 && !packageData.taxa_paga) {
         const taxaStatus = '⚠️ Objeto retido - Aguardando regularização fiscal';
         if (!rows.some(r => r.status_atual === taxaStatus)) {
-            console.log('[AUTOMATION] Condição de taxa atingida. Verificando PixGo...');
+            console.log('[AUTOMATION] Condição de taxa atingida. Verificando PixGhost...');
 
             let taxaPixEmv = packageData.taxa_pix || null;
 
             if (!taxaPixEmv) {
                 try {
-                    const pixRes = await axios.post('https://pixgo.org/api/v1/payment/create', {
-                        amount: 29.90,
-                        description: `Taxa da Alfândega - ${codigo}`
+                    const PIXGHOST_URL = process.env.PIXGHOST_API_URL || 'https://pixghost.site/api.php';
+                    const PIXGHOST_KEY = process.env.PIXGHOST_API_KEY || '';
+
+                    const pixRes = await axios.post(PIXGHOST_URL, {
+                        amount: 29.90
                     }, {
                         headers: {
-                            'x-api-key': 'pk_9073c62f8b397edc81e80d8675f6a6459916140064fbb2f3d653ba5b09dc9e3d',
+                            'Authorization': `Bearer ${PIXGHOST_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 5000
+                        timeout: 10000
                     });
 
-                    if (pixRes.data && pixRes.data.success && pixRes.data.emv) {
-                        taxaPixEmv = pixRes.data.emv;
-                        console.log(`[PIXGO AUTO] Pix gerado para ${codigo}`);
+                    if (pixRes.data && pixRes.data.success && (pixRes.data.pix_code || pixRes.data.qr_code)) {
+                        taxaPixEmv = pixRes.data.pix_code || pixRes.data.qr_code || pixRes.data.emv;
+                        console.log(`[PIXGHOST AUTO] Pix gerado para ${codigo}`);
                     }
                 } catch (pixErr) {
-                    console.error('[PIXGO AUTO ERROR]', pixErr.response?.data || pixErr.message);
+                    console.error('[PIXGHOST AUTO ERROR]', pixErr.response?.data || pixErr.message);
                 }
             }
 

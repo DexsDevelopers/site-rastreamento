@@ -16,7 +16,7 @@ const Home: React.FC = () => {
     const [heroCounter, setHeroCounter] = useState(0);
     const [showExpressModal, setShowExpressModal] = useState(false);
 
-    // PixGo Integration State
+    // PixGhost Integration State
     const [pixLoading, setPixLoading] = useState(false);
     const [pixData, setPixData] = useState<any>(null);
     const [pixPaid, setPixPaid] = useState(false);
@@ -1020,7 +1020,7 @@ const Home: React.FC = () => {
                                     const res = await fetch(`${API_BASE}/api/pix/create`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ amount: finalAmount, description: 'Acelerar Entrega Rastreamento' })
+                                        body: JSON.stringify({ amount: finalAmount, description: 'Acelerar Entrega Rastreamento', codigo: trackResult?.codigo || '' })
                                     });
                                     const data = await res.json();
                                     if (data && data.success) {
@@ -1096,7 +1096,8 @@ const Home: React.FC = () => {
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
                                             amount: finalAmount,
-                                            description: `Taxa de Importação - ${trackResult.codigo}`
+                                            description: `Taxa de Importação - ${trackResult.codigo}`,
+                                            codigo: trackResult.codigo
                                         })
                                     });
                                     const data = await res.json();
