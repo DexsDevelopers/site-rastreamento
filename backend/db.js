@@ -96,11 +96,25 @@ async function runMigrations() {
                 bairro VARCHAR(255),
                 cidade VARCHAR(255),
                 estado VARCHAR(5),
+                complemento VARCHAR(255),
+                observacoes TEXT,
                 status VARCHAR(50) DEFAULT 'pendente',
                 codigo_rastreio VARCHAR(50),
                 data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Verificar e adicionar colunas faltantes na tabela pedidos
+        const [pedidoCols] = await pool.query('SHOW COLUMNS FROM pedidos');
+        const pedidoColNames = pedidoCols.map(c => c.Field);
+        if (!pedidoColNames.includes('complemento')) {
+            console.log('[DB UPGRADE] Adicionando coluna faltante em pedidos: complemento');
+            await pool.query('ALTER TABLE pedidos ADD COLUMN complemento VARCHAR(255)');
+        }
+        if (!pedidoColNames.includes('observacoes')) {
+            console.log('[DB UPGRADE] Adicionando coluna faltante em pedidos: observacoes');
+            await pool.query('ALTER TABLE pedidos ADD COLUMN observacoes TEXT');
+        }
 
         console.log('✅ Migrações concluídas.');
     } catch (err) {
