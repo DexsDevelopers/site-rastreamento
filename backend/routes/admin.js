@@ -1,6 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const { getDB } = require('../db');
+const axios = require('axios');
+
+const BOT_URL = process.env.WHATSAPP_API_URL || 'http://localhost:3001';
+const BOT_TOKEN = process.env.WHATSAPP_API_TOKEN || '';
+
+// ===== BOT WHATSAPP PROXY =====
+
+// Status do bot
+router.get('/bot/status', async (req, res) => {
+    try {
+        const response = await axios.get(`${BOT_URL}/status`, { timeout: 5000 });
+        const d = response.data;
+        res.json({
+            success: true,
+            status: {
+                connected: !!(d.ready || d.ok),
+                uptime: d.uptimeFormatted || `${d.uptime || 0}s`,
+                number: d.number || null,
+                pushname: d.pushname || null,
+                platform: d.platform || null,
+                memoryMB: d.memoryMB || null,
+                loopState: d.loopState || false,
+                message: d.message || 'OK'
+            }
+        });
+    } catch (err) {
+        res.json({ success: false, status: { connected: false, message: 'Bot offline ou não acessível' } });
+    }
+});
+
+// QR Code do bot
+router.get('/bot/qr', async (req, res) => {
+    try {
+        const response = await axios.get(`${BOT_URL}/api/qr`, {
+            timeout: 8000,
+            headers: { 'x-api-token': BOT_TOKEN }
+        });
+        res.json(response.data);
+    } catch (err) {
+        res.json({ success: false, message: 'QR não disponível ou bot já conectado' });
+    }
+});
+
+// Reiniciar/reconectar bot
+router.post('/bot/restart', async (req, res) => {
+    try {
+        const response = await axios.post(`${BOT_URL}/reconnect`, {}, {
+            timeout: 10000,
+            headers: { 'x-api-token': BOT_TOKEN }
+        });
+        res.json({ success: true, message: 'Bot reiniciado com sucesso', data: response.data });
+    } catch (err) {
+        const status = err.response?.status;
+        const data = err.response?.data;
+        res.status(500).json({ success: false, message: 'Erro ao reiniciar bot', detail: data || err.message });
+    }
+});
 
 // Health Check do Banco de Dados
 router.get('/db-health', async (req, res) => {

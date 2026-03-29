@@ -4499,6 +4499,9 @@ startMarketingLoop();
 // INICIAR O BOT
 log.info('Chamando função start()...');
 
+// Montar rotas do bot antes do wildcard
+app.use(botRouter);
+
 // Adicionar a rota coringa para o React Router por último (para não interceptar APIs)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../webapp/dist/index.html'));
