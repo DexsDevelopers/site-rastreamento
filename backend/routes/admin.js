@@ -318,7 +318,9 @@ router.post('/pedidos', async (req, res) => {
                     `1️⃣ Nossa equipe confirmará seu pedido em breve\n` +
                     `2️⃣ Você receberá o código de rastreio aqui\n` +
                     `3️⃣ Acompanhe cada etapa da entrega em tempo real\n\n` +
-                    `Qualquer dúvida, é só responder esta mensagem. Estamos aqui para ajudar! 😊\n\n` +
+                    `Qualquer dúvida, fale direto com nosso atendimento:\n` +
+                    `📲 *WhatsApp:* (51) 99614-8568\n\n` +
+                    `Estamos aqui para ajudar! 😊\n\n` +
                     `_Loggi — Rastreamento Inteligente_ 🚚`;
 
                 await bot.sendWhatsAppMessage(phone, msg);
