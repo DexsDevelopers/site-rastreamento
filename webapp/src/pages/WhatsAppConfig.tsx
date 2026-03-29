@@ -15,6 +15,10 @@ const WhatsAppConfig = () => {
     const [qrBase64, setQrBase64] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [pairPhone, setPairPhone] = useState('');
+    const [pairCode, setPairCode] = useState<string | null>(null);
+    const [pairLoading, setPairLoading] = useState(false);
+    const [pairError, setPairError] = useState<string | null>(null);
 
     const fetchStatus = async () => {
         setLoading(true);
@@ -66,6 +70,29 @@ const WhatsAppConfig = () => {
             fetchQR();
         }
     }, [status]);
+
+    const handlePairByPhone = async () => {
+        const digits = pairPhone.replace(/\D/g, '');
+        if (digits.length < 10) {
+            setPairError('Informe um número válido com DDD (ex: 11999999999)');
+            return;
+        }
+        setPairLoading(true);
+        setPairCode(null);
+        setPairError(null);
+        try {
+            const res = await axios.post('/api/admin/bot/pair', { phone: digits });
+            if (res.data.success) {
+                setPairCode(res.data.code);
+            } else {
+                setPairError(res.data.message || 'Erro ao gerar código');
+            }
+        } catch {
+            setPairError('Erro de conexão com o servidor');
+        } finally {
+            setPairLoading(false);
+        }
+    };
 
     const handleRestart = async () => {
         if (status?.connected && !window.confirm('Deseja reiniciar a sessão e desconectar o WhatsApp atual?')) return;
@@ -163,16 +190,57 @@ const WhatsAppConfig = () => {
                             </button>
                         </div>
                     ) : (
-                        <div style={{ textAlign: 'center', padding: '20px' }}>
-                            <AlertTriangle size={48} color="#f59e0b" style={{ marginBottom: '16px', opacity: 0.5 }} />
-                            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                                O bot está aguardando autenticação. Escaneie o QR Code ao lado usando seu aplicativo WhatsApp.
-                            </p>
+                        <div style={{ padding: '8px 0' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                <AlertTriangle size={36} color="#f59e0b" style={{ marginBottom: '10px', opacity: 0.6 }} />
+                                <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0, fontSize: '0.9rem' }}>
+                                    Escaneie o QR Code ao lado <strong>ou</strong> vincule pelo número abaixo.
+                                </p>
+                            </div>
+
+                            {/* Vincular por número */}
+                            <div style={{ background: 'rgba(37,99,235,0.07)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '14px', padding: '18px', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                    <Smartphone size={16} color="#60a5fa" />
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#60a5fa' }}>Vincular por número (sem câmera)</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="tel"
+                                        placeholder="DDD + número (ex: 11999999999)"
+                                        value={pairPhone}
+                                        onChange={e => { setPairPhone(e.target.value); setPairCode(null); setPairError(null); }}
+                                        style={{ flex: 1, background: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9px', padding: '10px 14px', color: '#fff', fontSize: '0.95rem', outline: 'none' }}
+                                    />
+                                    <button
+                                        onClick={handlePairByPhone}
+                                        disabled={pairLoading}
+                                        style={{ padding: '10px 16px', borderRadius: '9px', background: 'linear-gradient(135deg,#2563EB,#1D4ED8)', border: 'none', color: '#fff', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.85rem' }}
+                                    >
+                                        {pairLoading ? '...' : 'Gerar Código'}
+                                    </button>
+                                </div>
+
+                                {pairError && (
+                                    <p style={{ color: '#f87171', fontSize: '0.8rem', margin: '8px 0 0 0' }}>{pairError}</p>
+                                )}
+
+                                {pairCode && (
+                                    <div style={{ marginTop: '14px', textAlign: 'center' }}>
+                                        <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px' }}>Digite este código no WhatsApp → Dispositivos Vinculados → Vincular com número</p>
+                                        <div style={{ background: '#0f172a', border: '2px solid #2563EB', borderRadius: '12px', padding: '14px 20px', display: 'inline-block' }}>
+                                            <span style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '6px', color: '#60a5fa', fontFamily: 'JetBrains Mono, monospace' }}>{pairCode}</span>
+                                        </div>
+                                        <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>Expira em ~60 segundos</p>
+                                    </div>
+                                )}
+                            </div>
+
                             <button
                                 onClick={handleRestart}
                                 disabled={actionLoading}
                                 className="btn-primary"
-                                style={{ marginTop: '20px', background: 'var(--danger)', border: 'none' }}
+                                style={{ width: '100%', background: 'var(--danger)', border: 'none', fontSize: '0.85rem', padding: '11px' }}
                             >
                                 {actionLoading ? 'Gerando...' : 'Forçar Novo QR Code'}
                             </button>

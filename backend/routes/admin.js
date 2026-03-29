@@ -40,6 +40,27 @@ router.get('/bot/qr', async (req, res) => {
     }
 });
 
+// Vincular por número de telefone (pairing code — sem câmera)
+router.post('/bot/pair', async (req, res) => {
+    const bot = global._bot;
+    if (!bot) return res.json({ success: false, message: 'Bot não inicializado' });
+    if (!bot.sock) return res.json({ success: false, message: 'Socket do bot não disponível. Aguarde o bot inicializar e tente novamente.' });
+
+    let { phone } = req.body;
+    if (!phone) return res.json({ success: false, message: 'Número de telefone obrigatório' });
+
+    // Limpar e formatar: só dígitos, com 55 se necessário
+    phone = String(phone).replace(/\D/g, '');
+    if (!phone.startsWith('55')) phone = '55' + phone;
+
+    try {
+        const code = await bot.sock.requestPairingCode(phone);
+        res.json({ success: true, code: code, phone: phone });
+    } catch (err) {
+        res.json({ success: false, message: 'Erro ao gerar código: ' + err.message });
+    }
+});
+
 // Reiniciar/reconectar bot
 router.post('/bot/restart', async (req, res) => {
     const bot = global._bot;
