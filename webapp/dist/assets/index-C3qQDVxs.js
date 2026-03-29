@@ -1158,7 +1158,7 @@ Please change the parent <Route path="${w}"> to <Route path="${w==="/"?"*":`${w}
             /* Painel de confiança vira uma faixa compacta ABAIXO */
             .pd-trust { order: 2; width: 100%; padding: 20px; gap: 12px; }
             .pd-trust .pd-headline, .pd-trust .pd-sub, .pd-trust .pd-brand { display: none; }
-            .pd-trust .pd-reviews, .pd-trust .pd-contact, .pd-trust .pd-secure { display: none; }
+            .pd-trust .pd-reviews, .pd-trust .pd-secure { display: none; }
             .pd-benefits { flex-direction: row; flex-wrap: wrap; gap: 10px; }
             .pd-benefit { flex: 1 1 calc(50% - 5px); min-width: 130px; }
             .pd-benefit-icon { width: 32px; height: 32px; }
