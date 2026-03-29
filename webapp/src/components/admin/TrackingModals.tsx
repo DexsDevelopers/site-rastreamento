@@ -197,6 +197,21 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                             onChange={e => setNovoForm((p: any) => ({ ...p, cidade: e.target.value }))} />
                     </div>
 
+                    <div className="responsive-grid">
+                        <div className="saas-field">
+                            <label className="saas-label">Nome do Cliente</label>
+                            <input className="saas-input" placeholder="Ex: João Silva"
+                                value={novoForm.cliente_nome || ''}
+                                onChange={e => setNovoForm((p: any) => ({ ...p, cliente_nome: e.target.value }))} />
+                        </div>
+                        <div className="saas-field">
+                            <label className="saas-label">WhatsApp do Cliente</label>
+                            <input className="saas-input" type="tel" placeholder="DDD + número (ex: 11999999999)"
+                                value={novoForm.cliente_whatsapp || ''}
+                                onChange={e => setNovoForm((p: any) => ({ ...p, cliente_whatsapp: e.target.value }))} />
+                        </div>
+                    </div>
+
                     <div className="saas-field">
                         <label className="saas-label">Tipo de Entrega</label>
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -227,7 +242,7 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
 
                     <div className="saas-actions">
                         <button type="button" onClick={() => setModalAdd(false)} className="btn-saas-secondary">Cancelar</button>
-                        <button type="submit" className="btn-saas-primary">Criar Rastreio</button>
+                        <button type="submit" className="btn-saas-primary"><Plus size={16} /> Criar Rastreio</button>
                     </div>
                 </form>
             </Modal>
@@ -239,6 +254,21 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
                         <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.2)', marginBottom: '4px' }}>
                             <span className="saas-label" style={{ color: '#60a5fa' }}>Código do Objeto</span>
                             <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace', wordBreak: 'break-word' }}>{editData.codigo}</div>
+                        </div>
+
+                        <div className="responsive-grid">
+                            <div className="saas-field">
+                                <label className="saas-label">Nome do Cliente</label>
+                                <input className="saas-input" placeholder="Ex: João Silva"
+                                    value={editData.cliente_nome || ''}
+                                    onChange={e => setEditData((p: any) => p ? ({ ...p, cliente_nome: e.target.value }) : p)} />
+                            </div>
+                            <div className="saas-field">
+                                <label className="saas-label">WhatsApp do Cliente</label>
+                                <input className="saas-input" type="tel" placeholder="DDD + número"
+                                    value={editData.cliente_whatsapp || ''}
+                                    onChange={e => setEditData((p: any) => p ? ({ ...p, cliente_whatsapp: e.target.value }) : p)} />
+                            </div>
                         </div>
 
                         <div className="saas-field">

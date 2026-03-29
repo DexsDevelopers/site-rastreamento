@@ -71,7 +71,9 @@ const AdminPanel: React.FC = () => {
                 taxa_valor: d.taxa_valor ? String(d.taxa_valor) : null,
                 taxa_pix: d.taxa_pix,
                 tipo_entrega: d.tipo_entrega || 'NORMAL',
-                etapas: Array.isArray(d.etapas) ? d.etapas : []
+                etapas: Array.isArray(d.etapas) ? d.etapas : [],
+                cliente_nome: d.cliente_nome || '',
+                cliente_whatsapp: d.cliente_whatsapp || ''
             });
             setModalEdit(true);
         } catch (err) {
@@ -148,6 +150,30 @@ const AdminPanel: React.FC = () => {
             fetchData();
         } catch (err) {
             alert('Erro ao atualizar');
+        }
+    };
+
+    const enviarWhatsappBot = async (codigo: string) => {
+        try {
+            const res = await axios.post(`/api/admin/rastreios/${codigo}/notificar`);
+            if (res.data.success) {
+                alert(`✅ Mensagem enviada com sucesso!\n${res.data.message}`);
+            } else {
+                const phone = prompt(
+                    `⚠️ ${res.data.message}\n\nDigite o número do cliente para enviar agora (com DDD, ex: 11999999999):`,
+                    ''
+                );
+                if (phone) {
+                    const res2 = await axios.post(`/api/admin/rastreios/${codigo}/notificar`, { phone });
+                    if (res2.data.success) {
+                        alert(`✅ Mensagem enviada!\n${res2.data.message}`);
+                    } else {
+                        alert(`❌ ${res2.data.message}`);
+                    }
+                }
+            }
+        } catch {
+            alert('❌ Erro ao enviar notificação. Verifique se o bot está conectado.');
         }
     };
 
@@ -301,7 +327,7 @@ const AdminPanel: React.FC = () => {
                             alert('🔗 Link de rastreio copiado!');
                         }}
                         onEdit={handleEditDetails}
-                        onNotify={(c) => window.open(`https://wa.me/?text=Seu projeto foi atualizado! ${c}`)}
+                        onNotify={enviarWhatsappBot}
                         onDelete={handleDelete}
                     />
                 </div>
@@ -314,7 +340,7 @@ const AdminPanel: React.FC = () => {
                 novoForm={novoForm} setNovoForm={setNovoForm} handleAdd={handleAdd}
                 editData={editData} setEditData={setEditData} handleEdit={handleEdit}
                 detailsData={detailsData}
-                enviarWhatsapp={(c) => window.open(`https://wa.me/?text=Status do Pedido: ${c}`)}
+                enviarWhatsapp={enviarWhatsappBot}
                 abrirEdicao={(codigo) => {
                     setModalDetails(false);
                     handleEditDetails(codigo);

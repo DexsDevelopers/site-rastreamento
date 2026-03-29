@@ -43,7 +43,9 @@ async function runMigrations() {
             { name: 'taxa_paga', type: 'BOOLEAN DEFAULT FALSE' },
             { name: 'data_entrega_prevista', type: 'VARCHAR(100)' },
             { name: 'prioridade', type: 'INT DEFAULT 0' },
-            { name: 'codigo_indicador', type: 'VARCHAR(50)' }
+            { name: 'codigo_indicador', type: 'VARCHAR(50)' },
+            { name: 'cliente_nome', type: 'VARCHAR(255)' },
+            { name: 'cliente_whatsapp', type: 'VARCHAR(50)' }
         ];
 
         for (const col of upgrades) {

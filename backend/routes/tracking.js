@@ -145,9 +145,9 @@ router.get('/rastreios/:codigo/detalhes', async (req, res) => {
             tipo_entrega: latest.tipo_entrega,
             taxa_paga: latest.taxa_paga,
             etapas: rows.map(r => r.status_atual),
-            cliente_nome: null,
-            cliente_whatsapp: null,
-            cliente_notificar: false
+            cliente_nome: latest.cliente_nome || null,
+            cliente_whatsapp: latest.cliente_whatsapp || null,
+            cliente_notificar: !!(latest.cliente_whatsapp)
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -159,11 +159,11 @@ router.post('/rastreios', async (req, res) => {
     const db = getDB();
     try {
         if (!db) throw new Error('Banco de dados não disponível');
-        const { codigo, cidade, status_atual, taxa_valor, taxa_pix, tipo_entrega } = req.body;
+        const { codigo, cidade, status_atual, taxa_valor, taxa_pix, tipo_entrega, cliente_nome, cliente_whatsapp } = req.body;
 
         await db.query(
-            'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [codigo, cidade, status_atual || '📦 Objeto postado', status_atual || '📦 Objeto postado', 'Seu objeto foi postado com sucesso.', taxa_valor, taxa_pix, tipo_entrega || 'NORMAL']
+            'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, cliente_nome, cliente_whatsapp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [codigo, cidade, status_atual || '📦 Objeto postado', status_atual || '📦 Objeto postado', 'Seu objeto foi postado com sucesso.', taxa_valor, taxa_pix, tipo_entrega || 'NORMAL', cliente_nome || null, cliente_whatsapp || null]
         );
         res.json({ success: true });
     } catch (error) {
@@ -171,17 +171,64 @@ router.post('/rastreios', async (req, res) => {
     }
 });
 
+// Notificar cliente via WhatsApp Bot
+router.post('/rastreios/:codigo/notificar', async (req, res) => {
+    const db = getDB();
+    const { codigo } = req.params;
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+
+        const [rows] = await db.query(
+            'SELECT codigo, cidade, status_atual, taxa_valor, cliente_nome, cliente_whatsapp FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1',
+            [codigo]
+        );
+        if (!rows.length) return res.json({ success: false, message: 'Rastreio não encontrado' });
+
+        const r = rows[0];
+        const phone = (req.body.phone || r.cliente_whatsapp || '').replace(/\D/g, '');
+        if (!phone || phone.length < 10) {
+            return res.json({ success: false, message: 'Número de WhatsApp não cadastrado para este rastreio. Edite o rastreio e adicione o número do cliente.' });
+        }
+
+        const bot = global._bot;
+        if (!bot || !bot.isReady) {
+            return res.json({ success: false, message: 'Bot WhatsApp não está conectado. Acesse Bot WhatsApp no menu e conecte primeiro.' });
+        }
+
+        const taxa = Number(r.taxa_valor) > 0 ? `\n\n⚠️ *Taxa pendente:* R$ ${Number(r.taxa_valor).toFixed(2)}\nAcesse o site para regularizar e liberar seu objeto.` : '';
+        const msg =
+            `📦 *Atualização do seu Rastreio*\n\n` +
+            `*Código:* ${r.codigo}\n` +
+            `*Status:* ${r.status_atual}\n` +
+            `*Destino:* ${r.cidade || 'N/A'}` +
+            taxa +
+            `\n\n_Loggi — Rastreamento Inteligente_`;
+
+        await bot.sendWhatsAppMessage(phone, msg);
+
+        // Salvar número se veio via req.body
+        if (req.body.phone && req.body.phone !== r.cliente_whatsapp) {
+            await db.query('UPDATE rastreios_status SET cliente_whatsapp = ? WHERE codigo = ?', [phone, codigo]);
+        }
+
+        res.json({ success: true, message: `Mensagem enviada para ${phone}` });
+    } catch (err) {
+        console.error('[NOTIFICAR WA]', err.message);
+        res.json({ success: false, message: 'Erro ao enviar: ' + err.message });
+    }
+});
+
 // Atualizar
 router.put('/rastreios/:codigo', async (req, res) => {
     const db = getDB();
     const { codigo } = req.params;
-    const { cidade, taxa_valor, taxa_pix, tipo_entrega, etapas } = req.body;
+    const { cidade, taxa_valor, taxa_pix, tipo_entrega, etapas, cliente_nome, cliente_whatsapp } = req.body;
     try {
         if (!db) throw new Error('Banco de dados não disponível');
 
         await db.query(
-            'UPDATE rastreios_status SET cidade = ?, taxa_valor = ?, taxa_pix = ?, tipo_entrega = ? WHERE codigo = ?',
-            [cidade, taxa_valor, taxa_pix, tipo_entrega, codigo]
+            'UPDATE rastreios_status SET cidade = ?, taxa_valor = ?, taxa_pix = ?, tipo_entrega = ?, cliente_nome = ?, cliente_whatsapp = ? WHERE codigo = ?',
+            [cidade, taxa_valor, taxa_pix, tipo_entrega, cliente_nome ?? null, cliente_whatsapp ?? null, codigo]
         );
 
         if (Array.isArray(etapas)) {
