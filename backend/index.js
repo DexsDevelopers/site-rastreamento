@@ -140,6 +140,43 @@ async function enviarRelatorioDiario() {
 // Iniciar agendamento do relatório após 10s (bot precisa estar pronto)
 setTimeout(agendarRelatorioDiario, 10000);
 
+// [SCHEDULER] Processar automações de todos os códigos ativos a cada 1 hora
+async function rodarAutomacoesTodos() {
+    try {
+        const { getDB } = require('./db');
+        const db = getDB();
+        if (!db) return;
+
+        const { processAutomation } = require('./routes/tracking');
+        const [rows] = await db.query(
+            `SELECT DISTINCT codigo FROM rastreios_status
+             WHERE taxa_paga = 0
+             AND codigo NOT IN (
+                 SELECT DISTINCT codigo FROM rastreios_status
+                 WHERE status_atual LIKE '%Entregue%'
+             )`
+        );
+
+        console.log(`[SCHEDULER] Processando automação para ${rows.length} código(s) ativos...`);
+        for (const row of rows) {
+            try {
+                await processAutomation(row.codigo, db);
+            } catch (e) {
+                console.error(`[SCHEDULER] Erro em ${row.codigo}:`, e.message);
+            }
+        }
+        console.log('[SCHEDULER] Automações concluídas.');
+    } catch (err) {
+        console.error('[SCHEDULER ERROR]', err.message);
+    }
+}
+
+// Primeira execução após 2 minutos (aguardar DB e bot), depois a cada 1 hora
+setTimeout(() => {
+    rodarAutomacoesTodos();
+    setInterval(rodarAutomacoesTodos, 60 * 60 * 1000);
+}, 2 * 60 * 1000);
+
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Backend local rodando na porta ${PORT}`);

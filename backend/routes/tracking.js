@@ -426,3 +426,4 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
 });
 
 module.exports = router;
+module.exports.processAutomation = processAutomation;
