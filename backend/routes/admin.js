@@ -1,61 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const { getDB } = require('../db');
-const axios = require('axios');
+const QRCodeImg = require('qrcode');
 
-const BOT_URL = process.env.WHATSAPP_API_URL || 'http://localhost:3001';
-const BOT_TOKEN = process.env.WHATSAPP_API_TOKEN || '';
-
-// ===== BOT WHATSAPP PROXY =====
+// ===== BOT WHATSAPP (acesso direto ao processo integrado) =====
 
 // Status do bot
-router.get('/bot/status', async (req, res) => {
-    try {
-        const response = await axios.get(`${BOT_URL}/status`, { timeout: 5000 });
-        const d = response.data;
-        res.json({
-            success: true,
-            status: {
-                connected: !!(d.ready || d.ok),
-                uptime: d.uptimeFormatted || `${d.uptime || 0}s`,
-                number: d.number || null,
-                pushname: d.pushname || null,
-                platform: d.platform || null,
-                memoryMB: d.memoryMB || null,
-                loopState: d.loopState || false,
-                message: d.message || 'OK'
-            }
-        });
-    } catch (err) {
-        res.json({ success: false, status: { connected: false, message: 'Bot offline ou não acessível' } });
+router.get('/bot/status', (req, res) => {
+    const bot = global._bot;
+    if (!bot) {
+        return res.json({ success: false, status: { connected: false, message: 'Bot ainda não inicializado. Aguarde ~5s após reiniciar o servidor.' } });
     }
+    const isReady = bot.isReady === true;
+    const hasQR = !!bot.lastQR;
+    res.json({
+        success: true,
+        status: {
+            connected: isReady,
+            uptime: null,
+            number: null,
+            pushname: null,
+            platform: null,
+            message: isReady ? 'Conectado' : (hasQR ? 'Aguardando scan do QR Code' : 'Conectando ao WhatsApp...')
+        }
+    });
 });
 
 // QR Code do bot
 router.get('/bot/qr', async (req, res) => {
+    const bot = global._bot;
+    if (!bot || !bot.lastQR) {
+        return res.json({ success: false, message: bot ? 'QR não disponível — bot já conectado ou inicializando' : 'Bot não inicializado' });
+    }
     try {
-        const response = await axios.get(`${BOT_URL}/api/qr`, {
-            timeout: 8000,
-            headers: { 'x-api-token': BOT_TOKEN }
-        });
-        res.json(response.data);
-    } catch (err) {
-        res.json({ success: false, message: 'QR não disponível ou bot já conectado' });
+        const dataUrl = await QRCodeImg.toDataURL(bot.lastQR, { scale: 8, margin: 1 });
+        res.json({ success: true, qr: dataUrl });
+    } catch (e) {
+        res.json({ success: false, message: 'Erro ao gerar imagem do QR Code' });
     }
 });
 
 // Reiniciar/reconectar bot
 router.post('/bot/restart', async (req, res) => {
+    const bot = global._bot;
+    if (!bot) {
+        return res.json({ success: false, message: 'Bot não inicializado no servidor' });
+    }
     try {
-        const response = await axios.post(`${BOT_URL}/reconnect`, {}, {
-            timeout: 10000,
-            headers: { 'x-api-token': BOT_TOKEN }
-        });
-        res.json({ success: true, message: 'Bot reiniciado com sucesso', data: response.data });
+        if (bot.sock) {
+            try { bot.sock.end(); } catch (e) {}
+        }
+        const { getDB } = require('../db');
+        await bot.initWhatsAppBot(null, getDB());
+        res.json({ success: true, message: 'Bot reiniciando — aguarde o novo QR Code' });
     } catch (err) {
-        const status = err.response?.status;
-        const data = err.response?.data;
-        res.status(500).json({ success: false, message: 'Erro ao reiniciar bot', detail: data || err.message });
+        res.json({ success: false, message: 'Erro ao reiniciar: ' + err.message });
     }
 });
 

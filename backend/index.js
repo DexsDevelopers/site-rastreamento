@@ -52,6 +52,33 @@ app.get('*', (req, res) => {
 // Disponibilizar para o Bridge
 global._expressApp = app;
 
+// Integrar WhatsApp Bot no mesmo processo (Hostinger só permite 1 processo)
+global._bot = null;
+async function initBot() {
+    try {
+        const { getDB } = require('./db');
+        // Aguardar DB estar pronto
+        let db = getDB();
+        let retries = 0;
+        while (!db && retries < 15) {
+            await new Promise(r => setTimeout(r, 2000));
+            db = getDB();
+            retries++;
+        }
+
+        console.log('[BOT] Carregando módulo WhatsApp Bot...');
+        const bot = await import('../whatsapp-bot/index.js');
+        global._bot = bot;
+        console.log('[BOT] Módulo carregado. Iniciando conexão...');
+        await bot.initWhatsAppBot(null, db);
+        console.log('✅ Bot WhatsApp integrado no processo principal!');
+    } catch (err) {
+        console.error('❌ Erro ao integrar bot:', err.message);
+    }
+}
+// Delay de 5s para não sobrecarregar na inicialização
+setTimeout(initBot, 5000);
+
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Backend local rodando na porta ${PORT}`);
