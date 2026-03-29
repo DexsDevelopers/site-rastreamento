@@ -79,6 +79,67 @@ async function initBot() {
 // Delay de 5s para não sobrecarregar na inicialização
 setTimeout(initBot, 5000);
 
+// [E] Relatório diário automático para admin às 08:00
+function agendarRelatorioDiario() {
+    const agora = new Date();
+    const proximasOito = new Date();
+    proximasOito.setHours(8, 0, 0, 0);
+    if (proximasOito <= agora) proximasOito.setDate(proximasOito.getDate() + 1);
+    const msAteOito = proximasOito.getTime() - agora.getTime();
+
+    setTimeout(async () => {
+        await enviarRelatorioDiario();
+        setInterval(enviarRelatorioDiario, 24 * 60 * 60 * 1000); // repetir todo dia
+    }, msAteOito);
+
+    console.log(`[RELATORIO] Próximo relatório agendado em ${Math.round(msAteOito / 60000)} minutos.`);
+}
+
+async function enviarRelatorioDiario() {
+    try {
+        const bot = global._bot;
+        const adminPhone = process.env.ADMIN_WHATSAPP;
+        if (!bot || !bot.isReady || !bot.sendWhatsAppMessage || !adminPhone) return;
+
+        const { getDB } = require('./db');
+        const db = getDB();
+        if (!db) return;
+
+        const [[stats]] = await db.query(`
+            SELECT
+                COUNT(DISTINCT codigo) AS total,
+                SUM(CASE WHEN taxa_valor > 0 AND taxa_paga = 0 THEN 1 ELSE 0 END) AS retidos,
+                SUM(CASE WHEN taxa_paga = 1 THEN 1 ELSE 0 END) AS pagos,
+                SUM(CASE WHEN status_atual LIKE '%Entregue%' THEN 1 ELSE 0 END) AS entregues,
+                SUM(CASE WHEN taxa_valor > 0 AND taxa_paga = 0 THEN taxa_valor ELSE 0 END) AS receita_pendente
+            FROM (
+                SELECT codigo, MAX(id) as max_id FROM rastreios_status GROUP BY codigo
+            ) t1
+            JOIN rastreios_status t2 ON t1.max_id = t2.id
+        `);
+
+        const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+        const phone = String(adminPhone).replace(/\D/g, '');
+
+        await bot.sendWhatsAppMessage(phone,
+            `📊 *Relatório Diário — Loggi*\n` +
+            `_${hoje}_\n\n` +
+            `📦 *Total de rastreios:* ${stats.total || 0}\n` +
+            `⚠️ *Objetos retidos:* ${stats.retidos || 0}\n` +
+            `✅ *Pagamentos confirmados:* ${stats.pagos || 0}\n` +
+            `🏠 *Entregues:* ${stats.entregues || 0}\n\n` +
+            `💰 *Receita pendente:* R$ ${Number(stats.receita_pendente || 0).toFixed(2)}\n\n` +
+            `_Gerado automaticamente às 08:00_`
+        );
+        console.log('[RELATORIO] Relatório diário enviado para admin:', phone);
+    } catch (err) {
+        console.error('[RELATORIO ERROR]', err.message);
+    }
+}
+
+// Iniciar agendamento do relatório após 10s (bot precisa estar pronto)
+setTimeout(agendarRelatorioDiario, 10000);
+
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Backend local rodando na porta ${PORT}`);

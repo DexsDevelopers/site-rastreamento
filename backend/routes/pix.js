@@ -170,6 +170,30 @@ async function markAsPaid(db, codigo) {
         );
 
         console.log(`[PIXGHOST] Pagamento confirmado e status atualizado para: ${cleanCodigo}`);
+
+        // [C] Auto-notificar cliente que pagamento foi confirmado e objeto liberado
+        try {
+            const bot = global._bot;
+            if (bot && bot.isReady && bot.sendWhatsAppMessage && db) {
+                const [clientRows] = await db.query(
+                    'SELECT cliente_whatsapp, cliente_nome FROM rastreios_status WHERE codigo = ? AND cliente_whatsapp IS NOT NULL LIMIT 1',
+                    [cleanCodigo]
+                );
+                if (clientRows.length && clientRows[0].cliente_whatsapp) {
+                    const phone = String(clientRows[0].cliente_whatsapp).replace(/\D/g, '');
+                    if (phone.length >= 10) {
+                        await bot.sendWhatsAppMessage(phone,
+                            `✅ *Pagamento Confirmado!*\n\n` +
+                            `Olá${clientRows[0].cliente_nome ? `, *${clientRows[0].cliente_nome}*` : ''}!\n\n` +
+                            `Seu pagamento foi aprovado e o objeto *${cleanCodigo}* foi liberado.\n\n` +
+                            `🚀 *Status:* Objeto saiu para entrega\n` +
+                            `Você receberá a entrega em breve.\n\n` +
+                            `_Loggi — Rastreamento Inteligente_`
+                        );
+                    }
+                }
+            }
+        } catch (e) { /* silencioso */ }
     }
 }
 

