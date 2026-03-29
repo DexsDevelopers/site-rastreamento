@@ -297,6 +297,36 @@ router.post('/pedidos', async (req, res) => {
         );
 
         res.json({ success: true, message: 'Pedido enviado com sucesso!', id: result.insertId });
+
+        // Auto-enviar mensagem WhatsApp ao cliente após salvar pedido
+        try {
+            const bot = global._bot;
+            const phone = String(telefone).replace(/\D/g, '');
+            if (bot && bot.isReady && bot.sendWhatsAppMessage && phone.length >= 10) {
+                const primeiroNome = nome.split(' ')[0];
+                const enderecoFormatado = `${rua}, ${numero}${complemento ? ' - ' + complemento : ''} — ${bairro}, ${cidade}/${estado}`;
+                const msg =
+                    `Olá, *${primeiroNome}*! 👋\n\n` +
+                    `Recebemos seu pedido com sucesso e nossa equipe já está analisando tudo com atenção.\n\n` +
+                    `━━━━━━━━━━━━━━━━━━\n` +
+                    `📦 *RESUMO DO PEDIDO #${result.insertId}*\n` +
+                    `━━━━━━━━━━━━━━━━━━\n` +
+                    `👤 *Nome:* ${nome}\n` +
+                    `📍 *Endereço de entrega:*\n${enderecoFormatado}${observacoes ? '\n\n📝 *Obs:* ' + observacoes : ''}\n` +
+                    `━━━━━━━━━━━━━━━━━━\n\n` +
+                    `⏱️ *Próximos passos:*\n` +
+                    `1️⃣ Nossa equipe confirmará seu pedido em breve\n` +
+                    `2️⃣ Você receberá o código de rastreio aqui\n` +
+                    `3️⃣ Acompanhe cada etapa da entrega em tempo real\n\n` +
+                    `Qualquer dúvida, é só responder esta mensagem. Estamos aqui para ajudar! 😊\n\n` +
+                    `_Loggi — Rastreamento Inteligente_ 🚚`;
+
+                await bot.sendWhatsAppMessage(phone, msg);
+                console.log(`[PEDIDO WA] Mensagem enviada para ${phone} (Pedido #${result.insertId})`);
+            }
+        } catch (waErr) {
+            console.error('[PEDIDO WA ERROR]', waErr.message);
+        }
     } catch (error) {
         console.error('[ERRO CRIAR PEDIDO]', error.message);
         res.status(500).json({ success: false, message: 'Erro interno ao processar pedido' });
