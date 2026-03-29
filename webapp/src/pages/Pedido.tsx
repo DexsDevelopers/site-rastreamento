@@ -171,14 +171,21 @@ const Pedido: React.FC = () => {
 
         /* RESPONSIVE */
         @media (max-width: 860px) {
-            .pd-wrapper { flex-direction: column; padding-top: 90px; gap: 20px; }
-            .pd-trust { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 16px; padding: 24px; }
-            .pd-trust .pd-headline, .pd-trust .pd-sub, .pd-trust .pd-brand { display: none; }
-            .pd-benefits { flex-direction: row; flex-wrap: wrap; gap: 12px; }
-            .pd-benefit { flex: 1 1 calc(50% - 6px); min-width: 140px; }
-            .pd-reviews { width: 100%; }
-            .pd-form-panel { padding: 28px 20px; }
+            .pd-wrapper { flex-direction: column; padding-top: 90px; gap: 16px; }
+
+            /* Formulário aparece PRIMEIRO no mobile */
+            .pd-form-panel { order: 1; padding: 28px 20px; }
             .pd-form-title { font-size: 1.5rem; }
+
+            /* Painel de confiança vira uma faixa compacta ABAIXO */
+            .pd-trust { order: 2; width: 100%; padding: 20px; gap: 12px; }
+            .pd-trust .pd-headline, .pd-trust .pd-sub, .pd-trust .pd-brand { display: none; }
+            .pd-trust .pd-reviews, .pd-trust .pd-contact, .pd-trust .pd-secure { display: none; }
+            .pd-benefits { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+            .pd-benefit { flex: 1 1 calc(50% - 5px); min-width: 130px; }
+            .pd-benefit-icon { width: 32px; height: 32px; }
+            .pd-benefit-text strong { font-size: 0.82rem; }
+            .pd-benefit-text span { font-size: 0.72rem; }
         }
         @media (max-width: 540px) {
             .pd-row { flex-direction: column; gap: 0; }
