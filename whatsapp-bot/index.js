@@ -972,7 +972,7 @@ const simpleStore = {
 // Usar process.cwd() para garantir que todos os processos (backend e bot)
 // resolvam o mesmo caminho absoluto, independente de onde o arquivo está.
 const baseDir = process.cwd();
-let authPath = path.resolve(baseDir, 'whatsapp-bot', 'auth');
+export let authPath = path.resolve(baseDir, 'whatsapp-bot', 'auth');
 
 console.log(`[INIT] Caminho de autenticação pretendido: ${authPath}`);
 

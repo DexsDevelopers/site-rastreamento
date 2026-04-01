@@ -15,6 +15,7 @@ const WhatsAppConfig = () => {
     const [qrBase64, setQrBase64] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [resetLoading, setResetLoading] = useState(false);
     const [pairPhone, setPairPhone] = useState('');
     const [pairCode, setPairCode] = useState<string | null>(null);
     const [pairLoading, setPairLoading] = useState(false);
@@ -105,6 +106,22 @@ const WhatsAppConfig = () => {
             alert('Erro ao reiniciar bot.');
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    const handleReset = async () => {
+        if (!window.confirm('Isso vai APAGAR a sessão atual e gerar um novo QR para escanear. Continuar?')) return;
+        setResetLoading(true);
+        try {
+            const res = await axios.post('/api/admin/bot/reset');
+            alert(res.data.message || 'Sessão limpa! Aguarde o novo QR Code.');
+            setQrBase64(null);
+            setTimeout(fetchStatus, 3000);
+            setTimeout(fetchQR, 5000);
+        } catch (err) {
+            alert('Erro ao limpar sessão.');
+        } finally {
+            setResetLoading(false);
         }
     };
 
@@ -243,14 +260,23 @@ const WhatsAppConfig = () => {
                                 )}
                             </div>
 
-                            <button
-                                onClick={handleRestart}
-                                disabled={actionLoading}
-                                className="btn-primary"
-                                style={{ width: '100%', background: 'var(--danger)', border: 'none', fontSize: '0.85rem', padding: '11px' }}
-                            >
-                                {actionLoading ? 'Gerando...' : 'Forçar Novo QR Code'}
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={handleRestart}
+                                    disabled={actionLoading}
+                                    className="btn-primary"
+                                    style={{ flex: 1, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.82rem', padding: '10px' }}
+                                >
+                                    {actionLoading ? '...' : '🔄 Novo QR'}
+                                </button>
+                                <button
+                                    onClick={handleReset}
+                                    disabled={resetLoading}
+                                    style={{ flex: 1, background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(239,68,68,0.5)', color: '#ff4444', borderRadius: '10px', fontSize: '0.82rem', padding: '10px', fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                    {resetLoading ? '...' : '🗑️ Limpar Sessão'}
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

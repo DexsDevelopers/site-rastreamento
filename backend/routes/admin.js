@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { getDB } = require('../db');
 const QRCodeImg = require('qrcode');
+const fs = require('fs');
+const path = require('path');
 
 // ===== BOT WHATSAPP (acesso direto ao processo integrado) =====
 
@@ -102,6 +104,39 @@ router.post('/bot/restart', async (req, res) => {
         res.json({ success: true, message: 'Bot reiniciando — aguarde o novo QR Code' });
     } catch (err) {
         res.json({ success: false, message: 'Erro ao reiniciar: ' + err.message });
+    }
+});
+
+// Limpar sessão corrompida e reiniciar do zero (novo QR)
+router.post('/bot/reset', async (req, res) => {
+    const bot = global._bot;
+    try {
+        // Parar socket atual
+        if (bot?.sock) {
+            try { bot.sock.end(); } catch (e) {}
+        }
+
+        // Determinar pasta auth
+        const authDir = bot?.authPath || path.resolve(process.cwd(), 'whatsapp-bot', 'auth');
+
+        // Apagar arquivos de sessão (manter só a pasta)
+        if (fs.existsSync(authDir)) {
+            const files = fs.readdirSync(authDir);
+            for (const file of files) {
+                try { fs.rmSync(path.join(authDir, file), { recursive: true, force: true }); } catch (e) {}
+            }
+            console.log(`[BOT RESET] Sessão limpa em: ${authDir} (${files.length} arquivo(s) removidos)`);
+        }
+
+        // Reiniciar bot
+        if (bot?.initWhatsAppBot) {
+            const { getDB } = require('../db');
+            setTimeout(() => bot.initWhatsAppBot(null, getDB()), 1500);
+        }
+
+        res.json({ success: true, message: 'Sessão apagada! O bot vai gerar um novo QR em segundos.' });
+    } catch (err) {
+        res.json({ success: false, message: 'Erro ao limpar sessão: ' + err.message });
     }
 });
 
