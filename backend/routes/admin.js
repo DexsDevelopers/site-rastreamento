@@ -348,20 +348,22 @@ router.post('/pedidos-pendentes/:id/cobrar', async (req, res) => {
         const phone = String(pedido.telefone).replace(/\D/g, '');
         const primeiroNome = (pedido.nome || 'Cliente').split(' ')[0];
         const msg =
-            `Olá, *${primeiroNome}*! 📦
-
-` +
-            `Vimos que você fez um pedido conosco e ainda está aguardando aprovação.
-
-` +
-            `Nossa equipe está analisando tudo com atenção e em breve você receberá o código de rastreio. 🚚
-
-` +
-            `Qualquer dúvida, é só falar:
-` +
-            `📲 *WhatsApp: (51) 99614-8568*
-
-` +
+            `Olá, *${primeiroNome}*! �\n\n` +
+            `Notamos que você realizou um pedido conosco, porém ele ainda se encontra *pendente de confirmação*.\n\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `📋 *PRÓXIMO PASSO*\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `Para finalizar e confirmar seu pedido, entre em contato diretamente com nosso vendedor pelo número abaixo:\n\n` +
+            `📲 *WhatsApp: (51) 99614-8568*\n\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `✅ *O QUE ACONTECE APÓS O FECHAMENTO:*\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `📦 Seu pedido será *processado imediatamente*\n` +
+            `🏷️ O *código de rastreamento* será enviado para você *no mesmo dia*\n` +
+            `🎁 Seu pacote será *totalmente embalado com segurança*, independente do tamanho ou quantidade dos itens\n` +
+            `🚚 Você poderá acompanhar cada etapa da entrega em tempo real\n\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `Trabalhamos com *total comprometimento* para garantir que seu pedido chegue com segurança e no prazo. Não perca tempo — finalize agora e garanta sua entrega! 💪\n\n` +
             `_Loggi — Rastreamento Inteligente_ 🚚`;
 
         // Enviar via bot
