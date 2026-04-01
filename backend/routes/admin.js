@@ -364,17 +364,17 @@ router.post('/pedidos-pendentes/:id/cobrar', async (req, res) => {
 ` +
             `_Loggi — Rastreamento Inteligente_ 🚚`;
 
-        // Tentar enviar via bot primeiro
+        // Enviar via bot
         const bot = global._bot;
-        if (bot && bot.isReady && bot.sendWhatsAppMessage && phone.length >= 10) {
-            await bot.sendWhatsAppMessage(phone, msg);
-            console.log(`[COBRAR WA] Mensagem enviada para ${phone} (Pedido #${id})`);
-            return res.json({ success: true, message: `Mensagem enviada para ${pedido.nome}!`, via: 'bot' });
+        if (!bot || !bot.isReady || !bot.sendWhatsAppMessage) {
+            return res.json({ success: false, message: 'Bot desconectado. Acesse Bot WhatsApp no menu e conecte o número primeiro.' });
         }
-
-        // Fallback: link wa.me para o admin enviar manualmente
-        const link = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
-        res.json({ success: true, message: 'Bot offline — abrir WhatsApp manualmente', link, via: 'link' });
+        if (phone.length < 10) {
+            return res.json({ success: false, message: 'Número de telefone inválido para este pedido.' });
+        }
+        await bot.sendWhatsAppMessage(phone, msg);
+        console.log(`[COBRAR WA] Mensagem enviada para ${phone} (Pedido #${id})`);
+        res.json({ success: true, message: `✅ Mensagem enviada para ${pedido.nome}!` });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
