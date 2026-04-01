@@ -820,11 +820,12 @@ const RECONNECT_DELAY_MIN = 5000;       // 5 segundos mínimo
 const RECONNECT_DELAY_MAX = 120000;     // 2 minutos máximo
 const HEARTBEAT_INTERVAL = 20000;       // 20 segundos (mais frequente)
 const CONNECTION_TIMEOUT = 180000;      // 3 minutos timeout (mais tolerante)
-const MAX_RECONNECT_ATTEMPTS = 10;      // Máximo antes de parar e pedir QR
+const MAX_RECONNECT_ATTEMPTS = 50;      // Aumentado: tentar muitas vezes antes de desistir
 const MEMORY_CHECK_INTERVAL = 30000;   // 30 segundos (muito frequente para evitar vazamentos)
-const LOOP_DETECTION_WINDOW = 60000;    // 1 minuto para detectar loop
-const MAX_DISCONNECTS_IN_WINDOW = 5;    // 5 desconexões em 1 min = loop
+const LOOP_DETECTION_WINDOW = 120000;   // 2 minutos para detectar loop (era 1min)
+const MAX_DISCONNECTS_IN_WINDOW = 10;   // 10 desconexões em 2 min = loop (era 5 em 1min)
 const PING_INTERVAL = 60000;            // 1 minuto - ping para manter conexão
+const LOOP_RECOVERY_DELAY = 5 * 60 * 1000; // 5 minutos antes de auto-recuperar após loop
 
 // (Variáveis isReady, lastQR, sock são exportadas no topo do arquivo)
 
@@ -1365,31 +1366,42 @@ async function reconnect(reason = 'Desconhecido') {
     isInLoopState = true;
     log.error('🔴 LOOP DE DESCONEXÃO DETECTADO!');
     log.error(`${disconnectTimestamps.length} desconexões em ${LOOP_DETECTION_WINDOW / 1000} segundos`);
-    log.error('');
-    log.error('╔══════════════════════════════════════════════════════════╗');
-    log.error('║  AÇÃO NECESSÁRIA: Sessão inválida ou corrompida          ║');
-    log.error('║                                                          ║');
-    log.error('║  1. Pare o bot (Ctrl+C)                                  ║');
-    log.error('║  2. Delete a pasta: whatsapp-bot/auth                    ║');
-    log.error('║  3. Reinicie: npm run dev                                ║');
-    log.error('║  4. Escaneie o QR Code novamente                         ║');
-    log.error('╚══════════════════════════════════════════════════════════╝');
-    log.error('');
-    log.error('Bot pausado. Aguardando intervenção manual...');
+    log.warn(`⏳ Auto-recuperação em ${LOOP_RECOVERY_DELAY / 60000} minutos...`);
 
-    // Parar de tentar reconectar
     stopHeartbeat();
     isReconnecting = false;
+
+    // AUTO-RECUPERAÇÃO: limpar estado e tentar novamente após delay
+    setTimeout(async () => {
+      log.warn('🔄 Tentando auto-recuperação após loop de desconexão...');
+      isInLoopState = false;
+      reconnectAttempts = 0;
+      disconnectTimestamps = [];
+      isReconnecting = false;
+      try {
+        await start();
+      } catch (e) {
+        log.error(`Auto-recuperação falhou: ${e.message}`);
+      }
+    }, LOOP_RECOVERY_DELAY);
     return;
   }
 
   reconnectAttempts++;
 
   if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
-    log.error(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido.`);
-    log.error('Provavelmente a sessão expirou. Delete a pasta ./auth e escaneie QR novamente.');
+    log.warn(`Máximo de tentativas (${MAX_RECONNECT_ATTEMPTS}) atingido. Aguardando ${LOOP_RECOVERY_DELAY / 60000}min para tentar novamente...`);
     isInLoopState = true;
     isReconnecting = false;
+    // Resetar e tentar de novo após delay longo
+    setTimeout(async () => {
+      log.warn('🔄 Reiniciando contadores após máximo de tentativas...');
+      reconnectAttempts = 0;
+      disconnectTimestamps = [];
+      isInLoopState = false;
+      isReconnecting = false;
+      try { await start(); } catch (e) { log.error(`Reinício automático falhou: ${e.message}`); }
+    }, LOOP_RECOVERY_DELAY);
     return;
   }
 

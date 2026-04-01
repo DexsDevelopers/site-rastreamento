@@ -54,10 +54,14 @@ global._expressApp = app;
 
 // Integrar WhatsApp Bot no mesmo processo (Hostinger só permite 1 processo)
 global._bot = null;
+let _botLastSeen = null;   // última vez que isReady=true
+let _botInitializing = false;
+
 async function initBot() {
+    if (_botInitializing) return;
+    _botInitializing = true;
     try {
         const { getDB } = require('./db');
-        // Aguardar DB estar pronto
         let db = getDB();
         let retries = 0;
         while (!db && retries < 15) {
@@ -74,10 +78,56 @@ async function initBot() {
         console.log('✅ Bot WhatsApp integrado no processo principal!');
     } catch (err) {
         console.error('❌ Erro ao integrar bot:', err.message);
+    } finally {
+        _botInitializing = false;
     }
 }
+
 // Delay de 5s para não sobrecarregar na inicialização
 setTimeout(initBot, 5000);
+
+// [WATCHDOG] Monitora bot a cada 5 minutos — reinicia se parado há mais de 10min
+setInterval(async () => {
+    try {
+        const bot = global._bot;
+        if (!bot) return;
+
+        const ready = bot.isReady;
+        if (ready) {
+            _botLastSeen = Date.now();
+            return;
+        }
+
+        // Bot não está pronto
+        const downSince = _botLastSeen ? Date.now() - _botLastSeen : Infinity;
+        const downMin = Math.round(downSince / 60000);
+
+        // Verificar se está em estado de loop (aguardando auto-recuperação interna)
+        const state = bot.getBotState ? bot.getBotState() : {};
+        if (state.isInLoopState) {
+            console.log(`[WATCHDOG] Bot em auto-recuperação interna. Aguardando...`);
+            return;
+        }
+
+        // Se parado há mais de 10 minutos sem auto-recuperação → reiniciar via watchdog
+        if (downSince > 10 * 60 * 1000 && !_botInitializing) {
+            console.warn(`[WATCHDOG] Bot parado há ${downMin}min. Reiniciando...`);
+            _botLastSeen = Date.now(); // evitar loop de reinícios
+            try {
+                const { getDB } = require('./db');
+                const db = getDB();
+                if (db && bot.initWhatsAppBot) {
+                    await bot.initWhatsAppBot(null, db);
+                    console.log('[WATCHDOG] Bot reiniciado com sucesso!');
+                }
+            } catch (e) {
+                console.error('[WATCHDOG] Falha ao reiniciar bot:', e.message);
+            }
+        }
+    } catch (e) {
+        console.error('[WATCHDOG ERROR]', e.message);
+    }
+}, 5 * 60 * 1000); // verificar a cada 5 minutos
 
 // [E] Relatório diário automático para admin às 08:00
 function agendarRelatorioDiario() {
