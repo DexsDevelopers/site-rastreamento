@@ -348,22 +348,23 @@ router.post('/pedidos-pendentes/:id/cobrar', async (req, res) => {
         const phone = String(pedido.telefone).replace(/\D/g, '');
         const primeiroNome = (pedido.nome || 'Cliente').split(' ')[0];
         const msg =
-            `Olá, *${primeiroNome}*! �\n\n` +
-            `Notamos que você realizou um pedido conosco, porém ele ainda se encontra *pendente de confirmação*.\n\n` +
-            `━━━━━━━━━━━━━━━━━━\n` +
-            `📋 *PRÓXIMO PASSO*\n` +
-            `━━━━━━━━━━━━━━━━━━\n` +
-            `Para finalizar e confirmar seu pedido, entre em contato diretamente com nosso vendedor pelo número abaixo:\n\n` +
+            `Olá, *${primeiroNome}*! 👋\n\n` +
+            `Seu pedido foi recebido e está *pendente de confirmação*. Para finalizar, entre em contato com nosso vendedor:\n\n` +
             `📲 *WhatsApp: (51) 99614-8568*\n\n` +
             `━━━━━━━━━━━━━━━━━━\n` +
-            `✅ *O QUE ACONTECE APÓS O FECHAMENTO:*\n` +
+            `✅ *APÓS O FECHAMENTO:*\n` +
             `━━━━━━━━━━━━━━━━━━\n` +
-            `📦 Seu pedido será *processado imediatamente*\n` +
-            `🏷️ O *código de rastreamento* será enviado para você *no mesmo dia*\n` +
-            `🎁 Seu pacote será *totalmente embalado com segurança*, independente do tamanho ou quantidade dos itens\n` +
-            `🚚 Você poderá acompanhar cada etapa da entrega em tempo real\n\n` +
+            `🏷️ Código de rastreamento enviado *no mesmo dia*\n` +
+            `🎁 Pacote *100% embalado e seguro*, independente do tamanho ou quantidade\n` +
+            `� Acompanhe cada etapa da entrega em tempo real\n\n` +
             `━━━━━━━━━━━━━━━━━━\n` +
-            `Trabalhamos com *total comprometimento* para garantir que seu pedido chegue com segurança e no prazo. Não perca tempo — finalize agora e garanta sua entrega! 💪\n\n` +
+            `📌 *INFORMAÇÃO IMPORTANTE SOBRE A ENTREGA*\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `A transportadora responsável pela entrega opera sob o nome *Loggi*, que é um *nome fictício utilizado exclusivamente para fins logísticos*.\n\n` +
+            `Esse procedimento é adotado para garantir que o seu pacote *transite sem nenhum tipo de problema ou retenção*, protegendo tanto o comprador quanto o vendedor durante todo o processo de envio.\n\n` +
+            `✔️ Isso é uma prática *completamente normal e segura* no nosso modelo de operação — sua encomenda chegará normalmente, sem qualquer complicação.\n\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `Conte conosco! Estamos aqui para garantir a melhor experiência de compra para você. 💪\n\n` +
             `_Loggi — Rastreamento Inteligente_ 🚚`;
 
         // Enviar via bot
