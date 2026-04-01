@@ -242,8 +242,46 @@ router.post('/pedidos-pendentes/:id/aprovar', async (req, res) => {
         const { codigo_rastreio } = req.body;
         if (!codigo_rastreio) return res.status(400).json({ error: 'Código de rastreio é obrigatório' });
 
+        // Buscar dados do pedido antes de aprovar
+        const [rows] = await db.query("SELECT * FROM pedidos WHERE id = ?", [id]);
+        if (rows.length === 0) return res.status(404).json({ error: 'Pedido não encontrado' });
+        const pedido = rows[0];
+
         await db.query("UPDATE pedidos SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?", [codigo_rastreio, id]);
         res.json({ success: true, message: 'Pedido aprovado!' });
+
+        // Enviar WhatsApp ao cliente com código e link de rastreamento
+        try {
+            const bot = global._bot;
+            const phone = String(pedido.telefone).replace(/\D/g, '');
+            if (bot && bot.isReady && bot.sendWhatsAppMessage && phone.length >= 10) {
+                const primeiroNome = (pedido.nome || 'Cliente').split(' ')[0];
+                const siteUrl = process.env.SITE_URL || 'https://loggiexpress.site';
+                const linkRastreio = `${siteUrl}/#/rastreio/${codigo_rastreio}`;
+
+                const msg =
+                    `Olá, *${primeiroNome}*! 🎉\n\n` +
+                    `Ótimas notícias! Seu pedido foi *aprovado* e já está em processamento.\n\n` +
+                    `━━━━━━━━━━━━━━━━━━\n` +
+                    `📦 *CÓDIGO DE RASTREIO*\n` +
+                    `━━━━━━━━━━━━━━━━━━\n` +
+                    `*${codigo_rastreio}*\n\n` +
+                    `🔍 *Acompanhe sua entrega em tempo real:*\n` +
+                    `${linkRastreio}\n\n` +
+                    `━━━━━━━━━━━━━━━━━━\n` +
+                    `📍 *Endereço de entrega:*\n` +
+                    `${pedido.rua}, ${pedido.numero}${pedido.complemento ? ' - ' + pedido.complemento : ''}\n` +
+                    `${pedido.bairro}, ${pedido.cidade}/${pedido.estado}\n\n` +
+                    `Qualquer dúvida, fale com nosso atendimento:\n` +
+                    `📲 *WhatsApp: (51) 99614-8568*\n\n` +
+                    `_Loggi — Rastreamento Inteligente_ 🚚`;
+
+                await bot.sendWhatsAppMessage(phone, msg);
+                console.log(`[APROVAR WA] Mensagem enviada para ${phone} (Pedido #${id}, código: ${codigo_rastreio})`);
+            }
+        } catch (waErr) {
+            console.error('[APROVAR WA ERROR]', waErr.message);
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
