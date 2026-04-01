@@ -869,6 +869,15 @@ let connectionStartTime = null;
 let disconnectTimestamps = [];  // Para detectar loop de desconexão
 let isInLoopState = false;      // Flag de loop detectado
 let isReconnecting = false;     // Flag para evitar reconexões simultâneas
+let pairingLockUntil = 0;       // Timestamp até quando reconexão está bloqueada (pareamento)
+
+// Bloquear reconexão por 2 minutos para estabilizar durante pareamento por código
+export function lockForPairing() {
+  pairingLockUntil = Date.now() + 2 * 60 * 1000;
+  log.info('[PAIRING] Reconexão automática bloqueada por 2min para pareamento por código.');
+  // Auto-liberar após 2 minutos
+  setTimeout(() => { pairingLockUntil = 0; }, 2 * 60 * 1000);
+}
 
 // ===== CUSTOM SIMPLE STORE =====
 // Store de mensagens para o Baileys
@@ -1343,6 +1352,13 @@ function calculateReconnectDelay() {
 }
 
 async function reconnect(reason = 'Desconhecido') {
+  // Bloquear reconexão durante janela de pareamento por código
+  if (Date.now() < pairingLockUntil) {
+    const remaining = Math.ceil((pairingLockUntil - Date.now()) / 1000);
+    log.warn(`[PAIRING] Reconexão bloqueada (${remaining}s restantes). Motivo ignorado: ${reason}`);
+    return;
+  }
+
   // Evitar reconexões simultâneas
   if (isReconnecting) {
     log.warn(`Reconexão já em andamento, ignorando nova solicitação: ${reason}`);

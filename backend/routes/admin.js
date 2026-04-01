@@ -44,20 +44,46 @@ router.get('/bot/qr', async (req, res) => {
 router.post('/bot/pair', async (req, res) => {
     const bot = global._bot;
     if (!bot) return res.json({ success: false, message: 'Bot não inicializado' });
-    if (!bot.sock) return res.json({ success: false, message: 'Socket do bot não disponível. Aguarde o bot inicializar e tente novamente.' });
 
     let { phone } = req.body;
     if (!phone) return res.json({ success: false, message: 'Número de telefone obrigatório' });
 
-    // Limpar e formatar: só dígitos, com 55 se necessário
+    // Formatar: só dígitos, adicionar 55 se necessário
     phone = String(phone).replace(/\D/g, '');
-    if (!phone.startsWith('55')) phone = '55' + phone;
+    // Se já tem 55 no início e tem 13 dígitos (55 + DDD + 9 dígitos), está correto
+    // Se tem 11 dígitos (DDD + número), adicionar 55
+    if (phone.startsWith('55') && phone.length >= 12) {
+        // já tem código do país
+    } else {
+        phone = '55' + phone;
+    }
+
+    // Verificar se socket existe e está em estado de não-autenticado (pronto para pairing)
+    const sock = bot.sock;
+    if (!sock) {
+        return res.json({ success: false, message: 'Socket não disponível. Aguarde o bot inicializar (pode levar 10-15s após reiniciar).' });
+    }
+
+    // Bloquear reconexão automática por 2 minutos para manter o socket estável
+    if (bot.lockForPairing) {
+        bot.lockForPairing();
+    }
 
     try {
-        const code = await bot.sock.requestPairingCode(phone);
-        res.json({ success: true, code: code, phone: phone });
+        const code = await sock.requestPairingCode(phone);
+        if (!code) throw new Error('Código vazio retornado');
+        // Formatar o código com hífen para facilitar leitura (XXXX-XXXX)
+        const formatted = code.length === 8 ? code.slice(0, 4) + '-' + code.slice(4) : code;
+        res.json({ success: true, code: formatted, phone: phone });
     } catch (err) {
-        res.json({ success: false, message: 'Erro ao gerar código: ' + err.message });
+        const msg = err.message || '';
+        let userMsg = 'Erro ao gerar código: ' + msg;
+        if (msg.includes('not-authorized') || msg.includes('401')) {
+            userMsg = 'Sessão inválida. Clique em "Forçar Novo QR Code" para reiniciar e tente novamente.';
+        } else if (msg.includes('already') || msg.includes('registered')) {
+            userMsg = 'Este número já está vinculado a uma sessão ativa.';
+        }
+        res.json({ success: false, message: userMsg });
     }
 });
 

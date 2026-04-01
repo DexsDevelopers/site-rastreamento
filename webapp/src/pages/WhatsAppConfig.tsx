@@ -226,12 +226,19 @@ const WhatsAppConfig = () => {
                                 )}
 
                                 {pairCode && (
-                                    <div style={{ marginTop: '14px', textAlign: 'center' }}>
-                                        <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px' }}>Digite este código no WhatsApp → Dispositivos Vinculados → Vincular com número</p>
-                                        <div style={{ background: '#0f172a', border: '2px solid #2563EB', borderRadius: '12px', padding: '14px 20px', display: 'inline-block' }}>
-                                            <span style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '6px', color: '#60a5fa', fontFamily: 'JetBrains Mono, monospace' }}>{pairCode}</span>
+                                    <div style={{ marginTop: '14px' }}>
+                                        <div style={{ background: '#0f172a', border: '2px solid #2563EB', borderRadius: '12px', padding: '16px 20px', textAlign: 'center' }}>
+                                            <span style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '4px', color: '#60a5fa', fontFamily: 'monospace', display: 'block', marginBottom: '8px' }}>{pairCode}</span>
+                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.5', textAlign: 'left' }}>
+                                                <strong style={{ color: '#f0f0f0' }}>Como usar:</strong><br />
+                                                1. Abra o WhatsApp no celular<br />
+                                                2. Vá em <strong>⋮ → Dispositivos vinculados</strong><br />
+                                                3. Toque em <strong>"Vincular dispositivo"</strong><br />
+                                                4. Toque em <strong>"Vincular com número"</strong><br />
+                                                5. Digite o código acima<br />
+                                                <span style={{ color: '#f59e0b', marginTop: '6px', display: 'block' }}>⏱ Expira em ~60s — não feche esta tela!</span>
+                                            </div>
                                         </div>
-                                        <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>Expira em ~60 segundos</p>
                                     </div>
                                 )}
                             </div>
