@@ -344,8 +344,37 @@ router.post('/pedidos-pendentes/:id/cobrar', async (req, res) => {
         const [rows] = await db.query("SELECT * FROM pedidos WHERE id = ?", [id]);
         if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pedido não encontrado' });
         const pedido = rows[0];
-        const link = `https://wa.me/55${pedido.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${pedido.nome}, seu pedido está pendente. Entre em contato para finalizar!`)}`;
-        res.json({ success: true, message: 'Link de cobrança gerado!', link });
+
+        const phone = String(pedido.telefone).replace(/\D/g, '');
+        const primeiroNome = (pedido.nome || 'Cliente').split(' ')[0];
+        const msg =
+            `Olá, *${primeiroNome}*! 📦
+
+` +
+            `Vimos que você fez um pedido conosco e ainda está aguardando aprovação.
+
+` +
+            `Nossa equipe está analisando tudo com atenção e em breve você receberá o código de rastreio. 🚚
+
+` +
+            `Qualquer dúvida, é só falar:
+` +
+            `📲 *WhatsApp: (51) 99614-8568*
+
+` +
+            `_Loggi — Rastreamento Inteligente_ 🚚`;
+
+        // Tentar enviar via bot primeiro
+        const bot = global._bot;
+        if (bot && bot.isReady && bot.sendWhatsAppMessage && phone.length >= 10) {
+            await bot.sendWhatsAppMessage(phone, msg);
+            console.log(`[COBRAR WA] Mensagem enviada para ${phone} (Pedido #${id})`);
+            return res.json({ success: true, message: `Mensagem enviada para ${pedido.nome}!`, via: 'bot' });
+        }
+
+        // Fallback: link wa.me para o admin enviar manualmente
+        const link = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
+        res.json({ success: true, message: 'Bot offline — abrir WhatsApp manualmente', link, via: 'link' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

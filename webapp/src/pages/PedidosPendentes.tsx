@@ -90,8 +90,12 @@ const PedidosPendentes = () => {
             const res = await axios.post(`/api/admin/pedidos-pendentes/${id}/cobrar`);
             if (res.data.success) {
                 showToast(res.data.message, 'success');
+                // Se bot offline, abrir link wa.me para envio manual
+                if (res.data.via === 'link' && res.data.link) {
+                    window.open(res.data.link, '_blank');
+                }
             } else {
-                showToast(res.data.message, 'error');
+                showToast(res.data.message || 'Erro ao enviar', 'error');
             }
         } catch (err) {
             showToast('Erro ao enviar cobrança', 'error');
