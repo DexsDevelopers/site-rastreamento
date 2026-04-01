@@ -51,14 +51,18 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings, isLoading = fals
 
     const formatDate = (dateStr: string) => {
         try {
+            if (!dateStr) return '—';
             const d = new Date(dateStr);
+            if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '—';
             return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
         } catch { return '—'; }
     };
 
     const formatTime = (dateStr: string) => {
         try {
+            if (!dateStr) return '';
             const d = new Date(dateStr);
+            if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '';
             return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         } catch { return ''; }
     };

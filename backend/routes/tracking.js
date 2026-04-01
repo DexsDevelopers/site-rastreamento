@@ -203,7 +203,7 @@ router.post('/rastreios', async (req, res) => {
         const { codigo, cidade, status_atual, taxa_valor, taxa_pix, tipo_entrega, cliente_nome, cliente_whatsapp } = req.body;
 
         await db.query(
-            'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, cliente_nome, cliente_whatsapp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, taxa_valor, taxa_pix, tipo_entrega, cliente_nome, cliente_whatsapp, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
             [codigo, cidade, status_atual || '📦 Objeto postado', status_atual || '📦 Objeto postado', 'Seu objeto foi postado com sucesso.', taxa_valor, taxa_pix, tipo_entrega || 'NORMAL', cliente_nome || null, cliente_whatsapp || null]
         );
         // [D] Mensagem de boas-vindas ao criar rastreio com WhatsApp
