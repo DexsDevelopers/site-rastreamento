@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
-import { Home, Package, Package2, Users, Settings, Smartphone, LogOut, BarChart3, Database, MessageSquare, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Home, Package, Package2, Users, Smartphone, LogOut, BarChart3, Database, MessageSquare, X, Truck, Zap, Shield } from 'lucide-react';
 import { SYSTEM_VERSION } from '../constants';
 
 interface SidebarProps {
@@ -8,186 +8,163 @@ interface SidebarProps {
     isCollapsed: boolean;
 }
 
+const navGroups = [
+    {
+        label: 'VISÃO GERAL',
+        items: [
+            { to: '/dashboard', icon: Home, label: 'Dashboard' },
+            { to: '/relatorios', icon: BarChart3, label: 'Relatórios' },
+        ]
+    },
+    {
+        label: 'OPERAÇÕES',
+        items: [
+            { to: '/admin', icon: Package2, label: 'Rastreios' },
+            { to: '/pedidos-pendentes', icon: Package, label: 'Pedidos' },
+            { to: '/clientes', icon: Users, label: 'Clientes' },
+            { to: '/entregadores', icon: Truck, label: 'Entregadores' },
+        ]
+    },
+    {
+        label: 'COMUNICAÇÃO',
+        items: [
+            { to: '/whatsapp', icon: Smartphone, label: 'Bot WhatsApp' },
+            { to: '/whatsapp-templates', icon: MessageSquare, label: 'Modelos' },
+        ]
+    },
+    {
+        label: 'SISTEMA',
+        items: [
+            { to: '/status', icon: Database, label: 'Status DB' },
+            { to: '/configuracoes', icon: Shield, label: 'Configurações' },
+        ]
+    },
+];
+
 const Sidebar = ({ mobileOpen, closeMobile, isCollapsed }: SidebarProps) => {
-    const sidebarWidth = isCollapsed ? '0px' : '280px';
+    const navigate = useNavigate();
+    const sidebarWidth = isCollapsed ? '0px' : '260px';
+
+    const handleLogout = () => {
+        localStorage.removeItem('adminToken');
+        navigate('/login');
+    };
 
     return (
-        <aside
-            style={{
-                ...styles.sidebar,
-                width: sidebarWidth,
-                overflow: 'hidden',
-                padding: isCollapsed ? '0' : undefined,
-                margin: isCollapsed ? '0' : '16px 0 16px 16px',
-                border: isCollapsed ? 'none' : '1px solid var(--border-glass)',
-                opacity: isCollapsed ? 0 : 1,
-                visibility: isCollapsed ? 'hidden' as const : 'visible' as const,
-                pointerEvents: isCollapsed ? 'none' as const : 'auto' as const,
-            }}
-            className={`glass-panel admin-sidebar ${mobileOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}
-        >
-            <div style={styles.logoContainer}>
-                <h2 style={styles.logoClass}>
-                    <span className="text-gradient">Loggi</span> Admin
-                </h2>
-                {closeMobile && (
-                    <button
-                        className="mobile-close-btn"
-                        onClick={closeMobile}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-primary)',
-                            padding: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <X size={24} />
-                    </button>
-                )}
-            </div>
+        <>
+            <style>{`
+                .sb-overlay { display:none; }
+                @media (max-width: 900px) {
+                    .admin-sidebar {
+                        position: fixed !important;
+                        top: 0 !important; left: 0 !important;
+                        height: 100vh !important;
+                        margin: 0 !important;
+                        border-radius: 0 20px 20px 0 !important;
+                        z-index: 1000;
+                        transform: translateX(-100%);
+                        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1) !important;
+                        width: 260px !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        pointer-events: auto !important;
+                    }
+                    .admin-sidebar.open {
+                        transform: translateX(0) !important;
+                    }
+                    .sb-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; backdrop-filter: blur(2px); }
+                }
+                .sb-link { display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:10px; color:#94a3b8; text-decoration:none; font-weight:500; font-size:0.875rem; transition:all 0.18s ease; border:1px solid transparent; white-space:nowrap; }
+                .sb-link:hover { background:rgba(255,255,255,0.06); color:#e2e8f0; border-color:rgba(255,255,255,0.07); }
+                .sb-link.active { background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(99,102,241,0.15)); color:#60a5fa; border-color:rgba(59,130,246,0.3); font-weight:600; box-shadow:0 2px 12px rgba(59,130,246,0.15); }
+                .sb-link.active svg { color:#60a5fa; }
+                .sb-link svg { flex-shrink:0; opacity:0.85; }
+                .sb-link:hover svg { opacity:1; }
+                .sb-group-label { font-size:0.65rem; font-weight:700; letter-spacing:0.1em; color:#475569; padding:0 12px; margin:4px 0 2px; text-transform:uppercase; }
+                .sb-logout:hover { background:rgba(239,68,68,0.12) !important; color:#f87171 !important; border-color:rgba(239,68,68,0.2) !important; }
+                .sb-nav::-webkit-scrollbar { width:3px; }
+                .sb-nav::-webkit-scrollbar-track { background:transparent; }
+                .sb-nav::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:10px; }
+            `}</style>
 
-            <nav style={styles.nav}>
-                <NavLink onClick={closeMobile} title="Dashboard" to="/dashboard" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Home size={20} />
-                    <span>Dashboard</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Status DB" to="/status" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Database size={20} />
-                    <span>Status DB</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Rastreios" to="/admin" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Package2 size={20} />
-                    <span>Rastreios</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Pedidos" to="/pedidos-pendentes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Package size={20} />
-                    <span>Pedidos</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Clientes" to="/clientes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Users size={20} />
-                    <span>Clientes</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Entregadores" to="/entregadores" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Users size={20} />
-                    <span>Entregadores</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Bot WhatsApp" to="/whatsapp" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Smartphone size={20} />
-                    <span>Bot WhatsApp</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Modelos" to="/whatsapp-templates" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <MessageSquare size={20} />
-                    <span>Modelos</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Relatórios" to="/relatorios" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <BarChart3 size={20} />
-                    <span>Relatórios</span>
-                </NavLink>
-                <NavLink onClick={closeMobile} title="Configurações" to="/configuracoes" style={({ isActive }) => isActive ? { ...styles.link, ...styles.linkActive } : styles.link}>
-                    <Settings size={20} />
-                    <span>Configurações</span>
-                </NavLink>
-            </nav>
+            {mobileOpen && <div className="sb-overlay" onClick={closeMobile} />}
 
-            <div style={styles.footer}>
-                <button style={styles.logoutBtn} title="Sair">
-                    <LogOut size={20} />
-                    <span>Sair do Sistema</span>
-                </button>
-                <div style={{
-                    marginTop: '12px',
-                    paddingTop: '12px',
-                    borderTop: '1px solid rgba(0,0,0,0.03)',
-                    textAlign: 'center',
-                    fontSize: '0.7rem',
-                    color: 'var(--text-muted)',
-                    opacity: 0.8
-                }}>
-                    Versão do Sistema: {SYSTEM_VERSION}
+            <aside
+                className={`admin-sidebar ${mobileOpen ? 'open' : ''}`}
+                style={{
+                    width: sidebarWidth,
+                    flexShrink: 0,
+                    height: 'calc(100vh - 24px)',
+                    margin: '12px 0 12px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'linear-gradient(180deg, #0f172a 0%, #0d1424 60%, #0a0f1e 100%)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+                    overflow: 'hidden',
+                    transition: 'width 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.3s, margin 0.35s',
+                    opacity: isCollapsed ? 0 : 1,
+                    visibility: isCollapsed ? 'hidden' : 'visible',
+                    pointerEvents: isCollapsed ? 'none' : 'auto',
+                    position: 'relative',
+                }}
+            >
+                {/* Logo */}
+                <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #3b82f6, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(59,130,246,0.4)', flexShrink: 0 }}>
+                            <Zap size={18} color="#fff" />
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f1f5f9', letterSpacing: '-0.02em', lineHeight: 1.1 }}>LOGGI</div>
+                            <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Admin Panel</div>
+                        </div>
+                    </div>
+                    {closeMobile && (
+                        <button onClick={closeMobile} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8' }}>
+                            <X size={16} />
+                        </button>
+                    )}
                 </div>
-            </div>
-        </aside>
-    );
-};
 
-const styles = {
-    sidebar: {
-        width: '280px',
-        flexShrink: 0,
-        height: 'calc(100vh - 32px)',
-        margin: '16px 0 16px 16px',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        border: '1px solid var(--border-glass)',
-        background: 'rgba(255, 255, 255, 0.75)',
-        backdropFilter: 'blur(24px)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: '0 8px 32px rgba(0,40,120,0.08)',
-        transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-        position: 'relative' as const,
-    },
-    logoContainer: {
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border-glass)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '64px', // Match header height
-    },
-    logoClass: {
-        margin: 0,
-        fontSize: '1.5rem',
-    },
-    nav: {
-        flex: 1,
-        minHeight: 0,
-        padding: '16px 14px',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        gap: '4px',
-        overflowY: 'auto' as const,
-    },
-    link: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '10px 14px',
-        borderRadius: '8px',
-        color: 'var(--text-secondary)',
-        textDecoration: 'none',
-        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        fontWeight: 500,
-        fontSize: '0.95rem',
-        borderLeft: '3px solid transparent',
-        justifyContent: 'center' as const,
-        minHeight: '44px',
-    },
-    linkActive: {
-        background: 'linear-gradient(90deg, rgba(0, 85, 255, 0.08) 0%, transparent 100%)',
-        color: '#0055ff',
-        borderLeft: '3px solid #0055ff',
-        fontWeight: 600,
-    },
-    footer: {
-        padding: '24px',
-        borderTop: '1px solid var(--border-glass)',
-    },
-    logoutBtn: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        background: 'transparent',
-        border: 'none',
-        color: 'var(--danger)',
-        cursor: 'pointer',
-        width: '100%',
-        padding: '12px',
-        borderRadius: 'var(--radius-md)',
-        transition: 'background 0.3s',
-        fontWeight: 500,
-        fontSize: '1rem',
-    }
+                {/* Nav */}
+                <nav className="sb-nav" style={{ flex: 1, overflowY: 'auto', padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    {navGroups.map(group => (
+                        <div key={group.label} style={{ marginBottom: '6px' }}>
+                            <div className="sb-group-label">{group.label}</div>
+                            {group.items.map(({ to, icon: Icon, label }) => (
+                                <NavLink
+                                    key={to}
+                                    to={to}
+                                    onClick={closeMobile}
+                                    className={({ isActive }) => `sb-link${isActive ? ' active' : ''}`}
+                                >
+                                    <Icon size={17} />
+                                    <span>{label}</span>
+                                </NavLink>
+                            ))}
+                        </div>
+                    ))}
+                </nav>
+
+                {/* Footer */}
+                <div style={{ padding: '12px 10px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <button
+                        onClick={handleLogout}
+                        className="sb-link sb-logout"
+                        style={{ width: '100%', background: 'transparent', border: '1px solid transparent', cursor: 'pointer', color: '#ef4444' }}
+                    >
+                        <LogOut size={17} />
+                        <span>Sair do Sistema</span>
+                    </button>
+                    <div style={{ marginTop: '10px', textAlign: 'center', fontSize: '0.62rem', color: '#334155', fontWeight: 500, letterSpacing: '0.05em' }}>
+                        v{SYSTEM_VERSION}
+                    </div>
+                </div>
+            </aside>
+        </>
+    );
 };
 
 export default Sidebar;
