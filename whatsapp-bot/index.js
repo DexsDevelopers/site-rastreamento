@@ -972,11 +972,15 @@ const simpleStore = {
 // Usar process.cwd() para garantir que todos os processos (backend e bot)
 // resolvam o mesmo caminho absoluto, independente de onde o arquivo está.
 const baseDir = process.cwd();
-// Usar WHATSAPP_AUTH_PATH se definido (caminho persistente fora do repo git na Hostinger)
-// Isso evita que git clean durante o deploy apague a sessão do WhatsApp
+// Determinar caminho persistente para a sessão do WhatsApp
+// Prioridade: 1) WHATSAPP_AUTH_PATH env var  2) HOME dir do Linux (Hostinger)  3) pasta local
+const _homeDir = process.env.HOME || process.env.USERPROFILE || '';
+const _isLinuxHosting = _homeDir.startsWith('/home/');
 export let authPath = process.env.WHATSAPP_AUTH_PATH
   ? path.resolve(process.env.WHATSAPP_AUTH_PATH)
-  : path.resolve(baseDir, 'whatsapp-bot', 'auth');
+  : _isLinuxHosting
+    ? path.join(_homeDir, 'whatsapp_auth')
+    : path.resolve(baseDir, 'whatsapp-bot', 'auth');
 
 console.log(`[INIT] Caminho de autenticação pretendido: ${authPath}`);
 
