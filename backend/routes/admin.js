@@ -217,41 +217,58 @@ router.post('/db-setup', async (req, res) => {
     }
 });
 
-// Debug: ver estado da automação para cada código
+// Debug: forçar automação e mostrar resultado detalhado
 router.get('/debug-automation', async (req, res) => {
     const db = getDB();
     try {
         if (!db) return res.json({ error: 'DB offline' });
+        const { processAutomation } = require('./tracking');
         const [codigos] = await db.query('SELECT DISTINCT codigo FROM rastreios_status');
         const results = [];
+
         for (const { codigo } of codigos) {
-            const [rows] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC', [codigo]);
-            const first = rows[0];
+            // Ler estado ANTES da automação
+            const [rowsBefore] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC', [codigo]);
+            const first = rowsBefore[0];
             const firstDate = (first && first.data) ? new Date(first.data) : null;
             const isValidDate = firstDate && !isNaN(firstDate.getTime());
             const now = new Date();
             const diffMs = isValidDate ? now.getTime() - firstDate.getTime() : null;
             const diffDays = diffMs !== null ? Math.floor(diffMs / (1000 * 60 * 60 * 24)) : null;
             const diffHours = diffMs !== null ? (diffMs / (1000 * 60 * 60)).toFixed(1) : null;
+            const statusAntes = rowsBefore.map(r => r.status_atual);
+
+            // Rodar automação
+            let autoError = null;
+            let autoResult = null;
+            try {
+                autoResult = await processAutomation(codigo, db);
+            } catch (e) {
+                autoError = e.message;
+            }
+
+            // Ler estado DEPOIS
+            const [rowsAfter] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC', [codigo]);
+            const statusDepois = rowsAfter.map(r => r.status_atual);
+            const novosStatus = statusDepois.filter(s => !statusAntes.includes(s));
+
             results.push({
                 codigo,
-                primeira_data_raw: first?.data ?? 'NULL',
-                primeira_data_parsed: isValidDate ? firstDate.toISOString() : 'INVALIDA',
                 data_valida: isValidDate,
-                agora: now.toISOString(),
+                primeira_data_raw: first?.data ?? 'NULL',
                 diff_horas: diffHours,
                 diff_dias: diffDays,
                 tipo_entrega: first?.tipo_entrega,
-                taxa_paga: first?.taxa_paga,
-                status_existentes: rows.map(r => r.status_atual),
-                deve_adicionar_transito: diffDays >= 1,
-                deve_adicionar_cd: diffDays >= 2,
-                deve_adicionar_taxa: first?.tipo_entrega === 'NORMAL' && diffDays >= 3 && !first?.taxa_paga,
+                status_antes: statusAntes,
+                status_depois: statusDepois,
+                novos_adicionados: novosStatus,
+                auto_updated: autoResult,
+                auto_error: autoError,
             });
         }
         res.json({ now: new Date().toISOString(), total: results.length, codigos: results });
     } catch (err) {
-        res.json({ error: err.message });
+        res.json({ error: err.message, stack: err.stack });
     }
 });
 
