@@ -217,6 +217,42 @@ router.post('/db-setup', async (req, res) => {
     }
 });
 
+// Debug: ver estado da automação para cada código
+router.get('/debug-automation', async (req, res) => {
+    const db = getDB();
+    try {
+        if (!db) return res.json({ error: 'DB offline' });
+        const [codigos] = await db.query('SELECT DISTINCT codigo FROM rastreios_status');
+        const results = [];
+        for (const { codigo } of codigos) {
+            const [rows] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC', [codigo]);
+            const first = rows[0];
+            const firstDate = first ? new Date(first.data) : null;
+            const now = new Date();
+            const diffMs = firstDate ? now.getTime() - firstDate.getTime() : null;
+            const diffDays = diffMs !== null ? Math.floor(diffMs / (1000 * 60 * 60 * 24)) : null;
+            const diffHours = diffMs !== null ? (diffMs / (1000 * 60 * 60)).toFixed(1) : null;
+            results.push({
+                codigo,
+                primeira_data_raw: first?.data,
+                primeira_data_parsed: firstDate?.toISOString(),
+                agora: now.toISOString(),
+                diff_horas: diffHours,
+                diff_dias: diffDays,
+                tipo_entrega: first?.tipo_entrega,
+                taxa_paga: first?.taxa_paga,
+                status_existentes: rows.map(r => r.status_atual),
+                deve_adicionar_transito: diffDays >= 1,
+                deve_adicionar_cd: diffDays >= 2,
+                deve_adicionar_taxa: first?.tipo_entrega === 'NORMAL' && diffDays >= 3 && !first?.taxa_paga,
+            });
+        }
+        res.json({ now: new Date().toISOString(), total: results.length, codigos: results });
+    } catch (err) {
+        res.json({ error: err.message });
+    }
+});
+
 // ===== ENDPOINTS QUE O FRONTEND ESPERA =====
 
 // /api/orders — Retorna rastreios como "pedidos"
