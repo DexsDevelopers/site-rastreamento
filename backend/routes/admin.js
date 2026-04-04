@@ -283,6 +283,25 @@ router.post('/pedidos-pendentes/:id/aprovar', async (req, res) => {
         const pedido = rows[0];
 
         await db.query("UPDATE pedidos SET status = 'aprovado', codigo_rastreio = ? WHERE id = ?", [codigo_rastreio, id]);
+
+        // Criar entrada em rastreios_status para o código aparecer no painel de rastreios
+        const cidadeEntrega = `${pedido.cidade}/${pedido.estado}`;
+        await db.query(
+            `INSERT INTO rastreios_status
+             (codigo, cidade, status_atual, titulo, subtitulo, tipo_entrega, cliente_nome, cliente_whatsapp, data)
+             VALUES (?, ?, ?, ?, ?, 'NORMAL', ?, ?, NOW())`,
+            [
+                codigo_rastreio,
+                cidadeEntrega,
+                '📦 Objeto postado',
+                '📦 Objeto postado',
+                'Seu objeto foi postado e está sendo processado.',
+                pedido.nome || null,
+                pedido.telefone || null
+            ]
+        );
+        console.log(`[APROVAR] Rastreio criado: ${codigo_rastreio} → ${cidadeEntrega}`);
+
         res.json({ success: true, message: 'Pedido aprovado!' });
 
         // Enviar WhatsApp ao cliente com código e link de rastreamento
