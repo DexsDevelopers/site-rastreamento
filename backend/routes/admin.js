@@ -15,14 +15,27 @@ router.get('/bot/status', (req, res) => {
     }
     const isReady = bot.isReady === true;
     const hasQR = !!bot.lastQR;
+    // Tentar pegar estado completo via getBotState se disponível
+    let extra = {};
+    try {
+        if (typeof bot.getBotState === 'function') {
+            const state = bot.getBotState();
+            extra = {
+                number: state.number || state.connectedNumber || null,
+                pushname: state.pushname || state.pushName || null,
+                platform: state.platform || 'WhatsApp Web',
+                uptime: state.uptime || null,
+            };
+        }
+    } catch (_) {}
     res.json({
         success: true,
         status: {
             connected: isReady,
-            uptime: null,
-            number: null,
-            pushname: null,
-            platform: null,
+            number: extra.number || null,
+            pushname: extra.pushname || 'Loggi Bot',
+            platform: extra.platform || 'WhatsApp Web',
+            uptime: extra.uptime || null,
             message: isReady ? 'Conectado' : (hasQR ? 'Aguardando scan do QR Code' : 'Conectando ao WhatsApp...')
         }
     });
