@@ -130,7 +130,9 @@ router.post('/bot/reset', async (req, res) => {
         }
 
         // Determinar pasta auth
-        const authDir = bot?.authPath || path.resolve(process.cwd(), 'whatsapp-bot', 'auth');
+        const authDir = (bot?.authPath && typeof bot.authPath === 'string' && bot.authPath.length > 0)
+            ? bot.authPath
+            : path.resolve(process.cwd(), 'whatsapp-bot', 'auth');
 
         // Apagar arquivos de sessão (manter só a pasta)
         if (fs.existsSync(authDir)) {
@@ -147,7 +149,8 @@ router.post('/bot/reset', async (req, res) => {
             setTimeout(() => bot.initWhatsAppBot(null, getDB()), 1500);
         }
 
-        res.json({ success: true, message: 'Sessão apagada! O bot vai gerar um novo QR em segundos.' });
+        const filesCount = fs.existsSync(authDir) ? fs.readdirSync(authDir).length : 0;
+        res.json({ success: true, message: `Sessão apagada! (${filesCount === 0 ? 'pasta limpa' : filesCount + ' arquivo(s) restantes'}) Caminho: ${authDir}. O bot vai gerar um novo QR em segundos.` });
     } catch (err) {
         res.json({ success: false, message: 'Erro ao limpar sessão: ' + err.message });
     }
