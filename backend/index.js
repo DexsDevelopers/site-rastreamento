@@ -221,10 +221,10 @@ async function rodarAutomacoesTodos() {
     }
 }
 
-// Primeira execução após 2 minutos (aguardar DB e bot), depois a cada 1 hora
+// Primeira execução após 2 minutos (aguardar DB e bot), depois a cada 30 minutos
 setTimeout(() => {
     rodarAutomacoesTodos();
-    setInterval(rodarAutomacoesTodos, 60 * 60 * 1000);
+    setInterval(rodarAutomacoesTodos, 30 * 60 * 1000);
 }, 2 * 60 * 1000);
 
 if (process.env.NODE_ENV !== 'production') {

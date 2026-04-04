@@ -226,6 +226,21 @@ router.get('/orders', async (req, res) => {
         if (!db) return res.json([]);
         const [rows] = await db.query('SELECT * FROM rastreios_status ORDER BY data DESC');
         res.json(rows);
+
+        // Disparar automação em background para todos os códigos ativos (não bloqueia resposta)
+        setImmediate(async () => {
+            try {
+                const { processAutomation } = require('./tracking');
+                const [codigos] = await db.query(
+                    `SELECT DISTINCT codigo FROM rastreios_status
+                     WHERE status_atual NOT LIKE '%Entregue%'
+                     AND status_atual NOT LIKE '%retido%'`
+                );
+                for (const { codigo } of codigos) {
+                    try { await processAutomation(codigo, db); } catch (_) {}
+                }
+            } catch (_) {}
+        });
     } catch (error) {
         res.json([]);
     }
