@@ -118,6 +118,14 @@ async function runMigrations() {
             await pool.query('ALTER TABLE pedidos ADD COLUMN observacoes TEXT');
         }
 
+        // Corrigir registros com data NULL (evita crash na automação)
+        const [nullFixed] = await pool.query(
+            "UPDATE rastreios_status SET data = NOW() WHERE data IS NULL OR data = '0000-00-00 00:00:00'"
+        );
+        if (nullFixed.affectedRows > 0) {
+            console.log(`[DB FIX] ${nullFixed.affectedRows} registro(s) com data NULL corrigidos para NOW()`);
+        }
+
         console.log('✅ Migrações concluídas.');
     } catch (err) {
         console.error('❌ Erro nas migrações:', err.message);

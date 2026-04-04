@@ -227,15 +227,17 @@ router.get('/debug-automation', async (req, res) => {
         for (const { codigo } of codigos) {
             const [rows] = await db.query('SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data ASC', [codigo]);
             const first = rows[0];
-            const firstDate = first ? new Date(first.data) : null;
+            const firstDate = (first && first.data) ? new Date(first.data) : null;
+            const isValidDate = firstDate && !isNaN(firstDate.getTime());
             const now = new Date();
-            const diffMs = firstDate ? now.getTime() - firstDate.getTime() : null;
+            const diffMs = isValidDate ? now.getTime() - firstDate.getTime() : null;
             const diffDays = diffMs !== null ? Math.floor(diffMs / (1000 * 60 * 60 * 24)) : null;
             const diffHours = diffMs !== null ? (diffMs / (1000 * 60 * 60)).toFixed(1) : null;
             results.push({
                 codigo,
-                primeira_data_raw: first?.data,
-                primeira_data_parsed: firstDate?.toISOString(),
+                primeira_data_raw: first?.data ?? 'NULL',
+                primeira_data_parsed: isValidDate ? firstDate.toISOString() : 'INVALIDA',
+                data_valida: isValidDate,
                 agora: now.toISOString(),
                 diff_horas: diffHours,
                 diff_dias: diffDays,

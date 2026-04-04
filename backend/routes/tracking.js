@@ -45,7 +45,12 @@ async function processAutomation(codigo, db) {
     if (rows.length === 0) return null;
 
     const packageData = rows[0];
-    const firstStageDate = new Date(packageData.data);
+    const firstStageDate = packageData.data ? new Date(packageData.data) : null;
+    // Se data for nula ou inválida, não é possível calcular automação
+    if (!firstStageDate || isNaN(firstStageDate.getTime())) {
+        console.log(`[AUTOMATION] Skipping ${codigo} - data inválida ou nula`);
+        return null;
+    }
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - firstStageDate.getTime()) / (1000 * 60 * 60 * 24));
     const city = packageData.cidade;
