@@ -103,7 +103,13 @@ const AdminLayout = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => {
+              if (window.innerWidth <= 900) {
+                setMobileMenuOpen(prev => !prev);
+              } else {
+                setIsCollapsed(prev => !prev);
+              }
+            }}
             className="menu-toggle-btn"
             style={{
               background: 'rgba(255,255,255,0.08)',
