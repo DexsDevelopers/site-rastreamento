@@ -157,13 +157,23 @@ router.get('/rastreios', async (req, res) => {
         }
 
         const [rows] = await db.query(`
-            SELECT t1.* 
+            SELECT t1.*
             FROM rastreios_status t1
-            INNER JOIN (
-                SELECT codigo, MAX(id) as max_id 
-                FROM rastreios_status 
-                GROUP BY codigo
-            ) t2 ON t1.id = t2.max_id
+            WHERE t1.id = (
+                SELECT id FROM rastreios_status t2
+                WHERE t2.codigo = t1.codigo
+                ORDER BY
+                    CASE
+                        WHEN t2.status_atual LIKE '%Entregue%' THEN 6
+                        WHEN t2.status_atual LIKE '%saiu%' OR t2.status_atual LIKE '%rota%' THEN 5
+                        WHEN t2.status_atual LIKE '%retido%' THEN 4
+                        WHEN t2.status_atual LIKE '%distribuição%' OR t2.status_atual LIKE '%centro%' THEN 3
+                        WHEN t2.status_atual LIKE '%trânsito%' OR t2.status_atual LIKE '%transito%' THEN 2
+                        ELSE 1
+                    END DESC,
+                    t2.id DESC
+                LIMIT 1
+            )
             ORDER BY t1.data DESC
         `);
         res.json(rows);
