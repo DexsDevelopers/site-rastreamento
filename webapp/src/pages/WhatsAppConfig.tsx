@@ -53,14 +53,14 @@ const WhatsAppConfig = () => {
 
     useEffect(() => {
         fetchStatus();
+        // Quando desconectado: verifica a cada 3s para detectar conexão logo após escanear QR
+        // Quando conectado: verifica a cada 30s
         const interval = setInterval(() => {
-            // Se não estiver conectado, tenta buscar o QR constantemente
             if (status && !status.connected) {
                 fetchQR();
             }
-            // Atualiza status a cada 30s
             fetchStatus();
-        }, 30000);
+        }, status?.connected ? 30000 : 3000);
 
         return () => clearInterval(interval);
     }, [status?.connected]);
