@@ -195,6 +195,68 @@ router.get('/rastreios/:codigo/detalhes', async (req, res) => {
     }
 });
 
+// Notificar cliente via WhatsApp
+router.post('/rastreios/:codigo/notificar', async (req, res) => {
+    const db = getDB();
+    const { codigo } = req.params;
+    const { phone: phoneOverride } = req.body;
+    try {
+        if (!db) throw new Error('DB não conectado');
+
+        // Buscar dados do rastreio
+        const [rows] = await db.query(
+            'SELECT * FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1',
+            [codigo]
+        );
+        if (rows.length === 0) return res.json({ success: false, message: 'Rastreio não encontrado.' });
+        const r = rows[0];
+
+        // Resolver número de telefone
+        let phone = phoneOverride
+            ? String(phoneOverride).replace(/\D/g, '')
+            : r.cliente_whatsapp
+                ? String(r.cliente_whatsapp).replace(/\D/g, '')
+                : null;
+
+        if (!phone || phone.length < 10) {
+            return res.json({ success: false, message: 'Número do cliente não cadastrado neste rastreio. Edite o rastreio e informe o WhatsApp do cliente.' });
+        }
+
+        // Verificar bot
+        const bot = global._bot;
+        if (!bot || !bot.isReady || !bot.sendWhatsAppMessage) {
+            return res.json({ success: false, message: 'Bot desconectado. Acesse Bot WhatsApp no menu e conecte primeiro.' });
+        }
+
+        // Montar mensagem com status atual
+        const siteUrl = process.env.SITE_URL || 'https://palevioletred-crow-490097.hostingersite.com';
+        const link = `${siteUrl}/#/rastreio/${codigo}`;
+        const nomeCliente = r.cliente_nome ? `*${r.cliente_nome.split(' ')[0]}*` : 'cliente';
+
+        const msg =
+            `📦 *Atualização do seu Rastreio*\n\n` +
+            `Olá, ${nomeCliente}! Aqui está a situação atual do seu pedido:\n\n` +
+            `━━━━━━━━━━━━━━━━━━\n` +
+            `🏷️ *Código:* ${codigo}\n` +
+            `📍 *Destino:* ${r.cidade || 'Não informado'}\n` +
+            `📊 *Status atual:* ${r.status_atual || 'Em processamento'}\n` +
+            `━━━━━━━━━━━━━━━━━━\n\n` +
+            `🔍 *Acompanhe em tempo real:*\n` +
+            `${link}\n\n` +
+            `Qualquer dúvida, fale conosco:\n` +
+            `📲 *WhatsApp: (51) 99614-8568*\n\n` +
+            `_Loggi — Rastreamento Inteligente_ 🚚`;
+
+        await bot.sendWhatsAppMessage(phone, msg);
+        console.log(`[NOTIFICAR] Mensagem enviada para ${phone} (${codigo})`);
+        res.json({ success: true, message: `✅ Mensagem enviada para ${phone}!` });
+
+    } catch (err) {
+        console.error('[NOTIFICAR ERROR]', err.message);
+        res.status(500).json({ success: false, message: `Erro: ${err.message}` });
+    }
+});
+
 // Criar
 router.post('/rastreios', async (req, res) => {
     const db = getDB();
