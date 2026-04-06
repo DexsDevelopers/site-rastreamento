@@ -147,6 +147,8 @@ const TrackingPage: React.FC = () => {
                     status: data.status_atual || 'Pendente',
                     tipo_entrega: data.tipo_entrega || 'NORMAL',
                     previsao: previsaoDate.toLocaleDateString('pt-BR'),
+                    cidade: data.cidade || null,
+                    cliente_nome: data.cliente_nome || null,
                     eventos: [...(data.etapas || [])].reverse().map((e: any, i: number) => {
                         // Tentar encontrar o melhor ícone baseado no título ou slug
                         let icon = <Package size={20} />;
@@ -404,6 +406,25 @@ const TrackingPage: React.FC = () => {
                                     >
                                         Regularizar Agora
                                     </button>
+                                </div>
+                            )}
+
+                            {/* Saudação personalizada com nome e cidade */}
+                            {(trackingData.cliente_nome || trackingData.cidade) && (
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    background: 'linear-gradient(135deg, rgba(0,85,255,0.06), rgba(59,130,246,0.04))',
+                                    border: '1px solid rgba(0,85,255,0.12)',
+                                    borderRadius: '14px', padding: '14px 18px',
+                                    marginBottom: '24px'
+                                }}>
+                                    <span style={{ fontSize: '1.5rem' }}>📦</span>
+                                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.4 }}>
+                                        {trackingData.cliente_nome
+                                            ? <>Olá, <strong style={{ color: '#0055ff' }}>{trackingData.cliente_nome.split(' ')[0]}</strong>! Seu pedido{trackingData.cidade ? <> com destino a <strong style={{ color: '#0055ff' }}>{trackingData.cidade}</strong></> : ''} está sendo monitorado.</>
+                                            : <>Seu pedido com destino a <strong style={{ color: '#0055ff' }}>{trackingData.cidade}</strong> está sendo monitorado.</>
+                                        }
+                                    </p>
                                 </div>
                             )}
 

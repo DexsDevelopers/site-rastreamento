@@ -481,6 +481,8 @@ router.post(['/publico', '/consulta', '/rastreio-publico'], async (req, res) => 
             success: true,
             codigo: lastStatus.codigo,
             status_atual: lastStatus.status_atual,
+            cidade: packageData.cidade || null,
+            cliente_nome: packageData.cliente_nome || null,
             etapas: currentRows.map(r => ({
                 titulo: r.titulo || r.status_atual,
                 subtitulo: r.subtitulo || '',
