@@ -304,8 +304,8 @@ const Pedido: React.FC = () => {
                         </div>
                         <div className="pd-row">
                             <div className="pd-field">
-                                <label className="pd-label">CPF *</label>
-                                <input className="pd-input" name="cpf" placeholder="000.000.000-00" value={form.cpf} onChange={handleChange} required />
+                                <label className="pd-label">CPF <span style={{ color: '#94a3b8', fontWeight: 500 }}>(opcional)</span></label>
+                                <input className="pd-input" name="cpf" placeholder="000.000.000-00" value={form.cpf} onChange={handleChange} />
                             </div>
                             <div className="pd-field">
                                 <label className="pd-label">WhatsApp *</label>

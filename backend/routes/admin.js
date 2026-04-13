@@ -519,15 +519,15 @@ router.post('/pedidos', async (req, res) => {
         const { nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes } = req.body;
 
         // Validação básica
-        if (!nome || !cpf || !telefone || !cep || !estado || !cidade || !bairro || !rua || !numero) {
+        if (!nome || !telefone || !cep || !estado || !cidade || !bairro || !rua || !numero) {
             return res.status(400).json({ success: false, message: 'Dados obrigatórios faltando' });
         }
 
         const [result] = await db.query(
-            `INSERT INTO pedidos 
+            `INSERT INTO pedidos
             (nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')`,
-            [nome, cpf, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes]
+            [nome, cpf || null, telefone, email, cep, estado, cidade, bairro, rua, numero, complemento, observacoes]
         );
 
         res.json({ success: true, message: 'Pedido enviado com sucesso!', id: result.insertId });
