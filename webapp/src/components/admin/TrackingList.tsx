@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Copy, Edit, MessageCircle, Trash2, MapPin, Check, Clock, Package, Truck, CheckCircle2, AlertTriangle, SearchX, Link2 } from 'lucide-react';
+import { Eye, Copy, Edit, MessageCircle, Trash2, MapPin, Check, Clock, Package, Truck, CheckCircle2, AlertTriangle, SearchX, Link2, CheckCheck } from 'lucide-react';
 
 interface Tracking {
     id: number;
@@ -17,10 +17,11 @@ interface TrackingListProps {
     onCopy: (code: string) => void;
     onEdit: (code: string) => void;
     onNotify: (code: string) => void;
+    onMarkPaid: (code: string) => void;
     onDelete: (code: string) => void;
 }
 
-const TrackingList: React.FC<TrackingListProps> = ({ trackings, isLoading = false, onView, onCopy, onEdit, onNotify, onDelete }) => {
+const TrackingList: React.FC<TrackingListProps> = ({ trackings, isLoading = false, onView, onCopy, onEdit, onNotify, onMarkPaid, onDelete }) => {
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
@@ -207,6 +208,12 @@ const TrackingList: React.FC<TrackingListProps> = ({ trackings, isLoading = fals
                                         <MessageCircle size={16} />
                                         <span className="tl-tooltip">Notificar Whatsapp</span>
                                     </button>
+                                    {t.taxa_valor && Number(t.taxa_valor) > 0 && (
+                                        <button onClick={() => onMarkPaid(t.codigo)} className="tl-action-btn tl-tooltip-wrap" aria-label="Marcar como Pago" style={{ color: '#10b981' }}>
+                                            <CheckCheck size={16} />
+                                            <span className="tl-tooltip">Marcar Taxa como Paga</span>
+                                        </button>
+                                    )}
                                     <div className="tl-divider"></div>
                                     <button onClick={() => onDelete(t.codigo)} className="tl-action-btn danger tl-tooltip-wrap" aria-label="Excluir">
                                         <Trash2 size={16} />

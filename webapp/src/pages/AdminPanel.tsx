@@ -177,6 +177,21 @@ const AdminPanel: React.FC = () => {
         }
     };
 
+    const handleMarcarPago = async (codigo: string) => {
+        if (!window.confirm(`Marcar taxa do rastreio ${codigo} como paga?\n\nIsso irá liberar o objeto e inserir a etapa "Saiu para entrega".`)) return;
+        try {
+            const res = await axios.post(`/api/admin/rastreios/${encodeURIComponent(codigo)}/marcar-pago`);
+            if (res.data.success) {
+                alert(`✅ ${res.data.message}`);
+                fetchData();
+            } else {
+                alert(`❌ ${res.data.message}`);
+            }
+        } catch (err) {
+            alert('Erro ao marcar como pago.');
+        }
+    };
+
     const handleDelete = async (codigo: string) => {
         if (!window.confirm(`Excluir rastreio ${codigo}?`)) return;
         try {
@@ -328,6 +343,7 @@ const AdminPanel: React.FC = () => {
                         }}
                         onEdit={handleEditDetails}
                         onNotify={enviarWhatsappBot}
+                        onMarkPaid={handleMarcarPago}
                         onDelete={handleDelete}
                     />
                 </div>

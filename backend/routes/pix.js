@@ -5,6 +5,7 @@ const axios = require('axios');
 
 const PIXGHOST_API_URL = process.env.PIXGHOST_API_URL || 'https://pixghost.site/api.php';
 const PIXGHOST_API_KEY = process.env.PIXGHOST_API_KEY || '';
+const SITE_URL = process.env.SITE_URL || '';
 
 // Cache em memória: pix_id -> { codigo, amount, paid, created_at }
 const pixPayments = new Map();
@@ -27,8 +28,11 @@ router.post('/create', async (req, res) => {
         const { amount, description, codigo } = req.body;
         const finalAmount = parseFloat(amount) || 29.90;
 
+        const webhookUrl = SITE_URL ? `${SITE_URL}/api/pix/webhook` : null;
+
         const response = await axios.post(PIXGHOST_API_URL, {
-            amount: finalAmount
+            amount: finalAmount,
+            ...(webhookUrl && { webhook_url: webhookUrl, callback_url: webhookUrl })
         }, {
             headers: {
                 'Authorization': `Bearer ${PIXGHOST_API_KEY}`,
@@ -81,9 +85,28 @@ router.get('/status/:id', async (req, res) => {
         const { id } = req.params;
         const codigo = req.query.codigo?.toUpperCase().trim();
 
-        // Verificar no cache se o webhook já marcou como pago
+        // 1. Verificar no cache se o webhook já marcou como pago
         const cached = pixPayments.get(String(id));
-        const isPaid = cached?.paid === true;
+        let isPaid = cached?.paid === true;
+
+        // 2. Se não está pago no cache, consultar PixGhost diretamente
+        if (!isPaid) {
+            try {
+                const statusRes = await axios.get(`${PIXGHOST_API_URL}?pix_id=${id}`, {
+                    headers: { 'Authorization': `Bearer ${PIXGHOST_API_KEY}` },
+                    timeout: 8000
+                });
+                const sd = statusRes.data;
+                const remoteStatus = (sd?.status || '').toLowerCase();
+                if (sd?.success && (remoteStatus === 'paid' || remoteStatus === 'confirmed' || remoteStatus === 'completed')) {
+                    isPaid = true;
+                    if (cached) cached.paid = true;
+                    console.log(`[PIXGHOST STATUS] Pagamento ${id} confirmado via consulta direta.`);
+                }
+            } catch (statusErr) {
+                // Fallback silencioso — API pode não suportar este endpoint
+            }
+        }
 
         if (isPaid && codigo && db) {
             await markAsPaid(db, codigo);

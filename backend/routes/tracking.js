@@ -182,6 +182,47 @@ router.get('/rastreios', async (req, res) => {
     }
 });
 
+// Função: marcar rastreio como pago e inserir etapa de entrega
+async function markAsPaidTracking(db, codigo) {
+    const cleanCodigo = codigo.toUpperCase().trim();
+    const [existing] = await db.query(
+        "SELECT id FROM rastreios_status WHERE codigo = ? AND titulo LIKE '%saiu para entrega%'",
+        [cleanCodigo]
+    );
+    if (existing.length > 0) return; // já foi processado
+
+    const [rows] = await db.query("SELECT cidade, tipo_entrega FROM rastreios_status WHERE codigo = ? LIMIT 1", [cleanCodigo]);
+    const cidade = rows.length > 0 ? rows[0].cidade : 'Centro de Distribuição';
+    const tipoEntrega = rows.length > 0 ? rows[0].tipo_entrega : 'NORMAL';
+
+    await db.query(
+        "UPDATE rastreios_status SET taxa_valor = NULL, taxa_pix = NULL, taxa_paga = TRUE WHERE codigo = ?",
+        [cleanCodigo]
+    );
+    await db.query(
+        "INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, data, cor, tipo_entrega, taxa_paga) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, TRUE)",
+        [cleanCodigo, cidade, '🚀 Objeto saiu para entrega', '🚀 Objeto saiu para entrega',
+         'Pagamento confirmado! Seu pacote foi liberado e está em rota de entrega.', '#2563EB', tipoEntrega]
+    );
+    console.log(`[ADMIN] Taxa marcada manualmente como paga para: ${cleanCodigo}`);
+}
+
+// Marcar taxa como paga manualmente (Admin)
+router.post('/rastreios/:codigo/marcar-pago', async (req, res) => {
+    const db = getDB();
+    const codigo = decodeURIComponent(req.params.codigo);
+    try {
+        if (!db) throw new Error('Banco de dados não disponível');
+        const [rows] = await db.query('SELECT id FROM rastreios_status WHERE codigo = ? LIMIT 1', [codigo]);
+        if (rows.length === 0) return res.status(404).json({ success: false, message: 'Rastreio não encontrado' });
+
+        await markAsPaidTracking(db, codigo);
+        res.json({ success: true, message: 'Taxa marcada como paga e objeto liberado.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Detalhes (Admin)
 router.get('/rastreios/:codigo/detalhes', async (req, res) => {
     const db = getDB();
