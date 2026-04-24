@@ -251,9 +251,15 @@ const TrackingModals: React.FC<TrackingModalsProps> = (props) => {
             <Modal open={modalEdit} onClose={() => setModalEdit(false)} title="Editar Rastreio" icon={<Edit size={20} color="#F59E0B" />}>
                 {editData && (
                     <form onSubmit={handleEdit} className="saas-form">
-                        <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.2)', marginBottom: '4px' }}>
-                            <span className="saas-label" style={{ color: '#60a5fa' }}>Código do Objeto</span>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace', wordBreak: 'break-word' }}>{editData.codigo}</div>
+                        <div className="saas-field">
+                            <label className="saas-label" style={{ color: '#60a5fa' }}>Código do Objeto</label>
+                            <input
+                                className="saas-input"
+                                value={editData.novo_codigo !== undefined ? editData.novo_codigo : editData.codigo}
+                                onChange={e => setEditData((p: any) => p ? ({ ...p, novo_codigo: e.target.value.toUpperCase() }) : p)}
+                                style={{ fontFamily: 'JetBrains Mono, monospace', letterSpacing: '1px', borderColor: 'rgba(37,99,235,0.4)' }}
+                                placeholder="Ex: AA123456789BR"
+                            />
                         </div>
 
                         <div className="responsive-grid">

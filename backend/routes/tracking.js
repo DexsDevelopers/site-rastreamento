@@ -361,30 +361,31 @@ router.post('/rastreios/:codigo/notificar', async (req, res) => {
 router.put('/rastreios/:codigo', async (req, res) => {
     const db = getDB();
     const { codigo } = req.params;
-    const { cidade, taxa_valor, taxa_pix, tipo_entrega, etapas, cliente_nome, cliente_whatsapp } = req.body;
+    const { novo_codigo, cidade, taxa_valor, taxa_pix, tipo_entrega, etapas, cliente_nome, cliente_whatsapp } = req.body;
+    const codigoFinal = (novo_codigo && novo_codigo.trim() && novo_codigo.trim() !== codigo) ? novo_codigo.trim().toUpperCase() : codigo;
     try {
         if (!db) throw new Error('Banco de dados não disponível');
 
         await db.query(
-            'UPDATE rastreios_status SET cidade = ?, taxa_valor = ?, taxa_pix = ?, tipo_entrega = ?, cliente_nome = ?, cliente_whatsapp = ? WHERE codigo = ?',
-            [cidade, taxa_valor, taxa_pix, tipo_entrega, cliente_nome ?? null, cliente_whatsapp ?? null, codigo]
+            'UPDATE rastreios_status SET codigo = ?, cidade = ?, taxa_valor = ?, taxa_pix = ?, tipo_entrega = ?, cliente_nome = ?, cliente_whatsapp = ? WHERE codigo = ?',
+            [codigoFinal, cidade, taxa_valor, taxa_pix, tipo_entrega, cliente_nome ?? null, cliente_whatsapp ?? null, codigo]
         );
 
         if (Array.isArray(etapas)) {
-            const [existingRows] = await db.query('SELECT status_atual FROM rastreios_status WHERE codigo = ?', [codigo]);
+            const [existingRows] = await db.query('SELECT status_atual FROM rastreios_status WHERE codigo = ?', [codigoFinal]);
             const existingStatuses = existingRows.map(r => r.status_atual);
 
             for (const status of etapas) {
                 if (!existingStatuses.includes(status)) {
                     await db.query(
                         'INSERT INTO rastreios_status (codigo, cidade, status_atual, titulo, subtitulo, tipo_entrega) VALUES (?, ?, ?, ?, ?, ?)',
-                        [codigo, cidade, status, status, status, tipo_entrega]
+                        [codigoFinal, cidade, status, status, status, tipo_entrega]
                     );
                 }
             }
             for (const oldStatus of existingStatuses) {
                 if (!etapas.includes(oldStatus)) {
-                    await db.query('DELETE FROM rastreios_status WHERE codigo = ? AND status_atual = ?', [codigo, oldStatus]);
+                    await db.query('DELETE FROM rastreios_status WHERE codigo = ? AND status_atual = ?', [codigoFinal, oldStatus]);
                 }
             }
         }
@@ -392,12 +393,12 @@ router.put('/rastreios/:codigo', async (req, res) => {
         // [A] Auto-notificar cliente sobre atualização de status
         const [latestRows] = await db.query(
             'SELECT status_atual, cidade, cliente_whatsapp FROM rastreios_status WHERE codigo = ? ORDER BY data DESC LIMIT 1',
-            [codigo]
+            [codigoFinal]
         );
         if (latestRows.length && latestRows[0].cliente_whatsapp) {
             const latestStatus = latestRows[0].status_atual;
             const latestCidade = latestRows[0].cidade;
-            await notificarClienteWA(codigo,
+            await notificarClienteWA(codigoFinal,
                 `📦 *Atualização do seu Rastreio*\n\n` +
                 `*Código:* ${codigo}\n` +
                 `*Status:* ${latestStatus}\n` +
