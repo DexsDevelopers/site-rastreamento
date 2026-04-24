@@ -62,7 +62,7 @@ const AdminPanel: React.FC = () => {
 
     const handleEditDetails = async (codigo: string) => {
         try {
-            const res = await axios.get(`/api/admin/rastreios/${codigo}/detalhes`);
+            const res = await axios.get(`/api/admin/rastreios/${encodeURIComponent(codigo)}/detalhes`);
             const d = res.data;
             setEditData({
                 codigo: d.codigo,
@@ -145,7 +145,7 @@ const AdminPanel: React.FC = () => {
         e.preventDefault();
         if (!editData) return;
         try {
-            await axios.put(`/api/admin/rastreios/${editData.codigo}`, editData);
+            await axios.put(`/api/admin/rastreios/${encodeURIComponent(editData.codigo)}`, editData);
             setModalEdit(false);
             fetchData();
         } catch (err) {
@@ -155,7 +155,7 @@ const AdminPanel: React.FC = () => {
 
     const enviarWhatsappBot = async (codigo: string) => {
         try {
-            const res = await axios.post(`/api/admin/rastreios/${codigo}/notificar`);
+            const res = await axios.post(`/api/admin/rastreios/${encodeURIComponent(codigo)}/notificar`);
             if (res.data.success) {
                 alert(`✅ Mensagem enviada com sucesso!\n${res.data.message}`);
             } else {
@@ -164,7 +164,7 @@ const AdminPanel: React.FC = () => {
                     ''
                 );
                 if (phone) {
-                    const res2 = await axios.post(`/api/admin/rastreios/${codigo}/notificar`, { phone });
+                    const res2 = await axios.post(`/api/admin/rastreios/${encodeURIComponent(codigo)}/notificar`, { phone });
                     if (res2.data.success) {
                         alert(`✅ Mensagem enviada!\n${res2.data.message}`);
                     } else {
@@ -180,7 +180,7 @@ const AdminPanel: React.FC = () => {
     const handleDelete = async (codigo: string) => {
         if (!window.confirm(`Excluir rastreio ${codigo}?`)) return;
         try {
-            await axios.delete(`/api/admin/rastreios/${codigo}`);
+            await axios.delete(`/api/admin/rastreios/${encodeURIComponent(codigo)}`);
             fetchData();
         } catch (err) {
             alert('Erro ao deletar');
@@ -189,7 +189,7 @@ const AdminPanel: React.FC = () => {
 
     const handleView = async (codigo: string) => {
         try {
-            const res = await axios.get(`/api/admin/rastreios/${codigo}/detalhes`);
+            const res = await axios.get(`/api/admin/rastreios/${encodeURIComponent(codigo)}/detalhes`);
             setDetailsData(res.data);
             setModalDetails(true);
         } catch (err) {
