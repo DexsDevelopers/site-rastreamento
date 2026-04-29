@@ -1389,8 +1389,13 @@ endif; ?>
                             min="0">
                     </div>
                     <div class="form-group">
-                        <label for="edit_taxa_pix">Chave PIX (opcional)</label>
-                        <input type="text" name="taxa_pix" id="edit_taxa_pix" placeholder="Digite a chave PIX...">
+                        <label for="edit_taxa_pix">Código PIX / EMV (opcional)</label>
+                        <input type="text" name="taxa_pix" id="edit_taxa_pix" placeholder="Gere via PixGhost ou cole manualmente...">
+                        <button type="button" onclick="gerarPixGhost()" id="btn-gerar-pix"
+                            style="margin-top:8px;width:100%;padding:8px 12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <i class="fas fa-bolt"></i> <span id="btn-gerar-pix-text">Gerar PIX via PixGhost</span>
+                        </button>
+                        <small id="gerar-pix-status" style="display:none;margin-top:6px;font-size:.8rem;"></small>
                     </div>
                 </div>
 
@@ -2948,6 +2953,52 @@ endif; ?>
 
     <!-- Código Auto-Increment -->
     <script src="assets/js/codigo-auto-increment.js"></script>
+
+    <script>
+    async function gerarPixGhost() {
+        const codigo = document.getElementById('edit_codigo')?.value?.trim();
+        const valor  = document.getElementById('edit_taxa_valor')?.value?.trim();
+        const btn    = document.getElementById('btn-gerar-pix');
+        const status = document.getElementById('gerar-pix-status');
+        const btnText = document.getElementById('btn-gerar-pix-text');
+
+        if (!codigo) { alert('Abra o modal de um rastreio antes de gerar o PIX.'); return; }
+        if (!valor || parseFloat(valor) < 5) { alert('Informe o Valor da Taxa (mínimo R$ 5,00) antes de gerar.'); return; }
+
+        btn.disabled = true;
+        btnText.textContent = 'Gerando...';
+        status.style.display = 'none';
+
+        try {
+            const fd = new FormData();
+            fd.append('codigo', codigo);
+            fd.append('valor', valor);
+
+            const res  = await fetch('gerar_taxa_pix.php', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('edit_taxa_pix').value = data.pix_code;
+                status.style.color   = '#22c55e';
+                status.textContent   = '✅ PIX gerado! Código preenchido automaticamente.';
+                status.style.display = 'block';
+                btnText.textContent  = 'PIX Gerado ✓';
+            } else {
+                status.style.color   = '#ef4444';
+                status.textContent   = '❌ ' + (data.error || 'Erro desconhecido');
+                status.style.display = 'block';
+                btn.disabled         = false;
+                btnText.textContent  = 'Tentar Novamente';
+            }
+        } catch(e) {
+            status.style.color   = '#ef4444';
+            status.textContent   = '❌ Erro de conexão: ' + e.message;
+            status.style.display = 'block';
+            btn.disabled         = false;
+            btnText.textContent  = 'Gerar PIX via PixGhost';
+        }
+    }
+    </script>
 
 </body>
 

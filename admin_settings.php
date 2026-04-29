@@ -15,6 +15,8 @@ $type = '';
 $currentFee = getDynamicConfig('EXPRESS_FEE_VALUE', getConfig('EXPRESS_FEE_VALUE', 29.90));
 $currentPix = getDynamicConfig('EXPRESS_PIX_KEY', getConfig('EXPRESS_PIX_KEY', 'pix@exemplo.com'));
 $pedidoPixKey = getDynamicConfig('PEDIDO_PIX_KEY', '');
+$pixghostApiKey = getDynamicConfig('PIXGHOST_API_KEY', '');
+$siteDomain = getDynamicConfig('SITE_DOMAIN', 'https://transloggi.site');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['salvar_settings_express'])) {
@@ -54,6 +56,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         catch (Exception $e) {
             $message = $e->getMessage();
             $type = 'error';
+        }
+    }
+    elseif (isset($_POST['salvar_pixghost'])) {
+        try {
+            $key    = trim($_POST['pixghost_api_key'] ?? '');
+            $domain = trim($_POST['site_domain'] ?? '');
+            if ($key === '') throw new Exception('API Key é obrigatória.');
+            if ($domain === '') throw new Exception('Domínio do site é obrigatório.');
+            setDynamicConfig('PIXGHOST_API_KEY', $key);
+            setDynamicConfig('SITE_DOMAIN', rtrim($domain, '/'));
+            $pixghostApiKey = $key;
+            $siteDomain     = $domain;
+            $message = "Configurações PixGhost atualizadas!";
+            $type    = 'success';
+        }
+        catch (Exception $e) {
+            $message = $e->getMessage();
+            $type    = 'error';
         }
     }
 }
@@ -143,6 +163,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div style="text-align:right;">
                             <button type="submit" name="salvar_settings_pedido" class="btn btn-primary">Salvar
                                 Configuração</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- PixGhost Integration -->
+                <div class="glass-panel" style="padding: 2rem;">
+                    <h3 style="color: var(--text-main); margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fas fa-bolt" style="color: #7c3aed;"></i> Integração PixGhost
+                    </h3>
+                    <p style="color:#aaa; font-size:.85rem; margin-bottom:1.5rem;">Conecte ao PixGhost para gerar cobranças PIX automaticamente. A API Key fica em <strong>pixghost.site → Dashboard → Configurações → API</strong>.</p>
+                    <form method="POST">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>API Key PixGhost <small>(ghost_...)</small></label>
+                                <input type="text" name="pixghost_api_key" class="form-control" placeholder="ghost_xxxxxxxxxxxx"
+                                    value="<?= htmlspecialchars($pixghostApiKey)?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Domínio deste site</label>
+                                <input type="text" name="site_domain" class="form-control" placeholder="https://transloggi.site"
+                                    value="<?= htmlspecialchars($siteDomain)?>">
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <button type="submit" name="salvar_pixghost" class="btn btn-primary">Salvar Integração</button>
                         </div>
                     </form>
                 </div>

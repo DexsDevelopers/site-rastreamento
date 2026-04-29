@@ -52,61 +52,63 @@ if ($status !== 'paid' && $status !== 'confirmed' && $data['event'] !== 'payment
     exit;
 }
 
-$pixId = $data['pix_id'] ?? $data['transaction_id'] ?? null;
-
-if (!$pixId) {
-    http_response_code(200);
-    echo json_encode(['received' => true, 'action' => 'ignored', 'reason' => 'no pix_id']);
-    exit;
-}
+$pixId     = $data['pix_id'] ?? $data['transaction_id'] ?? null;
+$externalId = trim($data['external_id'] ?? '');
 
 // Conectar ao banco de dados
 try {
     require_once __DIR__ . '/includes/db_connect.php';
 
-    // Buscar rastreio que tem essa taxa_pix pendente (o código PIX EMV gerado)
-    // Quando a automação gera a taxa, ela salva o pix_code no campo taxa_pix
-    // Buscar qualquer rastreio com taxa pendente (taxa_paga = FALSE ou 0) 
-    // que tenha sido criado recentemente
-    $rastreios = fetchData($pdo,
-        "SELECT DISTINCT r1.codigo, r1.cidade, r1.tipo_entrega 
-         FROM rastreios_status r1 
-         WHERE r1.taxa_paga = FALSE 
-           AND r1.taxa_valor IS NOT NULL 
-           AND r1.codigo IN (
-               SELECT DISTINCT codigo FROM rastreios_status 
-               WHERE titulo LIKE '%retido%' 
-               ORDER BY data DESC
-           )
-         GROUP BY r1.codigo
-         ORDER BY r1.data DESC 
-         LIMIT 10"
-    );
+    $rastreioDireto = null;
 
-    // Também tentar buscar pelo pix_id se estiver armazenado no campo taxa_pix
-    $rastreioDireto = fetchOne($pdo,
-        "SELECT DISTINCT codigo, cidade, tipo_entrega 
-         FROM rastreios_status 
-         WHERE taxa_pix LIKE ? AND taxa_paga = FALSE
-         LIMIT 1",
-        ['%' . $pixId . '%']
-    );
+    // 1) Match primário: external_id == codigo (gerado via gerar_taxa_pix.php)
+    if ($externalId) {
+        $rastreioDireto = fetchOne($pdo,
+            "SELECT DISTINCT codigo, cidade, tipo_entrega 
+             FROM rastreios_status 
+             WHERE codigo = ? AND taxa_paga = FALSE AND taxa_valor IS NOT NULL
+             LIMIT 1",
+            [$externalId]
+        );
+        if ($rastreioDireto) {
+            $logMsg = date('Y-m-d H:i:s') . " | MATCH external_id: {$externalId}\n";
+            file_put_contents($logFile, $logMsg, FILE_APPEND | LOCK_EX);
+        }
+    }
+
+    // 2) Fallback legado: taxa_pix contém o pix_id
+    if (!$rastreioDireto && $pixId) {
+        $rastreioDireto = fetchOne($pdo,
+            "SELECT DISTINCT codigo, cidade, tipo_entrega 
+             FROM rastreios_status 
+             WHERE taxa_pix LIKE ? AND taxa_paga = FALSE
+             LIMIT 1",
+            ['%' . $pixId . '%']
+        );
+        if ($rastreioDireto) {
+            $logMsg = date('Y-m-d H:i:s') . " | MATCH legado taxa_pix LIKE pix_id: {$pixId}\n";
+            file_put_contents($logFile, $logMsg, FILE_APPEND | LOCK_EX);
+        }
+    }
 
     $updated = false;
 
     if ($rastreioDireto) {
-        // Match direto pelo pix_id
         $updated = marcarComoPago($pdo, $rastreioDireto['codigo'], $rastreioDireto['cidade'], $rastreioDireto['tipo_entrega']);
-        $logMsg = date('Y-m-d H:i:s') . " | PAGO (direto): {$rastreioDireto['codigo']} | pix_id: {$pixId}\n";
+        $logMsg  = date('Y-m-d H:i:s') . " | PAGO: {$rastreioDireto['codigo']} | external_id={$externalId} pix_id={$pixId}\n";
+        file_put_contents($logFile, $logMsg, FILE_APPEND | LOCK_EX);
+    } else {
+        $logMsg = date('Y-m-d H:i:s') . " | SEM MATCH | external_id={$externalId} pix_id={$pixId}\n";
         file_put_contents($logFile, $logMsg, FILE_APPEND | LOCK_EX);
     }
 
     http_response_code(200);
     echo json_encode([
-        'received' => true,
-        'pix_id' => $pixId,
-        'updated' => $updated,
-        'codigo' => $rastreioDireto ? $rastreioDireto['codigo'] : null
+        'received'    => true,
+        'pix_id'      => $pixId,
+        'external_id' => $externalId,
+        'updated'     => $updated,
+        'codigo'      => $rastreioDireto ? $rastreioDireto['codigo'] : null
     ]);
 
 } catch (Exception $e) {
